@@ -1,0 +1,283 @@
+{
+    "message_received_text": {
+        "id": "evt_live_text",
+        "type": "message.received",
+        "event_id": "msg_live_text",
+        "tenant_id": "tenant_fixture",
+        "created_at": "2026-09-16T05:26:14.000000Z",
+        "data": {
+            "message": {
+                "id": "msg_live_text",
+                "meta": {
+                    "phone_number_id": "phone-number-fixture",
+                    "external_message_id": "wamid.fixture.text"
+                },
+                "text": "summer",
+                "to_id": null,
+                "status": "delivered",
+                "from_id": "15555550100",
+                "read_at": null,
+                "sent_at": null,
+                "platform": "whatsapp",
+                "direction": "inbound",
+                "channel_id": "ch_test123",
+                "contact_id": "contact_fixture",
+                "created_at": "2026-09-16T05:26:14Z",
+                "attachments": null,
+                "external_id": "wamid.fixture.text",
+                "reply_to_id": null,
+                "contact_info": {
+                    "name": "Test Participant",
+                    "phone": "+15555550100",
+                    "whatsapp_bsuid": "JM.fixture-participant",
+                    "whatsapp_username": null,
+                    "whatsapp_parent_bsuid": null
+                },
+                "delivered_at": null,
+                "message_type": "text",
+                "conversation_id": "conversation_fixture",
+                "contact_method_id": "contact-method-fixture",
+                "reply_to_external_id": null
+            },
+            "conversation": {
+                "id": "conversation_fixture",
+                "status": "open",
+                "subject": "WhatsApp: test_template",
+                "channel_id": "ch_test123",
+                "contact_id": "contact_fixture",
+                "created_at": "2026-09-02T16:29:11Z",
+                "bot_session_id": null,
+                "assigned_user_id": null,
+                "last_agent_reply_at": "2026-09-16T05:25:49Z",
+                "last_customer_message_at": "2026-09-16T05:25:47Z"
+            },
+            "contact": {
+                "id": "contact_fixture",
+                "name": "Test Participant",
+                "email": null,
+                "phone": "+15555550100",
+                "source": null,
+                "birthday": null,
+                "languages": null,
+                "last_name": null,
+                "tenant_id": "tenant_fixture",
+                "created_at": "2026-05-16T19:13:34Z",
+                "first_name": null,
+                "updated_at": "2026-05-16T19:33:36Z",
+                "contact_methods": [
+                    {
+                        "id": "phone-method-fixture",
+                        "value": "+15555550100",
+                        "channel_id": null,
+                        "created_at": "2026-05-16T19:13:34Z",
+                        "is_primary": true,
+                        "phone_type": "mobile",
+                        "method_type": "phone",
+                        "display_name": null,
+                        "email_status": null,
+                        "last_used_at": "2026-09-16T05:26:14Z"
+                    },
+                    {
+                        "id": "whatsapp-method-fixture",
+                        "value": "JM.fixture-participant",
+                        "channel_id": "ch_test123",
+                        "created_at": "2026-09-14T04:47:27Z",
+                        "is_primary": true,
+                        "phone_type": null,
+                        "method_type": "whatsapp_bsuid",
+                        "display_name": null,
+                        "email_status": null,
+                        "last_used_at": "2026-09-16T05:26:14Z"
+                    },
+                    {
+                        "id": "contact-method-fixture",
+                        "value": "15555550100",
+                        "channel_id": null,
+                        "created_at": "2026-05-16T19:13:35Z",
+                        "is_primary": false,
+                        "phone_type": null,
+                        "method_type": "whatsapp_id",
+                        "display_name": "Test Participant",
+                        "email_status": null,
+                        "last_used_at": "2026-09-16T05:26:14Z"
+                    }
+                ]
+            },
+            "contact_method": {
+                "id": "contact-method-fixture",
+                "value": "15555550100",
+                "channel_id": null,
+                "created_at": "2026-05-16T19:13:35Z",
+                "is_primary": false,
+                "phone_type": null,
+                "method_type": "whatsapp_id",
+                "display_name": "Test Participant",
+                "email_status": null,
+                "last_used_at": "2026-09-16T05:26:14Z"
+            }
+        }
+    },
+    "message_received_image": {
+        "id": "evt_live_image",
+        "type": "message.received",
+        "event_id": "msg_live_image",
+        "tenant_id": "tenant_fixture",
+        "created_at": "2026-09-16T05:29:42.000000Z",
+        "data": {
+            "message": {
+                "id": "msg_live_image",
+                "meta": {
+                    "phone_number_id": "phone-number-fixture",
+                    "external_message_id": "wamid.fixture.image"
+                },
+                "text": null,
+                "to_id": null,
+                "status": "delivered",
+                "from_id": "15555550100",
+                "read_at": null,
+                "sent_at": null,
+                "platform": "whatsapp",
+                "direction": "inbound",
+                "channel_id": "ch_test123",
+                "contact_id": "contact_fixture",
+                "created_at": "2026-09-16T05:29:42Z",
+                "attachments": [
+                    {
+                        "id": "attachment_fixture",
+                        "url": "https://api.sendseven.test/api/v1/attachments/attachment-fixture/download",
+                        "type": "image",
+                        "filename": "whatsapp_image_fixture.jpg",
+                        "file_size": 128325,
+                        "signed_url": "https://media.example.test/receipt.jpg?signature=fixture",
+                        "content_type": "image/jpeg"
+                    }
+                ],
+                "external_id": "wamid.fixture.image",
+                "reply_to_id": null,
+                "contact_info": {
+                    "name": "Test Participant",
+                    "phone": "+15555550100",
+                    "whatsapp_bsuid": "JM.fixture-participant",
+                    "whatsapp_username": null,
+                    "whatsapp_parent_bsuid": null
+                },
+                "delivered_at": null,
+                "message_type": "image",
+                "conversation_id": "conversation_fixture",
+                "contact_method_id": "contact-method-fixture",
+                "reply_to_external_id": null
+            },
+            "conversation": {
+                "id": "conversation_fixture",
+                "status": "open",
+                "subject": "WhatsApp: test_template",
+                "channel_id": "ch_test123",
+                "contact_id": "contact_fixture",
+                "created_at": "2026-09-02T16:29:11Z",
+                "bot_session_id": null,
+                "assigned_user_id": null,
+                "last_agent_reply_at": "2026-09-16T05:29:24Z",
+                "last_customer_message_at": "2026-09-16T05:29:23Z"
+            },
+            "contact": {
+                "id": "contact_fixture",
+                "name": "Test Participant",
+                "email": null,
+                "phone": "+15555550100"
+            },
+            "contact_method": {
+                "id": "contact-method-fixture",
+                "value": "15555550100",
+                "method_type": "whatsapp_id",
+                "channel_id": null,
+                "display_name": "Test Participant",
+                "is_primary": false
+            }
+        }
+    },
+    "message_status": {
+        "id": "evt_live_status",
+        "type": "message.read",
+        "event_id": "msg_live_outbound",
+        "tenant_id": "tenant_fixture",
+        "created_at": "2026-09-16T05:30:01.000000Z",
+        "data": {
+            "message": {
+                "id": "msg_live_outbound",
+                "meta": {
+                    "is_bot": false,
+                    "sender_name": "fixture-user",
+                    "sent_by_user_id": "user-fixture",
+                    "sender_avatar_url": null
+                },
+                "text": "Fixture response",
+                "to_id": "15555550100",
+                "status": "read",
+                "from_id": null,
+                "read_at": "2026-09-16T05:30:01Z",
+                "sent_at": "2026-09-16T05:29:59Z",
+                "platform": "whatsapp",
+                "direction": "outbound",
+                "channel_id": "ch_test123",
+                "contact_id": "contact_fixture",
+                "created_at": "2026-09-16T05:29:59Z",
+                "attachments": null,
+                "external_id": "wamid.fixture.outbound",
+                "delivered_at": "2026-09-16T05:30:00Z",
+                "message_type": "text",
+                "conversation_id": "conversation_fixture",
+                "contact_method_id": "contact-method-fixture"
+            },
+            "conversation": {
+                "id": "conversation_fixture",
+                "status": "open",
+                "channel_id": "ch_test123",
+                "contact_id": "contact_fixture"
+            },
+            "contact": {
+                "id": "contact_fixture",
+                "name": "Test Participant",
+                "phone": "+15555550100"
+            }
+        }
+    },
+    "message_create_response": {
+        "id": "outbound-message-fixture",
+        "to": null,
+        "from": null,
+        "meta": null,
+        "text": "Fixture response",
+        "status": "pending",
+        "read_at": null,
+        "sent_at": null,
+        "campaign": null,
+        "platform": null,
+        "direction": "outbound",
+        "edited_at": null,
+        "flow_name": null,
+        "tenant_id": null,
+        "channel_id": null,
+        "contact_id": null,
+        "created_at": "2026-09-16T05:29:59Z",
+        "attachments": [],
+        "external_id": null,
+        "flow_run_id": null,
+        "interactive": null,
+        "is_internal": false,
+        "contact_info": null,
+        "delivered_at": null,
+        "flow_step_id": null,
+        "message_type": "text",
+        "error_message": null,
+        "previous_text": null,
+        "contact_method": null,
+        "quoted_message": null,
+        "revision_count": 0,
+        "conversation_id": "conversation_fixture",
+        "header_media_url": null,
+        "contact_method_id": null,
+        "related_message_ids": [],
+        "reply_to_external_id": null,
+        "header_media_attachment_id": null
+    }
+}

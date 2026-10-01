@@ -1,0 +1,77 @@
+{
+    "name": "reshapify/sendseven",
+    "description": "A typed, fully documented PHP SDK for the SendSeven messaging API: WhatsApp, SMS, email, Telegram, Messenger, Instagram and more.",
+    "keywords": [
+        "sendseven",
+        "whatsapp",
+        "sms",
+        "telegram",
+        "messenger",
+        "instagram",
+        "messaging",
+        "sdk",
+        "api"
+    ],
+    "homepage": "https://github.com/reshapify/sendseven-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Richard Bowen",
+            "email": "rbowen@tutanota.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "php-http/discovery": "^1.20",
+        "psr/http-client": "^1.0",
+        "psr/http-client-implementation": "^1.0",
+        "psr/http-factory": "^1.1",
+        "psr/http-factory-implementation": "^1.0",
+        "psr/http-message": "^2.0"
+    },
+    "require-dev": {
+        "guzzlehttp/guzzle": "^7.9",
+        "laravel/pint": "^1.18",
+        "pestphp/pest": "^3.8|^4.0",
+        "pestphp/pest-plugin-type-coverage": "^3.5|^4.0",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "rector/rector": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Reshapify\\SendSeven\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Reshapify\\SendSeven\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "lint": "pint",
+        "refactor": "rector",
+        "test:lint": "pint --test",
+        "test:refactor": "rector --dry-run",
+        "test:types": "phpstan analyse --ansi --memory-limit=1G",
+        "test:type-coverage": "pest --type-coverage --min=100",
+        "test:unit": "pest --colors=always",
+        "test": [
+            "@test:lint",
+            "@test:refactor",
+            "@test:types",
+            "@test:type-coverage",
+            "@test:unit"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
