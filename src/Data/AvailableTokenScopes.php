@@ -20,14 +20,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AvailableTokenScopes extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $grouped  Scopes grouped by resource for UI display
      * @param  list<string>  $scopes  Flat list of all grantable scope strings
+     * @param  array<array-key, mixed>  $grouped  Scopes grouped by resource for UI display
      * @param  int  $total  Total number of grantable scopes
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $grouped,
         public array $scopes,
+        public array $grouped,
         public int $total,
         array $raw = [],
     ) {
@@ -42,8 +42,8 @@ final readonly class AvailableTokenScopes extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            grouped: $attributes->array('grouped'),
             scopes: $attributes->strings('scopes'),
+            grouped: $attributes->array('grouped'),
             total: $attributes->int('total'),
             raw: $data,
         );

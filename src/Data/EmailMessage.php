@@ -21,14 +21,14 @@ final readonly class EmailMessage extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $createdAt,
+        public string $id,
         public string $direction,
+        public string $status,
         public string $fromEmail,
         public ?string $fromName,
-        public string $id,
-        public ?bool $isHidden,
-        public string $status,
         public ?string $subject,
+        public ?bool $isHidden,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,14 +42,14 @@ final readonly class EmailMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->dateTime('created_at'),
+            id: $attributes->string('id'),
             direction: $attributes->string('direction'),
+            status: $attributes->string('status'),
             fromEmail: $attributes->string('from_email'),
             fromName: $attributes->nullableString('from_name'),
-            id: $attributes->string('id'),
-            isHidden: $attributes->nullableBool('is_hidden'),
-            status: $attributes->string('status'),
             subject: $attributes->nullableString('subject'),
+            isHidden: $attributes->nullableBool('is_hidden'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

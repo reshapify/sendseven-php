@@ -21,20 +21,20 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelConnectDelegate extends Data
 {
     /**
-     * @param  string  $connectUrl  Tokenised connect URL
-     * @param  bool  $emailSent  False when the link was created but the email failed to send
-     * @param  string  $expiresAt  When the link stops working
-     * @param  string  $sentTo  Address the link was mailed to
      * @param  string  $tokenId  Id of the created connect token
+     * @param  string  $connectUrl  Tokenised connect URL
+     * @param  string  $expiresAt  When the link stops working
+     * @param  bool  $emailSent  False when the link was created but the email failed to send
+     * @param  string  $sentTo  Address the link was mailed to
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $connectUrl,
-        public bool $emailSent,
-        public string $expiresAt,
-        public string $sentTo,
         public ?bool $success,
         public string $tokenId,
+        public string $connectUrl,
+        public string $expiresAt,
+        public bool $emailSent,
+        public string $sentTo,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,12 +48,12 @@ final readonly class ChannelConnectDelegate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            connectUrl: $attributes->string('connect_url'),
-            emailSent: $attributes->bool('email_sent'),
-            expiresAt: $attributes->string('expires_at'),
-            sentTo: $attributes->string('sent_to'),
             success: $attributes->nullableBool('success'),
             tokenId: $attributes->string('token_id'),
+            connectUrl: $attributes->string('connect_url'),
+            expiresAt: $attributes->string('expires_at'),
+            emailSent: $attributes->bool('email_sent'),
+            sentTo: $attributes->string('sent_to'),
             raw: $data,
         );
     }

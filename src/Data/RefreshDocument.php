@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RefreshDocument extends Data
 {
     /**
-     * @param  string  $documentId  ID of refreshed document
-     * @param  string  $message  Status message
-     * @param  ?string  $sourceUrl  Source URL that was refreshed
      * @param  bool  $success  Whether refresh succeeded
+     * @param  string  $message  Status message
+     * @param  string  $documentId  ID of refreshed document
+     * @param  ?string  $sourceUrl  Source URL that was refreshed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $documentId,
-        public string $message,
-        public ?string $sourceUrl,
         public bool $success,
+        public string $message,
+        public string $documentId,
+        public ?string $sourceUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class RefreshDocument extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            documentId: $attributes->string('document_id'),
-            message: $attributes->string('message'),
-            sourceUrl: $attributes->nullableString('source_url'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
+            documentId: $attributes->string('document_id'),
+            sourceUrl: $attributes->nullableString('source_url'),
             raw: $data,
         );
     }

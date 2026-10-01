@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AccountBillingAccess extends Data
 {
     /**
-     * @param  bool  $accountBillingReadEnabled  Whether the member now holds a direct `account:billing_read` grant
      * @param  string  $userId  Target user ID
+     * @param  bool  $accountBillingReadEnabled  Whether the member now holds a direct `account:billing_read` grant
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public bool $accountBillingReadEnabled,
         public string $userId,
+        public bool $accountBillingReadEnabled,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class AccountBillingAccess extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            accountBillingReadEnabled: $attributes->bool('account_billing_read_enabled'),
             userId: $attributes->string('user_id'),
+            accountBillingReadEnabled: $attributes->bool('account_billing_read_enabled'),
             raw: $data,
         );
     }

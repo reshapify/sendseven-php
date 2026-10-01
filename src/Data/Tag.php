@@ -20,21 +20,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Tag extends Data
 {
     /**
-     * @param  ?string  $color  Hex color code (e.g., #FF0000)
-     * @param  DateTimeImmutable  $createdAt  When the tag was created
-     * @param  ?string  $description  Tag description
      * @param  string  $id  Unique identifier (UUID)
-     * @param  string  $name  Tag name
      * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $name  Tag name
+     * @param  ?string  $color  Hex color code (e.g., #FF0000)
+     * @param  ?string  $description  Tag description
+     * @param  DateTimeImmutable  $createdAt  When the tag was created
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $color,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
         public string $id,
-        public string $name,
         public string $tenantId,
+        public string $name,
+        public ?string $color,
+        public ?string $description,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,12 +48,12 @@ final readonly class Tag extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            color: $attributes->nullableString('color'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
             id: $attributes->string('id'),
-            name: $attributes->string('name'),
             tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            color: $attributes->nullableString('color'),
+            description: $attributes->nullableString('description'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

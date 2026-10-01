@@ -20,29 +20,29 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RecipientCount extends Data
 {
     /**
-     * @param  int  $bounced  Excluded: hard-bounced, invalid or suppressed address
-     * @param  ?EmailCampaignCostQuote  $cost  Price quote; present when a sending method was given
-     * @param  ?int  $duplicateEmailSkippedCount  Excluded: another (older) contact has the same address
-     * @param  array<array-key, mixed>  $listBreakdown  Subscribed members per target list id (before exclusions)
-     * @param  ?int  $noEmailCount  Excluded: no usable email address
-     * @param  ?int  $recipientCount  Same as subscribed
-     * @param  int  $subscribed  Valid recipients (what the send delivers to)
-     * @param  array<array-key, mixed>  $subscriptionBreakdown  Subscribed members per subscription category (before exclusions)
      * @param  int  $total  Contacts matching the audience before exclusions
+     * @param  int  $subscribed  Valid recipients (what the send delivers to)
      * @param  int  $unsubscribed  Excluded: opted out / complained
+     * @param  int  $bounced  Excluded: hard-bounced, invalid or suppressed address
+     * @param  ?int  $recipientCount  Same as subscribed
+     * @param  ?int  $duplicateEmailSkippedCount  Excluded: another (older) contact has the same address
+     * @param  ?int  $noEmailCount  Excluded: no usable email address
+     * @param  array<array-key, mixed>  $listBreakdown  Subscribed members per target list id (before exclusions)
+     * @param  array<array-key, mixed>  $subscriptionBreakdown  Subscribed members per subscription category (before exclusions)
+     * @param  ?EmailCampaignCostQuote  $cost  Price quote; present when a sending method was given
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $bounced,
-        public ?EmailCampaignCostQuote $cost,
-        public ?int $duplicateEmailSkippedCount,
-        public array $listBreakdown,
-        public ?int $noEmailCount,
-        public ?int $recipientCount,
-        public int $subscribed,
-        public array $subscriptionBreakdown,
         public int $total,
+        public int $subscribed,
         public int $unsubscribed,
+        public int $bounced,
+        public ?int $recipientCount,
+        public ?int $duplicateEmailSkippedCount,
+        public ?int $noEmailCount,
+        public array $listBreakdown,
+        public array $subscriptionBreakdown,
+        public ?EmailCampaignCostQuote $cost,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -56,16 +56,16 @@ final readonly class RecipientCount extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounced: $attributes->int('bounced'),
-            cost: $attributes->nullableObject('cost', EmailCampaignCostQuote::fromArray(...)),
-            duplicateEmailSkippedCount: $attributes->nullableInt('duplicate_email_skipped_count'),
-            listBreakdown: $attributes->array('list_breakdown'),
-            noEmailCount: $attributes->nullableInt('no_email_count'),
-            recipientCount: $attributes->nullableInt('recipient_count'),
-            subscribed: $attributes->int('subscribed'),
-            subscriptionBreakdown: $attributes->array('subscription_breakdown'),
             total: $attributes->int('total'),
+            subscribed: $attributes->int('subscribed'),
             unsubscribed: $attributes->int('unsubscribed'),
+            bounced: $attributes->int('bounced'),
+            recipientCount: $attributes->nullableInt('recipient_count'),
+            duplicateEmailSkippedCount: $attributes->nullableInt('duplicate_email_skipped_count'),
+            noEmailCount: $attributes->nullableInt('no_email_count'),
+            listBreakdown: $attributes->array('list_breakdown'),
+            subscriptionBreakdown: $attributes->array('subscription_breakdown'),
+            cost: $attributes->nullableObject('cost', EmailCampaignCostQuote::fromArray(...)),
             raw: $data,
         );
     }

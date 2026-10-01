@@ -26,12 +26,12 @@ final readonly class HubSpotContactSyncFilterModel extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?HubSpotContactSyncFilterList $list,
+        public ?int $version,
         public string $mode,
         public ?HubSpotContactSyncFilterProperties $properties,
+        public ?HubSpotContactSyncFilterList $list,
         public ?string $updatedAt,
         public ?string $updatedByUserId,
-        public ?int $version,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,12 +45,12 @@ final readonly class HubSpotContactSyncFilterModel extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            list: $attributes->nullableObject('list', HubSpotContactSyncFilterList::fromArray(...)),
+            version: $attributes->nullableInt('version'),
             mode: $attributes->string('mode'),
             properties: $attributes->nullableObject('properties', HubSpotContactSyncFilterProperties::fromArray(...)),
+            list: $attributes->nullableObject('list', HubSpotContactSyncFilterList::fromArray(...)),
             updatedAt: $attributes->nullableString('updated_at'),
             updatedByUserId: $attributes->nullableString('updated_by_user_id'),
-            version: $attributes->nullableInt('version'),
             raw: $data,
         );
     }

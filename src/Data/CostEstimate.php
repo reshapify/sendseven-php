@@ -17,32 +17,32 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CostEstimate extends Data
 {
     /**
-     * @param  ?string  $costCategory  'email_campaign_managed' or 'email_campaign_byok'
      * @param  float  $costPerEmail  Cost per email in cents
-     * @param  int  $currentBalance  Current balance in cents
-     * @param  string  $currentBalanceEur  Current balance formatted in EUR
-     * @param  ?int  $planIncludedMessages  Monthly included messages of the plan (shared pool)
-     * @param  ?string  $sendingType  'managed' or 'byok'
-     * @param  bool  $sufficientBalance  Whether balance is sufficient
      * @param  int  $totalCost  Total cost in cents
      * @param  string  $totalCostEur  Total cost formatted in EUR
-     * @param  ?string  $totalCostEurPrecise  Total in EUR, 6 decimals
+     * @param  int  $currentBalance  Current balance in cents
+     * @param  string  $currentBalanceEur  Current balance formatted in EUR
+     * @param  bool  $sufficientBalance  Whether balance is sufficient
+     * @param  ?string  $costCategory  'email_campaign_managed' or 'email_campaign_byok'
+     * @param  ?string  $sendingType  'managed' or 'byok'
      * @param  ?string  $unitPriceEur  Price per email in EUR, 6 decimals
+     * @param  ?string  $totalCostEurPrecise  Total in EUR, 6 decimals
+     * @param  ?int  $planIncludedMessages  Monthly included messages of the plan (shared pool)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $costCategory,
-        public float $costPerEmail,
-        public int $currentBalance,
-        public string $currentBalanceEur,
-        public ?int $planIncludedMessages,
         public int $recipientCount,
-        public ?string $sendingType,
-        public bool $sufficientBalance,
+        public float $costPerEmail,
         public int $totalCost,
         public string $totalCostEur,
-        public ?string $totalCostEurPrecise,
+        public int $currentBalance,
+        public string $currentBalanceEur,
+        public bool $sufficientBalance,
+        public ?string $costCategory,
+        public ?string $sendingType,
         public ?string $unitPriceEur,
+        public ?string $totalCostEurPrecise,
+        public ?int $planIncludedMessages,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -56,18 +56,18 @@ final readonly class CostEstimate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            costCategory: $attributes->nullableString('cost_category'),
-            costPerEmail: $attributes->float('cost_per_email'),
-            currentBalance: $attributes->int('current_balance'),
-            currentBalanceEur: $attributes->string('current_balance_eur'),
-            planIncludedMessages: $attributes->nullableInt('plan_included_messages'),
             recipientCount: $attributes->int('recipient_count'),
-            sendingType: $attributes->nullableString('sending_type'),
-            sufficientBalance: $attributes->bool('sufficient_balance'),
+            costPerEmail: $attributes->float('cost_per_email'),
             totalCost: $attributes->int('total_cost'),
             totalCostEur: $attributes->string('total_cost_eur'),
-            totalCostEurPrecise: $attributes->nullableString('total_cost_eur_precise'),
+            currentBalance: $attributes->int('current_balance'),
+            currentBalanceEur: $attributes->string('current_balance_eur'),
+            sufficientBalance: $attributes->bool('sufficient_balance'),
+            costCategory: $attributes->nullableString('cost_category'),
+            sendingType: $attributes->nullableString('sending_type'),
             unitPriceEur: $attributes->nullableString('unit_price_eur'),
+            totalCostEurPrecise: $attributes->nullableString('total_cost_eur_precise'),
+            planIncludedMessages: $attributes->nullableInt('plan_included_messages'),
             raw: $data,
         );
     }

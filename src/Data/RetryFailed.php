@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RetryFailed extends Data
 {
     /**
+     * @param  ?bool  $success  Whether the operation succeeded
      * @param  ?string  $message  Optional success message
      * @param  int  $retriedCount  Number of failed documents re-queued for ingestion.
-     * @param  ?bool  $success  Whether the operation succeeded
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?bool $success,
         public ?string $message,
         public int $retriedCount,
-        public ?bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class RetryFailed extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->nullableBool('success'),
             message: $attributes->nullableString('message'),
             retriedCount: $attributes->int('retried_count'),
-            success: $attributes->nullableBool('success'),
             raw: $data,
         );
     }

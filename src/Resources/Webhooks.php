@@ -70,27 +70,49 @@ final readonly class Webhooks
      * Scopes: webhooks:create.
      *
      * @param  string  $name  User-friendly name for the webhook
-     * @param  list<string>  $subscribedEvents  List of event types to subscribe to
      * @param  string  $url  HTTPS URL to receive webhook events
+     * @param  list<string>  $subscribedEvents  List of event types to subscribe to
      * @param  ?string  $authorizationHeader  Authorization header value to send with each webhook (e.g., 'Bearer token123')
+     * @param  RetryStrategy|string|null  $retryStrategy  Retry strategy for failed deliveries
+     * @param  ?int  $maxRetries  Maximum number of retry attempts (default: 8, covers ~2 hours with exponential backoff)
+     * @param  ?int  $timeoutSeconds  Request timeout in seconds
+     * @param  ?string  $sourceFilterMode  Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations
      * @param  list<string>|null  $filteredChannelIds  Channel IDs to filter events by (only used when source_filter_mode='selected')
      * @param  list<string>|null  $filteredEmailIntegrationIds  Email integration IDs to filter events by (only used when source_filter_mode='selected')
-     * @param  ?int  $maxRetries  Maximum number of retry attempts (default: 8, covers ~2 hours with exponential backoff)
-     * @param  RetryStrategy|string|null  $retryStrategy  Retry strategy for failed deliveries
-     * @param  ?string  $sourceFilterMode  Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations
-     * @param  ?int  $timeoutSeconds  Request timeout in seconds
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Webhooks/create_webhook_endpoint_api_v1_webhook_endpoints_post
      */
-    public function createEndpoint(string $name, array $subscribedEvents, string $url, ?string $authorizationHeader = null, ?array $filteredChannelIds = null, ?array $filteredEmailIntegrationIds = null, ?int $maxRetries = null, RetryStrategy|string|null $retryStrategy = null, ?string $sourceFilterMode = null, ?int $timeoutSeconds = null, ?string $idempotencyKey = null): WebhookSecret
-    {
+    public function createEndpoint(
+        string $name,
+        string $url,
+        array $subscribedEvents,
+        ?string $authorizationHeader = null,
+        RetryStrategy|string|null $retryStrategy = null,
+        ?int $maxRetries = null,
+        ?int $timeoutSeconds = null,
+        ?string $sourceFilterMode = null,
+        ?array $filteredChannelIds = null,
+        ?array $filteredEmailIntegrationIds = null,
+        ?string $idempotencyKey = null,
+    ): WebhookSecret {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/webhook-endpoints',
-            body: Payload::body(['name' => $name, 'subscribed_events' => $subscribedEvents, 'url' => $url, 'authorization_header' => $authorizationHeader, 'filtered_channel_ids' => $filteredChannelIds, 'filtered_email_integration_ids' => $filteredEmailIntegrationIds, 'max_retries' => $maxRetries, 'retry_strategy' => $retryStrategy, 'source_filter_mode' => $sourceFilterMode, 'timeout_seconds' => $timeoutSeconds]),
+            body: Payload::body([
+                'name' => $name,
+                'url' => $url,
+                'subscribed_events' => $subscribedEvents,
+                'authorization_header' => $authorizationHeader,
+                'retry_strategy' => $retryStrategy,
+                'max_retries' => $maxRetries,
+                'timeout_seconds' => $timeoutSeconds,
+                'source_filter_mode' => $sourceFilterMode,
+                'filtered_channel_ids' => $filteredChannelIds,
+                'filtered_email_integration_ids' => $filteredEmailIntegrationIds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -179,29 +201,54 @@ final readonly class Webhooks
      *
      * Scopes: webhooks:update.
      *
+     * @param  ?string  $name  User-friendly name for the webhook
+     * @param  ?string  $url  HTTPS URL to receive webhook events
      * @param  ?string  $authorizationHeader  Authorization header value (set to empty string to remove)
+     * @param  list<string>|null  $subscribedEvents  List of event types to subscribe to
+     * @param  ?bool  $isActive  Enable or disable the webhook
+     * @param  RetryStrategy|string|null  $retryStrategy  Retry strategy for failed deliveries
+     * @param  ?int  $maxRetries  Maximum number of retry attempts (max: 15, covers ~2 hours with exponential backoff)
+     * @param  ?int  $timeoutSeconds  Request timeout in seconds
+     * @param  ?string  $sourceFilterMode  Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations
      * @param  list<string>|null  $filteredChannelIds  Channel IDs to filter events by (only used when source_filter_mode='selected'). Set to empty list to clear.
      * @param  list<string>|null  $filteredEmailIntegrationIds  Email integration IDs to filter events by (only used when source_filter_mode='selected'). Set to empty list to clear.
-     * @param  ?bool  $isActive  Enable or disable the webhook
-     * @param  ?int  $maxRetries  Maximum number of retry attempts (max: 15, covers ~2 hours with exponential backoff)
-     * @param  ?string  $name  User-friendly name for the webhook
-     * @param  RetryStrategy|string|null  $retryStrategy  Retry strategy for failed deliveries
-     * @param  ?string  $sourceFilterMode  Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations
-     * @param  list<string>|null  $subscribedEvents  List of event types to subscribe to
-     * @param  ?int  $timeoutSeconds  Request timeout in seconds
-     * @param  ?string  $url  HTTPS URL to receive webhook events
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Webhooks/update_webhook_endpoint_api_v1_webhook_endpoints__webhook_id__patch
      */
-    public function updateEndpoint(string $webhookId, ?string $authorizationHeader = null, ?array $filteredChannelIds = null, ?array $filteredEmailIntegrationIds = null, ?bool $isActive = null, ?int $maxRetries = null, ?string $name = null, RetryStrategy|string|null $retryStrategy = null, ?string $sourceFilterMode = null, ?array $subscribedEvents = null, ?int $timeoutSeconds = null, ?string $url = null, ?string $idempotencyKey = null): WebhookEndpoint
-    {
+    public function updateEndpoint(
+        string $webhookId,
+        ?string $name = null,
+        ?string $url = null,
+        ?string $authorizationHeader = null,
+        ?array $subscribedEvents = null,
+        ?bool $isActive = null,
+        RetryStrategy|string|null $retryStrategy = null,
+        ?int $maxRetries = null,
+        ?int $timeoutSeconds = null,
+        ?string $sourceFilterMode = null,
+        ?array $filteredChannelIds = null,
+        ?array $filteredEmailIntegrationIds = null,
+        ?string $idempotencyKey = null,
+    ): WebhookEndpoint {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/webhook-endpoints/'.Payload::segment($webhookId),
-            body: Payload::body(['authorization_header' => $authorizationHeader, 'filtered_channel_ids' => $filteredChannelIds, 'filtered_email_integration_ids' => $filteredEmailIntegrationIds, 'is_active' => $isActive, 'max_retries' => $maxRetries, 'name' => $name, 'retry_strategy' => $retryStrategy, 'source_filter_mode' => $sourceFilterMode, 'subscribed_events' => $subscribedEvents, 'timeout_seconds' => $timeoutSeconds, 'url' => $url]),
+            body: Payload::body([
+                'name' => $name,
+                'url' => $url,
+                'authorization_header' => $authorizationHeader,
+                'subscribed_events' => $subscribedEvents,
+                'is_active' => $isActive,
+                'retry_strategy' => $retryStrategy,
+                'max_retries' => $maxRetries,
+                'timeout_seconds' => $timeoutSeconds,
+                'source_filter_mode' => $sourceFilterMode,
+                'filtered_channel_ids' => $filteredChannelIds,
+                'filtered_email_integration_ids' => $filteredEmailIntegrationIds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -229,12 +276,22 @@ final readonly class Webhooks
      *
      * @see https://api.sendseven.com/api/v1/docs#/Webhooks/get_webhook_deliveries_api_v1_webhook_endpoints__webhook_id__deliveries_get
      */
-    public function getDeliveries(string $webhookId, ?int $page = null, ?int $pageSize = null, ?string $status = null, ?string $eventType = null): WebhookDeliveryList
-    {
+    public function getDeliveries(
+        string $webhookId,
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $status = null,
+        ?string $eventType = null,
+    ): WebhookDeliveryList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/webhook-endpoints/'.Payload::segment($webhookId).'/deliveries',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'status' => $status, 'event_type' => $eventType]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'status' => $status,
+                'event_type' => $eventType,
+            ]),
         ));
 
         return WebhookDeliveryList::fromArray($response->data());

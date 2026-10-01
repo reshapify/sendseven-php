@@ -55,12 +55,27 @@ final readonly class EmailContents
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contents/list_email_contents_api_v1_email_contents_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $layoutId = null, ?bool $includeHidden = null, ?bool $excludeSystem = null, ?bool $excludeDoi = null, ?string $search = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $layoutId = null,
+        ?bool $includeHidden = null,
+        ?bool $excludeSystem = null,
+        ?bool $excludeDoi = null,
+        ?string $search = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/email-contents',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'layout_id' => $layoutId, 'include_hidden' => $includeHidden, 'exclude_system' => $excludeSystem, 'exclude_doi' => $excludeDoi, 'search' => $search]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'layout_id' => $layoutId,
+                'include_hidden' => $includeHidden,
+                'exclude_system' => $excludeSystem,
+                'exclude_doi' => $excludeDoi,
+                'search' => $search,
+            ]),
         ));
 
         return Hydrate::page($response->data(), EmailContentListItem::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, layoutId: $layoutId, includeHidden: $includeHidden, excludeSystem: $excludeSystem, excludeDoi: $excludeDoi, search: $search));
@@ -83,36 +98,76 @@ final readonly class EmailContents
      * Scopes: email:create.
      *
      * @param  string  $name  Content name
-     * @param  ?bool  $aiGenerated  Whether content was AI-generated
-     * @param  ?int  $aiGenerationCostCents  AI generation cost in cents
-     * @param  ?string  $aiModelUsed  AI model used
-     * @param  ?string  $aiPrompt  AI prompt used for generation
-     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export (stripo editor type only)
-     * @param  EmailContentTypeEnum|string|null  $contentType  Content type: 'html' for MJML-based or 'plain_text' for text-only templates
      * @param  ?string  $description  Content description
-     * @param  ?string  $editorType  Editor type: 'stripo' (default for new content) or 'mjml' (legacy GrapesJS)
-     * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
-     * @param  ?string  $fromEmail  Default sender email
-     * @param  ?string  $fromName  Default sender name
-     * @param  ?string  $mjmlSource  Full MJML content with {{variable}} placeholders (required for html type with mjml editor)
-     * @param  ?string  $previewText  Email preview text (appears in inbox)
-     * @param  ?string  $stripoDesignJson  Stripo editor design JSON for re-opening designs (stripo editor type only)
-     * @param  ?string  $subjectLine  Subject line with {{variable}} support
+     * @param  EmailContentTypeEnum|string|null  $contentType  Content type: 'html' for MJML-based or 'plain_text' for text-only templates
      * @param  ?string  $templateId  ID of email template used as base (analytics only, HTML type only)
+     * @param  ?string  $subjectLine  Subject line with {{variable}} support
+     * @param  ?string  $previewText  Email preview text (appears in inbox)
+     * @param  ?string  $fromName  Default sender name
+     * @param  ?string  $fromEmail  Default sender email
+     * @param  ?string  $editorType  Editor type: 'stripo' (default for new content) or 'mjml' (legacy GrapesJS)
+     * @param  ?string  $mjmlSource  Full MJML content with {{variable}} placeholders (required for html type with mjml editor)
+     * @param  ?string  $stripoDesignJson  Stripo editor design JSON for re-opening designs (stripo editor type only)
+     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export (stripo editor type only)
      * @param  ?string  $textBody  Plain text template content with {{variable}} placeholders (required for plain_text type)
      * @param  array<string, mixed>|null  $variableValues  Template variable values (not contact/company/system)
+     * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
+     * @param  ?bool  $aiGenerated  Whether content was AI-generated
+     * @param  ?string  $aiPrompt  AI prompt used for generation
+     * @param  ?string  $aiModelUsed  AI model used
+     * @param  ?int  $aiGenerationCostCents  AI generation cost in cents
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contents/create_email_content_api_v1_email_contents_post
      */
-    public function create(string $name, ?bool $aiGenerated = null, ?int $aiGenerationCostCents = null, ?string $aiModelUsed = null, ?string $aiPrompt = null, ?string $compiledHtml = null, EmailContentTypeEnum|string|null $contentType = null, ?string $description = null, ?string $editorType = null, ?string $footerMode = null, ?string $fromEmail = null, ?string $fromName = null, ?string $mjmlSource = null, ?string $previewText = null, ?string $stripoDesignJson = null, ?string $subjectLine = null, ?string $templateId = null, ?string $textBody = null, ?array $variableValues = null, ?string $idempotencyKey = null): EmailContent
-    {
+    public function create(
+        string $name,
+        ?string $description = null,
+        EmailContentTypeEnum|string|null $contentType = null,
+        ?string $templateId = null,
+        ?string $subjectLine = null,
+        ?string $previewText = null,
+        ?string $fromName = null,
+        ?string $fromEmail = null,
+        ?string $editorType = null,
+        ?string $mjmlSource = null,
+        ?string $stripoDesignJson = null,
+        ?string $compiledHtml = null,
+        ?string $textBody = null,
+        ?array $variableValues = null,
+        ?string $footerMode = null,
+        ?bool $aiGenerated = null,
+        ?string $aiPrompt = null,
+        ?string $aiModelUsed = null,
+        ?int $aiGenerationCostCents = null,
+        ?string $idempotencyKey = null,
+    ): EmailContent {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-contents',
-            body: Payload::body(['name' => $name, 'ai_generated' => $aiGenerated, 'ai_generation_cost_cents' => $aiGenerationCostCents, 'ai_model_used' => $aiModelUsed, 'ai_prompt' => $aiPrompt, 'compiled_html' => $compiledHtml, 'content_type' => $contentType, 'description' => $description, 'editor_type' => $editorType, 'footer_mode' => $footerMode, 'from_email' => $fromEmail, 'from_name' => $fromName, 'mjml_source' => $mjmlSource, 'preview_text' => $previewText, 'stripo_design_json' => $stripoDesignJson, 'subject_line' => $subjectLine, 'template_id' => $templateId, 'text_body' => $textBody, 'variable_values' => $variableValues]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'content_type' => $contentType,
+                'template_id' => $templateId,
+                'subject_line' => $subjectLine,
+                'preview_text' => $previewText,
+                'from_name' => $fromName,
+                'from_email' => $fromEmail,
+                'editor_type' => $editorType,
+                'mjml_source' => $mjmlSource,
+                'stripo_design_json' => $stripoDesignJson,
+                'compiled_html' => $compiledHtml,
+                'text_body' => $textBody,
+                'variable_values' => $variableValues,
+                'footer_mode' => $footerMode,
+                'ai_generated' => $aiGenerated,
+                'ai_prompt' => $aiPrompt,
+                'ai_model_used' => $aiModelUsed,
+                'ai_generation_cost_cents' => $aiGenerationCostCents,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -207,24 +262,55 @@ final readonly class EmailContents
      *
      * Scopes: email:create.
      *
-     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export
      * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml'
-     * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
      * @param  ?string  $stripoDesignJson  Stripo editor design JSON
+     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export
      * @param  ?string  $textBody  Plain text template content with {{variable}} placeholders
      * @param  array<string, mixed>|null  $variableValues
+     * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contents/update_email_content_api_v1_email_contents__content_id__patch
      */
-    public function update(string $contentId, ?string $compiledHtml = null, ?string $description = null, ?string $editorType = null, ?string $footerMode = null, ?string $fromEmail = null, ?string $fromName = null, ?string $mjmlSource = null, ?string $name = null, ?string $previewText = null, ?string $stripoDesignJson = null, ?string $subjectLine = null, ?string $templateId = null, ?string $textBody = null, ?array $variableValues = null, ?string $idempotencyKey = null): EmailContent
-    {
+    public function update(
+        string $contentId,
+        ?string $name = null,
+        ?string $description = null,
+        ?string $templateId = null,
+        ?string $subjectLine = null,
+        ?string $previewText = null,
+        ?string $fromName = null,
+        ?string $fromEmail = null,
+        ?string $editorType = null,
+        ?string $mjmlSource = null,
+        ?string $stripoDesignJson = null,
+        ?string $compiledHtml = null,
+        ?string $textBody = null,
+        ?array $variableValues = null,
+        ?string $footerMode = null,
+        ?string $idempotencyKey = null,
+    ): EmailContent {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-contents/'.Payload::segment($contentId),
-            body: Payload::body(['compiled_html' => $compiledHtml, 'description' => $description, 'editor_type' => $editorType, 'footer_mode' => $footerMode, 'from_email' => $fromEmail, 'from_name' => $fromName, 'mjml_source' => $mjmlSource, 'name' => $name, 'preview_text' => $previewText, 'stripo_design_json' => $stripoDesignJson, 'subject_line' => $subjectLine, 'template_id' => $templateId, 'text_body' => $textBody, 'variable_values' => $variableValues]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'template_id' => $templateId,
+                'subject_line' => $subjectLine,
+                'preview_text' => $previewText,
+                'from_name' => $fromName,
+                'from_email' => $fromEmail,
+                'editor_type' => $editorType,
+                'mjml_source' => $mjmlSource,
+                'stripo_design_json' => $stripoDesignJson,
+                'compiled_html' => $compiledHtml,
+                'text_body' => $textBody,
+                'variable_values' => $variableValues,
+                'footer_mode' => $footerMode,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -280,8 +366,11 @@ final readonly class EmailContents
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contents/preview_email_content_api_v1_email_contents__content_id__preview_post
      */
-    public function preview(string $contentId, ?array $variables = null, ?string $idempotencyKey = null): EmailContentPreview
-    {
+    public function preview(
+        string $contentId,
+        ?array $variables = null,
+        ?string $idempotencyKey = null,
+    ): EmailContentPreview {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-contents/'.Payload::segment($contentId).'/preview',

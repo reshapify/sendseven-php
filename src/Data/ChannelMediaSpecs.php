@@ -20,12 +20,12 @@ final readonly class ChannelMediaSpecs extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?ChannelMediaSpec $browserPush,
-        public ?ChannelMediaSpec $messenger,
-        public ?ChannelMediaSpec $rcs,
-        public ?ChannelMediaSpec $sms,
-        public ?ChannelMediaSpec $telegram,
         public ?ChannelMediaSpec $whatsApp,
+        public ?ChannelMediaSpec $telegram,
+        public ?ChannelMediaSpec $messenger,
+        public ?ChannelMediaSpec $sms,
+        public ?ChannelMediaSpec $browserPush,
+        public ?ChannelMediaSpec $rcs,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,12 +39,12 @@ final readonly class ChannelMediaSpecs extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            browserPush: $attributes->nullableObject('browser_push', ChannelMediaSpec::fromArray(...)),
-            messenger: $attributes->nullableObject('messenger', ChannelMediaSpec::fromArray(...)),
-            rcs: $attributes->nullableObject('rcs', ChannelMediaSpec::fromArray(...)),
-            sms: $attributes->nullableObject('sms', ChannelMediaSpec::fromArray(...)),
-            telegram: $attributes->nullableObject('telegram', ChannelMediaSpec::fromArray(...)),
             whatsApp: $attributes->nullableObject('whatsapp', ChannelMediaSpec::fromArray(...)),
+            telegram: $attributes->nullableObject('telegram', ChannelMediaSpec::fromArray(...)),
+            messenger: $attributes->nullableObject('messenger', ChannelMediaSpec::fromArray(...)),
+            sms: $attributes->nullableObject('sms', ChannelMediaSpec::fromArray(...)),
+            browserPush: $attributes->nullableObject('browser_push', ChannelMediaSpec::fromArray(...)),
+            rcs: $attributes->nullableObject('rcs', ChannelMediaSpec::fromArray(...)),
             raw: $data,
         );
     }

@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendCarousel extends Data
 {
     /**
-     * @param  int  $cardsCount  Number of cards/elements sent
-     * @param  string  $conversationId  Conversation UUID
-     * @param  ?string  $error  Error message if status is 'failed'
-     * @param  ?string  $externalId  Platform message ID
      * @param  string  $id  Message UUID
-     * @param  string  $platform  Platform: whatsapp, messenger
+     * @param  string  $conversationId  Conversation UUID
+     * @param  ?string  $externalId  Platform message ID
      * @param  string  $status  Message status: pending, sent, failed
+     * @param  string  $platform  Platform: whatsapp, messenger
+     * @param  int  $cardsCount  Number of cards/elements sent
+     * @param  ?string  $error  Error message if status is 'failed'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $cardsCount,
-        public string $conversationId,
-        public ?string $error,
-        public ?string $externalId,
         public string $id,
-        public string $platform,
+        public string $conversationId,
+        public ?string $externalId,
         public string $status,
+        public string $platform,
+        public int $cardsCount,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class SendCarousel extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            cardsCount: $attributes->int('cards_count'),
-            conversationId: $attributes->string('conversation_id'),
-            error: $attributes->nullableString('error'),
-            externalId: $attributes->nullableString('external_id'),
             id: $attributes->string('id'),
-            platform: $attributes->string('platform'),
+            conversationId: $attributes->string('conversation_id'),
+            externalId: $attributes->nullableString('external_id'),
             status: $attributes->string('status'),
+            platform: $attributes->string('platform'),
+            cardsCount: $attributes->int('cards_count'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

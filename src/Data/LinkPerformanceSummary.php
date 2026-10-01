@@ -19,29 +19,29 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LinkPerformanceSummary extends Data
 {
     /**
-     * @param  int  $activeLinksThisWeek  Number of links with activity in the last 7 days
-     * @param  array<array-key, mixed>  $clicksByDay  Click counts by day (not available in simplified model)
-     * @param  ?int  $clicksThisWeek  Clicks in the last 7 days (not available in simplified model)
-     * @param  ?int  $clicksToday  Clicks in the last 24 hours (not available in simplified model)
-     * @param  array<array-key, mixed>  $deviceBreakdown  Clicks by device type (not available in simplified model)
-     * @param  bool  $linkTrackingEnabled  Whether link tracking is enabled for this tenant
-     * @param  list<RecentLinkActivity>  $recentActivity  Links with recent clicks (last 7 days)
-     * @param  list<TopPerformingLink>  $topPerformingLinks  Top 5 most clicked links
-     * @param  int  $totalClicks  Total clicks across all links
      * @param  int  $totalLinks  Total number of tracked links
+     * @param  int  $totalClicks  Total clicks across all links
+     * @param  ?int  $clicksToday  Clicks in the last 24 hours (not available in simplified model)
+     * @param  ?int  $clicksThisWeek  Clicks in the last 7 days (not available in simplified model)
+     * @param  int  $activeLinksThisWeek  Number of links with activity in the last 7 days
+     * @param  list<TopPerformingLink>  $topPerformingLinks  Top 5 most clicked links
+     * @param  array<array-key, mixed>  $clicksByDay  Click counts by day (not available in simplified model)
+     * @param  array<array-key, mixed>  $deviceBreakdown  Clicks by device type (not available in simplified model)
+     * @param  list<RecentLinkActivity>  $recentActivity  Links with recent clicks (last 7 days)
+     * @param  bool  $linkTrackingEnabled  Whether link tracking is enabled for this tenant
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $activeLinksThisWeek,
-        public array $clicksByDay,
-        public ?int $clicksThisWeek,
-        public ?int $clicksToday,
-        public array $deviceBreakdown,
-        public bool $linkTrackingEnabled,
-        public array $recentActivity,
-        public array $topPerformingLinks,
-        public int $totalClicks,
         public int $totalLinks,
+        public int $totalClicks,
+        public ?int $clicksToday,
+        public ?int $clicksThisWeek,
+        public int $activeLinksThisWeek,
+        public array $topPerformingLinks,
+        public array $clicksByDay,
+        public array $deviceBreakdown,
+        public array $recentActivity,
+        public bool $linkTrackingEnabled,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,16 +55,16 @@ final readonly class LinkPerformanceSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            activeLinksThisWeek: $attributes->int('active_links_this_week'),
-            clicksByDay: $attributes->array('clicks_by_day'),
-            clicksThisWeek: $attributes->nullableInt('clicks_this_week'),
-            clicksToday: $attributes->nullableInt('clicks_today'),
-            deviceBreakdown: $attributes->array('device_breakdown'),
-            linkTrackingEnabled: $attributes->bool('link_tracking_enabled'),
-            recentActivity: $attributes->list('recent_activity', RecentLinkActivity::fromArray(...)),
-            topPerformingLinks: $attributes->list('top_performing_links', TopPerformingLink::fromArray(...)),
-            totalClicks: $attributes->int('total_clicks'),
             totalLinks: $attributes->int('total_links'),
+            totalClicks: $attributes->int('total_clicks'),
+            clicksToday: $attributes->nullableInt('clicks_today'),
+            clicksThisWeek: $attributes->nullableInt('clicks_this_week'),
+            activeLinksThisWeek: $attributes->int('active_links_this_week'),
+            topPerformingLinks: $attributes->list('top_performing_links', TopPerformingLink::fromArray(...)),
+            clicksByDay: $attributes->array('clicks_by_day'),
+            deviceBreakdown: $attributes->array('device_breakdown'),
+            recentActivity: $attributes->list('recent_activity', RecentLinkActivity::fromArray(...)),
+            linkTrackingEnabled: $attributes->bool('link_tracking_enabled'),
             raw: $data,
         );
     }

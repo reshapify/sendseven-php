@@ -23,11 +23,11 @@ final readonly class FlowDetails extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $error,
+        public bool $success,
         public ?AppSchemasWhatsAppFlowFlow $flow,
         public array $screens,
-        public bool $success,
         public array $variables,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,11 +41,11 @@ final readonly class FlowDetails extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            error: $attributes->nullableString('error'),
+            success: $attributes->bool('success'),
             flow: $attributes->nullableObject('flow', AppSchemasWhatsAppFlowFlow::fromArray(...)),
             screens: $attributes->list('screens', FlowScreenInfo::fromArray(...)),
-            success: $attributes->bool('success'),
             variables: $attributes->strings('variables'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

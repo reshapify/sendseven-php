@@ -17,34 +17,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailCampaignAnalytics extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $clicksByHour
-     * @param  array<array-key, mixed>  $opensByHour
      * @param  array<array-key, mixed>  $sendsByHour
+     * @param  array<array-key, mixed>  $opensByHour
+     * @param  array<array-key, mixed>  $clicksByHour
      * @param  list<mixed>  $topLinks
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $bounceRate,
-        public ?int $bouncedCount,
         public string $campaignId,
-        public ?float $clickRate,
-        public ?float $clickToOpenRate,
-        public ?int $clickedCount,
-        public array $clicksByHour,
-        public ?int $complainedCount,
-        public ?float $complaintRate,
-        public ?int $deliveredCount,
-        public ?float $deliveryRate,
         public string $emailCampaignId,
+        public ?int $totalRecipients,
+        public ?int $sentCount,
+        public ?int $deliveredCount,
+        public ?int $openedCount,
+        public ?int $clickedCount,
+        public ?int $bouncedCount,
+        public ?int $complainedCount,
         public ?int $failedCount,
         public ?int $heldCount,
+        public ?float $deliveryRate,
         public ?float $openRate,
-        public ?int $openedCount,
-        public array $opensByHour,
+        public ?float $clickRate,
+        public ?float $clickToOpenRate,
+        public ?float $bounceRate,
+        public ?float $complaintRate,
         public array $sendsByHour,
-        public ?int $sentCount,
+        public array $opensByHour,
+        public array $clicksByHour,
         public array $topLinks,
-        public ?int $totalRecipients,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,27 +58,27 @@ final readonly class EmailCampaignAnalytics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounceRate: $attributes->nullableFloat('bounce_rate'),
-            bouncedCount: $attributes->nullableInt('bounced_count'),
             campaignId: $attributes->string('campaign_id'),
-            clickRate: $attributes->nullableFloat('click_rate'),
-            clickToOpenRate: $attributes->nullableFloat('click_to_open_rate'),
-            clickedCount: $attributes->nullableInt('clicked_count'),
-            clicksByHour: $attributes->array('clicks_by_hour'),
-            complainedCount: $attributes->nullableInt('complained_count'),
-            complaintRate: $attributes->nullableFloat('complaint_rate'),
-            deliveredCount: $attributes->nullableInt('delivered_count'),
-            deliveryRate: $attributes->nullableFloat('delivery_rate'),
             emailCampaignId: $attributes->string('email_campaign_id'),
+            totalRecipients: $attributes->nullableInt('total_recipients'),
+            sentCount: $attributes->nullableInt('sent_count'),
+            deliveredCount: $attributes->nullableInt('delivered_count'),
+            openedCount: $attributes->nullableInt('opened_count'),
+            clickedCount: $attributes->nullableInt('clicked_count'),
+            bouncedCount: $attributes->nullableInt('bounced_count'),
+            complainedCount: $attributes->nullableInt('complained_count'),
             failedCount: $attributes->nullableInt('failed_count'),
             heldCount: $attributes->nullableInt('held_count'),
+            deliveryRate: $attributes->nullableFloat('delivery_rate'),
             openRate: $attributes->nullableFloat('open_rate'),
-            openedCount: $attributes->nullableInt('opened_count'),
-            opensByHour: $attributes->array('opens_by_hour'),
+            clickRate: $attributes->nullableFloat('click_rate'),
+            clickToOpenRate: $attributes->nullableFloat('click_to_open_rate'),
+            bounceRate: $attributes->nullableFloat('bounce_rate'),
+            complaintRate: $attributes->nullableFloat('complaint_rate'),
             sendsByHour: $attributes->array('sends_by_hour'),
-            sentCount: $attributes->nullableInt('sent_count'),
+            opensByHour: $attributes->array('opens_by_hour'),
+            clicksByHour: $attributes->array('clicks_by_hour'),
             topLinks: array_values($attributes->array('top_links')),
-            totalRecipients: $attributes->nullableInt('total_recipients'),
             raw: $data,
         );
     }

@@ -18,18 +18,18 @@ final readonly class ExistingEmailThreadInfo extends Data
 {
     /**
      * @param  string  $conversationId  Existing conversation ID
-     * @param  ?string  $createdAt  When the conversation was created
-     * @param  ?string  $lastMessageAt  When the last message was sent/received
-     * @param  ?int  $messageCount  Number of messages in the thread
      * @param  ?string  $subject  Email thread subject
+     * @param  ?int  $messageCount  Number of messages in the thread
+     * @param  ?string  $lastMessageAt  When the last message was sent/received
+     * @param  ?string  $createdAt  When the conversation was created
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $conversationId,
-        public ?string $createdAt,
-        public ?string $lastMessageAt,
-        public ?int $messageCount,
         public ?string $subject,
+        public ?int $messageCount,
+        public ?string $lastMessageAt,
+        public ?string $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,10 +44,10 @@ final readonly class ExistingEmailThreadInfo extends Data
 
         return new self(
             conversationId: $attributes->string('conversation_id'),
-            createdAt: $attributes->nullableString('created_at'),
-            lastMessageAt: $attributes->nullableString('last_message_at'),
-            messageCount: $attributes->nullableInt('message_count'),
             subject: $attributes->nullableString('subject'),
+            messageCount: $attributes->nullableInt('message_count'),
+            lastMessageAt: $attributes->nullableString('last_message_at'),
+            createdAt: $attributes->nullableString('created_at'),
             raw: $data,
         );
     }

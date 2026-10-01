@@ -26,8 +26,8 @@ final readonly class FlowVariableEntry extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $label,
         public string $path,
+        public string $label,
         public ?string $type,
         array $raw = [],
     ) {
@@ -42,8 +42,8 @@ final readonly class FlowVariableEntry extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            label: $attributes->string('label'),
             path: $attributes->string('path'),
+            label: $attributes->string('label'),
             type: $attributes->nullableString('type'),
             raw: $data,
         );

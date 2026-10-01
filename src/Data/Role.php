@@ -20,26 +20,26 @@ final readonly class Role extends Data
 {
     /**
      * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  ?string  $description  Role description
-     * @param  ?string  $icon  Lucide icon name (e.g., 'crown', 'shield-check')
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  bool  $isSystem  Whether this is a system-defined role
-     * @param  string  $name  Role name
-     * @param  list<string>  $scopes  Scopes granted to this role
-     * @param  ?string  $tenantId  Tenant ID (None for system roles)
      * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  ?string  $tenantId  Tenant ID (None for system roles)
+     * @param  string  $name  Role name
+     * @param  ?string  $description  Role description
+     * @param  bool  $isSystem  Whether this is a system-defined role
+     * @param  list<string>  $scopes  Scopes granted to this role
+     * @param  ?string  $icon  Lucide icon name (e.g., 'crown', 'shield-check')
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $createdAt,
-        public ?string $description,
-        public ?string $icon,
-        public string $id,
-        public bool $isSystem,
-        public string $name,
-        public array $scopes,
-        public ?string $tenantId,
         public ?string $updatedAt,
+        public string $id,
+        public ?string $tenantId,
+        public string $name,
+        public ?string $description,
+        public bool $isSystem,
+        public array $scopes,
+        public ?string $icon,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,14 +54,14 @@ final readonly class Role extends Data
 
         return new self(
             createdAt: $attributes->string('created_at'),
-            description: $attributes->nullableString('description'),
-            icon: $attributes->nullableString('icon'),
-            id: $attributes->string('id'),
-            isSystem: $attributes->bool('is_system'),
-            name: $attributes->string('name'),
-            scopes: $attributes->strings('scopes'),
-            tenantId: $attributes->nullableString('tenant_id'),
             updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->nullableString('tenant_id'),
+            name: $attributes->string('name'),
+            description: $attributes->nullableString('description'),
+            isSystem: $attributes->bool('is_system'),
+            scopes: $attributes->strings('scopes'),
+            icon: $attributes->nullableString('icon'),
             raw: $data,
         );
     }

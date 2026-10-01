@@ -18,15 +18,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LiveChatEnd extends Data
 {
     /**
-     * @param  ?DateTimeImmutable  $endedAt  When the session was ended
-     * @param  string  $sessionId  ID of the ended session
      * @param  bool  $success  Whether session was ended successfully
+     * @param  string  $sessionId  ID of the ended session
+     * @param  ?DateTimeImmutable  $endedAt  When the session was ended
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $endedAt,
-        public string $sessionId,
         public bool $success,
+        public string $sessionId,
+        public ?DateTimeImmutable $endedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,9 +40,9 @@ final readonly class LiveChatEnd extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            endedAt: $attributes->nullableDateTime('ended_at'),
-            sessionId: $attributes->string('session_id'),
             success: $attributes->bool('success'),
+            sessionId: $attributes->string('session_id'),
+            endedAt: $attributes->nullableDateTime('ended_at'),
             raw: $data,
         );
     }

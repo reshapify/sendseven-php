@@ -22,17 +22,17 @@ final readonly class FlowVariables extends Data
     /**
      * @param  list<FlowVariableEntry>  $contactFields
      * @param  list<FlowVariableEntry>  $customFields
-     * @param  list<FlowVariableEntry>  $flowVariables
-     * @param  list<FlowVariableEntry>  $lists
      * @param  list<FlowVariableEntry>  $tags
+     * @param  list<FlowVariableEntry>  $lists
+     * @param  list<FlowVariableEntry>  $flowVariables
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public array $contactFields,
         public array $customFields,
-        public array $flowVariables,
-        public array $lists,
         public array $tags,
+        public array $lists,
+        public array $flowVariables,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,9 +48,9 @@ final readonly class FlowVariables extends Data
         return new self(
             contactFields: $attributes->list('contact_fields', FlowVariableEntry::fromArray(...)),
             customFields: $attributes->list('custom_fields', FlowVariableEntry::fromArray(...)),
-            flowVariables: $attributes->list('flow_variables', FlowVariableEntry::fromArray(...)),
-            lists: $attributes->list('lists', FlowVariableEntry::fromArray(...)),
             tags: $attributes->list('tags', FlowVariableEntry::fromArray(...)),
+            lists: $attributes->list('lists', FlowVariableEntry::fromArray(...)),
+            flowVariables: $attributes->list('flow_variables', FlowVariableEntry::fromArray(...)),
             raw: $data,
         );
     }

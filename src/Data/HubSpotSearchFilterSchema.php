@@ -22,8 +22,8 @@ final readonly class HubSpotSearchFilterSchema extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $operator,
         public string $propertyName,
+        public string $operator,
         public ?string $value,
         array $raw = [],
     ) {
@@ -38,8 +38,8 @@ final readonly class HubSpotSearchFilterSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            operator: $attributes->string('operator'),
             propertyName: $attributes->string('property_name'),
+            operator: $attributes->string('operator'),
             value: $attributes->nullableString('value'),
             raw: $data,
         );

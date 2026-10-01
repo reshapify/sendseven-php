@@ -23,9 +23,9 @@ final readonly class UserInboxAccessResponse extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contactHistoryVisibility,
-        public array $inboxIds,
         public string $mode,
+        public array $inboxIds,
+        public ?string $contactHistoryVisibility,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class UserInboxAccessResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contactHistoryVisibility: $attributes->nullableString('contact_history_visibility'),
-            inboxIds: $attributes->strings('inbox_ids'),
             mode: $attributes->string('mode'),
+            inboxIds: $attributes->strings('inbox_ids'),
+            contactHistoryVisibility: $attributes->nullableString('contact_history_visibility'),
             raw: $data,
         );
     }

@@ -20,44 +20,44 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Contact extends Data
 {
     /**
-     * @param  list<ContactMethod>  $contactMethods
-     * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  array<array-key, mixed>  $customFields
-     * @param  ?string  $email  Email address
-     * @param  ?string  $firstName  Contact's first/given name
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  ?string  $lastName  Contact's last/family name
-     * @param  ?MergedFromInfo  $mergedFrom  Set when the requested ID was an old/merged UUID and we resolved it to the surviving contact via contact_aliases.
      * @param  ?string  $name  Contact's full name
+     * @param  ?string  $firstName  Contact's first/given name
+     * @param  ?string  $lastName  Contact's last/family name
      * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
-     * @param  list<DuplicateRef>  $potentialDuplicates  Populated when the request used allow_duplicates mode and a duplicate was detected. Empty/null otherwise.
-     * @param  list<TagInfo>  $tags
-     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  ?string  $email  Email address
+     * @param  string  $createdAt  When the resource was created (UTC)
      * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  array<array-key, mixed>  $customFields
+     * @param  list<TagInfo>  $tags
+     * @param  list<ContactMethod>  $contactMethods
+     * @param  list<DuplicateRef>  $potentialDuplicates  Populated when the request used allow_duplicates mode and a duplicate was detected. Empty/null otherwise.
+     * @param  ?MergedFromInfo  $mergedFrom  Set when the requested ID was an old/merged UUID and we resolved it to the surviving contact via contact_aliases.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $avatarIsCustom,
-        public ?string $avatarUrl,
-        public ?string $birthday,
-        public array $contactMethods,
-        public string $createdAt,
-        public array $customFields,
-        public ?string $email,
+        public ?string $name,
         public ?string $firstName,
+        public ?string $lastName,
+        public ?string $phone,
+        public ?string $email,
+        public string $createdAt,
+        public ?string $updatedAt,
         public string $id,
-        public ?bool $isBlocked,
+        public string $tenantId,
+        public ?string $avatarUrl,
+        public ?bool $avatarIsCustom,
         public ?string $language,
         public ?string $languages,
+        public ?string $birthday,
+        public ?bool $isBlocked,
         public ?DateTimeImmutable $lastContactedAt,
-        public ?string $lastName,
-        public ?MergedFromInfo $mergedFrom,
-        public ?string $name,
-        public ?string $phone,
-        public array $potentialDuplicates,
+        public array $customFields,
         public array $tags,
-        public string $tenantId,
-        public ?string $updatedAt,
+        public array $contactMethods,
+        public array $potentialDuplicates,
+        public ?MergedFromInfo $mergedFrom,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -71,27 +71,27 @@ final readonly class Contact extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            avatarIsCustom: $attributes->nullableBool('avatar_is_custom'),
-            avatarUrl: $attributes->nullableString('avatar_url'),
-            birthday: $attributes->nullableString('birthday'),
-            contactMethods: $attributes->list('contact_methods', ContactMethod::fromArray(...)),
-            createdAt: $attributes->string('created_at'),
-            customFields: $attributes->array('custom_fields'),
-            email: $attributes->nullableString('email'),
+            name: $attributes->nullableString('name'),
             firstName: $attributes->nullableString('first_name'),
+            lastName: $attributes->nullableString('last_name'),
+            phone: $attributes->nullableString('phone'),
+            email: $attributes->nullableString('email'),
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
             id: $attributes->string('id'),
-            isBlocked: $attributes->nullableBool('is_blocked'),
+            tenantId: $attributes->string('tenant_id'),
+            avatarUrl: $attributes->nullableString('avatar_url'),
+            avatarIsCustom: $attributes->nullableBool('avatar_is_custom'),
             language: $attributes->nullableString('language'),
             languages: $attributes->nullableString('languages'),
+            birthday: $attributes->nullableString('birthday'),
+            isBlocked: $attributes->nullableBool('is_blocked'),
             lastContactedAt: $attributes->nullableDateTime('last_contacted_at'),
-            lastName: $attributes->nullableString('last_name'),
-            mergedFrom: $attributes->nullableObject('merged_from', MergedFromInfo::fromArray(...)),
-            name: $attributes->nullableString('name'),
-            phone: $attributes->nullableString('phone'),
-            potentialDuplicates: $attributes->list('potential_duplicates', DuplicateRef::fromArray(...)),
+            customFields: $attributes->array('custom_fields'),
             tags: $attributes->list('tags', TagInfo::fromArray(...)),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            contactMethods: $attributes->list('contact_methods', ContactMethod::fromArray(...)),
+            potentialDuplicates: $attributes->list('potential_duplicates', DuplicateRef::fromArray(...)),
+            mergedFrom: $attributes->nullableObject('merged_from', MergedFromInfo::fromArray(...)),
             raw: $data,
         );
     }

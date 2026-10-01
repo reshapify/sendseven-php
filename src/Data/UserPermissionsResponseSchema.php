@@ -17,18 +17,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UserPermissionsResponseSchema extends Data
 {
     /**
+     * @param  list<UserRoleResponseSchema>  $roles
      * @param  list<UserScopeResponseSchema>  $directScopes
      * @param  list<string>  $effectiveScopes
-     * @param  list<UserRoleResponseSchema>  $roles
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $userId,
+        public string $tenantId,
+        public array $roles,
         public array $directScopes,
         public array $effectiveScopes,
-        public array $roles,
-        public string $tenantId,
         public int $totalScopes,
-        public string $userId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,12 +42,12 @@ final readonly class UserPermissionsResponseSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            userId: $attributes->string('user_id'),
+            tenantId: $attributes->string('tenant_id'),
+            roles: $attributes->list('roles', UserRoleResponseSchema::fromArray(...)),
             directScopes: $attributes->list('direct_scopes', UserScopeResponseSchema::fromArray(...)),
             effectiveScopes: $attributes->strings('effective_scopes'),
-            roles: $attributes->list('roles', UserRoleResponseSchema::fromArray(...)),
-            tenantId: $attributes->string('tenant_id'),
             totalScopes: $attributes->int('total_scopes'),
-            userId: $attributes->string('user_id'),
             raw: $data,
         );
     }

@@ -21,11 +21,11 @@ final readonly class DomainVerification extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $dkimStatus,
-        public array $dnsRecords,
         public string $domain,
         public string $verificationStatus,
+        public ?string $dkimStatus,
         public bool $verified,
+        public array $dnsRecords,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class DomainVerification extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            dkimStatus: $attributes->nullableString('dkim_status'),
-            dnsRecords: $attributes->list('dns_records', DomainDnsRecord::fromArray(...)),
             domain: $attributes->string('domain'),
             verificationStatus: $attributes->string('verification_status'),
+            dkimStatus: $attributes->nullableString('dkim_status'),
             verified: $attributes->bool('verified'),
+            dnsRecords: $attributes->list('dns_records', DomainDnsRecord::fromArray(...)),
             raw: $data,
         );
     }

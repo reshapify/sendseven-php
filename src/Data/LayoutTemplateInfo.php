@@ -20,9 +20,9 @@ final readonly class LayoutTemplateInfo extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $category,
         public string $id,
         public string $name,
+        public ?string $category,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class LayoutTemplateInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            category: $attributes->nullableString('category'),
             id: $attributes->string('id'),
             name: $attributes->string('name'),
+            category: $attributes->nullableString('category'),
             raw: $data,
         );
     }

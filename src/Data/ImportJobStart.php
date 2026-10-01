@@ -21,16 +21,16 @@ final readonly class ImportJobStart extends Data
 {
     /**
      * @param  string  $jobId  PubSubJob id; use to poll status
+     * @param  ?string  $status  Initial job status
      * @param  string  $message  Human-readable status message
      * @param  string  $pollUrl  Relative URL to poll for progress
-     * @param  ?string  $status  Initial job status
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $jobId,
+        public ?string $status,
         public string $message,
         public string $pollUrl,
-        public ?string $status,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,9 +45,9 @@ final readonly class ImportJobStart extends Data
 
         return new self(
             jobId: $attributes->string('job_id'),
+            status: $attributes->nullableString('status'),
             message: $attributes->string('message'),
             pollUrl: $attributes->string('poll_url'),
-            status: $attributes->nullableString('status'),
             raw: $data,
         );
     }

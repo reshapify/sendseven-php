@@ -18,34 +18,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InvoicePreview extends Data
 {
     /**
+     * @param  list<InvoiceLineItem>  $lineItems
+     * @param  string  $subtotalEuros  Sum of all usage line items
+     * @param  ?string  $minimumSpendEuros  Plan minimum spend in EUR (0 for Pay As You Go)
+     * @param  ?string  $minimumSpendAdjustmentEuros  Amount added to reach minimum spend (0 if usage exceeds minimum)
+     * @param  ?string  $packageType  Current plan: PAY_AS_YOU_GO, SCALE, or BUSINESS
+     * @param  string  $totalEuros  Grand total in EUR: max(subtotal, minimum_spend)
      * @param  ?string  $currency  Currency code
      * @param  ?bool  $isPreview  True for previews, False for finalized invoices
-     * @param  list<InvoiceLineItem>  $lineItems
-     * @param  ?string  $minimumSpendAdjustmentEuros  Amount added to reach minimum spend (0 if usage exceeds minimum)
-     * @param  ?string  $minimumSpendEuros  Plan minimum spend in EUR (0 for Pay As You Go)
-     * @param  ?string  $packageType  Current plan: PAY_AS_YOU_GO, SCALE, or BUSINESS
-     * @param  int  $subtotalCents  Subtotal in cents for backward compatibility
-     * @param  string  $subtotalEuros  Sum of all usage line items
      * @param  array<array-key, mixed>  $tenantBreakdown  Per-tenant usage breakdown
+     * @param  int  $subtotalCents  Subtotal in cents for backward compatibility
      * @param  int  $totalCents  Total in cents for backward compatibility
-     * @param  string  $totalEuros  Grand total in EUR: max(subtotal, minimum_spend)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $billingAccountId,
+        public DateTimeImmutable $periodStart,
+        public DateTimeImmutable $periodEnd,
+        public array $lineItems,
+        public string $subtotalEuros,
+        public ?string $minimumSpendEuros,
+        public ?string $minimumSpendAdjustmentEuros,
+        public ?string $packageType,
+        public string $totalEuros,
         public ?string $currency,
         public ?bool $isPreview,
-        public array $lineItems,
-        public ?string $minimumSpendAdjustmentEuros,
-        public ?string $minimumSpendEuros,
-        public ?string $packageType,
-        public DateTimeImmutable $periodEnd,
-        public DateTimeImmutable $periodStart,
-        public int $subtotalCents,
-        public string $subtotalEuros,
         public array $tenantBreakdown,
+        public int $subtotalCents,
         public int $totalCents,
-        public string $totalEuros,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -60,19 +60,19 @@ final readonly class InvoicePreview extends Data
 
         return new self(
             billingAccountId: $attributes->string('billing_account_id'),
+            periodStart: $attributes->dateTime('period_start'),
+            periodEnd: $attributes->dateTime('period_end'),
+            lineItems: $attributes->list('line_items', InvoiceLineItem::fromArray(...)),
+            subtotalEuros: $attributes->string('subtotal_euros'),
+            minimumSpendEuros: $attributes->nullableString('minimum_spend_euros'),
+            minimumSpendAdjustmentEuros: $attributes->nullableString('minimum_spend_adjustment_euros'),
+            packageType: $attributes->nullableString('package_type'),
+            totalEuros: $attributes->string('total_euros'),
             currency: $attributes->nullableString('currency'),
             isPreview: $attributes->nullableBool('is_preview'),
-            lineItems: $attributes->list('line_items', InvoiceLineItem::fromArray(...)),
-            minimumSpendAdjustmentEuros: $attributes->nullableString('minimum_spend_adjustment_euros'),
-            minimumSpendEuros: $attributes->nullableString('minimum_spend_euros'),
-            packageType: $attributes->nullableString('package_type'),
-            periodEnd: $attributes->dateTime('period_end'),
-            periodStart: $attributes->dateTime('period_start'),
-            subtotalCents: $attributes->int('subtotal_cents'),
-            subtotalEuros: $attributes->string('subtotal_euros'),
             tenantBreakdown: $attributes->array('tenant_breakdown'),
+            subtotalCents: $attributes->int('subtotal_cents'),
             totalCents: $attributes->int('total_cents'),
-            totalEuros: $attributes->string('total_euros'),
             raw: $data,
         );
     }

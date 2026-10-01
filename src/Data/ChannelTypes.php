@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelTypes extends Data
 {
     /**
-     * @param  list<ChannelTypeInfo>  $allTypes
      * @param  list<string>  $available
      * @param  list<string>  $comingSoon
+     * @param  list<ChannelTypeInfo>  $allTypes
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $allTypes,
         public array $available,
         public array $comingSoon,
+        public array $allTypes,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class ChannelTypes extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allTypes: $attributes->list('all_types', ChannelTypeInfo::fromArray(...)),
             available: $attributes->strings('available'),
             comingSoon: $attributes->strings('coming_soon'),
+            allTypes: $attributes->list('all_types', ChannelTypeInfo::fromArray(...)),
             raw: $data,
         );
     }

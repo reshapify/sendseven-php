@@ -50,8 +50,11 @@ final readonly class Attachments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Attachments/create_attachment_from_url_api_v1_attachments_from_url_post
      */
-    public function createFromUrl(string $url, ?string $filename = null, ?string $idempotencyKey = null): AttachmentUpload
-    {
+    public function createFromUrl(
+        string $url,
+        ?string $filename = null,
+        ?string $idempotencyKey = null,
+    ): AttachmentUpload {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/attachments/from-url',

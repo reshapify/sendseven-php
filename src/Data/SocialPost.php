@@ -17,49 +17,49 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SocialPost extends Data
 {
     /**
-     * @param  ?string  $caption  The post's caption, if any.
-     * @param  string  $channelId  The Instagram or Facebook Messenger channel this post belongs to.
-     * @param  ?int  $commentCount  Total comments we have stored for this post.
-     * @param  ?int  $commentsCount  Total comments Meta reports on the post. **Nullable** — null until read from Meta. DISTINCT from `comment_count`: `comment_count` is how many comments WE have stored (only those Meta delivered us), while `comments_count` is Meta's own total (includes nested replies and comments we were never sent), so the two legitimately differ.
-     * @param  ?string  $countersSyncedAt  Last time the two counters were recomputed from the comment rows. Null means they have only ever been maintained incrementally.
      * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  string  $externalPostId  Meta's post id — an Instagram media id, or a Facebook `{page_id}_{post_id}`.
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  string  $id  Unique identifier (UUID)
-     * @param  ?SocialPostInsights  $insights  Cached Meta insights for this post (reach, impressions, engagement, likes, comments, shares, saves, video_views, clicks) plus the authorization / freshness envelope. Served from the cache columns — NEVER a live Graph call on list load. Use `POST /comments/posts/{post_id}/insights/refresh` to force a fresh read. Null only for a post whose channel type carries no insights.
-     * @param  ?int  $likeCount  Total reactions Meta reports on the post (all reaction types on Facebook, likes on Instagram). **Nullable** — null until the post has been read from Meta, and it can lag reality between syncs. This is Meta's public number, not derived from anything we store.
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $channelId  The Instagram or Facebook Messenger channel this post belongs to.
+     * @param  ?string  $pageName  Display name of the connected Page / Instagram account this post belongs to — the **post owner**, i.e. YOUR connected account, not the commenter. Taken from the channel's name, falling back to a channel-type label ("Instagram" / "Facebook Page") when the channel has no set name.
+     * @param  ?string  $pageAvatarUrl  Profile-picture URL of the connected Page / Instagram account (the post owner). **Nullable** — a Meta CDN URL that can expire, and null for channels connected before the avatar was captured or when Meta returned none. Fall back to initials/`page_name` when absent.
+     * @param  string  $externalPostId  Meta's post id — an Instagram media id, or a Facebook `{page_id}_{post_id}`.
+     * @param  ?string  $permalink  Public URL of the post on Instagram / Facebook.
+     * @param  ?string  $caption  The post's caption, if any.
      * @param  ?string  $mediaType  Meta's media type — `image`, `video`, `carousel_album`, `reel`, `story`, `link`, … Not an enum: Meta adds new ones.
      * @param  ?string  $mediaUrl  Meta CDN URL of the media. **These URLs expire** — treat them as a cache, not as a durable reference, and fall back to `permalink`.
-     * @param  ?string  $pageAvatarUrl  Profile-picture URL of the connected Page / Instagram account (the post owner). **Nullable** — a Meta CDN URL that can expire, and null for channels connected before the avatar was captured or when Meta returned none. Fall back to initials/`page_name` when absent.
-     * @param  ?string  $pageName  Display name of the connected Page / Instagram account this post belongs to — the **post owner**, i.e. YOUR connected account, not the commenter. Taken from the channel's name, falling back to a channel-type label ("Instagram" / "Facebook Page") when the channel has no set name.
-     * @param  ?string  $permalink  Public URL of the post on Instagram / Facebook.
-     * @param  ?string  $postedAt  When the post was published on Meta — not when we learned about it. Null for a post Meta gave no timestamp for; such posts sort last.
-     * @param  string  $tenantId  Tenant this resource belongs to
      * @param  ?string  $thumbnailUrl  URL of the post's card image. Normally a **permanent** URL on our own domain: we mirror the image once, because Meta's own CDN URLs expire. Falls back to Meta's expiring CDN URL for a post whose image could not be mirrored (it had already expired, or the post has no image at all).
+     * @param  ?string  $postedAt  When the post was published on Meta — not when we learned about it. Null for a post Meta gave no timestamp for; such posts sort last.
+     * @param  ?int  $likeCount  Total reactions Meta reports on the post (all reaction types on Facebook, likes on Instagram). **Nullable** — null until the post has been read from Meta, and it can lag reality between syncs. This is Meta's public number, not derived from anything we store.
+     * @param  ?int  $commentsCount  Total comments Meta reports on the post. **Nullable** — null until read from Meta. DISTINCT from `comment_count`: `comment_count` is how many comments WE have stored (only those Meta delivered us), while `comments_count` is Meta's own total (includes nested replies and comments we were never sent), so the two legitimately differ.
+     * @param  ?int  $commentCount  Total comments we have stored for this post.
      * @param  ?int  $unansweredCount  Comments still in `pending` — the badge the Comments UI shows. Advisory UI decoration maintained incrementally on ingestion and recomputed whenever a comment is triaged or purged; never used for billing.
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  ?string  $countersSyncedAt  Last time the two counters were recomputed from the comment rows. Null means they have only ever been maintained incrementally.
+     * @param  ?SocialPostInsights  $insights  Cached Meta insights for this post (reach, impressions, engagement, likes, comments, shares, saves, video_views, clicks) plus the authorization / freshness envelope. Served from the cache columns — NEVER a live Graph call on list load. Use `POST /comments/posts/{post_id}/insights/refresh` to force a fresh read. Null only for a post whose channel type carries no insights.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $caption,
-        public string $channelId,
-        public ?int $commentCount,
-        public ?int $commentsCount,
-        public ?string $countersSyncedAt,
         public string $createdAt,
-        public string $externalPostId,
+        public ?string $updatedAt,
         public string $id,
-        public ?SocialPostInsights $insights,
-        public ?int $likeCount,
+        public string $tenantId,
+        public string $channelId,
+        public ?string $pageName,
+        public ?string $pageAvatarUrl,
+        public string $externalPostId,
+        public ?string $permalink,
+        public ?string $caption,
         public ?string $mediaType,
         public ?string $mediaUrl,
-        public ?string $pageAvatarUrl,
-        public ?string $pageName,
-        public ?string $permalink,
-        public ?string $postedAt,
-        public string $tenantId,
         public ?string $thumbnailUrl,
+        public ?string $postedAt,
+        public ?int $likeCount,
+        public ?int $commentsCount,
+        public ?int $commentCount,
         public ?int $unansweredCount,
-        public ?string $updatedAt,
+        public ?string $countersSyncedAt,
+        public ?SocialPostInsights $insights,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -73,26 +73,26 @@ final readonly class SocialPost extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            caption: $attributes->nullableString('caption'),
-            channelId: $attributes->string('channel_id'),
-            commentCount: $attributes->nullableInt('comment_count'),
-            commentsCount: $attributes->nullableInt('comments_count'),
-            countersSyncedAt: $attributes->nullableString('counters_synced_at'),
             createdAt: $attributes->string('created_at'),
-            externalPostId: $attributes->string('external_post_id'),
+            updatedAt: $attributes->nullableString('updated_at'),
             id: $attributes->string('id'),
-            insights: $attributes->nullableObject('insights', SocialPostInsights::fromArray(...)),
-            likeCount: $attributes->nullableInt('like_count'),
+            tenantId: $attributes->string('tenant_id'),
+            channelId: $attributes->string('channel_id'),
+            pageName: $attributes->nullableString('page_name'),
+            pageAvatarUrl: $attributes->nullableString('page_avatar_url'),
+            externalPostId: $attributes->string('external_post_id'),
+            permalink: $attributes->nullableString('permalink'),
+            caption: $attributes->nullableString('caption'),
             mediaType: $attributes->nullableString('media_type'),
             mediaUrl: $attributes->nullableString('media_url'),
-            pageAvatarUrl: $attributes->nullableString('page_avatar_url'),
-            pageName: $attributes->nullableString('page_name'),
-            permalink: $attributes->nullableString('permalink'),
-            postedAt: $attributes->nullableString('posted_at'),
-            tenantId: $attributes->string('tenant_id'),
             thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            postedAt: $attributes->nullableString('posted_at'),
+            likeCount: $attributes->nullableInt('like_count'),
+            commentsCount: $attributes->nullableInt('comments_count'),
+            commentCount: $attributes->nullableInt('comment_count'),
             unansweredCount: $attributes->nullableInt('unanswered_count'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            countersSyncedAt: $attributes->nullableString('counters_synced_at'),
+            insights: $attributes->nullableObject('insights', SocialPostInsights::fromArray(...)),
             raw: $data,
         );
     }

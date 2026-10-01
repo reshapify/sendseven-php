@@ -22,18 +22,18 @@ final readonly class AlertDestination extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $billingAccountId,
-        public string $channel,
-        public array $config,
-        public ?DateTimeImmutable $createdAt,
         public string $id,
+        public string $billingAccountId,
+        public ?string $tenantId,
+        public string $scope,
+        public string $channel,
         public bool $isEnabled,
+        public array $config,
+        public ?DateTimeImmutable $verifiedAt,
+        public ?bool $needsAttention,
         public ?string $lastError,
         public ?DateTimeImmutable $lastUsedAt,
-        public ?bool $needsAttention,
-        public string $scope,
-        public ?string $tenantId,
-        public ?DateTimeImmutable $verifiedAt,
+        public ?DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,18 +47,18 @@ final readonly class AlertDestination extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            billingAccountId: $attributes->string('billing_account_id'),
-            channel: $attributes->string('channel'),
-            config: $attributes->array('config'),
-            createdAt: $attributes->nullableDateTime('created_at'),
             id: $attributes->string('id'),
+            billingAccountId: $attributes->string('billing_account_id'),
+            tenantId: $attributes->nullableString('tenant_id'),
+            scope: $attributes->string('scope'),
+            channel: $attributes->string('channel'),
             isEnabled: $attributes->bool('is_enabled'),
+            config: $attributes->array('config'),
+            verifiedAt: $attributes->nullableDateTime('verified_at'),
+            needsAttention: $attributes->nullableBool('needs_attention'),
             lastError: $attributes->nullableString('last_error'),
             lastUsedAt: $attributes->nullableDateTime('last_used_at'),
-            needsAttention: $attributes->nullableBool('needs_attention'),
-            scope: $attributes->string('scope'),
-            tenantId: $attributes->nullableString('tenant_id'),
-            verifiedAt: $attributes->nullableDateTime('verified_at'),
+            createdAt: $attributes->nullableDateTime('created_at'),
             raw: $data,
         );
     }

@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UserRoleUpdate extends Data
 {
     /**
+     * @param  ?bool  $success  Whether the operation succeeded
      * @param  ?string  $message  Optional success message
      * @param  string  $newRole  The new role assigned
-     * @param  ?bool  $success  Whether the operation succeeded
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?bool $success,
         public ?string $message,
         public string $newRole,
-        public ?bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class UserRoleUpdate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->nullableBool('success'),
             message: $attributes->nullableString('message'),
             newRole: $attributes->string('new_role'),
-            success: $attributes->nullableBool('success'),
             raw: $data,
         );
     }

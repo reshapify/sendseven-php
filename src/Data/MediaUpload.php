@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MediaUpload extends Data
 {
     /**
-     * @param  ?string  $attachmentId  UUID of the corresponding `attachments` row created for the uploaded media. Lets callers re-resolve a fresh download URL from the Attachments API without re-uploading the file. Stored alongside `media_url` so future migrations to signed/proxied URLs can be a service-internal change without breaking persisted `default_header_media_url` values.
-     * @param  string  $fileName  Original file name
+     * @param  bool  $success  Whether the upload was successful
      * @param  string  $handle  Media handle to use in template creation
+     * @param  string  $fileName  Original file name
      * @param  string  $mediaType  Type of media: image, video, or document
      * @param  ?string  $mediaUrl  Permanent public URL to the uploaded media in our own storage. Pass this back as `default_header_media_url` on POST /whatsapp-templates (create) or PATCH /whatsapp-templates/{id} (update) so the send path can use it as a fallback when no `header_media_url` is supplied.
-     * @param  bool  $success  Whether the upload was successful
+     * @param  ?string  $attachmentId  UUID of the corresponding `attachments` row created for the uploaded media. Lets callers re-resolve a fresh download URL from the Attachments API without re-uploading the file. Stored alongside `media_url` so future migrations to signed/proxied URLs can be a service-internal change without breaking persisted `default_header_media_url` values.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $attachmentId,
-        public string $fileName,
+        public bool $success,
         public string $handle,
+        public string $fileName,
         public string $mediaType,
         public ?string $mediaUrl,
-        public bool $success,
+        public ?string $attachmentId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,12 +45,12 @@ final readonly class MediaUpload extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachmentId: $attributes->nullableString('attachment_id'),
-            fileName: $attributes->string('file_name'),
+            success: $attributes->bool('success'),
             handle: $attributes->string('handle'),
+            fileName: $attributes->string('file_name'),
             mediaType: $attributes->string('media_type'),
             mediaUrl: $attributes->nullableString('media_url'),
-            success: $attributes->bool('success'),
+            attachmentId: $attributes->nullableString('attachment_id'),
             raw: $data,
         );
     }

@@ -63,21 +63,33 @@ final readonly class Alerts
      *
      * Scopes: alerts:update.
      *
-     * @param  float|int|null  $monthlyPaidCapEuros  Monthly paid-alert spend cap in EUR. None = uncapped.
      * @param  array<string, mixed>|null  $severityMatrix  severity → list of channels, e.g. {"warning": ["email","in_app"], "severe": ["email","sms"]}. None = catalog defaults.
      * @param  array<string, mixed>|null  $typeOverrides  Per-alert-type channel overrides. None = none.
+     * @param  float|int|null  $monthlyPaidCapEuros  Monthly paid-alert spend cap in EUR. None = uncapped.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Alerts/put_alert_settings_api_v1_alert_settings_put
      */
-    public function putSettings(?bool $emailAlwaysOn = null, ?string $mode = null, float|int|null $monthlyPaidCapEuros = null, ?array $severityMatrix = null, ?array $typeOverrides = null, ?string $scope = null): AlertSettings
-    {
+    public function putSettings(
+        ?string $mode = null,
+        ?array $severityMatrix = null,
+        ?array $typeOverrides = null,
+        ?bool $emailAlwaysOn = null,
+        float|int|null $monthlyPaidCapEuros = null,
+        ?string $scope = null,
+    ): AlertSettings {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/alert-settings',
             query: Payload::query(['scope' => $scope]),
-            body: Payload::body(['email_always_on' => $emailAlwaysOn, 'mode' => $mode, 'monthly_paid_cap_euros' => $monthlyPaidCapEuros, 'severity_matrix' => $severityMatrix, 'type_overrides' => $typeOverrides]),
+            body: Payload::body([
+                'mode' => $mode,
+                'severity_matrix' => $severityMatrix,
+                'type_overrides' => $typeOverrides,
+                'email_always_on' => $emailAlwaysOn,
+                'monthly_paid_cap_euros' => $monthlyPaidCapEuros,
+            ]),
         ));
 
         return AlertSettings::fromArray($response->data());
@@ -95,12 +107,22 @@ final readonly class Alerts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Alerts/create_alert_destination_api_v1_alert_settings_destinations_post
      */
-    public function createDestination(string $channel, ?array $config = null, ?bool $isEnabled = null, ?string $scope = null, ?string $idempotencyKey = null): AlertDestination
-    {
+    public function createDestination(
+        string $channel,
+        ?string $scope = null,
+        ?array $config = null,
+        ?bool $isEnabled = null,
+        ?string $idempotencyKey = null,
+    ): AlertDestination {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/alert-settings/destinations',
-            body: Payload::body(['channel' => $channel, 'config' => $config, 'is_enabled' => $isEnabled, 'scope' => $scope]),
+            body: Payload::body([
+                'channel' => $channel,
+                'scope' => $scope,
+                'config' => $config,
+                'is_enabled' => $isEnabled,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -136,8 +158,11 @@ final readonly class Alerts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Alerts/update_alert_destination_api_v1_alert_settings_destinations__destination_id__put
      */
-    public function updateDestination(string $destinationId, ?array $config = null, ?bool $isEnabled = null): AlertDestination
-    {
+    public function updateDestination(
+        string $destinationId,
+        ?array $config = null,
+        ?bool $isEnabled = null,
+    ): AlertDestination {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/alert-settings/destinations/'.Payload::segment($destinationId),
@@ -260,12 +285,21 @@ final readonly class Alerts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Alerts/list_alerts_api_v1_alerts_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $severity = null, ?string $alertType = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $severity = null,
+        ?string $alertType = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/alerts',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'severity' => $severity, 'alert_type' => $alertType]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'severity' => $severity,
+                'alert_type' => $alertType,
+            ]),
         ));
 
         return Hydrate::page($response->data(), AlertEvent::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, severity: $severity, alertType: $alertType));

@@ -19,21 +19,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SubscriberOverview extends Data
 {
     /**
+     * @param  ?int  $totalSubscriptions  Total subscription records
+     * @param  list<StatusCount>  $byStatus  Counts by subscription status
      * @param  list<ChannelStatusBreakdown>  $byChannel  Breakdown by channel type and status
      * @param  list<ListStatusBreakdown>  $byList  Breakdown by list and status
-     * @param  list<StatusCount>  $byStatus  Counts by subscription status
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  string  $periodStart  Start of the reporting period (ISO format)
-     * @param  ?int  $totalSubscriptions  Total subscription records
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?int $totalSubscriptions,
+        public array $byStatus,
         public array $byChannel,
         public array $byList,
-        public array $byStatus,
-        public string $periodEnd,
         public string $periodStart,
-        public ?int $totalSubscriptions,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,12 +47,12 @@ final readonly class SubscriberOverview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            totalSubscriptions: $attributes->nullableInt('total_subscriptions'),
+            byStatus: $attributes->list('by_status', StatusCount::fromArray(...)),
             byChannel: $attributes->list('by_channel', ChannelStatusBreakdown::fromArray(...)),
             byList: $attributes->list('by_list', ListStatusBreakdown::fromArray(...)),
-            byStatus: $attributes->list('by_status', StatusCount::fromArray(...)),
-            periodEnd: $attributes->string('period_end'),
             periodStart: $attributes->string('period_start'),
-            totalSubscriptions: $attributes->nullableInt('total_subscriptions'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

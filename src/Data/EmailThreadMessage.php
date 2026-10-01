@@ -17,43 +17,43 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailThreadMessage extends Data
 {
     /**
-     * @param  list<AttachmentInfo>  $attachments
-     * @param  list<EmailAddress>  $bccEmails
-     * @param  list<EmailAddress>  $ccEmails
-     * @param  string  $direction  inbound or outbound
-     * @param  ?string  $emailMetadata  JSON metadata including cached translations
-     * @param  ?string  $htmlBody  HTML body content
-     * @param  ?string  $inReplyTo  Parent Message-ID
      * @param  ?string  $messageId  RFC 5322 Message-ID
-     * @param  list<string>  $references  Reference chain
-     * @param  string  $status  Message status (received, sent, delivered, etc.)
-     * @param  ?string  $textBody  Plain text body for display
      * @param  ?string  $threadId  Thread ID for grouping
+     * @param  ?string  $inReplyTo  Parent Message-ID
+     * @param  list<string>  $references  Reference chain
+     * @param  string  $direction  inbound or outbound
      * @param  list<EmailAddress>  $toEmails
+     * @param  list<EmailAddress>  $ccEmails
+     * @param  list<EmailAddress>  $bccEmails
+     * @param  ?string  $textBody  Plain text body for display
+     * @param  ?string  $htmlBody  HTML body content
+     * @param  list<AttachmentInfo>  $attachments
+     * @param  string  $status  Message status (received, sent, delivered, etc.)
+     * @param  ?string  $emailMetadata  JSON metadata including cached translations
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $attachments,
-        public array $bccEmails,
-        public array $ccEmails,
-        public string $createdAt,
+        public string $id,
+        public ?string $messageId,
+        public ?string $threadId,
+        public ?string $inReplyTo,
+        public array $references,
         public string $direction,
-        public ?string $emailMetadata,
         public string $fromEmail,
         public ?string $fromName,
-        public ?string $htmlBody,
-        public string $id,
-        public ?string $inReplyTo,
-        public ?string $messageId,
-        public ?string $receivedAt,
-        public array $references,
+        public array $toEmails,
+        public array $ccEmails,
+        public array $bccEmails,
         public ?string $replyTo,
-        public ?string $sentAt,
-        public string $status,
         public ?string $subject,
         public ?string $textBody,
-        public ?string $threadId,
-        public array $toEmails,
+        public ?string $htmlBody,
+        public array $attachments,
+        public string $status,
+        public ?string $sentAt,
+        public ?string $receivedAt,
+        public string $createdAt,
+        public ?string $emailMetadata,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -67,27 +67,27 @@ final readonly class EmailThreadMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachments: $attributes->list('attachments', AttachmentInfo::fromArray(...)),
-            bccEmails: $attributes->list('bcc_emails', EmailAddress::fromArray(...)),
-            ccEmails: $attributes->list('cc_emails', EmailAddress::fromArray(...)),
-            createdAt: $attributes->string('created_at'),
+            id: $attributes->string('id'),
+            messageId: $attributes->nullableString('message_id'),
+            threadId: $attributes->nullableString('thread_id'),
+            inReplyTo: $attributes->nullableString('in_reply_to'),
+            references: $attributes->strings('references'),
             direction: $attributes->string('direction'),
-            emailMetadata: $attributes->nullableString('email_metadata'),
             fromEmail: $attributes->string('from_email'),
             fromName: $attributes->nullableString('from_name'),
-            htmlBody: $attributes->nullableString('html_body'),
-            id: $attributes->string('id'),
-            inReplyTo: $attributes->nullableString('in_reply_to'),
-            messageId: $attributes->nullableString('message_id'),
-            receivedAt: $attributes->nullableString('received_at'),
-            references: $attributes->strings('references'),
+            toEmails: $attributes->list('to_emails', EmailAddress::fromArray(...)),
+            ccEmails: $attributes->list('cc_emails', EmailAddress::fromArray(...)),
+            bccEmails: $attributes->list('bcc_emails', EmailAddress::fromArray(...)),
             replyTo: $attributes->nullableString('reply_to'),
-            sentAt: $attributes->nullableString('sent_at'),
-            status: $attributes->string('status'),
             subject: $attributes->nullableString('subject'),
             textBody: $attributes->nullableString('text_body'),
-            threadId: $attributes->nullableString('thread_id'),
-            toEmails: $attributes->list('to_emails', EmailAddress::fromArray(...)),
+            htmlBody: $attributes->nullableString('html_body'),
+            attachments: $attributes->list('attachments', AttachmentInfo::fromArray(...)),
+            status: $attributes->string('status'),
+            sentAt: $attributes->nullableString('sent_at'),
+            receivedAt: $attributes->nullableString('received_at'),
+            createdAt: $attributes->string('created_at'),
+            emailMetadata: $attributes->nullableString('email_metadata'),
             raw: $data,
         );
     }

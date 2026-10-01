@@ -21,14 +21,14 @@ final readonly class UserRoleResponseSchema extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $assignedAt,
-        public ?string $assignedByUserId,
-        public ?DateTimeImmutable $expiresAt,
         public string $id,
+        public string $userId,
+        public string $tenantId,
         public string $roleId,
         public string $roleName,
-        public string $tenantId,
-        public string $userId,
+        public ?string $assignedByUserId,
+        public DateTimeImmutable $assignedAt,
+        public ?DateTimeImmutable $expiresAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,14 +42,14 @@ final readonly class UserRoleResponseSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            assignedAt: $attributes->dateTime('assigned_at'),
-            assignedByUserId: $attributes->nullableString('assigned_by_user_id'),
-            expiresAt: $attributes->nullableDateTime('expires_at'),
             id: $attributes->string('id'),
+            userId: $attributes->string('user_id'),
+            tenantId: $attributes->string('tenant_id'),
             roleId: $attributes->string('role_id'),
             roleName: $attributes->string('role_name'),
-            tenantId: $attributes->string('tenant_id'),
-            userId: $attributes->string('user_id'),
+            assignedByUserId: $attributes->nullableString('assigned_by_user_id'),
+            assignedAt: $attributes->dateTime('assigned_at'),
+            expiresAt: $attributes->nullableDateTime('expires_at'),
             raw: $data,
         );
     }

@@ -19,19 +19,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CtwaAdBreakdown extends Data
 {
     /**
-     * @param  list<CtwaAdBreakdownItem>  $ads  Ad/post sources ranked by conversation count, descending
-     * @param  bool  $hasData  True when the tenant has at least one CTWA conversation in the range. Convenience flag for conditional rendering; equals total_conversations > 0.
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
      * @param  int  $totalConversations  Total CTWA conversations in the date range (sum of all ad counts)
+     * @param  bool  $hasData  True when the tenant has at least one CTWA conversation in the range. Convenience flag for conditional rendering; equals total_conversations > 0.
+     * @param  list<CtwaAdBreakdownItem>  $ads  Ad/post sources ranked by conversation count, descending
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $ads,
-        public bool $hasData,
-        public string $periodEnd,
-        public string $periodStart,
         public int $totalConversations,
+        public bool $hasData,
+        public array $ads,
+        public string $periodStart,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,11 +45,11 @@ final readonly class CtwaAdBreakdown extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            ads: $attributes->list('ads', CtwaAdBreakdownItem::fromArray(...)),
-            hasData: $attributes->bool('has_data'),
-            periodEnd: $attributes->string('period_end'),
-            periodStart: $attributes->string('period_start'),
             totalConversations: $attributes->int('total_conversations'),
+            hasData: $attributes->bool('has_data'),
+            ads: $attributes->list('ads', CtwaAdBreakdownItem::fromArray(...)),
+            periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

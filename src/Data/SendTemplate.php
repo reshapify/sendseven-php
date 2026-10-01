@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendTemplate extends Data
 {
     /**
+     * @param  ?string  $messageId  Internal message ID
+     * @param  ?string  $externalId  WhatsApp message ID
      * @param  string  $conversationId  Conversation ID (new or existing)
      * @param  ?int  $errorCode  WhatsApp API error code (e.g., 131008 for missing parameters, 131042 for payment issues)
      * @param  ?string  $errorDetails  Additional error details from the Meta API (e.g., which parameter is missing)
-     * @param  ?string  $externalId  WhatsApp message ID
      * @param  ?bool  $isCoexistence  Set on a 138000 (Calling not enabled) failure: whether the sending number is connected through the WhatsApp Business app (Coexistence). Null otherwise.
-     * @param  ?string  $messageId  Internal message ID
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
+        public ?string $messageId,
+        public ?string $externalId,
         public string $conversationId,
         public ?string $error,
         public ?int $errorCode,
         public ?string $errorDetails,
-        public ?string $externalId,
         public ?bool $isCoexistence,
-        public ?string $messageId,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,14 +47,14 @@ final readonly class SendTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
+            messageId: $attributes->nullableString('message_id'),
+            externalId: $attributes->nullableString('external_id'),
             conversationId: $attributes->string('conversation_id'),
             error: $attributes->nullableString('error'),
             errorCode: $attributes->nullableInt('error_code'),
             errorDetails: $attributes->nullableString('error_details'),
-            externalId: $attributes->nullableString('external_id'),
             isCoexistence: $attributes->nullableBool('is_coexistence'),
-            messageId: $attributes->nullableString('message_id'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

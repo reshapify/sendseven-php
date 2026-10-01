@@ -17,41 +17,41 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LibraryTemplate extends Data
 {
     /**
-     * @param  ?bool  $alreadyAdded  True when this tenant already has a template with the same name and language on the selected channel. Set by the API, not by Meta.
-     * @param  string  $body  Body text with ``{{1}}`` placeholders
-     * @param  list<string>  $bodyParamTypes  Semantic type per placeholder, when Meta provides it
-     * @param  list<string>  $bodyParams  Meta's example values, index-aligned with the placeholders
-     * @param  list<LibraryTemplateButton>  $buttons
-     * @param  ?string  $category  UTILITY or AUTHENTICATION
-     * @param  ?string  $footer  Footer text, if any
-     * @param  ?bool  $hasCallPermissionRequest  True when the entry includes a call permission request (asks the customer for permission to call them). Such a template can only be sent from a number with WhatsApp Calling turned on.
-     * @param  ?string  $header  Text header, if any
      * @param  ?string  $id  Meta's library template ID
-     * @param  list<string>  $industry  e.g. ``["FINANCIAL_SERVICES"]``
-     * @param  string  $language  Meta language code, e.g. ``en_US``
      * @param  string  $name  Library template name — the value to pass as ``library_template_name`` when adopting (e.g. ``delivery_update_1``)
-     * @param  ?bool  $requiresInput  True when at least one button needs a customer-specific value (link URL, phone number). Meta's catalog ships placeholder destinations for those, so they cannot be adopted unchanged — the UI must collect the value first. False means the entry can be added with a single click.
+     * @param  string  $language  Meta language code, e.g. ``en_US``
+     * @param  ?string  $category  UTILITY or AUTHENTICATION
      * @param  ?string  $topic  e.g. ``PAYMENTS``
      * @param  ?string  $usecase  e.g. ``LOW_BALANCE_WARNING``
+     * @param  list<string>  $industry  e.g. ``["FINANCIAL_SERVICES"]``
+     * @param  ?string  $header  Text header, if any
+     * @param  string  $body  Body text with ``{{1}}`` placeholders
+     * @param  ?string  $footer  Footer text, if any
+     * @param  list<string>  $bodyParams  Meta's example values, index-aligned with the placeholders
+     * @param  list<string>  $bodyParamTypes  Semantic type per placeholder, when Meta provides it
+     * @param  list<LibraryTemplateButton>  $buttons
+     * @param  ?bool  $alreadyAdded  True when this tenant already has a template with the same name and language on the selected channel. Set by the API, not by Meta.
+     * @param  ?bool  $requiresInput  True when at least one button needs a customer-specific value (link URL, phone number). Meta's catalog ships placeholder destinations for those, so they cannot be adopted unchanged — the UI must collect the value first. False means the entry can be added with a single click.
+     * @param  ?bool  $hasCallPermissionRequest  True when the entry includes a call permission request (asks the customer for permission to call them). Such a template can only be sent from a number with WhatsApp Calling turned on.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $alreadyAdded,
-        public string $body,
-        public array $bodyParamTypes,
-        public array $bodyParams,
-        public array $buttons,
-        public ?string $category,
-        public ?string $footer,
-        public ?bool $hasCallPermissionRequest,
-        public ?string $header,
         public ?string $id,
-        public array $industry,
-        public string $language,
         public string $name,
-        public ?bool $requiresInput,
+        public string $language,
+        public ?string $category,
         public ?string $topic,
         public ?string $usecase,
+        public array $industry,
+        public ?string $header,
+        public string $body,
+        public ?string $footer,
+        public array $bodyParams,
+        public array $bodyParamTypes,
+        public array $buttons,
+        public ?bool $alreadyAdded,
+        public ?bool $requiresInput,
+        public ?bool $hasCallPermissionRequest,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -65,22 +65,22 @@ final readonly class LibraryTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            alreadyAdded: $attributes->nullableBool('already_added'),
-            body: $attributes->string('body'),
-            bodyParamTypes: $attributes->strings('body_param_types'),
-            bodyParams: $attributes->strings('body_params'),
-            buttons: $attributes->list('buttons', LibraryTemplateButton::fromArray(...)),
-            category: $attributes->nullableString('category'),
-            footer: $attributes->nullableString('footer'),
-            hasCallPermissionRequest: $attributes->nullableBool('has_call_permission_request'),
-            header: $attributes->nullableString('header'),
             id: $attributes->nullableString('id'),
-            industry: $attributes->strings('industry'),
-            language: $attributes->string('language'),
             name: $attributes->string('name'),
-            requiresInput: $attributes->nullableBool('requires_input'),
+            language: $attributes->string('language'),
+            category: $attributes->nullableString('category'),
             topic: $attributes->nullableString('topic'),
             usecase: $attributes->nullableString('usecase'),
+            industry: $attributes->strings('industry'),
+            header: $attributes->nullableString('header'),
+            body: $attributes->string('body'),
+            footer: $attributes->nullableString('footer'),
+            bodyParams: $attributes->strings('body_params'),
+            bodyParamTypes: $attributes->strings('body_param_types'),
+            buttons: $attributes->list('buttons', LibraryTemplateButton::fromArray(...)),
+            alreadyAdded: $attributes->nullableBool('already_added'),
+            requiresInput: $attributes->nullableBool('requires_input'),
+            hasCallPermissionRequest: $attributes->nullableBool('has_call_permission_request'),
             raw: $data,
         );
     }

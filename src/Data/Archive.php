@@ -20,9 +20,9 @@ final readonly class Archive extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelId,
-        public string $message,
         public bool $success,
+        public string $message,
+        public string $channelId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class Archive extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->string('channel_id'),
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
+            channelId: $attributes->string('channel_id'),
             raw: $data,
         );
     }

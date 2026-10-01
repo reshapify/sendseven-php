@@ -51,12 +51,23 @@ final readonly class SavedInteractiveMessages
      *
      * @see https://api.sendseven.com/api/v1/docs#/Saved%20Interactive%20Messages/list_saved_interactive_messages_api_v1_saved_interactive_messages_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $type = null, ?string $category = null, ?string $search = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $type = null,
+        ?string $category = null,
+        ?string $search = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/saved-interactive-messages',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'type' => $type, 'category' => $category, 'search' => $search]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'type' => $type,
+                'category' => $category,
+                'search' => $search,
+            ]),
         ));
 
         return Hydrate::page($response->data(), SavedInteractiveMessage::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, type: $type, category: $category, search: $search));
@@ -75,32 +86,62 @@ final readonly class SavedInteractiveMessages
      *
      * Scopes: messages:create.
      *
-     * @param  string  $body  Main message body text (max 1024 chars)
-     * @param  string  $interactiveType  Interactive message type: 'buttons' or 'list'
      * @param  string  $title  Display name for the template
-     * @param  ?string  $buttonText  Menu button text for list type (e.g., 'View Options')
-     * @param  list<array<string, mixed>>|null  $buttons  Buttons for type='buttons' (max 3)
+     * @param  string  $interactiveType  Interactive message type: 'buttons' or 'list'
+     * @param  string  $body  Main message body text (max 1024 chars)
+     * @param  ?string  $shortcut  Optional shortcut for slash commands (e.g., 'pricing'). Stored lowercase without leading slash.
      * @param  ?string  $category  Category for grouping (e.g., 'Sales', 'Support')
-     * @param  ?string  $footerText  Optional footer text (max 60 chars)
-     * @param  ?string  $headerAttachmentId  Attachment ID for uploaded media header. Alternative to header_media_url for image/video/document headers.
-     * @param  ?string  $headerMediaUrl  URL for image/video/document header media. Required when header_type is 'image', 'video' or 'document' (unless header_attachment_id is provided).
      * @param  ?string  $headerText  Optional header text (max 60 chars). Used when header_type is 'text' or omitted.
      * @param  ?string  $headerType  Header type: 'text', 'image', 'video', 'document', or null (no header). For backward compatibility, if header_text is set but header_type is null, it is treated as 'text'.
-     * @param  ?bool  $isShared  If true, visible to all team members
+     * @param  ?string  $headerMediaUrl  URL for image/video/document header media. Required when header_type is 'image', 'video' or 'document' (unless header_attachment_id is provided).
+     * @param  ?string  $headerAttachmentId  Attachment ID for uploaded media header. Alternative to header_media_url for image/video/document headers.
+     * @param  ?string  $footerText  Optional footer text (max 60 chars)
+     * @param  list<array<string, mixed>>|null  $buttons  Buttons for type='buttons' (max 3)
      * @param  list<array<string, mixed>>|null  $sections  Sections for type='list' (max 10)
-     * @param  ?string  $shortcut  Optional shortcut for slash commands (e.g., 'pricing'). Stored lowercase without leading slash.
+     * @param  ?string  $buttonText  Menu button text for list type (e.g., 'View Options')
+     * @param  ?bool  $isShared  If true, visible to all team members
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Saved%20Interactive%20Messages/create_saved_interactive_message_api_v1_saved_interactive_messages_post
      */
-    public function create(string $body, string $interactiveType, string $title, ?string $buttonText = null, ?array $buttons = null, ?string $category = null, ?string $footerText = null, ?string $headerAttachmentId = null, ?string $headerMediaUrl = null, ?string $headerText = null, ?string $headerType = null, ?bool $isShared = null, ?array $sections = null, ?string $shortcut = null, ?string $idempotencyKey = null): SavedInteractiveMessage
-    {
+    public function create(
+        string $title,
+        string $interactiveType,
+        string $body,
+        ?string $shortcut = null,
+        ?string $category = null,
+        ?string $headerText = null,
+        ?string $headerType = null,
+        ?string $headerMediaUrl = null,
+        ?string $headerAttachmentId = null,
+        ?string $footerText = null,
+        ?array $buttons = null,
+        ?array $sections = null,
+        ?string $buttonText = null,
+        ?bool $isShared = null,
+        ?string $idempotencyKey = null,
+    ): SavedInteractiveMessage {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/saved-interactive-messages',
-            body: Payload::body(['body' => $body, 'interactive_type' => $interactiveType, 'title' => $title, 'button_text' => $buttonText, 'buttons' => $buttons, 'category' => $category, 'footer_text' => $footerText, 'header_attachment_id' => $headerAttachmentId, 'header_media_url' => $headerMediaUrl, 'header_text' => $headerText, 'header_type' => $headerType, 'is_shared' => $isShared, 'sections' => $sections, 'shortcut' => $shortcut]),
+            body: Payload::body([
+                'title' => $title,
+                'interactive_type' => $interactiveType,
+                'body' => $body,
+                'shortcut' => $shortcut,
+                'category' => $category,
+                'header_text' => $headerText,
+                'header_type' => $headerType,
+                'header_media_url' => $headerMediaUrl,
+                'header_attachment_id' => $headerAttachmentId,
+                'footer_text' => $footerText,
+                'buttons' => $buttons,
+                'sections' => $sections,
+                'button_text' => $buttonText,
+                'is_shared' => $isShared,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -212,31 +253,61 @@ final readonly class SavedInteractiveMessages
      *
      * Scopes: messages:create.
      *
-     * @param  ?string  $body  Main message body text
-     * @param  ?string  $buttonText  Menu button text for list type
-     * @param  list<array<string, mixed>>|null  $buttons  Buttons for type='buttons'
+     * @param  ?string  $title  Display name for the template
+     * @param  ?string  $shortcut  Optional shortcut for slash commands
      * @param  ?string  $category  Category for grouping
-     * @param  ?string  $footerText  Optional footer text
-     * @param  ?string  $headerAttachmentId  Attachment ID for uploaded media header
-     * @param  ?string  $headerMediaUrl  URL for image/video/document header media
+     * @param  ?string  $interactiveType  Interactive message type
+     * @param  ?string  $body  Main message body text
      * @param  ?string  $headerText  Optional header text
      * @param  ?string  $headerType  Header type: 'text', 'image', 'video', 'document', or null
-     * @param  ?string  $interactiveType  Interactive message type
-     * @param  ?bool  $isShared  If true, visible to all team members
+     * @param  ?string  $headerMediaUrl  URL for image/video/document header media
+     * @param  ?string  $headerAttachmentId  Attachment ID for uploaded media header
+     * @param  ?string  $footerText  Optional footer text
+     * @param  list<array<string, mixed>>|null  $buttons  Buttons for type='buttons'
      * @param  list<array<string, mixed>>|null  $sections  Sections for type='list'
-     * @param  ?string  $shortcut  Optional shortcut for slash commands
-     * @param  ?string  $title  Display name for the template
+     * @param  ?string  $buttonText  Menu button text for list type
+     * @param  ?bool  $isShared  If true, visible to all team members
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Saved%20Interactive%20Messages/update_saved_interactive_message_api_v1_saved_interactive_messages__message_id__put
      */
-    public function update(string $messageId, ?string $body = null, ?string $buttonText = null, ?array $buttons = null, ?string $category = null, ?string $footerText = null, ?string $headerAttachmentId = null, ?string $headerMediaUrl = null, ?string $headerText = null, ?string $headerType = null, ?string $interactiveType = null, ?bool $isShared = null, ?array $sections = null, ?string $shortcut = null, ?string $title = null): SavedInteractiveMessage
-    {
+    public function update(
+        string $messageId,
+        ?string $title = null,
+        ?string $shortcut = null,
+        ?string $category = null,
+        ?string $interactiveType = null,
+        ?string $body = null,
+        ?string $headerText = null,
+        ?string $headerType = null,
+        ?string $headerMediaUrl = null,
+        ?string $headerAttachmentId = null,
+        ?string $footerText = null,
+        ?array $buttons = null,
+        ?array $sections = null,
+        ?string $buttonText = null,
+        ?bool $isShared = null,
+    ): SavedInteractiveMessage {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/saved-interactive-messages/'.Payload::segment($messageId),
-            body: Payload::body(['body' => $body, 'button_text' => $buttonText, 'buttons' => $buttons, 'category' => $category, 'footer_text' => $footerText, 'header_attachment_id' => $headerAttachmentId, 'header_media_url' => $headerMediaUrl, 'header_text' => $headerText, 'header_type' => $headerType, 'interactive_type' => $interactiveType, 'is_shared' => $isShared, 'sections' => $sections, 'shortcut' => $shortcut, 'title' => $title]),
+            body: Payload::body([
+                'title' => $title,
+                'shortcut' => $shortcut,
+                'category' => $category,
+                'interactive_type' => $interactiveType,
+                'body' => $body,
+                'header_text' => $headerText,
+                'header_type' => $headerType,
+                'header_media_url' => $headerMediaUrl,
+                'header_attachment_id' => $headerAttachmentId,
+                'footer_text' => $footerText,
+                'buttons' => $buttons,
+                'sections' => $sections,
+                'button_text' => $buttonText,
+                'is_shared' => $isShared,
+            ]),
         ));
 
         return SavedInteractiveMessage::fromArray($response->data());
@@ -263,8 +334,13 @@ final readonly class SavedInteractiveMessages
      *
      * @see https://api.sendseven.com/api/v1/docs#/Saved%20Interactive%20Messages/send_saved_interactive_message_api_v1_saved_interactive_messages__message_id__send_post
      */
-    public function send(string $messageId, string $channelId, string $contactId, ?array $meta = null, ?string $idempotencyKey = null): SendSavedInteractiveMessage
-    {
+    public function send(
+        string $messageId,
+        string $channelId,
+        string $contactId,
+        ?array $meta = null,
+        ?string $idempotencyKey = null,
+    ): SendSavedInteractiveMessage {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/saved-interactive-messages/'.Payload::segment($messageId).'/send',

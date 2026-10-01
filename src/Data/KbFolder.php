@@ -19,34 +19,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class KbFolder extends Data
 {
     /**
-     * @param  list<KbFolder>  $children  Child folders (for tree structure)
-     * @param  string  $createdAt  ISO datetime when created
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $name  Folder name
+     * @param  string  $slug  URL-safe folder identifier
+     * @param  ?string  $parentId  Parent folder ID
+     * @param  bool  $isSystem  Whether this is a system folder
+     * @param  int  $sortOrder  Display order within parent
      * @param  ?int  $documentCount  Number of documents directly in this folder
      * @param  ?bool  $hasCorpus  Whether a Vertex AI corpus exists for this folder
-     * @param  string  $id  Unique identifier (UUID)
      * @param  ?bool  $isAiSearchable  Whether this folder is included in AI agent suggestions (/ai, /suggest)
-     * @param  bool  $isSystem  Whether this is a system folder
-     * @param  string  $name  Folder name
-     * @param  ?string  $parentId  Parent folder ID
-     * @param  string  $slug  URL-safe folder identifier
-     * @param  int  $sortOrder  Display order within parent
-     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  list<KbFolder>  $children  Child folders (for tree structure)
+     * @param  string  $createdAt  ISO datetime when created
      * @param  string  $updatedAt  ISO datetime when last updated
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $children,
-        public string $createdAt,
+        public string $id,
+        public string $tenantId,
+        public string $name,
+        public string $slug,
+        public ?string $parentId,
+        public bool $isSystem,
+        public int $sortOrder,
         public ?int $documentCount,
         public ?bool $hasCorpus,
-        public string $id,
         public ?bool $isAiSearchable,
-        public bool $isSystem,
-        public string $name,
-        public ?string $parentId,
-        public string $slug,
-        public int $sortOrder,
-        public string $tenantId,
+        public array $children,
+        public string $createdAt,
         public string $updatedAt,
         array $raw = [],
     ) {
@@ -61,18 +61,18 @@ final readonly class KbFolder extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            children: $attributes->list('children', KbFolder::fromArray(...)),
-            createdAt: $attributes->string('created_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            slug: $attributes->string('slug'),
+            parentId: $attributes->nullableString('parent_id'),
+            isSystem: $attributes->bool('is_system'),
+            sortOrder: $attributes->int('sort_order'),
             documentCount: $attributes->nullableInt('document_count'),
             hasCorpus: $attributes->nullableBool('has_corpus'),
-            id: $attributes->string('id'),
             isAiSearchable: $attributes->nullableBool('is_ai_searchable'),
-            isSystem: $attributes->bool('is_system'),
-            name: $attributes->string('name'),
-            parentId: $attributes->nullableString('parent_id'),
-            slug: $attributes->string('slug'),
-            sortOrder: $attributes->int('sort_order'),
-            tenantId: $attributes->string('tenant_id'),
+            children: $attributes->list('children', KbFolder::fromArray(...)),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             raw: $data,
         );

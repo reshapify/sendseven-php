@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BulkClose extends Data
 {
     /**
+     * @param  int  $successCount  Number of successfully closed conversations
      * @param  int  $failedCount  Number of failed closures
      * @param  list<string>  $failedIds  IDs of conversations that failed to close
-     * @param  int  $successCount  Number of successfully closed conversations
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public int $successCount,
         public int $failedCount,
         public array $failedIds,
-        public int $successCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class BulkClose extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            successCount: $attributes->int('success_count'),
             failedCount: $attributes->int('failed_count'),
             failedIds: $attributes->strings('failed_ids'),
-            successCount: $attributes->int('success_count'),
             raw: $data,
         );
     }

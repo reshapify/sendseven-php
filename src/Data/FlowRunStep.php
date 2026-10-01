@@ -23,28 +23,28 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FlowRunStep extends Data
 {
     /**
-     * @param  ?string  $branchTaken  Branch label the engine routed to from this node, when applicable. Derived from ``output_snapshot.chosen_branch``.
      * @param  array<array-key, mixed>  $inputSnapshot
-     * @param  array<array-key, mixed>  $nodeConfigSnapshot  Subset of the node's CURRENT config from ``flows.definition`` (not a point-in-time snapshot of what the engine executed). Surfaced fields are node-type specific (e.g. ``validation``, ``max_attempts``, ``on_timeout_node_id``, ``prompt`` for Collect Input). ``None`` when the node no longer exists in the flow definition.
-     * @param  ?string  $nodeLabel  Human-readable label for the node, looked up in the current ``flows.definition`` (``display_name`` → snapshot ``label``/``name`` → derived from ``node_type`` + config).
      * @param  array<array-key, mixed>  $outputSnapshot
+     * @param  ?string  $nodeLabel  Human-readable label for the node, looked up in the current ``flows.definition`` (``display_name`` → snapshot ``label``/``name`` → derived from ``node_type`` + config).
+     * @param  array<array-key, mixed>  $nodeConfigSnapshot  Subset of the node's CURRENT config from ``flows.definition`` (not a point-in-time snapshot of what the engine executed). Surfaced fields are node-type specific (e.g. ``validation``, ``max_attempts``, ``on_timeout_node_id``, ``prompt`` for Collect Input). ``None`` when the node no longer exists in the flow definition.
+     * @param  ?string  $branchTaken  Branch label the engine routed to from this node, when applicable. Derived from ``output_snapshot.chosen_branch``.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $branchTaken,
-        public ?string $errorText,
-        public ?string $finishedAt,
-        public string $flowRunId,
         public string $id,
-        public array $inputSnapshot,
-        public array $nodeConfigSnapshot,
-        public string $nodeId,
-        public ?string $nodeLabel,
-        public string $nodeType,
-        public array $outputSnapshot,
-        public string $startedAt,
-        public string $status,
         public string $tenantId,
+        public string $flowRunId,
+        public string $nodeId,
+        public string $nodeType,
+        public string $status,
+        public array $inputSnapshot,
+        public array $outputSnapshot,
+        public ?string $errorText,
+        public string $startedAt,
+        public ?string $finishedAt,
+        public ?string $nodeLabel,
+        public array $nodeConfigSnapshot,
+        public ?string $branchTaken,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,20 +58,20 @@ final readonly class FlowRunStep extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            branchTaken: $attributes->nullableString('branch_taken'),
-            errorText: $attributes->nullableString('error_text'),
-            finishedAt: $attributes->nullableString('finished_at'),
-            flowRunId: $attributes->string('flow_run_id'),
             id: $attributes->string('id'),
-            inputSnapshot: $attributes->array('input_snapshot'),
-            nodeConfigSnapshot: $attributes->array('node_config_snapshot'),
-            nodeId: $attributes->string('node_id'),
-            nodeLabel: $attributes->nullableString('node_label'),
-            nodeType: $attributes->string('node_type'),
-            outputSnapshot: $attributes->array('output_snapshot'),
-            startedAt: $attributes->string('started_at'),
-            status: $attributes->string('status'),
             tenantId: $attributes->string('tenant_id'),
+            flowRunId: $attributes->string('flow_run_id'),
+            nodeId: $attributes->string('node_id'),
+            nodeType: $attributes->string('node_type'),
+            status: $attributes->string('status'),
+            inputSnapshot: $attributes->array('input_snapshot'),
+            outputSnapshot: $attributes->array('output_snapshot'),
+            errorText: $attributes->nullableString('error_text'),
+            startedAt: $attributes->string('started_at'),
+            finishedAt: $attributes->nullableString('finished_at'),
+            nodeLabel: $attributes->nullableString('node_label'),
+            nodeConfigSnapshot: $attributes->array('node_config_snapshot'),
+            branchTaken: $attributes->nullableString('branch_taken'),
             raw: $data,
         );
     }

@@ -18,14 +18,14 @@ final readonly class FolderDelete extends Data
 {
     /**
      * @param  string  $folderId  ID of the folder queued for deletion
-     * @param  string  $jobId  Async job ID assigned to the folder deletion
      * @param  int  $queuedDocuments  Number of contained documents also queued for deletion
+     * @param  string  $jobId  Async job ID assigned to the folder deletion
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $folderId,
-        public string $jobId,
         public int $queuedDocuments,
+        public string $jobId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,8 +40,8 @@ final readonly class FolderDelete extends Data
 
         return new self(
             folderId: $attributes->string('folder_id'),
-            jobId: $attributes->string('job_id'),
             queuedDocuments: $attributes->int('queued_documents'),
+            jobId: $attributes->string('job_id'),
             raw: $data,
         );
     }

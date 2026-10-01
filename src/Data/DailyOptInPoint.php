@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DailyOptInPoint extends Data
 {
     /**
+     * @param  string  $date  Date in YYYY-MM-DD format
      * @param  string  $channelType  Channel type
      * @param  int  $count  Number of opt-ins on this date
-     * @param  string  $date  Date in YYYY-MM-DD format
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $date,
         public string $channelType,
         public int $count,
-        public string $date,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class DailyOptInPoint extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            date: $attributes->string('date'),
             channelType: $attributes->string('channel_type'),
             count: $attributes->int('count'),
-            date: $attributes->string('date'),
             raw: $data,
         );
     }

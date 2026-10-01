@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AddMember extends Data
 {
     /**
-     * @param  ?string  $memberId  ID of the membership/subscription record
-     * @param  ?string  $message  Optional success message
      * @param  ?bool  $success  Whether the operation succeeded
+     * @param  ?string  $message  Optional success message
+     * @param  ?string  $memberId  ID of the membership/subscription record
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $memberId,
-        public ?string $message,
         public ?bool $success,
+        public ?string $message,
+        public ?string $memberId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class AddMember extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            memberId: $attributes->nullableString('member_id'),
-            message: $attributes->nullableString('message'),
             success: $attributes->nullableBool('success'),
+            message: $attributes->nullableString('message'),
+            memberId: $attributes->nullableString('member_id'),
             raw: $data,
         );
     }

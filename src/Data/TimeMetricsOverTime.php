@@ -19,17 +19,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TimeMetricsOverTime extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $byChannel  Per-channel daily averages
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
      * @param  list<TimeMetricPoint>  $timeline  Daily averages for charting
+     * @param  array<array-key, mixed>  $byChannel  Per-channel daily averages
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $byChannel,
-        public string $periodEnd,
-        public string $periodStart,
         public array $timeline,
+        public array $byChannel,
+        public string $periodStart,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,10 +43,10 @@ final readonly class TimeMetricsOverTime extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            byChannel: $attributes->array('by_channel'),
-            periodEnd: $attributes->string('period_end'),
-            periodStart: $attributes->string('period_start'),
             timeline: $attributes->list('timeline', TimeMetricPoint::fromArray(...)),
+            byChannel: $attributes->array('by_channel'),
+            periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

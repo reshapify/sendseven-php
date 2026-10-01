@@ -20,10 +20,10 @@ final readonly class SesSetupDnsRecord extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $purpose,
-        public string $recordName,
         public string $recordType,
+        public string $recordName,
         public string $recordValue,
+        public ?string $purpose,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class SesSetupDnsRecord extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            purpose: $attributes->nullableString('purpose'),
-            recordName: $attributes->string('record_name'),
             recordType: $attributes->string('record_type'),
+            recordName: $attributes->string('record_name'),
             recordValue: $attributes->string('record_value'),
+            purpose: $attributes->nullableString('purpose'),
             raw: $data,
         );
     }

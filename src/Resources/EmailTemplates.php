@@ -52,12 +52,25 @@ final readonly class EmailTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Templates/list_layout_templates_api_v1_email_templates_get
      */
-    public function listLayout(?string $category = null, ?bool $isSystemTemplate = null, ?bool $isActive = null, ?bool $includeHidden = null, ?int $limit = null, ?int $offset = null): array
-    {
+    public function listLayout(
+        ?string $category = null,
+        ?bool $isSystemTemplate = null,
+        ?bool $isActive = null,
+        ?bool $includeHidden = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/email-templates',
-            query: Payload::query(['category' => $category, 'is_system_template' => $isSystemTemplate, 'is_active' => $isActive, 'include_hidden' => $includeHidden, 'limit' => $limit, 'offset' => $offset]),
+            query: Payload::query([
+                'category' => $category,
+                'is_system_template' => $isSystemTemplate,
+                'is_active' => $isActive,
+                'include_hidden' => $includeHidden,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]),
         ));
 
         return Hydrate::list($response->data(), EmailLayoutTemplateList::fromArray(...));
@@ -78,11 +91,11 @@ final readonly class EmailTemplates
      *
      * Scopes: email:create.
      *
-     * @param  string  $mjmlSource  MJML source with {{variable_name}} placeholders
      * @param  string  $name  Email template name
+     * @param  string  $mjmlSource  MJML source with {{variable_name}} placeholders
+     * @param  ?string  $description  Template description
      * @param  ?string  $category  Category (transactional, promotional, custom)
      * @param  array<string, mixed>|null  $colorPalette  Color palette (e.g., {'primary': '#0066CC'})
-     * @param  ?string  $description  Template description
      * @param  ?string  $fontFamily  Font family (e.g., 'Arial, sans-serif')
      * @param  ?string  $thumbnailUrl  Template preview thumbnail URL
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -91,12 +104,28 @@ final readonly class EmailTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Templates/create_layout_template_api_v1_email_templates_post
      */
-    public function createLayout(string $mjmlSource, string $name, ?string $category = null, ?array $colorPalette = null, ?string $description = null, ?string $fontFamily = null, ?string $thumbnailUrl = null, ?string $idempotencyKey = null): EmailLayoutTemplate
-    {
+    public function createLayout(
+        string $name,
+        string $mjmlSource,
+        ?string $description = null,
+        ?string $category = null,
+        ?array $colorPalette = null,
+        ?string $fontFamily = null,
+        ?string $thumbnailUrl = null,
+        ?string $idempotencyKey = null,
+    ): EmailLayoutTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-templates',
-            body: Payload::body(['mjml_source' => $mjmlSource, 'name' => $name, 'category' => $category, 'color_palette' => $colorPalette, 'description' => $description, 'font_family' => $fontFamily, 'thumbnail_url' => $thumbnailUrl]),
+            body: Payload::body([
+                'name' => $name,
+                'mjml_source' => $mjmlSource,
+                'description' => $description,
+                'category' => $category,
+                'color_palette' => $colorPalette,
+                'font_family' => $fontFamily,
+                'thumbnail_url' => $thumbnailUrl,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -200,12 +229,29 @@ final readonly class EmailTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Templates/update_layout_template_api_v1_email_templates__template_id__patch
      */
-    public function updateLayout(string $templateId, ?string $category = null, ?array $colorPalette = null, ?string $description = null, ?string $fontFamily = null, ?string $mjmlSource = null, ?string $name = null, ?string $thumbnailUrl = null, ?string $idempotencyKey = null): EmailLayoutTemplate
-    {
+    public function updateLayout(
+        string $templateId,
+        ?string $name = null,
+        ?string $description = null,
+        ?string $category = null,
+        ?string $mjmlSource = null,
+        ?array $colorPalette = null,
+        ?string $fontFamily = null,
+        ?string $thumbnailUrl = null,
+        ?string $idempotencyKey = null,
+    ): EmailLayoutTemplate {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-templates/'.Payload::segment($templateId),
-            body: Payload::body(['category' => $category, 'color_palette' => $colorPalette, 'description' => $description, 'font_family' => $fontFamily, 'mjml_source' => $mjmlSource, 'name' => $name, 'thumbnail_url' => $thumbnailUrl]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'category' => $category,
+                'mjml_source' => $mjmlSource,
+                'color_palette' => $colorPalette,
+                'font_family' => $fontFamily,
+                'thumbnail_url' => $thumbnailUrl,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -230,8 +276,11 @@ final readonly class EmailTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Templates/duplicate_layout_template_api_v1_email_templates__template_id__duplicate_post
      */
-    public function duplicateLayout(string $templateId, string $newName, ?string $idempotencyKey = null): EmailLayoutTemplate
-    {
+    public function duplicateLayout(
+        string $templateId,
+        string $newName,
+        ?string $idempotencyKey = null,
+    ): EmailLayoutTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-templates/'.Payload::segment($templateId).'/duplicate',

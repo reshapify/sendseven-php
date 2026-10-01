@@ -18,14 +18,14 @@ final readonly class TimeMetricPoint extends Data
 {
     /**
      * @param  string  $date  Date in YYYY-MM-DD format
-     * @param  ?float  $resolutionHours  Average resolution time in hours
      * @param  ?float  $responseMinutes  Average response time in minutes
+     * @param  ?float  $resolutionHours  Average resolution time in hours
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $date,
-        public ?float $resolutionHours,
         public ?float $responseMinutes,
+        public ?float $resolutionHours,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,8 +40,8 @@ final readonly class TimeMetricPoint extends Data
 
         return new self(
             date: $attributes->string('date'),
-            resolutionHours: $attributes->nullableFloat('resolution_hours'),
             responseMinutes: $attributes->nullableFloat('response_minutes'),
+            resolutionHours: $attributes->nullableFloat('resolution_hours'),
             raw: $data,
         );
     }

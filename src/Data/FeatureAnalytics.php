@@ -23,11 +23,11 @@ final readonly class FeatureAnalytics extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $featureId,
         public string $featureType,
-        public array $topLinks,
-        public int $totalClicks,
+        public string $featureId,
         public int $totalLinks,
+        public int $totalClicks,
+        public array $topLinks,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,11 +41,11 @@ final readonly class FeatureAnalytics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            featureId: $attributes->string('feature_id'),
             featureType: $attributes->string('feature_type'),
-            topLinks: $attributes->list('top_links', TopLink::fromArray(...)),
-            totalClicks: $attributes->int('total_clicks'),
+            featureId: $attributes->string('feature_id'),
             totalLinks: $attributes->int('total_links'),
+            totalClicks: $attributes->int('total_clicks'),
+            topLinks: $attributes->list('top_links', TopLink::fromArray(...)),
             raw: $data,
         );
     }

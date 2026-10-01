@@ -75,7 +75,11 @@ final readonly class EmailSignatures
         $response = $this->connector->send(new Request(
             Method::Put,
             '/email-signatures/me',
-            body: Payload::body(['content_html' => $contentHtml, 'content_text' => $contentText, 'is_active' => $isActive]),
+            body: Payload::body([
+                'content_html' => $contentHtml,
+                'content_text' => $contentText,
+                'is_active' => $isActive,
+            ]),
         ));
 
         return UserSignature::fromArray($response->data());
@@ -227,26 +231,44 @@ final readonly class EmailSignatures
      *
      * Scopes: email_signatures:read.
      *
-     * @param  ?string  $agentEmail  Override agent email
+     * @param  ?string  $contentHtml  Custom HTML to preview (if not provided, uses tenant template)
      * @param  ?string  $agentName  Override agent name
+     * @param  ?string  $agentEmail  Override agent email
      * @param  ?string  $agentPhone  Override agent phone
      * @param  ?string  $agentTitle  Override agent title
-     * @param  ?string  $companyLogo  Override company logo URL
      * @param  ?string  $companyName  Override company name
+     * @param  ?string  $companyLogo  Override company logo URL
      * @param  ?string  $companyWebsite  Override company website
-     * @param  ?string  $contentHtml  Custom HTML to preview (if not provided, uses tenant template)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Signatures/preview_template_api_v1_email_signatures_template_preview_post
      */
-    public function previewTemplate(?string $agentEmail = null, ?string $agentName = null, ?string $agentPhone = null, ?string $agentTitle = null, ?string $companyLogo = null, ?string $companyName = null, ?string $companyWebsite = null, ?string $contentHtml = null, ?string $idempotencyKey = null): SignaturePreview
-    {
+    public function previewTemplate(
+        ?string $contentHtml = null,
+        ?string $agentName = null,
+        ?string $agentEmail = null,
+        ?string $agentPhone = null,
+        ?string $agentTitle = null,
+        ?string $companyName = null,
+        ?string $companyLogo = null,
+        ?string $companyWebsite = null,
+        ?string $idempotencyKey = null,
+    ): SignaturePreview {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-signatures/template/preview',
-            body: Payload::body(['agent_email' => $agentEmail, 'agent_name' => $agentName, 'agent_phone' => $agentPhone, 'agent_title' => $agentTitle, 'company_logo' => $companyLogo, 'company_name' => $companyName, 'company_website' => $companyWebsite, 'content_html' => $contentHtml]),
+            body: Payload::body([
+                'content_html' => $contentHtml,
+                'agent_name' => $agentName,
+                'agent_email' => $agentEmail,
+                'agent_phone' => $agentPhone,
+                'agent_title' => $agentTitle,
+                'company_name' => $companyName,
+                'company_logo' => $companyLogo,
+                'company_website' => $companyWebsite,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

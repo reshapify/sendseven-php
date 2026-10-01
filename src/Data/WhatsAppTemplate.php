@@ -22,55 +22,55 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WhatsAppTemplate extends Data
 {
     /**
-     * @param  string  $bodyText  Template body with {{1}}, {{2}} placeholders
-     * @param  list<TemplateButton>  $buttons  Template buttons
-     * @param  ?bool  $callPermissionBlocked  True when `has_call_permission_request` is true and Calling is turned off for the template's WhatsApp channel. Sending it is refused with HTTP 400 and `detail.error_code` 138000 until Calling is turned on.
-     * @param  list<mixed>  $carouselCards  For CAROUSEL templates: the ordered list of cards, each a `{"components": [...]}` object mirroring a mini-template (one IMAGE/VIDEO HEADER, one BODY, optional BUTTONS). `null` for non-carousel templates. Round-trips through sync unchanged, so a carousel created in WhatsApp Manager appears here identically.
-     * @param  TemplateCategory|string  $category  Template category
-     * @param  ?bool  $channelIsCoexistence  True when the template's WhatsApp channel is connected through the WhatsApp Business app (Coexistence). Calling for such a number is turned on in the WhatsApp Business app, not in SendSeven.
-     * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Used as a fallback when callers do not supply `header_document_filename` on send. Only meaningful for DOCUMENT header templates.
-     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as a fallback when callers do not supply `header_media_url` on send. Set at template creation time and editable via the template editor.
-     * @param  ?string  $footerText  Footer text (max 60 chars)
-     * @param  ?bool  $hasCallPermissionRequest  True when the template includes a call permission request (asks the customer for permission to call them). Meta only delivers these from a number with WhatsApp Calling turned on. False for templates not re-synced since this field was introduced.
-     * @param  ?string  $headerText  Header text (max 60 chars)
-     * @param  ?string  $language  ISO language code
      * @param  string  $name  Template name (e.g., 'order_confirmation')
-     * @param  TemplateParameterFormat|string|null  $parameterFormat  How variable placeholders are resolved when sending. `positional` uses numbered placeholders `{{1}}`, `{{2}}`; `named` uses identifier placeholders like `{{first_name}}`. Determines the accepted shape of `variable_values` on POST /send.
-     * @param  ?string  $qualityScore  Quality score: GREEN, YELLOW, RED, UNKNOWN
-     * @param  list<QuickReplyButton>  $quickReplyButtons  Derived, read-only QUICK_REPLY buttons for the Flow Builder ``send_template`` node. Filtered to QUICK_REPLY type only, capped at 3, ``index`` = position among QUICK_REPLY buttons. Computed from ``buttons``; the FE editor + flow validator both consume this so branch wiring (``tplbtn_{index}``) stays consistent.
-     * @param  string  $templateId  WhatsApp's template ID
+     * @param  ?string  $language  ISO language code
+     * @param  TemplateCategory|string  $category  Template category
+     * @param  ?string  $headerText  Header text (max 60 chars)
+     * @param  string  $bodyText  Template body with {{1}}, {{2}} placeholders
+     * @param  ?string  $footerText  Footer text (max 60 chars)
+     * @param  list<TemplateButton>  $buttons  Template buttons
      * @param  array<array-key, mixed>  $variableMapping  Map placeholders to contact fields: {'1': 'contact.first_name', '2': 'contact.company'}
      * @param  ?string  $wabaId  WhatsApp Business Account ID (templates are WABA-scoped)
+     * @param  string  $templateId  WhatsApp's template ID
+     * @param  ?string  $qualityScore  Quality score: GREEN, YELLOW, RED, UNKNOWN
+     * @param  TemplateParameterFormat|string|null  $parameterFormat  How variable placeholders are resolved when sending. `positional` uses numbered placeholders `{{1}}`, `{{2}}`; `named` uses identifier placeholders like `{{first_name}}`. Determines the accepted shape of `variable_values` on POST /send.
+     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as a fallback when callers do not supply `header_media_url` on send. Set at template creation time and editable via the template editor.
+     * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Used as a fallback when callers do not supply `header_document_filename` on send. Only meaningful for DOCUMENT header templates.
+     * @param  list<QuickReplyButton>  $quickReplyButtons  Derived, read-only QUICK_REPLY buttons for the Flow Builder ``send_template`` node. Filtered to QUICK_REPLY type only, capped at 3, ``index`` = position among QUICK_REPLY buttons. Computed from ``buttons``; the FE editor + flow validator both consume this so branch wiring (``tplbtn_{index}``) stays consistent.
+     * @param  list<mixed>  $carouselCards  For CAROUSEL templates: the ordered list of cards, each a `{"components": [...]}` object mirroring a mini-template (one IMAGE/VIDEO HEADER, one BODY, optional BUTTONS). `null` for non-carousel templates. Round-trips through sync unchanged, so a carousel created in WhatsApp Manager appears here identically.
+     * @param  ?bool  $hasCallPermissionRequest  True when the template includes a call permission request (asks the customer for permission to call them). Meta only delivers these from a number with WhatsApp Calling turned on. False for templates not re-synced since this field was introduced.
+     * @param  ?bool  $callPermissionBlocked  True when `has_call_permission_request` is true and Calling is turned off for the template's WhatsApp channel. Sending it is refused with HTTP 400 and `detail.error_code` 138000 until Calling is turned on.
+     * @param  ?bool  $channelIsCoexistence  True when the template's WhatsApp channel is connected through the WhatsApp Business app (Coexistence). Calling for such a number is turned on in the WhatsApp Business app, not in SendSeven.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $bodyText,
-        public array $buttons,
-        public ?bool $callPermissionBlocked,
-        public array $carouselCards,
-        public TemplateCategory|string $category,
-        public string $channelId,
-        public ?bool $channelIsCoexistence,
-        public DateTimeImmutable $createdAt,
-        public ?string $defaultHeaderDocumentFilename,
-        public ?string $defaultHeaderMediaUrl,
-        public ?string $footerText,
-        public ?bool $hasCallPermissionRequest,
-        public ?string $headerText,
-        public TemplateHeaderType|string|null $headerType,
-        public string $id,
-        public ?string $language,
-        public ?DateTimeImmutable $lastSyncedAt,
         public string $name,
-        public TemplateParameterFormat|string|null $parameterFormat,
-        public ?string $qualityScore,
-        public array $quickReplyButtons,
-        public TemplateStatus|string $status,
-        public string $templateId,
-        public string $tenantId,
-        public DateTimeImmutable $updatedAt,
+        public ?string $language,
+        public TemplateCategory|string $category,
+        public TemplateHeaderType|string|null $headerType,
+        public ?string $headerText,
+        public string $bodyText,
+        public ?string $footerText,
+        public array $buttons,
         public array $variableMapping,
+        public string $id,
+        public string $tenantId,
+        public string $channelId,
         public ?string $wabaId,
+        public string $templateId,
+        public TemplateStatus|string $status,
+        public ?string $qualityScore,
+        public TemplateParameterFormat|string|null $parameterFormat,
+        public ?string $defaultHeaderMediaUrl,
+        public ?string $defaultHeaderDocumentFilename,
+        public array $quickReplyButtons,
+        public array $carouselCards,
+        public ?bool $hasCallPermissionRequest,
+        public ?bool $callPermissionBlocked,
+        public ?bool $channelIsCoexistence,
+        public ?DateTimeImmutable $lastSyncedAt,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -84,33 +84,33 @@ final readonly class WhatsAppTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bodyText: $attributes->string('body_text'),
-            buttons: $attributes->list('buttons', TemplateButton::fromArray(...)),
-            callPermissionBlocked: $attributes->nullableBool('call_permission_blocked'),
-            carouselCards: array_values($attributes->array('carousel_cards')),
-            category: $attributes->enum('category', TemplateCategory::class),
-            channelId: $attributes->string('channel_id'),
-            channelIsCoexistence: $attributes->nullableBool('channel_is_coexistence'),
-            createdAt: $attributes->dateTime('created_at'),
-            defaultHeaderDocumentFilename: $attributes->nullableString('default_header_document_filename'),
-            defaultHeaderMediaUrl: $attributes->nullableString('default_header_media_url'),
-            footerText: $attributes->nullableString('footer_text'),
-            hasCallPermissionRequest: $attributes->nullableBool('has_call_permission_request'),
-            headerText: $attributes->nullableString('header_text'),
-            headerType: $attributes->nullableEnum('header_type', TemplateHeaderType::class),
-            id: $attributes->string('id'),
-            language: $attributes->nullableString('language'),
-            lastSyncedAt: $attributes->nullableDateTime('last_synced_at'),
             name: $attributes->string('name'),
-            parameterFormat: $attributes->nullableEnum('parameter_format', TemplateParameterFormat::class),
-            qualityScore: $attributes->nullableString('quality_score'),
-            quickReplyButtons: $attributes->list('quick_reply_buttons', QuickReplyButton::fromArray(...)),
-            status: $attributes->enum('status', TemplateStatus::class),
-            templateId: $attributes->string('template_id'),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->dateTime('updated_at'),
+            language: $attributes->nullableString('language'),
+            category: $attributes->enum('category', TemplateCategory::class),
+            headerType: $attributes->nullableEnum('header_type', TemplateHeaderType::class),
+            headerText: $attributes->nullableString('header_text'),
+            bodyText: $attributes->string('body_text'),
+            footerText: $attributes->nullableString('footer_text'),
+            buttons: $attributes->list('buttons', TemplateButton::fromArray(...)),
             variableMapping: $attributes->array('variable_mapping'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            channelId: $attributes->string('channel_id'),
             wabaId: $attributes->nullableString('waba_id'),
+            templateId: $attributes->string('template_id'),
+            status: $attributes->enum('status', TemplateStatus::class),
+            qualityScore: $attributes->nullableString('quality_score'),
+            parameterFormat: $attributes->nullableEnum('parameter_format', TemplateParameterFormat::class),
+            defaultHeaderMediaUrl: $attributes->nullableString('default_header_media_url'),
+            defaultHeaderDocumentFilename: $attributes->nullableString('default_header_document_filename'),
+            quickReplyButtons: $attributes->list('quick_reply_buttons', QuickReplyButton::fromArray(...)),
+            carouselCards: array_values($attributes->array('carousel_cards')),
+            hasCallPermissionRequest: $attributes->nullableBool('has_call_permission_request'),
+            callPermissionBlocked: $attributes->nullableBool('call_permission_blocked'),
+            channelIsCoexistence: $attributes->nullableBool('channel_is_coexistence'),
+            lastSyncedAt: $attributes->nullableDateTime('last_synced_at'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );
     }

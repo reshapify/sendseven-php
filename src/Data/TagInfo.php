@@ -20,9 +20,9 @@ final readonly class TagInfo extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $color,
         public string $id,
         public string $name,
+        public ?string $color,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class TagInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            color: $attributes->nullableString('color'),
             id: $attributes->string('id'),
             name: $attributes->string('name'),
+            color: $attributes->nullableString('color'),
             raw: $data,
         );
     }

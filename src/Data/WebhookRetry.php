@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WebhookRetry extends Data
 {
     /**
+     * @param  bool  $success  Whether the retry was queued successfully
      * @param  string  $deliveryId  ID of the new delivery attempt
      * @param  string  $message  Status message
      * @param  string  $previousDeliveryId  ID of the original failed delivery
-     * @param  bool  $success  Whether the retry was queued successfully
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public string $deliveryId,
         public string $message,
         public string $previousDeliveryId,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class WebhookRetry extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             deliveryId: $attributes->string('delivery_id'),
             message: $attributes->string('message'),
             previousDeliveryId: $attributes->string('previous_delivery_id'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ExistingConversationInfo extends Data
 {
     /**
-     * @param  ?string  $closedAt  When the conversation was closed
      * @param  string  $conversationId  Existing conversation ID
-     * @param  ?string  $lastMessageAt  When the last message was sent/received
      * @param  ?int  $messageCount  Number of messages in the conversation
+     * @param  ?string  $lastMessageAt  When the last message was sent/received
+     * @param  ?string  $closedAt  When the conversation was closed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $closedAt,
         public string $conversationId,
-        public ?string $lastMessageAt,
         public ?int $messageCount,
+        public ?string $lastMessageAt,
+        public ?string $closedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class ExistingConversationInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            closedAt: $attributes->nullableString('closed_at'),
             conversationId: $attributes->string('conversation_id'),
-            lastMessageAt: $attributes->nullableString('last_message_at'),
             messageCount: $attributes->nullableInt('message_count'),
+            lastMessageAt: $attributes->nullableString('last_message_at'),
+            closedAt: $attributes->nullableString('closed_at'),
             raw: $data,
         );
     }

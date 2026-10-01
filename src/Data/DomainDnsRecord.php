@@ -20,10 +20,10 @@ final readonly class DomainDnsRecord extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $name,
-        public string $purpose,
         public string $type,
+        public string $name,
         public string $value,
+        public string $purpose,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class DomainDnsRecord extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            name: $attributes->string('name'),
-            purpose: $attributes->string('purpose'),
             type: $attributes->string('type'),
+            name: $attributes->string('name'),
             value: $attributes->string('value'),
+            purpose: $attributes->string('purpose'),
             raw: $data,
         );
     }

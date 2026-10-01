@@ -19,29 +19,29 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CannedResponse extends Data
 {
     /**
-     * @param  ?string  $category  Category for organization
-     * @param  string  $content  Response text
      * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  ?string  $createdByUserId  ID of user who created this response
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  string  $id  Unique identifier (UUID)
-     * @param  bool  $isShared  Whether visible to all team members
-     * @param  ?string  $shortcut  Keyboard shortcut (lowercase)
      * @param  string  $tenantId  Tenant this resource belongs to
      * @param  string  $title  Display title
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  ?string  $shortcut  Keyboard shortcut (lowercase)
+     * @param  string  $content  Response text
+     * @param  ?string  $category  Category for organization
+     * @param  bool  $isShared  Whether visible to all team members
+     * @param  ?string  $createdByUserId  ID of user who created this response
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $category,
-        public string $content,
         public string $createdAt,
-        public ?string $createdByUserId,
+        public ?string $updatedAt,
         public string $id,
-        public bool $isShared,
-        public ?string $shortcut,
         public string $tenantId,
         public string $title,
-        public ?string $updatedAt,
+        public ?string $shortcut,
+        public string $content,
+        public ?string $category,
+        public bool $isShared,
+        public ?string $createdByUserId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,16 +55,16 @@ final readonly class CannedResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            category: $attributes->nullableString('category'),
-            content: $attributes->string('content'),
             createdAt: $attributes->string('created_at'),
-            createdByUserId: $attributes->nullableString('created_by_user_id'),
+            updatedAt: $attributes->nullableString('updated_at'),
             id: $attributes->string('id'),
-            isShared: $attributes->bool('is_shared'),
-            shortcut: $attributes->nullableString('shortcut'),
             tenantId: $attributes->string('tenant_id'),
             title: $attributes->string('title'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            shortcut: $attributes->nullableString('shortcut'),
+            content: $attributes->string('content'),
+            category: $attributes->nullableString('category'),
+            isShared: $attributes->bool('is_shared'),
+            createdByUserId: $attributes->nullableString('created_by_user_id'),
             raw: $data,
         );
     }

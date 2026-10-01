@@ -18,27 +18,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WebhookDelivery extends Data
 {
     /**
-     * @param  ?bool  $canRetry  Whether this delivery can be manually retried (failed or dead_letter status). Always false for `queued` deliveries: those are owned by the automatic suspension replay and are re-sent when the endpoint is reactivated.
      * @param  array<array-key, mixed>  $requestPayload
+     * @param  ?bool  $canRetry  Whether this delivery can be manually retried (failed or dead_letter status). Always false for `queued` deliveries: those are owned by the automatic suspension replay and are re-sent when the endpoint is reactivated.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $attemptNumber,
-        public ?bool $canRetry,
-        public ?string $completedAt,
-        public string $createdAt,
-        public ?string $errorMessage,
-        public string $eventId,
-        public string $eventType,
         public string $id,
-        public ?string $nextRetryAt,
-        public array $requestPayload,
-        public ?string $responseBody,
-        public ?int $responseStatusCode,
-        public ?int $responseTimeMs,
-        public DeliveryStatus|string $status,
         public string $tenantId,
         public string $webhookEndpointId,
+        public string $eventType,
+        public string $eventId,
+        public int $attemptNumber,
+        public DeliveryStatus|string $status,
+        public ?int $responseStatusCode,
+        public ?string $responseBody,
+        public ?int $responseTimeMs,
+        public array $requestPayload,
+        public ?string $errorMessage,
+        public ?string $nextRetryAt,
+        public string $createdAt,
+        public ?string $completedAt,
+        public ?bool $canRetry,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -52,22 +52,22 @@ final readonly class WebhookDelivery extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attemptNumber: $attributes->int('attempt_number'),
-            canRetry: $attributes->nullableBool('can_retry'),
-            completedAt: $attributes->nullableString('completed_at'),
-            createdAt: $attributes->string('created_at'),
-            errorMessage: $attributes->nullableString('error_message'),
-            eventId: $attributes->string('event_id'),
-            eventType: $attributes->string('event_type'),
             id: $attributes->string('id'),
-            nextRetryAt: $attributes->nullableString('next_retry_at'),
-            requestPayload: $attributes->array('request_payload'),
-            responseBody: $attributes->nullableString('response_body'),
-            responseStatusCode: $attributes->nullableInt('response_status_code'),
-            responseTimeMs: $attributes->nullableInt('response_time_ms'),
-            status: $attributes->enum('status', DeliveryStatus::class),
             tenantId: $attributes->string('tenant_id'),
             webhookEndpointId: $attributes->string('webhook_endpoint_id'),
+            eventType: $attributes->string('event_type'),
+            eventId: $attributes->string('event_id'),
+            attemptNumber: $attributes->int('attempt_number'),
+            status: $attributes->enum('status', DeliveryStatus::class),
+            responseStatusCode: $attributes->nullableInt('response_status_code'),
+            responseBody: $attributes->nullableString('response_body'),
+            responseTimeMs: $attributes->nullableInt('response_time_ms'),
+            requestPayload: $attributes->array('request_payload'),
+            errorMessage: $attributes->nullableString('error_message'),
+            nextRetryAt: $attributes->nullableString('next_retry_at'),
+            createdAt: $attributes->string('created_at'),
+            completedAt: $attributes->nullableString('completed_at'),
+            canRetry: $attributes->nullableBool('can_retry'),
             raw: $data,
         );
     }

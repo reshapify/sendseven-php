@@ -21,13 +21,13 @@ final readonly class UserScopeResponseSchema extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $expiresAt,
-        public DateTimeImmutable $grantedAt,
-        public ?string $grantedByUserId,
         public string $id,
-        public string $scope,
-        public string $tenantId,
         public string $userId,
+        public string $tenantId,
+        public string $scope,
+        public ?string $grantedByUserId,
+        public DateTimeImmutable $grantedAt,
+        public ?DateTimeImmutable $expiresAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,13 +41,13 @@ final readonly class UserScopeResponseSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            expiresAt: $attributes->nullableDateTime('expires_at'),
-            grantedAt: $attributes->dateTime('granted_at'),
-            grantedByUserId: $attributes->nullableString('granted_by_user_id'),
             id: $attributes->string('id'),
-            scope: $attributes->string('scope'),
-            tenantId: $attributes->string('tenant_id'),
             userId: $attributes->string('user_id'),
+            tenantId: $attributes->string('tenant_id'),
+            scope: $attributes->string('scope'),
+            grantedByUserId: $attributes->nullableString('granted_by_user_id'),
+            grantedAt: $attributes->dateTime('granted_at'),
+            expiresAt: $attributes->nullableDateTime('expires_at'),
             raw: $data,
         );
     }

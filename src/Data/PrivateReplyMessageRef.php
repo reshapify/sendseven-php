@@ -20,25 +20,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PrivateReplyMessageRef extends Data
 {
     /**
-     * @param  ?string  $conversationId  Conversation the reply was filed into — open this to continue the DM.
-     * @param  ?string  $createdAt  When the reply message row was created.
      * @param  string  $id  `messages.id` of the private reply.
-     * @param  ?string  $sentAt  When the reply was accepted by Meta.
+     * @param  ?string  $conversationId  Conversation the reply was filed into — open this to continue the DM.
+     * @param  ?string  $text  What we replied.
+     * @param  ?string  $status  Delivery status of the reply message.
      * @param  ?string  $sentByUserId  The agent who sent it. Null when an automation did (see `source`).
      * @param  ?string  $source  How the reply was sent: `api` (this API / the Comments UI), or the value stamped by the rules engine or a flow's Send node.
-     * @param  ?string  $status  Delivery status of the reply message.
-     * @param  ?string  $text  What we replied.
+     * @param  ?string  $createdAt  When the reply message row was created.
+     * @param  ?string  $sentAt  When the reply was accepted by Meta.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $conversationId,
-        public ?string $createdAt,
         public string $id,
-        public ?string $sentAt,
+        public ?string $conversationId,
+        public ?string $text,
+        public ?string $status,
         public ?string $sentByUserId,
         public ?string $source,
-        public ?string $status,
-        public ?string $text,
+        public ?string $createdAt,
+        public ?string $sentAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -52,14 +52,14 @@ final readonly class PrivateReplyMessageRef extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            conversationId: $attributes->nullableString('conversation_id'),
-            createdAt: $attributes->nullableString('created_at'),
             id: $attributes->string('id'),
-            sentAt: $attributes->nullableString('sent_at'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            text: $attributes->nullableString('text'),
+            status: $attributes->nullableString('status'),
             sentByUserId: $attributes->nullableString('sent_by_user_id'),
             source: $attributes->nullableString('source'),
-            status: $attributes->nullableString('status'),
-            text: $attributes->nullableString('text'),
+            createdAt: $attributes->nullableString('created_at'),
+            sentAt: $attributes->nullableString('sent_at'),
             raw: $data,
         );
     }

@@ -20,31 +20,31 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SocialPostRef extends Data
 {
     /**
-     * @param  ?string  $caption  The post's caption, if any.
-     * @param  ?int  $commentsCount  Meta's total comment count on the post. Nullable. DISTINCT from the count of comment rows WE stored (see `SocialPostResponse`).
-     * @param  string  $externalPostId  Meta's post id.
      * @param  string  $id  Our post id.
-     * @param  ?int  $likeCount  Meta's total reaction count on the post. Nullable — null until the post has been read from Meta.
-     * @param  ?string  $mediaType  Meta's media type.
-     * @param  ?string  $pageAvatarUrl  Profile-picture URL of the connected Page / Instagram account. Nullable — a Meta CDN URL that can expire, and null for channels connected before the avatar was captured.
+     * @param  string  $externalPostId  Meta's post id.
      * @param  ?string  $pageName  Display name of the connected Page / Instagram account this post belongs to — the post owner (your connected account, not the commenter). Falls back to a channel-type label when the channel has no set name.
+     * @param  ?string  $pageAvatarUrl  Profile-picture URL of the connected Page / Instagram account. Nullable — a Meta CDN URL that can expire, and null for channels connected before the avatar was captured.
      * @param  ?string  $permalink  Public URL of the post.
-     * @param  ?string  $postedAt  When the post was published on Meta.
+     * @param  ?string  $caption  The post's caption, if any.
+     * @param  ?string  $mediaType  Meta's media type.
      * @param  ?string  $thumbnailUrl  Card image for the post — a permanent URL on our own domain when the image was mirrored, Meta's expiring CDN URL otherwise.
+     * @param  ?string  $postedAt  When the post was published on Meta.
+     * @param  ?int  $likeCount  Meta's total reaction count on the post. Nullable — null until the post has been read from Meta.
+     * @param  ?int  $commentsCount  Meta's total comment count on the post. Nullable. DISTINCT from the count of comment rows WE stored (see `SocialPostResponse`).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $caption,
-        public ?int $commentsCount,
-        public string $externalPostId,
         public string $id,
-        public ?int $likeCount,
-        public ?string $mediaType,
-        public ?string $pageAvatarUrl,
+        public string $externalPostId,
         public ?string $pageName,
+        public ?string $pageAvatarUrl,
         public ?string $permalink,
-        public ?string $postedAt,
+        public ?string $caption,
+        public ?string $mediaType,
         public ?string $thumbnailUrl,
+        public ?string $postedAt,
+        public ?int $likeCount,
+        public ?int $commentsCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,17 +58,17 @@ final readonly class SocialPostRef extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            caption: $attributes->nullableString('caption'),
-            commentsCount: $attributes->nullableInt('comments_count'),
-            externalPostId: $attributes->string('external_post_id'),
             id: $attributes->string('id'),
-            likeCount: $attributes->nullableInt('like_count'),
-            mediaType: $attributes->nullableString('media_type'),
-            pageAvatarUrl: $attributes->nullableString('page_avatar_url'),
+            externalPostId: $attributes->string('external_post_id'),
             pageName: $attributes->nullableString('page_name'),
+            pageAvatarUrl: $attributes->nullableString('page_avatar_url'),
             permalink: $attributes->nullableString('permalink'),
-            postedAt: $attributes->nullableString('posted_at'),
+            caption: $attributes->nullableString('caption'),
+            mediaType: $attributes->nullableString('media_type'),
             thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            postedAt: $attributes->nullableString('posted_at'),
+            likeCount: $attributes->nullableInt('like_count'),
+            commentsCount: $attributes->nullableInt('comments_count'),
             raw: $data,
         );
     }

@@ -17,45 +17,45 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailMailbox extends Data
 {
     /**
-     * @param  ?string  $accessMode  Who can use this mailbox: 'all' or 'specific'
-     * @param  list<string>  $allowedUserIds  User IDs allowed to use this mailbox
-     * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
-     * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
      * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $name  Display name
      * @param  ?string  $displayName  From name shown to email recipients. Overrides 'name' for sending when set.
      * @param  string  $emailAddress  Email address
      * @param  ?string  $emailIntegrationId  Linked email integration ID
      * @param  ?string  $emailProviderConfigId  Linked email provider config ID
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  ?bool  $includeThreadHistory  Default for outbound replies: append the quoted prior-thread history block
      * @param  ?string  $integrationName  Name of linked email integration
+     * @param  ?string  $providerName  Name of linked email provider config
      * @param  bool  $isActive  Whether the mailbox is active
      * @param  bool  $isDefault  Whether this is the default mailbox
-     * @param  string  $name  Display name
-     * @param  ?string  $providerName  Name of linked email provider config
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
+     * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
+     * @param  ?bool  $includeThreadHistory  Default for outbound replies: append the quoted prior-thread history block
+     * @param  ?string  $accessMode  Who can use this mailbox: 'all' or 'specific'
+     * @param  list<string>  $allowedUserIds  User IDs allowed to use this mailbox
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $accessMode,
-        public array $allowedUserIds,
-        public ?bool $canSendCampaigns,
-        public ?bool $canSendSupport,
         public string $createdAt,
+        public ?string $updatedAt,
+        public string $id,
+        public string $tenantId,
+        public string $name,
         public ?string $displayName,
         public string $emailAddress,
         public ?string $emailIntegrationId,
         public ?string $emailProviderConfigId,
-        public string $id,
-        public ?bool $includeThreadHistory,
         public ?string $integrationName,
+        public ?string $providerName,
         public bool $isActive,
         public bool $isDefault,
-        public string $name,
-        public ?string $providerName,
-        public string $tenantId,
-        public ?string $updatedAt,
+        public ?bool $canSendCampaigns,
+        public ?bool $canSendSupport,
+        public ?bool $includeThreadHistory,
+        public ?string $accessMode,
+        public array $allowedUserIds,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -69,24 +69,24 @@ final readonly class EmailMailbox extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            accessMode: $attributes->nullableString('access_mode'),
-            allowedUserIds: $attributes->strings('allowed_user_ids'),
-            canSendCampaigns: $attributes->nullableBool('can_send_campaigns'),
-            canSendSupport: $attributes->nullableBool('can_send_support'),
             createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
             displayName: $attributes->nullableString('display_name'),
             emailAddress: $attributes->string('email_address'),
             emailIntegrationId: $attributes->nullableString('email_integration_id'),
             emailProviderConfigId: $attributes->nullableString('email_provider_config_id'),
-            id: $attributes->string('id'),
-            includeThreadHistory: $attributes->nullableBool('include_thread_history'),
             integrationName: $attributes->nullableString('integration_name'),
+            providerName: $attributes->nullableString('provider_name'),
             isActive: $attributes->bool('is_active'),
             isDefault: $attributes->bool('is_default'),
-            name: $attributes->string('name'),
-            providerName: $attributes->nullableString('provider_name'),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            canSendCampaigns: $attributes->nullableBool('can_send_campaigns'),
+            canSendSupport: $attributes->nullableBool('can_send_support'),
+            includeThreadHistory: $attributes->nullableBool('include_thread_history'),
+            accessMode: $attributes->nullableString('access_mode'),
+            allowedUserIds: $attributes->strings('allowed_user_ids'),
             raw: $data,
         );
     }

@@ -18,28 +18,28 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class OAuthAppCreateResponse extends Data
 {
     /**
+     * @param  list<string>  $redirectUris
      * @param  list<string>  $allowedScopes
      * @param  string  $clientSecret  Client secret - shown only once!
-     * @param  list<string>  $redirectUris
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $allowedScopes,
-        public string $clientId,
-        public string $clientSecret,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
-        public ?string $homepageUrl,
         public string $id,
-        public bool $isActive,
-        public ?bool $isFirstParty,
-        public ?bool $isPublic,
-        public bool $isVerified,
-        public ?string $logoUrl,
-        public string $name,
-        public array $redirectUris,
         public string $tenantId,
+        public string $name,
+        public string $clientId,
+        public array $redirectUris,
+        public array $allowedScopes,
+        public ?string $description,
+        public ?string $logoUrl,
+        public ?string $homepageUrl,
+        public bool $isVerified,
+        public bool $isActive,
+        public ?bool $isPublic,
+        public ?bool $isFirstParty,
+        public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
+        public string $clientSecret,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,22 +53,22 @@ final readonly class OAuthAppCreateResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allowedScopes: $attributes->strings('allowed_scopes'),
-            clientId: $attributes->string('client_id'),
-            clientSecret: $attributes->string('client_secret'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
-            homepageUrl: $attributes->nullableString('homepage_url'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            isFirstParty: $attributes->nullableBool('is_first_party'),
-            isPublic: $attributes->nullableBool('is_public'),
-            isVerified: $attributes->bool('is_verified'),
-            logoUrl: $attributes->nullableString('logo_url'),
-            name: $attributes->string('name'),
-            redirectUris: $attributes->strings('redirect_uris'),
             tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            clientId: $attributes->string('client_id'),
+            redirectUris: $attributes->strings('redirect_uris'),
+            allowedScopes: $attributes->strings('allowed_scopes'),
+            description: $attributes->nullableString('description'),
+            logoUrl: $attributes->nullableString('logo_url'),
+            homepageUrl: $attributes->nullableString('homepage_url'),
+            isVerified: $attributes->bool('is_verified'),
+            isActive: $attributes->bool('is_active'),
+            isPublic: $attributes->nullableBool('is_public'),
+            isFirstParty: $attributes->nullableBool('is_first_party'),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
+            clientSecret: $attributes->string('client_secret'),
             raw: $data,
         );
     }

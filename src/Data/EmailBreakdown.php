@@ -22,8 +22,8 @@ final readonly class EmailBreakdown extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?CampaignEmailStats $campaign,
         public ?SingleEmailStats $single,
+        public ?CampaignEmailStats $campaign,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class EmailBreakdown extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            campaign: $attributes->nullableObject('campaign', CampaignEmailStats::fromArray(...)),
             single: $attributes->nullableObject('single', SingleEmailStats::fromArray(...)),
+            campaign: $attributes->nullableObject('campaign', CampaignEmailStats::fromArray(...)),
             raw: $data,
         );
     }

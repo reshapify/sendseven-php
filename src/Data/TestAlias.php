@@ -20,10 +20,10 @@ final readonly class TestAlias extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $aliasEmail,
-        public ?string $mailboxId,
-        public string $message,
         public bool $success,
+        public string $aliasEmail,
+        public string $message,
+        public ?string $mailboxId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class TestAlias extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aliasEmail: $attributes->string('alias_email'),
-            mailboxId: $attributes->nullableString('mailbox_id'),
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            aliasEmail: $attributes->string('alias_email'),
+            message: $attributes->string('message'),
+            mailboxId: $attributes->nullableString('mailbox_id'),
             raw: $data,
         );
     }

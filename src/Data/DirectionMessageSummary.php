@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DirectionMessageSummary extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $byPlatform  Breakdown by platform
      * @param  ?int  $total  Total message count
+     * @param  array<array-key, mixed>  $byPlatform  Breakdown by platform
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $byPlatform,
         public ?int $total,
+        public array $byPlatform,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class DirectionMessageSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            byPlatform: $attributes->array('by_platform'),
             total: $attributes->nullableInt('total'),
+            byPlatform: $attributes->array('by_platform'),
             raw: $data,
         );
     }

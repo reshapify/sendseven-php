@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactDelete extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $details  Details of deleted/anonymized data
-     * @param  ?string  $message  Optional success message
      * @param  ?bool  $success  Whether the operation succeeded
+     * @param  ?string  $message  Optional success message
+     * @param  array<array-key, mixed>  $details  Details of deleted/anonymized data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $details,
-        public ?string $message,
         public ?bool $success,
+        public ?string $message,
+        public array $details,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class ContactDelete extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            details: $attributes->array('details'),
-            message: $attributes->nullableString('message'),
             success: $attributes->nullableBool('success'),
+            message: $attributes->nullableString('message'),
+            details: $attributes->array('details'),
             raw: $data,
         );
     }

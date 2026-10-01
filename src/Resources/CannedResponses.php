@@ -49,12 +49,21 @@ final readonly class CannedResponses
      *
      * @see https://api.sendseven.com/api/v1/docs#/Canned%20Responses/list_canned_responses_api_v1_canned_responses_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $category = null, ?string $search = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $category = null,
+        ?string $search = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/canned-responses',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'category' => $category, 'search' => $search]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'category' => $category,
+                'search' => $search,
+            ]),
         ));
 
         return Hydrate::page($response->data(), CannedResponse::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, category: $category, search: $search));
@@ -70,23 +79,35 @@ final readonly class CannedResponses
      *
      * Scopes: canned_responses:create.
      *
-     * @param  string  $content  The actual response text
      * @param  string  $title  Display title for the canned response
+     * @param  string  $content  The actual response text
+     * @param  ?string  $shortcut  Keyboard shortcut (e.g., 'greeting'). Stored lowercase.
      * @param  ?string  $category  Category for organization (e.g., 'Greetings', 'Support')
      * @param  ?bool  $isShared  If true, visible to all team members. If false, only visible to creator.
-     * @param  ?string  $shortcut  Keyboard shortcut (e.g., 'greeting'). Stored lowercase.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Canned%20Responses/create_canned_response_api_v1_canned_responses_post
      */
-    public function create(string $content, string $title, ?string $category = null, ?bool $isShared = null, ?string $shortcut = null, ?string $idempotencyKey = null): CannedResponse
-    {
+    public function create(
+        string $title,
+        string $content,
+        ?string $shortcut = null,
+        ?string $category = null,
+        ?bool $isShared = null,
+        ?string $idempotencyKey = null,
+    ): CannedResponse {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/canned-responses',
-            body: Payload::body(['content' => $content, 'title' => $title, 'category' => $category, 'is_shared' => $isShared, 'shortcut' => $shortcut]),
+            body: Payload::body([
+                'title' => $title,
+                'content' => $content,
+                'shortcut' => $shortcut,
+                'category' => $category,
+                'is_shared' => $isShared,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -198,22 +219,34 @@ final readonly class CannedResponses
      *
      * Scopes: canned_responses:update.
      *
-     * @param  ?string  $category  Category
-     * @param  ?string  $content  Response text
-     * @param  ?bool  $isShared  Visibility setting
-     * @param  ?string  $shortcut  Keyboard shortcut
      * @param  ?string  $title  Display title
+     * @param  ?string  $content  Response text
+     * @param  ?string  $shortcut  Keyboard shortcut
+     * @param  ?string  $category  Category
+     * @param  ?bool  $isShared  Visibility setting
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Canned%20Responses/update_canned_response_api_v1_canned_responses__canned_response_id__put
      */
-    public function update(string $cannedResponseId, ?string $category = null, ?string $content = null, ?bool $isShared = null, ?string $shortcut = null, ?string $title = null): CannedResponse
-    {
+    public function update(
+        string $cannedResponseId,
+        ?string $title = null,
+        ?string $content = null,
+        ?string $shortcut = null,
+        ?string $category = null,
+        ?bool $isShared = null,
+    ): CannedResponse {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/canned-responses/'.Payload::segment($cannedResponseId),
-            body: Payload::body(['category' => $category, 'content' => $content, 'is_shared' => $isShared, 'shortcut' => $shortcut, 'title' => $title]),
+            body: Payload::body([
+                'title' => $title,
+                'content' => $content,
+                'shortcut' => $shortcut,
+                'category' => $category,
+                'is_shared' => $isShared,
+            ]),
         ));
 
         return CannedResponse::fromArray($response->data());

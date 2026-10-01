@@ -21,25 +21,25 @@ final readonly class EmailProviderConfig extends Data
     /**
      * @param  string  $apiKeyPreview  Masked API key (last 4 chars only)
      * @param  array<array-key, mixed>  $config
-     * @param  array<array-key, mixed>  $keyStatus  BYOK API-key health, mirrored from config.key_status: {valid: bool|null, error: str|null, checked_at: iso}. valid=false -> show a 'reconnect key' banner. null field -> never checked.
      * @param  list<string>  $verifiedDomains  List of verified domains from provider
+     * @param  array<array-key, mixed>  $keyStatus  BYOK API-key health, mirrored from config.key_status: {valid: bool|null, error: str|null, checked_at: iso}. valid=false -> show a 'reconnect key' banner. null field -> never checked.
      * @param  ?bool  $webhookConfigured  Whether webhooks are configured
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $tenantId,
+        public ProviderType|string $providerType,
+        public string $name,
         public string $apiKeyPreview,
         public array $config,
-        public DateTimeImmutable $createdAt,
-        public string $id,
+        public array $verifiedDomains,
+        public array $keyStatus,
         public bool $isActive,
         public bool $isDefault,
-        public array $keyStatus,
-        public string $name,
-        public ProviderType|string $providerType,
-        public string $tenantId,
-        public DateTimeImmutable $updatedAt,
-        public array $verifiedDomains,
         public ?bool $webhookConfigured,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,19 +53,19 @@ final readonly class EmailProviderConfig extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            providerType: $attributes->enum('provider_type', ProviderType::class),
+            name: $attributes->string('name'),
             apiKeyPreview: $attributes->string('api_key_preview'),
             config: $attributes->array('config'),
-            createdAt: $attributes->dateTime('created_at'),
-            id: $attributes->string('id'),
+            verifiedDomains: $attributes->strings('verified_domains'),
+            keyStatus: $attributes->array('key_status'),
             isActive: $attributes->bool('is_active'),
             isDefault: $attributes->bool('is_default'),
-            keyStatus: $attributes->array('key_status'),
-            name: $attributes->string('name'),
-            providerType: $attributes->enum('provider_type', ProviderType::class),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->dateTime('updated_at'),
-            verifiedDomains: $attributes->strings('verified_domains'),
             webhookConfigured: $attributes->nullableBool('webhook_configured'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );
     }

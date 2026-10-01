@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WhatsAppUsernameUpdate extends Data
 {
     /**
-     * @param  string  $channelId  The channel's ID
-     * @param  string  $message  Human-readable status message
-     * @param  ?string  $status  'approved' or 'reserved'
      * @param  bool  $success  Whether WhatsApp accepted the username
+     * @param  string  $channelId  The channel's ID
      * @param  ?string  $username  The username that was set
+     * @param  ?string  $status  'approved' or 'reserved'
      * @param  ?string  $waMeUrl  Short link for the username
+     * @param  string  $message  Human-readable status message
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelId,
-        public string $message,
-        public ?string $status,
         public bool $success,
+        public string $channelId,
         public ?string $username,
+        public ?string $status,
         public ?string $waMeUrl,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,12 +45,12 @@ final readonly class WhatsAppUsernameUpdate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->string('channel_id'),
-            message: $attributes->string('message'),
-            status: $attributes->nullableString('status'),
             success: $attributes->bool('success'),
+            channelId: $attributes->string('channel_id'),
             username: $attributes->nullableString('username'),
+            status: $attributes->nullableString('status'),
             waMeUrl: $attributes->nullableString('wa_me_url'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

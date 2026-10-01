@@ -23,26 +23,26 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CampaignRecipientItem extends Data
 {
     /**
-     * @param  ?string  $contactId  Contact id, if the recipient is a known contact
-     * @param  ?string  $errorReason  Failure/bounce reason for failed-group recipients
      * @param  string  $id  Per-recipient row id (campaign_messages.id / email_campaign_analytics.id)
-     * @param  ?string  $identifier  Channel handle (messenger) or email address (email)
-     * @param  ?string  $lastErrorCode  Machine-readable reason code, when it is a documented customer-facing code. Currently `insufficient_rcs_balance` / `rcs_wallet_blocked` for RCS rows held until the RCS balance is topped up; null otherwise (always null for email).
+     * @param  ?string  $contactId  Contact id, if the recipient is a known contact
      * @param  ?string  $name  Contact display name
+     * @param  ?string  $identifier  Channel handle (messenger) or email address (email)
      * @param  string  $status  Raw per-recipient status value
+     * @param  ?string  $errorReason  Failure/bounce reason for failed-group recipients
+     * @param  ?string  $lastErrorCode  Machine-readable reason code, when it is a documented customer-facing code. Currently `insufficient_rcs_balance` / `rcs_wallet_blocked` for RCS rows held until the RCS balance is topped up; null otherwise (always null for email).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contactId,
-        public ?string $deliveredAt,
-        public ?string $errorReason,
-        public ?string $failedAt,
         public string $id,
-        public ?string $identifier,
-        public ?string $lastErrorCode,
+        public ?string $contactId,
         public ?string $name,
-        public ?string $sentAt,
+        public ?string $identifier,
         public string $status,
+        public ?string $errorReason,
+        public ?string $lastErrorCode,
+        public ?string $sentAt,
+        public ?string $deliveredAt,
+        public ?string $failedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -56,16 +56,16 @@ final readonly class CampaignRecipientItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contactId: $attributes->nullableString('contact_id'),
-            deliveredAt: $attributes->nullableString('delivered_at'),
-            errorReason: $attributes->nullableString('error_reason'),
-            failedAt: $attributes->nullableString('failed_at'),
             id: $attributes->string('id'),
-            identifier: $attributes->nullableString('identifier'),
-            lastErrorCode: $attributes->nullableString('last_error_code'),
+            contactId: $attributes->nullableString('contact_id'),
             name: $attributes->nullableString('name'),
-            sentAt: $attributes->nullableString('sent_at'),
+            identifier: $attributes->nullableString('identifier'),
             status: $attributes->string('status'),
+            errorReason: $attributes->nullableString('error_reason'),
+            lastErrorCode: $attributes->nullableString('last_error_code'),
+            sentAt: $attributes->nullableString('sent_at'),
+            deliveredAt: $attributes->nullableString('delivered_at'),
+            failedAt: $attributes->nullableString('failed_at'),
             raw: $data,
         );
     }

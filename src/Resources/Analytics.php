@@ -58,8 +58,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_agent_performance_api_v1_analytics_agents_performance_get
      */
-    public function getAgentPerformance(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): array
-    {
+    public function getAgentPerformance(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/agents/performance',
@@ -119,8 +121,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_billing_summary_api_v1_analytics_billing_summary_get
      */
-    public function getBillingSummary(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): BillingSummary
-    {
+    public function getBillingSummary(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): BillingSummary {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/billing-summary',
@@ -181,8 +185,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_conversation_stats_api_v1_analytics_conversations_stats_get
      */
-    public function getConversationStats(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): ConversationStats
-    {
+    public function getConversationStats(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): ConversationStats {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/conversations/stats',
@@ -211,8 +217,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_ctwa_ad_breakdown_api_v1_analytics_ctwa_ad_breakdown_get
      */
-    public function getCtwaAdBreakdown(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): CtwaAdBreakdown
-    {
+    public function getCtwaAdBreakdown(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): CtwaAdBreakdown {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/ctwa/ad-breakdown',
@@ -241,8 +249,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_dashboard_metrics_api_v1_analytics_dashboard_get
      */
-    public function getDashboardMetrics(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): DashboardMetrics
-    {
+    public function getDashboardMetrics(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): DashboardMetrics {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/dashboard',
@@ -298,8 +308,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_messages_by_channel_api_v1_analytics_messages_by_channel_get
      */
-    public function getMessagesByChannel(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): array
-    {
+    public function getMessagesByChannel(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/messages/by-channel',
@@ -327,8 +339,11 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_messages_over_time_api_v1_analytics_messages_over_time_get
      */
-    public function getMessagesOverTime(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null, ?string $interval = null): array
-    {
+    public function getMessagesOverTime(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+        ?string $interval = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/messages/over-time',
@@ -354,8 +369,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_resolution_time_metrics_api_v1_analytics_resolution_time_get
      */
-    public function getResolutionTimeMetrics(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): ResolutionTimeMetrics
-    {
+    public function getResolutionTimeMetrics(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): ResolutionTimeMetrics {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/resolution-time',
@@ -382,8 +399,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_response_time_metrics_api_v1_analytics_response_time_get
      */
-    public function getResponseTimeMetrics(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): ResponseTimeMetrics
-    {
+    public function getResponseTimeMetrics(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): ResponseTimeMetrics {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/response-time',
@@ -465,8 +484,10 @@ final readonly class Analytics
      *
      * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_time_metrics_over_time_api_v1_analytics_time_metrics_get
      */
-    public function getTimeMetricsOverTime(DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null): TimeMetricsOverTime
-    {
+    public function getTimeMetricsOverTime(
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+    ): TimeMetricsOverTime {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/analytics/time-metrics',

@@ -17,26 +17,26 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AdoptLibraryTemplate extends Data
 {
     /**
-     * @param  ?bool  $alreadyExisted  True when the tenant already had this template (no-op)
      * @param  ?string  $id  Our ``whatsapp_templates.id``
-     * @param  ?string  $status  Template status as reported by Meta. Unchanged library templates come back ``approved`` immediately.
      * @param  ?string  $templateId  Meta's template ID
+     * @param  ?string  $status  Template status as reported by Meta. Unchanged library templates come back ``approved`` immediately.
+     * @param  ?bool  $alreadyExisted  True when the tenant already had this template (no-op)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $alreadyExisted,
+        public bool $success,
+        public ?string $id,
+        public ?string $templateId,
+        public ?string $name,
+        public ?string $language,
+        public ?string $status,
         public ?string $category,
+        public ?bool $alreadyExisted,
         public ?string $error,
         public ?int $errorCode,
-        public ?bool $errorIsRetryable,
         public ?int $errorSubcode,
+        public ?bool $errorIsRetryable,
         public ?string $fbtraceId,
-        public ?string $id,
-        public ?string $language,
-        public ?string $name,
-        public ?string $status,
-        public bool $success,
-        public ?string $templateId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -50,19 +50,19 @@ final readonly class AdoptLibraryTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            alreadyExisted: $attributes->nullableBool('already_existed'),
+            success: $attributes->bool('success'),
+            id: $attributes->nullableString('id'),
+            templateId: $attributes->nullableString('template_id'),
+            name: $attributes->nullableString('name'),
+            language: $attributes->nullableString('language'),
+            status: $attributes->nullableString('status'),
             category: $attributes->nullableString('category'),
+            alreadyExisted: $attributes->nullableBool('already_existed'),
             error: $attributes->nullableString('error'),
             errorCode: $attributes->nullableInt('error_code'),
-            errorIsRetryable: $attributes->nullableBool('error_is_retryable'),
             errorSubcode: $attributes->nullableInt('error_subcode'),
+            errorIsRetryable: $attributes->nullableBool('error_is_retryable'),
             fbtraceId: $attributes->nullableString('fbtrace_id'),
-            id: $attributes->nullableString('id'),
-            language: $attributes->nullableString('language'),
-            name: $attributes->nullableString('name'),
-            status: $attributes->nullableString('status'),
-            success: $attributes->bool('success'),
-            templateId: $attributes->nullableString('template_id'),
             raw: $data,
         );
     }

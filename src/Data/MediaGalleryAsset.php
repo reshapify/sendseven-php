@@ -22,35 +22,35 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MediaGalleryAsset extends Data
 {
     /**
-     * @param  string  $attachmentId  Durable reference to the stored attachment (attachments.id)
-     * @param  string  $contentType  MIME type of the underlying attachment
-     * @param  DateTimeImmutable  $createdAt  When the asset was saved to the gallery
-     * @param  ?string  $description  Optional longer description
-     * @param  string  $displayName  Human-friendly asset name
-     * @param  ?int  $fileSize  Size in bytes (may be null)
      * @param  string  $id  Gallery asset id (media_assets.id)
-     * @param  ?bool  $isFavorite  Whether the asset is marked as a favorite by the tenant
-     * @param  ?DateTimeImmutable  $lastUsedAt  Last outbound reuse; null if never reused
-     * @param  string  $mediaType  image | video | document
-     * @param  list<string>  $tags  Normalized lowercase tags
-     * @param  ?string  $thumbnailUrl  Fresh, ready-to-render thumbnail URL (small image/video poster). Generated asynchronously after upload and on lazy view; null while generation is pending or for documents. May expire — do not persist.
+     * @param  string  $attachmentId  Durable reference to the stored attachment (attachments.id)
      * @param  string  $url  Fresh, usable download/preview URL for the attachment. May expire — persist attachment_id, not this.
+     * @param  ?string  $thumbnailUrl  Fresh, ready-to-render thumbnail URL (small image/video poster). Generated asynchronously after upload and on lazy view; null while generation is pending or for documents. May expire — do not persist.
+     * @param  string  $displayName  Human-friendly asset name
+     * @param  ?string  $description  Optional longer description
+     * @param  string  $mediaType  image | video | document
+     * @param  string  $contentType  MIME type of the underlying attachment
+     * @param  ?int  $fileSize  Size in bytes (may be null)
+     * @param  list<string>  $tags  Normalized lowercase tags
+     * @param  ?bool  $isFavorite  Whether the asset is marked as a favorite by the tenant
+     * @param  DateTimeImmutable  $createdAt  When the asset was saved to the gallery
+     * @param  ?DateTimeImmutable  $lastUsedAt  Last outbound reuse; null if never reused
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $attachmentId,
-        public string $contentType,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
-        public string $displayName,
-        public ?int $fileSize,
         public string $id,
-        public ?bool $isFavorite,
-        public ?DateTimeImmutable $lastUsedAt,
-        public string $mediaType,
-        public array $tags,
-        public ?string $thumbnailUrl,
+        public string $attachmentId,
         public string $url,
+        public ?string $thumbnailUrl,
+        public string $displayName,
+        public ?string $description,
+        public string $mediaType,
+        public string $contentType,
+        public ?int $fileSize,
+        public array $tags,
+        public ?bool $isFavorite,
+        public DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $lastUsedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -64,19 +64,19 @@ final readonly class MediaGalleryAsset extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachmentId: $attributes->string('attachment_id'),
-            contentType: $attributes->string('content_type'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
-            displayName: $attributes->string('display_name'),
-            fileSize: $attributes->nullableInt('file_size'),
             id: $attributes->string('id'),
-            isFavorite: $attributes->nullableBool('is_favorite'),
-            lastUsedAt: $attributes->nullableDateTime('last_used_at'),
-            mediaType: $attributes->string('media_type'),
-            tags: $attributes->strings('tags'),
-            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            attachmentId: $attributes->string('attachment_id'),
             url: $attributes->string('url'),
+            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            displayName: $attributes->string('display_name'),
+            description: $attributes->nullableString('description'),
+            mediaType: $attributes->string('media_type'),
+            contentType: $attributes->string('content_type'),
+            fileSize: $attributes->nullableInt('file_size'),
+            tags: $attributes->strings('tags'),
+            isFavorite: $attributes->nullableBool('is_favorite'),
+            createdAt: $attributes->dateTime('created_at'),
+            lastUsedAt: $attributes->nullableDateTime('last_used_at'),
             raw: $data,
         );
     }

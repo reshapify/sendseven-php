@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ScheduledPostTarget extends Data
 {
     /**
-     * @param  string  $channelId  The channel this target publishes to.
-     * @param  ?string  $errorCode  Meta error code/subcode when this target failed.
-     * @param  ?string  $errorMessage  Human-readable failure reason for this target.
      * @param  string  $id  Target id.
+     * @param  string  $channelId  The channel this target publishes to.
+     * @param  string  $status  `pending`, `publishing`, `published`, `failed` or `cancelled`.
      * @param  ?string  $metaPostId  Meta's id for the published post (IG media id / FB `{page}_{post}`).
      * @param  ?string  $permalink  Public link to the published post.
+     * @param  ?string  $errorCode  Meta error code/subcode when this target failed.
+     * @param  ?string  $errorMessage  Human-readable failure reason for this target.
      * @param  ?string  $publishedAt  When this target published.
-     * @param  string  $status  `pending`, `publishing`, `published`, `failed` or `cancelled`.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelId,
-        public ?string $errorCode,
-        public ?string $errorMessage,
         public string $id,
+        public string $channelId,
+        public string $status,
         public ?string $metaPostId,
         public ?string $permalink,
+        public ?string $errorCode,
+        public ?string $errorMessage,
         public ?string $publishedAt,
-        public string $status,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class ScheduledPostTarget extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->string('channel_id'),
-            errorCode: $attributes->nullableString('error_code'),
-            errorMessage: $attributes->nullableString('error_message'),
             id: $attributes->string('id'),
+            channelId: $attributes->string('channel_id'),
+            status: $attributes->string('status'),
             metaPostId: $attributes->nullableString('meta_post_id'),
             permalink: $attributes->nullableString('permalink'),
+            errorCode: $attributes->nullableString('error_code'),
+            errorMessage: $attributes->nullableString('error_message'),
             publishedAt: $attributes->nullableString('published_at'),
-            status: $attributes->string('status'),
             raw: $data,
         );
     }

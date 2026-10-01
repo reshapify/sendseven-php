@@ -23,13 +23,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InboxEmailConnection extends Data
 {
     /**
-     * @param  list<string>  $allowedRecipients  Optional subset of addresses on the connection to route to this inbox. None or empty list = all addresses.
      * @param  string  $emailIntegrationId  Email integration row id (the receiving connection — must have can_receive_support=True).
+     * @param  list<string>  $allowedRecipients  Optional subset of addresses on the connection to route to this inbox. None or empty list = all addresses.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $allowedRecipients,
         public string $emailIntegrationId,
+        public array $allowedRecipients,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,8 +43,8 @@ final readonly class InboxEmailConnection extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allowedRecipients: $attributes->strings('allowed_recipients'),
             emailIntegrationId: $attributes->string('email_integration_id'),
+            allowedRecipients: $attributes->strings('allowed_recipients'),
             raw: $data,
         );
     }

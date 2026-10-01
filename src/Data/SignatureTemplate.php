@@ -17,22 +17,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SignatureTemplate extends Data
 {
     /**
-     * @param  string  $contentHtml  HTML content with placeholders
-     * @param  ?string  $contentText  Plain text version
-     * @param  string  $createdAt  When the template was created
-     * @param  ?string  $createdByUserId  User who created the template
      * @param  string  $id  Template ID
      * @param  string  $tenantId  Tenant ID
+     * @param  string  $contentHtml  HTML content with placeholders
+     * @param  ?string  $contentText  Plain text version
+     * @param  ?string  $createdByUserId  User who created the template
+     * @param  string  $createdAt  When the template was created
      * @param  string  $updatedAt  When the template was last updated
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $contentHtml,
-        public ?string $contentText,
-        public string $createdAt,
-        public ?string $createdByUserId,
         public string $id,
         public string $tenantId,
+        public string $contentHtml,
+        public ?string $contentText,
+        public ?string $createdByUserId,
+        public string $createdAt,
         public string $updatedAt,
         array $raw = [],
     ) {
@@ -47,12 +47,12 @@ final readonly class SignatureTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contentHtml: $attributes->string('content_html'),
-            contentText: $attributes->nullableString('content_text'),
-            createdAt: $attributes->string('created_at'),
-            createdByUserId: $attributes->nullableString('created_by_user_id'),
             id: $attributes->string('id'),
             tenantId: $attributes->string('tenant_id'),
+            contentHtml: $attributes->string('content_html'),
+            contentText: $attributes->nullableString('content_text'),
+            createdByUserId: $attributes->nullableString('created_by_user_id'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             raw: $data,
         );

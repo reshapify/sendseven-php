@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CatalogueStatus extends Data
 {
     /**
-     * @param  ?string  $appId  Facebook App ID for the dialog
      * @param  bool  $betaEnabled  Whether the WhatsApp Catalogue beta is enabled for this tenant (the `whatsapp_catalogue` feature flag). The frontend reads THIS field to decide whether to show the catalogue UI.
-     * @param  bool  $canSend  Whether outbound product messages are permitted. False on Coexistence numbers (fail-closed).
-     * @param  ?string  $configId  FBLB catalogue config id for the (re)connect dialog
      * @param  bool  $connected  Whether a catalogue is connected on this channel
-     * @param  ?string  $degradeReason  Why the catalogue is degraded, if at all: null | 'coexistence_send_blocked' | 'app_managed' | 'not_resolvable'.
      * @param  ?string  $lastSyncedAt  ISO-8601 timestamp of the last successful sync (UTC, 'Z')
+     * @param  bool  $canSend  Whether outbound product messages are permitted. False on Coexistence numbers (fail-closed).
+     * @param  ?string  $degradeReason  Why the catalogue is degraded, if at all: null | 'coexistence_send_blocked' | 'app_managed' | 'not_resolvable'.
+     * @param  ?string  $configId  FBLB catalogue config id for the (re)connect dialog
+     * @param  ?string  $appId  Facebook App ID for the dialog
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $appId,
         public bool $betaEnabled,
-        public bool $canSend,
-        public ?string $catalogId,
-        public ?string $configId,
         public bool $connected,
-        public ?string $degradeReason,
-        public ?string $lastSyncedAt,
+        public ?string $catalogId,
         public ?int $productCount,
+        public ?string $lastSyncedAt,
+        public bool $canSend,
+        public ?string $degradeReason,
+        public ?string $configId,
+        public ?string $appId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,15 +49,15 @@ final readonly class CatalogueStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            appId: $attributes->nullableString('app_id'),
             betaEnabled: $attributes->bool('beta_enabled'),
-            canSend: $attributes->bool('can_send'),
-            catalogId: $attributes->nullableString('catalog_id'),
-            configId: $attributes->nullableString('config_id'),
             connected: $attributes->bool('connected'),
-            degradeReason: $attributes->nullableString('degrade_reason'),
-            lastSyncedAt: $attributes->nullableString('last_synced_at'),
+            catalogId: $attributes->nullableString('catalog_id'),
             productCount: $attributes->nullableInt('product_count'),
+            lastSyncedAt: $attributes->nullableString('last_synced_at'),
+            canSend: $attributes->bool('can_send'),
+            degradeReason: $attributes->nullableString('degrade_reason'),
+            configId: $attributes->nullableString('config_id'),
+            appId: $attributes->nullableString('app_id'),
             raw: $data,
         );
     }

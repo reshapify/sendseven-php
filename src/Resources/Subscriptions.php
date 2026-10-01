@@ -58,28 +58,51 @@ final readonly class Subscriptions
      *
      * Subscribe a contact to a list via a specific channel
      *
-     * @param  SubscriptionChannelType|string  $channelType  Channel type for subscription
      * @param  string  $listId  List ID to subscribe to
+     * @param  SubscriptionChannelType|string  $channelType  Channel type for subscription
      * @param  ?string  $channelId  Channel ID (required for telegram, messenger, instagram)
-     * @param  array<string, mixed>|null  $channelMetadata  Channel-specific metadata
-     * @param  ?string  $optInIp  IP address of subscriber
      * @param  OptInMethod|string|null  $optInMethod  Method of opt-in
-     * @param  ?string  $optInSourceUrl  URL where subscription originated
+     * @param  ?string  $optInIp  IP address of subscriber
      * @param  ?string  $optInUserAgent  User agent string
+     * @param  ?string  $optInSourceUrl  URL where subscription originated
      * @param  ?string  $optInWidgetId  Widget ID if subscribed via widget
      * @param  ?bool  $sendDoubleOptIn  Send double opt-in confirmation
+     * @param  array<string, mixed>|null  $channelMetadata  Channel-specific metadata
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Subscriptions/subscribe_contact_api_v1_contacts__contact_id__subscriptions_post
      */
-    public function subscribeContact(string $contactId, SubscriptionChannelType|string $channelType, string $listId, ?string $channelId = null, ?array $channelMetadata = null, ?string $optInIp = null, OptInMethod|string|null $optInMethod = null, ?string $optInSourceUrl = null, ?string $optInUserAgent = null, ?string $optInWidgetId = null, ?bool $sendDoubleOptIn = null, ?string $idempotencyKey = null): Subscription
-    {
+    public function subscribeContact(
+        string $contactId,
+        string $listId,
+        SubscriptionChannelType|string $channelType,
+        ?string $channelId = null,
+        OptInMethod|string|null $optInMethod = null,
+        ?string $optInIp = null,
+        ?string $optInUserAgent = null,
+        ?string $optInSourceUrl = null,
+        ?string $optInWidgetId = null,
+        ?bool $sendDoubleOptIn = null,
+        ?array $channelMetadata = null,
+        ?string $idempotencyKey = null,
+    ): Subscription {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/'.Payload::segment($contactId).'/subscriptions',
-            body: Payload::body(['channel_type' => $channelType, 'list_id' => $listId, 'channel_id' => $channelId, 'channel_metadata' => $channelMetadata, 'opt_in_ip' => $optInIp, 'opt_in_method' => $optInMethod, 'opt_in_source_url' => $optInSourceUrl, 'opt_in_user_agent' => $optInUserAgent, 'opt_in_widget_id' => $optInWidgetId, 'send_double_opt_in' => $sendDoubleOptIn]),
+            body: Payload::body([
+                'list_id' => $listId,
+                'channel_type' => $channelType,
+                'channel_id' => $channelId,
+                'opt_in_method' => $optInMethod,
+                'opt_in_ip' => $optInIp,
+                'opt_in_user_agent' => $optInUserAgent,
+                'opt_in_source_url' => $optInSourceUrl,
+                'opt_in_widget_id' => $optInWidgetId,
+                'send_double_opt_in' => $sendDoubleOptIn,
+                'channel_metadata' => $channelMetadata,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -97,8 +120,11 @@ final readonly class Subscriptions
      *
      * @see https://api.sendseven.com/api/v1/docs#/Subscriptions/unsubscribe_contact_api_v1_contacts__contact_id__subscriptions__subscription_id__delete
      */
-    public function unsubscribeContact(string $contactId, string $subscriptionId, ?array $body = null): UnsubscribeResponse
-    {
+    public function unsubscribeContact(
+        string $contactId,
+        string $subscriptionId,
+        ?array $body = null,
+    ): UnsubscribeResponse {
         $response = $this->connector->send(new Request(
             Method::Delete,
             '/contacts/'.Payload::segment($contactId).'/subscriptions/'.Payload::segment($subscriptionId),
@@ -124,12 +150,22 @@ final readonly class Subscriptions
      *
      * @see https://api.sendseven.com/api/v1/docs#/Subscriptions/get_list_subscribers_api_v1_lists__list_id__subscribers_get
      */
-    public function getListSubscribers(string $listId, SubscriptionChannelType|string|null $channelType = null, SubscriptionStatus|string|null $status = null, ?int $limit = null, ?int $offset = null): ListSubscribers
-    {
+    public function getListSubscribers(
+        string $listId,
+        SubscriptionChannelType|string|null $channelType = null,
+        SubscriptionStatus|string|null $status = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): ListSubscribers {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/lists/'.Payload::segment($listId).'/subscribers',
-            query: Payload::query(['channel_type' => $channelType, 'status' => $status, 'limit' => $limit, 'offset' => $offset]),
+            query: Payload::query([
+                'channel_type' => $channelType,
+                'status' => $status,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]),
         ));
 
         return ListSubscribers::fromArray($response->data());
@@ -186,20 +222,24 @@ final readonly class Subscriptions
      *
      * Scopes: contacts:update.
      *
-     * @param  array<string, mixed>|null  $channelMetadata  Channel-specific metadata
      * @param  SubscriptionStatus|string|null  $status  New subscription status
+     * @param  array<string, mixed>|null  $channelMetadata  Channel-specific metadata
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Subscriptions/update_subscription_api_v1_subscriptions__subscription_id__patch
      */
-    public function update(string $subscriptionId, ?array $channelMetadata = null, SubscriptionStatus|string|null $status = null, ?string $idempotencyKey = null): Subscription
-    {
+    public function update(
+        string $subscriptionId,
+        SubscriptionStatus|string|null $status = null,
+        ?array $channelMetadata = null,
+        ?string $idempotencyKey = null,
+    ): Subscription {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/subscriptions/'.Payload::segment($subscriptionId),
-            body: Payload::body(['channel_metadata' => $channelMetadata, 'status' => $status]),
+            body: Payload::body(['status' => $status, 'channel_metadata' => $channelMetadata]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

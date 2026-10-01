@@ -20,9 +20,9 @@ final readonly class UnsubscribeResponse extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public string $message,
         public ?Subscription $subscription,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class UnsubscribeResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             message: $attributes->string('message'),
             subscription: $attributes->nullableObject('subscription', Subscription::fromArray(...)),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

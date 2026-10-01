@@ -18,14 +18,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MergedFromInfo extends Data
 {
     /**
-     * @param  DateTimeImmutable  $mergedAt  When the merge that produced the alias happened
      * @param  string  $oldId  The old UUID the caller requested
+     * @param  DateTimeImmutable  $mergedAt  When the merge that produced the alias happened
      * @param  string  $reason  Reason code: auto, manual, import, live_chat, api
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $mergedAt,
         public string $oldId,
+        public DateTimeImmutable $mergedAt,
         public string $reason,
         array $raw = [],
     ) {
@@ -40,8 +40,8 @@ final readonly class MergedFromInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            mergedAt: $attributes->dateTime('merged_at'),
             oldId: $attributes->string('old_id'),
+            mergedAt: $attributes->dateTime('merged_at'),
             reason: $attributes->string('reason'),
             raw: $data,
         );

@@ -18,47 +18,47 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailContentListItem extends Data
 {
     /**
-     * @param  ?bool  $aiGenerated  AI-generated flag
-     * @param  ?string  $contentType  Content type: 'html' or 'plain_text'
-     * @param  DateTimeImmutable  $createdAt  Creation timestamp
-     * @param  ?string  $description  Content description
-     * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml'
-     * @param  ?string  $fromEmail  Sender email
-     * @param  ?string  $fromName  Sender name
      * @param  string  $id  Unique identifier (UUID)
-     * @param  ?bool  $isHidden  Hidden/archived flag
-     * @param  ?bool  $isSystem  System template flag
-     * @param  bool  $isValid  Validation status
-     * @param  ?string  $layoutTemplateName  Template name
-     * @param  string  $name  Content name
-     * @param  ?string  $previewText  Preview text
-     * @param  ?string  $subjectLine  Email subject line
-     * @param  ?string  $templateId  Email template ID
      * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  DateTimeImmutable  $updatedAt  Last update timestamp
+     * @param  string  $name  Content name
+     * @param  ?string  $description  Content description
+     * @param  ?string  $contentType  Content type: 'html' or 'plain_text'
+     * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml'
+     * @param  ?string  $templateId  Email template ID
+     * @param  ?string  $subjectLine  Email subject line
+     * @param  ?string  $previewText  Preview text
+     * @param  ?string  $fromName  Sender name
+     * @param  ?string  $fromEmail  Sender email
+     * @param  ?bool  $aiGenerated  AI-generated flag
+     * @param  ?bool  $isSystem  System template flag
+     * @param  ?bool  $isHidden  Hidden/archived flag
+     * @param  bool  $isValid  Validation status
      * @param  int  $version  Content version
+     * @param  DateTimeImmutable  $createdAt  Creation timestamp
+     * @param  DateTimeImmutable  $updatedAt  Last update timestamp
+     * @param  ?string  $layoutTemplateName  Template name
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $aiGenerated,
-        public ?string $contentType,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
-        public ?string $editorType,
-        public ?string $fromEmail,
-        public ?string $fromName,
         public string $id,
-        public ?bool $isHidden,
-        public ?bool $isSystem,
-        public bool $isValid,
-        public ?string $layoutTemplateName,
-        public string $name,
-        public ?string $previewText,
-        public ?string $subjectLine,
-        public ?string $templateId,
         public string $tenantId,
-        public DateTimeImmutable $updatedAt,
+        public string $name,
+        public ?string $description,
+        public ?string $contentType,
+        public ?string $editorType,
+        public ?string $templateId,
+        public ?string $subjectLine,
+        public ?string $previewText,
+        public ?string $fromName,
+        public ?string $fromEmail,
+        public ?bool $aiGenerated,
+        public ?bool $isSystem,
+        public ?bool $isHidden,
+        public bool $isValid,
         public int $version,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
+        public ?string $layoutTemplateName,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -72,25 +72,25 @@ final readonly class EmailContentListItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiGenerated: $attributes->nullableBool('ai_generated'),
-            contentType: $attributes->nullableString('content_type'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
-            editorType: $attributes->nullableString('editor_type'),
-            fromEmail: $attributes->nullableString('from_email'),
-            fromName: $attributes->nullableString('from_name'),
             id: $attributes->string('id'),
-            isHidden: $attributes->nullableBool('is_hidden'),
-            isSystem: $attributes->nullableBool('is_system'),
-            isValid: $attributes->bool('is_valid'),
-            layoutTemplateName: $attributes->nullableString('layout_template_name'),
-            name: $attributes->string('name'),
-            previewText: $attributes->nullableString('preview_text'),
-            subjectLine: $attributes->nullableString('subject_line'),
-            templateId: $attributes->nullableString('template_id'),
             tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->dateTime('updated_at'),
+            name: $attributes->string('name'),
+            description: $attributes->nullableString('description'),
+            contentType: $attributes->nullableString('content_type'),
+            editorType: $attributes->nullableString('editor_type'),
+            templateId: $attributes->nullableString('template_id'),
+            subjectLine: $attributes->nullableString('subject_line'),
+            previewText: $attributes->nullableString('preview_text'),
+            fromName: $attributes->nullableString('from_name'),
+            fromEmail: $attributes->nullableString('from_email'),
+            aiGenerated: $attributes->nullableBool('ai_generated'),
+            isSystem: $attributes->nullableBool('is_system'),
+            isHidden: $attributes->nullableBool('is_hidden'),
+            isValid: $attributes->bool('is_valid'),
             version: $attributes->int('version'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
+            layoutTemplateName: $attributes->nullableString('layout_template_name'),
             raw: $data,
         );
     }

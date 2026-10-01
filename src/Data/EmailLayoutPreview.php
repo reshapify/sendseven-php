@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailLayoutPreview extends Data
 {
     /**
-     * @param  ?bool  $hasComplianceFooter  Whether compliance footer was injected (promotional category)
      * @param  string  $html  Compiled HTML from MJML source
+     * @param  ?bool  $hasComplianceFooter  Whether compliance footer was injected (promotional category)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $hasComplianceFooter,
         public string $html,
+        public ?bool $hasComplianceFooter,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class EmailLayoutPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            hasComplianceFooter: $attributes->nullableBool('has_compliance_footer'),
             html: $attributes->string('html'),
+            hasComplianceFooter: $attributes->nullableBool('has_compliance_footer'),
             raw: $data,
         );
     }

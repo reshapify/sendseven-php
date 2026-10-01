@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class OptInMethodCount extends Data
 {
     /**
-     * @param  int  $count  Number of subscriptions via this method
      * @param  string  $method  Opt-in method (widget, import, api, manual, etc.)
+     * @param  int  $count  Number of subscriptions via this method
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $count,
         public string $method,
+        public int $count,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class OptInMethodCount extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            count: $attributes->int('count'),
             method: $attributes->string('method'),
+            count: $attributes->int('count'),
             raw: $data,
         );
     }

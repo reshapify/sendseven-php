@@ -18,17 +18,17 @@ final readonly class ChannelCampaignStats extends Data
 {
     /**
      * @param  string  $channelType  Channel type
+     * @param  ?int  $sent  Messages sent
      * @param  ?int  $delivered  Messages delivered
      * @param  ?int  $failed  Messages failed
-     * @param  ?int  $sent  Messages sent
      * @param  ?int  $totalMessages  Total campaign messages
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $channelType,
+        public ?int $sent,
         public ?int $delivered,
         public ?int $failed,
-        public ?int $sent,
         public ?int $totalMessages,
         array $raw = [],
     ) {
@@ -44,9 +44,9 @@ final readonly class ChannelCampaignStats extends Data
 
         return new self(
             channelType: $attributes->string('channel_type'),
+            sent: $attributes->nullableInt('sent'),
             delivered: $attributes->nullableInt('delivered'),
             failed: $attributes->nullableInt('failed'),
-            sent: $attributes->nullableInt('sent'),
             totalMessages: $attributes->nullableInt('total_messages'),
             raw: $data,
         );

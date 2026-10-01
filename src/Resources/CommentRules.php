@@ -45,12 +45,21 @@ final readonly class CommentRules
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comment%20Rules/list_social_comment_rules_api_v1_social_comment_rules_get
      */
-    public function listSocial(?string $channelId = null, ?bool $enabled = null, ?int $page = null, ?int $pageSize = null): void
-    {
+    public function listSocial(
+        ?string $channelId = null,
+        ?bool $enabled = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Get,
             '/social-comment-rules',
-            query: Payload::query(['channel_id' => $channelId, 'enabled' => $enabled, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'channel_id' => $channelId,
+                'enabled' => $enabled,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
     }
 
@@ -61,32 +70,62 @@ final readonly class CommentRules
      *
      * Scopes: flows:write.
      *
-     * @param  string  $channelId  The Instagram or Facebook channel this rule watches.
      * @param  string  $name  Operator-facing label, e.g. "Summer sale — send the code".
-     * @param  SocialCommentRuleAction|string|null  $action  Send a private reply, or hand the comment off to a flow.
+     * @param  string  $channelId  The Instagram or Facebook channel this rule watches.
      * @param  ?bool  $enabled  Disabled rules are skipped entirely during evaluation.
-     * @param  ?string  $flowId  Flow to start when action is start_flow. The flow's trigger must be "Comment received".
-     * @param  list<string>|null  $keywords  Keywords to match. Ignored when match_mode is any_comment.
-     * @param  SocialCommentRuleMatchMode|string|null  $matchMode  any_comment reacts to every comment (no keywords needed, and it also matches comments with no text at all). contains / exact / starts_with compare against the keyword list, case-insensitively.
-     * @param  list<string>|null  $postIds  Post identifiers to watch when post_scope is specific_posts. These are the platform's own post ids as returned by the channel's posts/media listing endpoint.
-     * @param  array<string, mixed>|null  $postMessageOverrides  Optional per-post wording: {post_id: message}. A post listed here gets that message instead of reply_text; every other post falls back to reply_text.
-     * @param  SocialCommentRulePostScope|string|null  $postScope  Watch every post on the channel, or only selected posts.
      * @param  ?int  $priority  Evaluation order — LOWER runs FIRST (same convention as flows). The first matching rule wins; no further rule is evaluated. Ties are broken by specificity (a post-scoped, keyworded rule beats a catch-all), then by age.
+     * @param  SocialCommentRulePostScope|string|null  $postScope  Watch every post on the channel, or only selected posts.
+     * @param  list<string>|null  $postIds  Post identifiers to watch when post_scope is specific_posts. These are the platform's own post ids as returned by the channel's posts/media listing endpoint.
+     * @param  SocialCommentRuleMatchMode|string|null  $matchMode  any_comment reacts to every comment (no keywords needed, and it also matches comments with no text at all). contains / exact / starts_with compare against the keyword list, case-insensitively.
+     * @param  list<string>|null  $keywords  Keywords to match. Ignored when match_mode is any_comment.
+     * @param  SocialCommentRuleAction|string|null  $action  Send a private reply, or hand the comment off to a flow.
+     * @param  ?string  $replyText  The private reply to send. Supports the same {{placeholders}} as the flow Send node — for example {{contact.first_name}} — plus {{comment.text}}, {{comment.author}} and {{post.caption}}.
+     * @param  ?string  $flowId  Flow to start when action is start_flow. The flow's trigger must be "Comment received".
+     * @param  array<string, mixed>|null  $postMessageOverrides  Optional per-post wording: {post_id: message}. A post listed here gets that message instead of reply_text; every other post falls back to reply_text.
      * @param  list<array<string, mixed>>|null  $replyButtons  Up to 3 buttons attached to the private reply. Supported on both Facebook Messenger and Instagram. A control the rule's channel cannot carry is rejected when the rule is saved, not silently stripped when it fires. Only meaningful when action is send_private_reply.
      * @param  list<array<string, mixed>>|null  $replyQuickReplies  DEPRECATED / IGNORED. Comment private replies are buttons-only since 2026-08-13. This field is still accepted for backwards compatibility so older clients do not get a 422, but it is never validated, stored, or sent — use reply_buttons instead.
-     * @param  ?string  $replyText  The private reply to send. Supports the same {{placeholders}} as the flow Send node — for example {{contact.first_name}} — plus {{comment.text}}, {{comment.author}} and {{post.caption}}.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comment%20Rules/create_social_comment_rule_api_v1_social_comment_rules_post
      */
-    public function createSocial(string $channelId, string $name, SocialCommentRuleAction|string|null $action = null, ?bool $enabled = null, ?string $flowId = null, ?array $keywords = null, SocialCommentRuleMatchMode|string|null $matchMode = null, ?array $postIds = null, ?array $postMessageOverrides = null, SocialCommentRulePostScope|string|null $postScope = null, ?int $priority = null, ?array $replyButtons = null, ?array $replyQuickReplies = null, ?string $replyText = null, ?string $idempotencyKey = null): void
-    {
+    public function createSocial(
+        string $name,
+        string $channelId,
+        ?bool $enabled = null,
+        ?int $priority = null,
+        SocialCommentRulePostScope|string|null $postScope = null,
+        ?array $postIds = null,
+        SocialCommentRuleMatchMode|string|null $matchMode = null,
+        ?array $keywords = null,
+        SocialCommentRuleAction|string|null $action = null,
+        ?string $replyText = null,
+        ?string $flowId = null,
+        ?array $postMessageOverrides = null,
+        ?array $replyButtons = null,
+        ?array $replyQuickReplies = null,
+        ?string $idempotencyKey = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Post,
             '/social-comment-rules',
-            body: Payload::body(['channel_id' => $channelId, 'name' => $name, 'action' => $action, 'enabled' => $enabled, 'flow_id' => $flowId, 'keywords' => $keywords, 'match_mode' => $matchMode, 'post_ids' => $postIds, 'post_message_overrides' => $postMessageOverrides, 'post_scope' => $postScope, 'priority' => $priority, 'reply_buttons' => $replyButtons, 'reply_quick_replies' => $replyQuickReplies, 'reply_text' => $replyText]),
+            body: Payload::body([
+                'name' => $name,
+                'channel_id' => $channelId,
+                'enabled' => $enabled,
+                'priority' => $priority,
+                'post_scope' => $postScope,
+                'post_ids' => $postIds,
+                'match_mode' => $matchMode,
+                'keywords' => $keywords,
+                'action' => $action,
+                'reply_text' => $replyText,
+                'flow_id' => $flowId,
+                'post_message_overrides' => $postMessageOverrides,
+                'reply_buttons' => $replyButtons,
+                'reply_quick_replies' => $replyQuickReplies,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }
@@ -149,8 +188,8 @@ final readonly class CommentRules
      *
      * Scopes: flows:write.
      *
-     * @param  list<string>|null  $keywords
      * @param  list<string>|null  $postIds
+     * @param  list<string>|null  $keywords
      * @param  array<string, mixed>|null  $postMessageOverrides
      * @param  list<array<string, mixed>>|null  $replyButtons
      * @param  list<array<string, mixed>>|null  $replyQuickReplies
@@ -160,12 +199,41 @@ final readonly class CommentRules
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comment%20Rules/update_social_comment_rule_api_v1_social_comment_rules__rule_id__patch
      */
-    public function updateSocial(string $ruleId, SocialCommentRuleAction|string|null $action = null, ?bool $enabled = null, ?string $flowId = null, ?array $keywords = null, SocialCommentRuleMatchMode|string|null $matchMode = null, ?string $name = null, ?array $postIds = null, ?array $postMessageOverrides = null, SocialCommentRulePostScope|string|null $postScope = null, ?int $priority = null, ?array $replyButtons = null, ?array $replyQuickReplies = null, ?string $replyText = null, ?string $idempotencyKey = null): void
-    {
+    public function updateSocial(
+        string $ruleId,
+        ?string $name = null,
+        ?bool $enabled = null,
+        ?int $priority = null,
+        SocialCommentRulePostScope|string|null $postScope = null,
+        ?array $postIds = null,
+        SocialCommentRuleMatchMode|string|null $matchMode = null,
+        ?array $keywords = null,
+        SocialCommentRuleAction|string|null $action = null,
+        ?string $replyText = null,
+        ?string $flowId = null,
+        ?array $postMessageOverrides = null,
+        ?array $replyButtons = null,
+        ?array $replyQuickReplies = null,
+        ?string $idempotencyKey = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Patch,
             '/social-comment-rules/'.Payload::segment($ruleId),
-            body: Payload::body(['action' => $action, 'enabled' => $enabled, 'flow_id' => $flowId, 'keywords' => $keywords, 'match_mode' => $matchMode, 'name' => $name, 'post_ids' => $postIds, 'post_message_overrides' => $postMessageOverrides, 'post_scope' => $postScope, 'priority' => $priority, 'reply_buttons' => $replyButtons, 'reply_quick_replies' => $replyQuickReplies, 'reply_text' => $replyText]),
+            body: Payload::body([
+                'name' => $name,
+                'enabled' => $enabled,
+                'priority' => $priority,
+                'post_scope' => $postScope,
+                'post_ids' => $postIds,
+                'match_mode' => $matchMode,
+                'keywords' => $keywords,
+                'action' => $action,
+                'reply_text' => $replyText,
+                'flow_id' => $flowId,
+                'post_message_overrides' => $postMessageOverrides,
+                'reply_buttons' => $replyButtons,
+                'reply_quick_replies' => $replyQuickReplies,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }

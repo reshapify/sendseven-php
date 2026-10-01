@@ -24,34 +24,34 @@ final readonly class Channel extends Data
 {
     /**
      * @param  ?string  $activationStatus  ES/Coexistence activation lifecycle. `null` = ACTIVE (legacy / healthy channels). `AVAILABLE` = the channel row exists but setup is not complete (see `setup_pending_reason`); such a channel is `is_active=false` and MUST NOT be rendered as connected.
+     * @param  ?string  $setupPendingReason  Non-null when the channel row exists but setup is INCOMPLETE and needs customer action. `coexistence_setup_incomplete` = the WhatsApp number must finish Coexistence setup on the phone (keep it active on the WhatsApp Business App, re-run connect, and complete Meta's dialog incl. the QR scan + on-handset confirmation). `null` for every fully-set-up channel. A channel with this set is NOT connected and must not render as such.
      * @param  ?string  $avatarUrl  Profile picture of the connected account on this channel (Facebook Page / Instagram account). Null when unavailable or not captured for this channel type. Meta CDN URLs expire — do not persist client-side.
      * @param  ?string  $rcsAgentId  [RCS] Google RBM agent id, stored BARE (no '@rbm.goog' suffix). Normalisation happens on write via a model @validates hook.
+     * @param  ?string  $rcsPartnerId  [RCS] Google RBM partner account id.
      * @param  array<array-key, mixed>  $rcsLaunchState  [RCS] Free-form brand-verification + per-carrier launch status. Absent/empty means NOTHING is launched (fail closed): pre-launch an agent can only reach allowlisted tester devices.
      * @param  ?string  $rcsMessageTrafficType  [RCS] The channel's DEFAULT `messageTrafficType` (`AUTHENTICATION` | `TRANSACTION` | `PROMOTION` | `SERVICEREQUEST` | `ACKNOWLEDGEMENT`), or `null` when none is set. A German regulatory declaration about the nature of the message (UWG / telecoms), NOT a billing tier and not a delivery-speed setting. `null` means unset -- the adapter then falls back to `SERVICEREQUEST` -- and is what an archived channel reads, since this value is deliberately not preserved across archiving. Returned canonicalised, i.e. exactly the value that will be sent to Google; a stored value outside the five enum values reads as `null` because that is what the adapter will make of it. Set it with `PUT /channels/{id}/rcs/credentials`.
-     * @param  ?string  $rcsPartnerId  [RCS] Google RBM partner account id.
      * @param  ?string  $rcsPricingMode  [RCS] How this RCS agent is billed (read-only; set by SendSeven): `per_message` = each message is billed and counts towards your messages; `mau` = billed once per monthly active recipient, and its messages do NOT count as messages sent. `null` on every non-RCS channel.
-     * @param  ?string  $setupPendingReason  Non-null when the channel row exists but setup is INCOMPLETE and needs customer action. `coexistence_setup_incomplete` = the WhatsApp number must finish Coexistence setup on the phone (keep it active on the WhatsApp Business App, re-run connect, and complete Meta's dialog incl. the QR scan + on-handset confirmation). `null` for every fully-set-up channel. A channel with this set is NOT connected and must not render as such.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $activationStatus,
-        public ?string $avatarUrl,
-        public ChannelType|string $channelType,
-        public DateTimeImmutable $createdAt,
         public string $id,
-        public string $identifier,
-        public bool $isActive,
-        public ?bool $isCoexistence,
-        public ?bool $isVerified,
+        public string $tenantId,
+        public ChannelType|string $channelType,
         public string $name,
+        public string $identifier,
         public ?string $phoneNumberFormatted,
+        public bool $isActive,
+        public ?bool $isVerified,
+        public ?bool $isCoexistence,
+        public DateTimeImmutable $createdAt,
+        public ?string $activationStatus,
+        public ?string $setupPendingReason,
+        public ?string $avatarUrl,
         public ?string $rcsAgentId,
+        public ?string $rcsPartnerId,
         public array $rcsLaunchState,
         public ?string $rcsMessageTrafficType,
-        public ?string $rcsPartnerId,
         public ?string $rcsPricingMode,
-        public ?string $setupPendingReason,
-        public string $tenantId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -65,24 +65,24 @@ final readonly class Channel extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            activationStatus: $attributes->nullableString('activation_status'),
-            avatarUrl: $attributes->nullableString('avatar_url'),
-            channelType: $attributes->enum('channel_type', ChannelType::class),
-            createdAt: $attributes->dateTime('created_at'),
             id: $attributes->string('id'),
-            identifier: $attributes->string('identifier'),
-            isActive: $attributes->bool('is_active'),
-            isCoexistence: $attributes->nullableBool('is_coexistence'),
-            isVerified: $attributes->nullableBool('is_verified'),
+            tenantId: $attributes->string('tenant_id'),
+            channelType: $attributes->enum('channel_type', ChannelType::class),
             name: $attributes->string('name'),
+            identifier: $attributes->string('identifier'),
             phoneNumberFormatted: $attributes->nullableString('phone_number_formatted'),
+            isActive: $attributes->bool('is_active'),
+            isVerified: $attributes->nullableBool('is_verified'),
+            isCoexistence: $attributes->nullableBool('is_coexistence'),
+            createdAt: $attributes->dateTime('created_at'),
+            activationStatus: $attributes->nullableString('activation_status'),
+            setupPendingReason: $attributes->nullableString('setup_pending_reason'),
+            avatarUrl: $attributes->nullableString('avatar_url'),
             rcsAgentId: $attributes->nullableString('rcs_agent_id'),
+            rcsPartnerId: $attributes->nullableString('rcs_partner_id'),
             rcsLaunchState: $attributes->array('rcs_launch_state'),
             rcsMessageTrafficType: $attributes->nullableString('rcs_message_traffic_type'),
-            rcsPartnerId: $attributes->nullableString('rcs_partner_id'),
             rcsPricingMode: $attributes->nullableString('rcs_pricing_mode'),
-            setupPendingReason: $attributes->nullableString('setup_pending_reason'),
-            tenantId: $attributes->string('tenant_id'),
             raw: $data,
         );
     }

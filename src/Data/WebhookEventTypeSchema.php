@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WebhookEventTypeSchema extends Data
 {
     /**
-     * @param  string  $category  Event category (e.g., 'message', 'conversation')
-     * @param  string  $description  Human-readable description of the event
      * @param  string  $event  Event type identifier (e.g., 'message.received')
+     * @param  string  $description  Human-readable description of the event
+     * @param  string  $category  Event category (e.g., 'message', 'conversation')
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $category,
-        public string $description,
         public string $event,
+        public string $description,
+        public string $category,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class WebhookEventTypeSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            category: $attributes->string('category'),
-            description: $attributes->string('description'),
             event: $attributes->string('event'),
+            description: $attributes->string('description'),
+            category: $attributes->string('category'),
             raw: $data,
         );
     }

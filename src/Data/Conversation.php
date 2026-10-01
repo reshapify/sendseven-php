@@ -20,92 +20,92 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Conversation extends Data
 {
     /**
-     * @param  ?ContactMethodInfo  $activeContactMethod  Current active contact method for replies
-     * @param  ?string  $activeContactMethodId  Current active contact method for replies
-     * @param  array<array-key, mixed>  $activeFlowRun  Currently active flow run on this conversation. Shape: ``{run_id, flow_id, flow_name, trigger_kind, trigger_class, started_at, current_node_id, current_node_display_name}``. ``trigger_kind`` is the raw flow trigger type (e.g. ``incoming_message``/``manual``/``schedule``) and ``trigger_class`` is the derived ``"inbound" | "background"`` bucket (background = manual/api_event/schedule); both are null when the trigger can't be resolved (frontend then fails open). None when no flow run is active for the contact+conversation.
-     * @param  ?string  $aiSummary  AI-generated conversation summary
-     * @param  list<string>  $aiTags  AI-generated tags/categories
-     * @param  array<array-key, mixed>  $assignedUser  Assigned user details (id, name, email, chat_nickname)
-     * @param  ?string  $botSessionId  Active bot session ID if bot is handling this conversation
+     * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  ?string  $contactId  Contact UUID (can be None for some types)
      * @param  string  $channelId  Channel UUID
      * @param  ?string  $channelType  Channel type: email, telegram, whatsapp, live_chat, etc.
+     * @param  ?string  $contactMethodId  Contact method used when conversation was created
+     * @param  ?string  $activeContactMethodId  Current active contact method for replies
+     * @param  ?ContactMethodInfo  $contactMethod  Contact method used when conversation was created
+     * @param  ?ContactMethodInfo  $activeContactMethod  Current active contact method for replies
+     * @param  array<array-key, mixed>  $assignedUser  Assigned user details (id, name, email, chat_nickname)
+     * @param  array<array-key, mixed>  $contact  Contact details
+     * @param  ?bool  $isLiveChat  Is this from a live chat session
+     * @param  ?bool  $isEmail  Is this an email conversation
+     * @param  ?bool  $needsReply  True when last message is from customer
+     * @param  list<TagInfo>  $tags
+     * @param  ?string  $liveChatSessionStatus  Live chat session status: waiting, active, closed
+     * @param  ?string  $liveChatLastActivityAt  Last activity timestamp from the live chat session
+     * @param  ?bool  $visitorOnline  Whether the live chat visitor is currently connected via WebSocket
+     * @param  ?string  $visitorWidgetState  Widget panel state: 'open' or 'minimized'
+     * @param  ?string  $visitorTabState  Browser tab visibility: 'visible' or 'hidden'
+     * @param  ?bool  $visitorFocused  Whether the chat input is currently focused (real-time only, may be null)
+     * @param  ?string  $visitorLastVisibleAt  Last time visitor's tab was visible
+     * @param  ?string  $visitorLastFocusAt  Last time visitor focused the chat input
+     * @param  ?string  $botSessionId  Active bot session ID if bot is handling this conversation
+     * @param  array<array-key, mixed>  $activeFlowRun  Currently active flow run on this conversation. Shape: ``{run_id, flow_id, flow_name, trigger_kind, trigger_class, started_at, current_node_id, current_node_display_name}``. ``trigger_kind`` is the raw flow trigger type (e.g. ``incoming_message``/``manual``/``schedule``) and ``trigger_class`` is the derived ``"inbound" | "background"`` bucket (background = manual/api_event/schedule); both are null when the trigger can't be resolved (frontend then fails open). None when no flow run is active for the contact+conversation.
+     * @param  ?string  $snoozedUntil  When the snooze expires (timezone-aware ISO, 'Z' suffix). NULL when not snoozed. Conversation is currently snoozed when status=='open' AND this is in the future.
+     * @param  ?bool  $snoozeReopenOnMessage  Per-snooze choice: auto-reopen the conversation to the Open tab when an inbound customer message arrives while snoozed. Only meaningful while snoozed_until is set.
      * @param  ?string  $closedAt  When conversation was closed
      * @param  ?string  $closedByUserId  User who closed the conversation
-     * @param  array<array-key, mixed>  $contact  Contact details
-     * @param  ?string  $contactId  Contact UUID (can be None for some types)
-     * @param  ?ContactMethodInfo  $contactMethod  Contact method used when conversation was created
-     * @param  ?string  $contactMethodId  Contact method used when conversation was created
-     * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  ?bool  $isEmail  Is this an email conversation
-     * @param  ?bool  $isLiveChat  Is this from a live chat session
-     * @param  ?string  $liveChatLastActivityAt  Last activity timestamp from the live chat session
-     * @param  ?string  $liveChatSessionStatus  Live chat session status: waiting, active, closed
-     * @param  ?ConversationDraftMarker  $myDraft  The requesting user's unsent draft: {snippet, mode, has_attachments, updated_at}; null when none.
-     * @param  ?bool  $needsReply  True when last message is from customer
+     * @param  ?string  $aiSummary  AI-generated conversation summary
+     * @param  ?string  $userIntent  Why did the user contact us?
      * @param  ?string  $resolutionSummary  How was it resolved?
      * @param  ?string  $sentimentAnalysis  Customer sentiment progression
-     * @param  ?bool  $snoozeReopenOnMessage  Per-snooze choice: auto-reopen the conversation to the Open tab when an inbound customer message arrives while snoozed. Only meaningful while snoozed_until is set.
-     * @param  ?string  $snoozedUntil  When the snooze expires (timezone-aware ISO, 'Z' suffix). NULL when not snoozed. Conversation is currently snoozed when status=='open' AND this is in the future.
+     * @param  list<string>  $aiTags  AI-generated tags/categories
      * @param  ?string  $summarizedAt  When AI summary was generated
-     * @param  list<TagInfo>  $tags
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
-     * @param  ?string  $userIntent  Why did the user contact us?
-     * @param  ?bool  $visitorFocused  Whether the chat input is currently focused (real-time only, may be null)
-     * @param  ?string  $visitorLastFocusAt  Last time visitor focused the chat input
-     * @param  ?string  $visitorLastVisibleAt  Last time visitor's tab was visible
-     * @param  ?bool  $visitorOnline  Whether the live chat visitor is currently connected via WebSocket
-     * @param  ?string  $visitorTabState  Browser tab visibility: 'visible' or 'hidden'
-     * @param  ?string  $visitorWidgetState  Widget panel state: 'open' or 'minimized'
+     * @param  ?ConversationDraftMarker  $myDraft  The requesting user's unsent draft: {snippet, mode, has_attachments, updated_at}; null when none.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?ContactMethodInfo $activeContactMethod,
-        public ?string $activeContactMethodId,
-        public array $activeFlowRun,
-        public ?string $aiSummary,
-        public array $aiTags,
-        public array $assignedUser,
-        public ?string $assignedUserId,
-        public ?string $botSessionId,
+        public string $createdAt,
+        public ?string $updatedAt,
+        public string $id,
+        public string $tenantId,
+        public ?string $contactId,
         public string $channelId,
         public ?string $channelType,
-        public ?string $closedAt,
-        public ?string $closedByUserId,
-        public array $contact,
-        public ?string $contactId,
-        public ?ContactMethodInfo $contactMethod,
         public ?string $contactMethodId,
-        public string $createdAt,
-        public string $id,
-        public ?bool $isEmail,
-        public ?bool $isLiveChat,
-        public ?string $lastAgentReplyAt,
-        public ?string $lastCustomerMessageAt,
-        public ?LastMessagePreview $lastMessage,
-        public ?string $lastMessageAt,
-        public ?string $liveChatLastActivityAt,
-        public ?string $liveChatSessionStatus,
-        public ?ConversationDraftMarker $myDraft,
-        public ?bool $needsReply,
-        public ?string $resolutionSummary,
-        public ?string $sentimentAnalysis,
-        public ?bool $snoozeReopenOnMessage,
-        public ?string $snoozedUntil,
+        public ?string $activeContactMethodId,
+        public ?ContactMethodInfo $contactMethod,
+        public ?ContactMethodInfo $activeContactMethod,
+        public ?string $assignedUserId,
+        public array $assignedUser,
         public ConversationStatus|string $status,
         public ?string $subject,
-        public ?string $summarizedAt,
+        public ?string $lastMessageAt,
+        public ?LastMessagePreview $lastMessage,
+        public array $contact,
+        public ?bool $isLiveChat,
+        public ?bool $isEmail,
+        public ?bool $needsReply,
+        public ?string $lastCustomerMessageAt,
+        public ?string $lastAgentReplyAt,
         public array $tags,
-        public string $tenantId,
-        public ?string $updatedAt,
-        public ?string $userIntent,
-        public ?bool $visitorFocused,
-        public ?string $visitorLastFocusAt,
-        public ?string $visitorLastVisibleAt,
+        public ?string $liveChatSessionStatus,
+        public ?string $liveChatLastActivityAt,
         public ?bool $visitorOnline,
-        public ?string $visitorTabState,
         public ?string $visitorWidgetState,
+        public ?string $visitorTabState,
+        public ?bool $visitorFocused,
+        public ?string $visitorLastVisibleAt,
+        public ?string $visitorLastFocusAt,
+        public ?string $botSessionId,
+        public array $activeFlowRun,
+        public ?string $snoozedUntil,
+        public ?bool $snoozeReopenOnMessage,
+        public ?string $closedAt,
+        public ?string $closedByUserId,
+        public ?string $aiSummary,
+        public ?string $userIntent,
+        public ?string $resolutionSummary,
+        public ?string $sentimentAnalysis,
+        public array $aiTags,
+        public ?string $summarizedAt,
+        public ?ConversationDraftMarker $myDraft,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -119,51 +119,51 @@ final readonly class Conversation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            activeContactMethod: $attributes->nullableObject('active_contact_method', ContactMethodInfo::fromArray(...)),
-            activeContactMethodId: $attributes->nullableString('active_contact_method_id'),
-            activeFlowRun: $attributes->array('active_flow_run'),
-            aiSummary: $attributes->nullableString('ai_summary'),
-            aiTags: $attributes->strings('ai_tags'),
-            assignedUser: $attributes->array('assigned_user'),
-            assignedUserId: $attributes->nullableString('assigned_user_id'),
-            botSessionId: $attributes->nullableString('bot_session_id'),
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            contactId: $attributes->nullableString('contact_id'),
             channelId: $attributes->string('channel_id'),
             channelType: $attributes->nullableString('channel_type'),
-            closedAt: $attributes->nullableString('closed_at'),
-            closedByUserId: $attributes->nullableString('closed_by_user_id'),
-            contact: $attributes->array('contact'),
-            contactId: $attributes->nullableString('contact_id'),
-            contactMethod: $attributes->nullableObject('contact_method', ContactMethodInfo::fromArray(...)),
             contactMethodId: $attributes->nullableString('contact_method_id'),
-            createdAt: $attributes->string('created_at'),
-            id: $attributes->string('id'),
-            isEmail: $attributes->nullableBool('is_email'),
-            isLiveChat: $attributes->nullableBool('is_live_chat'),
-            lastAgentReplyAt: $attributes->nullableString('last_agent_reply_at'),
-            lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
-            lastMessage: $attributes->nullableObject('last_message', LastMessagePreview::fromArray(...)),
-            lastMessageAt: $attributes->nullableString('last_message_at'),
-            liveChatLastActivityAt: $attributes->nullableString('live_chat_last_activity_at'),
-            liveChatSessionStatus: $attributes->nullableString('live_chat_session_status'),
-            myDraft: $attributes->nullableObject('my_draft', ConversationDraftMarker::fromArray(...)),
-            needsReply: $attributes->nullableBool('needs_reply'),
-            resolutionSummary: $attributes->nullableString('resolution_summary'),
-            sentimentAnalysis: $attributes->nullableString('sentiment_analysis'),
-            snoozeReopenOnMessage: $attributes->nullableBool('snooze_reopen_on_message'),
-            snoozedUntil: $attributes->nullableString('snoozed_until'),
+            activeContactMethodId: $attributes->nullableString('active_contact_method_id'),
+            contactMethod: $attributes->nullableObject('contact_method', ContactMethodInfo::fromArray(...)),
+            activeContactMethod: $attributes->nullableObject('active_contact_method', ContactMethodInfo::fromArray(...)),
+            assignedUserId: $attributes->nullableString('assigned_user_id'),
+            assignedUser: $attributes->array('assigned_user'),
             status: $attributes->enum('status', ConversationStatus::class),
             subject: $attributes->nullableString('subject'),
-            summarizedAt: $attributes->nullableString('summarized_at'),
+            lastMessageAt: $attributes->nullableString('last_message_at'),
+            lastMessage: $attributes->nullableObject('last_message', LastMessagePreview::fromArray(...)),
+            contact: $attributes->array('contact'),
+            isLiveChat: $attributes->nullableBool('is_live_chat'),
+            isEmail: $attributes->nullableBool('is_email'),
+            needsReply: $attributes->nullableBool('needs_reply'),
+            lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
+            lastAgentReplyAt: $attributes->nullableString('last_agent_reply_at'),
             tags: $attributes->list('tags', TagInfo::fromArray(...)),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
-            userIntent: $attributes->nullableString('user_intent'),
-            visitorFocused: $attributes->nullableBool('visitor_focused'),
-            visitorLastFocusAt: $attributes->nullableString('visitor_last_focus_at'),
-            visitorLastVisibleAt: $attributes->nullableString('visitor_last_visible_at'),
+            liveChatSessionStatus: $attributes->nullableString('live_chat_session_status'),
+            liveChatLastActivityAt: $attributes->nullableString('live_chat_last_activity_at'),
             visitorOnline: $attributes->nullableBool('visitor_online'),
-            visitorTabState: $attributes->nullableString('visitor_tab_state'),
             visitorWidgetState: $attributes->nullableString('visitor_widget_state'),
+            visitorTabState: $attributes->nullableString('visitor_tab_state'),
+            visitorFocused: $attributes->nullableBool('visitor_focused'),
+            visitorLastVisibleAt: $attributes->nullableString('visitor_last_visible_at'),
+            visitorLastFocusAt: $attributes->nullableString('visitor_last_focus_at'),
+            botSessionId: $attributes->nullableString('bot_session_id'),
+            activeFlowRun: $attributes->array('active_flow_run'),
+            snoozedUntil: $attributes->nullableString('snoozed_until'),
+            snoozeReopenOnMessage: $attributes->nullableBool('snooze_reopen_on_message'),
+            closedAt: $attributes->nullableString('closed_at'),
+            closedByUserId: $attributes->nullableString('closed_by_user_id'),
+            aiSummary: $attributes->nullableString('ai_summary'),
+            userIntent: $attributes->nullableString('user_intent'),
+            resolutionSummary: $attributes->nullableString('resolution_summary'),
+            sentimentAnalysis: $attributes->nullableString('sentiment_analysis'),
+            aiTags: $attributes->strings('ai_tags'),
+            summarizedAt: $attributes->nullableString('summarized_at'),
+            myDraft: $attributes->nullableObject('my_draft', ConversationDraftMarker::fromArray(...)),
             raw: $data,
         );
     }

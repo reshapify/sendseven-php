@@ -22,8 +22,8 @@ final readonly class ContactSubscriptions extends Data
      */
     public function __construct(
         public string $contactId,
-        public array $subscriptions,
         public int $total,
+        public array $subscriptions,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,8 +38,8 @@ final readonly class ContactSubscriptions extends Data
 
         return new self(
             contactId: $attributes->string('contact_id'),
-            subscriptions: $attributes->list('subscriptions', Subscription::fromArray(...)),
             total: $attributes->int('total'),
+            subscriptions: $attributes->list('subscriptions', Subscription::fromArray(...)),
             raw: $data,
         );
     }

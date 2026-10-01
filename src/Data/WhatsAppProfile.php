@@ -26,8 +26,8 @@ final readonly class WhatsAppProfile extends Data
         public ?string $description,
         public ?string $email,
         public ?string $profilePictureUrl,
-        public ?string $vertical,
         public array $websites,
+        public ?string $vertical,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,8 +46,8 @@ final readonly class WhatsAppProfile extends Data
             description: $attributes->nullableString('description'),
             email: $attributes->nullableString('email'),
             profilePictureUrl: $attributes->nullableString('profile_picture_url'),
-            vertical: $attributes->nullableString('vertical'),
             websites: $attributes->strings('websites'),
+            vertical: $attributes->nullableString('vertical'),
             raw: $data,
         );
     }

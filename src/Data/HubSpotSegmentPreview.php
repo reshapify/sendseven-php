@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class HubSpotSegmentPreview extends Data
 {
     /**
-     * @param  int  $resolvedContacts  Members matched to an existing SendSeven contact
-     * @param  bool  $sampled  True when only a sample of the list was inspected
      * @param  int  $totalMembers  HubSpot members inspected (capped when sampled)
-     * @param  int  $unresolvedMembers  Members skipped (no usable identifier / policy=skip)
+     * @param  int  $resolvedContacts  Members matched to an existing SendSeven contact
      * @param  int  $wouldCreate  Members that would auto-create a new contact
+     * @param  int  $unresolvedMembers  Members skipped (no usable identifier / policy=skip)
+     * @param  bool  $sampled  True when only a sample of the list was inspected
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $resolvedContacts,
-        public bool $sampled,
         public int $totalMembers,
-        public int $unresolvedMembers,
+        public int $resolvedContacts,
         public int $wouldCreate,
+        public int $unresolvedMembers,
+        public bool $sampled,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class HubSpotSegmentPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            resolvedContacts: $attributes->int('resolved_contacts'),
-            sampled: $attributes->bool('sampled'),
             totalMembers: $attributes->int('total_members'),
-            unresolvedMembers: $attributes->int('unresolved_members'),
+            resolvedContacts: $attributes->int('resolved_contacts'),
             wouldCreate: $attributes->int('would_create'),
+            unresolvedMembers: $attributes->int('unresolved_members'),
+            sampled: $attributes->bool('sampled'),
             raw: $data,
         );
     }

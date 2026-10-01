@@ -22,9 +22,9 @@ final readonly class BounceSuppressionList extends Data
      */
     public function __construct(
         public array $items,
+        public int $total,
         public int $limit,
         public int $offset,
-        public int $total,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class BounceSuppressionList extends Data
 
         return new self(
             items: $attributes->list('items', BounceSuppression::fromArray(...)),
+            total: $attributes->int('total'),
             limit: $attributes->int('limit'),
             offset: $attributes->int('offset'),
-            total: $attributes->int('total'),
             raw: $data,
         );
     }

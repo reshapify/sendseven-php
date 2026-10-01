@@ -17,31 +17,31 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FeatureAvailability extends Data
 {
     /**
+     * @param  array<array-key, mixed>  $uiFeatures
      * @param  array<array-key, mixed>  $apiFeatures
      * @param  list<string>  $disabledFeatures
      * @param  array<array-key, mixed>  $pricingModel
-     * @param  array<array-key, mixed>  $uiFeatures
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $aiAvailable,
+        public string $packageType,
+        public ?bool $isApiOnly,
         public bool $aiEnabled,
+        public ?bool $aiAvailable,
+        public ?bool $translationEnabled,
+        public array $uiFeatures,
         public array $apiFeatures,
         public array $disabledFeatures,
-        public ?bool $isApiOnly,
         public bool $isTrial,
+        public string $subscriptionStatus,
+        public ?bool $trialSuiteToggleEligible,
         public ?string $originalSuiteType,
-        public string $packageType,
-        public array $pricingModel,
         public ?bool $proTrialActive,
-        public ?bool $proTrialEligible,
         public ?string $proTrialEndsAt,
         public ?bool $proTrialPromptDue,
-        public string $subscriptionStatus,
+        public ?bool $proTrialEligible,
+        public array $pricingModel,
         public ?bool $summarizeOnCloseAvailable,
-        public ?bool $translationEnabled,
-        public ?bool $trialSuiteToggleEligible,
-        public array $uiFeatures,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,24 +55,24 @@ final readonly class FeatureAvailability extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiAvailable: $attributes->nullableBool('ai_available'),
+            packageType: $attributes->string('package_type'),
+            isApiOnly: $attributes->nullableBool('is_api_only'),
             aiEnabled: $attributes->bool('ai_enabled'),
+            aiAvailable: $attributes->nullableBool('ai_available'),
+            translationEnabled: $attributes->nullableBool('translation_enabled'),
+            uiFeatures: $attributes->array('ui_features'),
             apiFeatures: $attributes->array('api_features'),
             disabledFeatures: $attributes->strings('disabled_features'),
-            isApiOnly: $attributes->nullableBool('is_api_only'),
             isTrial: $attributes->bool('is_trial'),
+            subscriptionStatus: $attributes->string('subscription_status'),
+            trialSuiteToggleEligible: $attributes->nullableBool('trial_suite_toggle_eligible'),
             originalSuiteType: $attributes->nullableString('original_suite_type'),
-            packageType: $attributes->string('package_type'),
-            pricingModel: $attributes->array('pricing_model'),
             proTrialActive: $attributes->nullableBool('pro_trial_active'),
-            proTrialEligible: $attributes->nullableBool('pro_trial_eligible'),
             proTrialEndsAt: $attributes->nullableString('pro_trial_ends_at'),
             proTrialPromptDue: $attributes->nullableBool('pro_trial_prompt_due'),
-            subscriptionStatus: $attributes->string('subscription_status'),
+            proTrialEligible: $attributes->nullableBool('pro_trial_eligible'),
+            pricingModel: $attributes->array('pricing_model'),
             summarizeOnCloseAvailable: $attributes->nullableBool('summarize_on_close_available'),
-            translationEnabled: $attributes->nullableBool('translation_enabled'),
-            trialSuiteToggleEligible: $attributes->nullableBool('trial_suite_toggle_eligible'),
-            uiFeatures: $attributes->array('ui_features'),
             raw: $data,
         );
     }

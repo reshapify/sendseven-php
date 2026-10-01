@@ -60,20 +60,24 @@ final readonly class Invitations
      * Scopes: team:create.
      *
      * @param  string  $email  Email address to invite
-     * @param  InvitationRoleEnum|string|null  $role  DEPRECATED legacy role slug (owner, admin, marketing_agent, support_agent, viewer, billing_admin, developer, analyst, content_manager, designer). Ignored when `role_id` is set.
      * @param  ?string  $roleId  RBAC Role UUID to assign (system OR this tenant's custom role). Get valid ids from GET /roles. Preferred over the legacy `role` field.
+     * @param  InvitationRoleEnum|string|null  $role  DEPRECATED legacy role slug (owner, admin, marketing_agent, support_agent, viewer, billing_admin, developer, analyst, content_manager, designer). Ignored when `role_id` is set.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Invitations/create_invitation_api_v1_invitations_post
      */
-    public function create(string $email, InvitationRoleEnum|string|null $role = null, ?string $roleId = null, ?string $idempotencyKey = null): Invitation
-    {
+    public function create(
+        string $email,
+        ?string $roleId = null,
+        InvitationRoleEnum|string|null $role = null,
+        ?string $idempotencyKey = null,
+    ): Invitation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/invitations',
-            body: Payload::body(['email' => $email, 'role' => $role, 'role_id' => $roleId]),
+            body: Payload::body(['email' => $email, 'role_id' => $roleId, 'role' => $role]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

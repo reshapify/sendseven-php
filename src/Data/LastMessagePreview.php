@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LastMessagePreview extends Data
 {
     /**
-     * @param  ?string  $direction  Message direction: inbound or outbound
      * @param  ?string  $messageType  Message type: text, image, video, audio, document
+     * @param  ?string  $direction  Message direction: inbound or outbound
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $createdAt,
-        public ?string $direction,
-        public ?string $messageType,
         public ?string $text,
+        public ?string $messageType,
+        public ?string $direction,
+        public ?string $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class LastMessagePreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->nullableString('created_at'),
-            direction: $attributes->nullableString('direction'),
-            messageType: $attributes->nullableString('message_type'),
             text: $attributes->nullableString('text'),
+            messageType: $attributes->nullableString('message_type'),
+            direction: $attributes->nullableString('direction'),
+            createdAt: $attributes->nullableString('created_at'),
             raw: $data,
         );
     }

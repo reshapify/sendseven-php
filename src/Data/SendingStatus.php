@@ -21,9 +21,9 @@ final readonly class SendingStatus extends Data
      */
     public function __construct(
         public string $integrationId,
-        public string $message,
-        public string $sendingStatus,
         public string $sesTenantName,
+        public string $sendingStatus,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,9 +38,9 @@ final readonly class SendingStatus extends Data
 
         return new self(
             integrationId: $attributes->string('integration_id'),
-            message: $attributes->string('message'),
-            sendingStatus: $attributes->string('sending_status'),
             sesTenantName: $attributes->string('ses_tenant_name'),
+            sendingStatus: $attributes->string('sending_status'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

@@ -121,12 +121,26 @@ final readonly class KbCorrections
      *
      * @see https://api.sendseven.com/api/v1/docs#/KB%20Corrections/create_kb_correction_api_v1_kb_corrections_post
      */
-    public function create(string $whatIsWrong, ?string $aiAnswerEventId = null, ?string $conversationId = null, ?string $correctAnswer = null, ?array $faqItemIds = null, ?string $why = null, ?string $idempotencyKey = null): KbCorrection
-    {
+    public function create(
+        string $whatIsWrong,
+        ?string $why = null,
+        ?string $correctAnswer = null,
+        ?string $aiAnswerEventId = null,
+        ?string $conversationId = null,
+        ?array $faqItemIds = null,
+        ?string $idempotencyKey = null,
+    ): KbCorrection {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/kb-corrections',
-            body: Payload::body(['what_is_wrong' => $whatIsWrong, 'ai_answer_event_id' => $aiAnswerEventId, 'conversation_id' => $conversationId, 'correct_answer' => $correctAnswer, 'faq_item_ids' => $faqItemIds, 'why' => $why]),
+            body: Payload::body([
+                'what_is_wrong' => $whatIsWrong,
+                'why' => $why,
+                'correct_answer' => $correctAnswer,
+                'ai_answer_event_id' => $aiAnswerEventId,
+                'conversation_id' => $conversationId,
+                'faq_item_ids' => $faqItemIds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

@@ -69,12 +69,33 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/list_conversations_api_v1_conversations_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $status = null, ?string $assignedTo = null, ?bool $needsReply = null, ?string $filter = null, ?string $contactId = null, ?string $search = null, ?string $inboxId = null, ?string $channelType = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $status = null,
+        ?string $assignedTo = null,
+        ?bool $needsReply = null,
+        ?string $filter = null,
+        ?string $contactId = null,
+        ?string $search = null,
+        ?string $inboxId = null,
+        ?string $channelType = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/conversations',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'status' => $status, 'assigned_to' => $assignedTo, 'needs_reply' => $needsReply, 'filter' => $filter, 'contact_id' => $contactId, 'search' => $search, 'inbox_id' => $inboxId, 'channel_type' => $channelType]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'status' => $status,
+                'assigned_to' => $assignedTo,
+                'needs_reply' => $needsReply,
+                'filter' => $filter,
+                'contact_id' => $contactId,
+                'search' => $search,
+                'inbox_id' => $inboxId,
+                'channel_type' => $channelType,
+            ]),
         ));
 
         return Hydrate::page($response->data(), Conversation::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, status: $status, assignedTo: $assignedTo, needsReply: $needsReply, filter: $filter, contactId: $contactId, search: $search, inboxId: $inboxId, channelType: $channelType));
@@ -87,22 +108,32 @@ final readonly class Conversations
      *
      * Scopes: conversations:create.
      *
-     * @param  string  $channelId  Channel UUID
      * @param  string  $contactId  Contact UUID
-     * @param  ?string  $contactMethodId  Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the address via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). When omitted, behavior is unchanged: the address is resolved via the channel's primary method downstream.
+     * @param  string  $channelId  Channel UUID
      * @param  ?string  $subject  Conversation subject
+     * @param  ?string  $contactMethodId  Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the address via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). When omitted, behavior is unchanged: the address is resolved via the channel's primary method downstream.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/create_conversation_api_v1_conversations_post
      */
-    public function create(string $channelId, string $contactId, ?string $contactMethodId = null, ?string $subject = null, ?string $idempotencyKey = null): Conversation
-    {
+    public function create(
+        string $contactId,
+        string $channelId,
+        ?string $subject = null,
+        ?string $contactMethodId = null,
+        ?string $idempotencyKey = null,
+    ): Conversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations',
-            body: Payload::body(['channel_id' => $channelId, 'contact_id' => $contactId, 'contact_method_id' => $contactMethodId, 'subject' => $subject]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'channel_id' => $channelId,
+                'subject' => $subject,
+                'contact_method_id' => $contactMethodId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -178,20 +209,23 @@ final readonly class Conversations
      *
      * Scopes: conversations:create.
      *
-     * @param  string  $channelId  Channel UUID to check
      * @param  string  $contactId  Contact UUID to check
+     * @param  string  $channelId  Channel UUID to check
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/check_existing_conversation_api_v1_conversations_check_existing_post
      */
-    public function checkExisting(string $channelId, string $contactId, ?string $idempotencyKey = null): CheckExistingConversation
-    {
+    public function checkExisting(
+        string $contactId,
+        string $channelId,
+        ?string $idempotencyKey = null,
+    ): CheckExistingConversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/check-existing',
-            body: Payload::body(['channel_id' => $channelId, 'contact_id' => $contactId]),
+            body: Payload::body(['contact_id' => $contactId, 'channel_id' => $channelId]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -210,24 +244,38 @@ final readonly class Conversations
      *
      * Scopes: conversations:create.
      *
-     * @param  string  $channelId  Channel UUID to use for this conversation
      * @param  string  $contactId  Contact UUID to start conversation with
-     * @param  ?string  $content  Message text content (required for message_type=text)
-     * @param  array<string, mixed>|null  $email  Email message data (required for message_type=email)
+     * @param  string  $channelId  Channel UUID to use for this conversation
      * @param  InitiateMessageType|string|null  $messageType  Type of message to send
+     * @param  ?string  $content  Message text content (required for message_type=text)
      * @param  array<string, mixed>|null  $template  WhatsApp template data (required when template is needed)
+     * @param  array<string, mixed>|null  $email  Email message data (required for message_type=email)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/initiate_conversation_api_v1_conversations_initiate_post
      */
-    public function initiate(string $channelId, string $contactId, ?string $content = null, ?array $email = null, InitiateMessageType|string|null $messageType = null, ?array $template = null, ?string $idempotencyKey = null): InitiateConversation
-    {
+    public function initiate(
+        string $contactId,
+        string $channelId,
+        InitiateMessageType|string|null $messageType = null,
+        ?string $content = null,
+        ?array $template = null,
+        ?array $email = null,
+        ?string $idempotencyKey = null,
+    ): InitiateConversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/initiate',
-            body: Payload::body(['channel_id' => $channelId, 'contact_id' => $contactId, 'content' => $content, 'email' => $email, 'message_type' => $messageType, 'template' => $template]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'channel_id' => $channelId,
+                'message_type' => $messageType,
+                'content' => $content,
+                'template' => $template,
+                'email' => $email,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -250,10 +298,10 @@ final readonly class Conversations
      *
      * Scopes: conversations:create.
      *
-     * @param  string  $channelId  Channel UUID to use for this conversation
      * @param  string  $contactId  Contact UUID to start conversation with
-     * @param  ?string  $action  Action to take: 'create_new', 'reopen_existing', or 'auto' (default). When using two-phase API, specify action explicitly to control webhook behavior.
+     * @param  string  $channelId  Channel UUID to use for this conversation
      * @param  ?string  $contactMethodId  Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the recipient via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). For email the synthetic 'email_mailbox_<uuid>' / 'email_integration_<uuid>' channel_id is validated as an EMAIL method type. When a NEW conversation is created both contact_method_id and active_contact_method_id are set to this value; when an existing conversation is reused only active_contact_method_id is updated. When omitted, behavior is unchanged (recipient resolved via the channel's primary method).
+     * @param  ?string  $action  Action to take: 'create_new', 'reopen_existing', or 'auto' (default). When using two-phase API, specify action explicitly to control webhook behavior.
      * @param  ?bool  $reopenExisting  DEPRECATED: Use action='reopen_existing' instead. If True and a closed conversation exists, reopen it. If False, always create new.
      * @param  ?string  $useConversationId  For email: specify an existing conversation ID to use instead of creating new. This allows continuing an existing email thread.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -262,12 +310,26 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/open_or_create_conversation_api_v1_conversations_open_or_create_post
      */
-    public function openOrCreate(string $channelId, string $contactId, ?string $action = null, ?string $contactMethodId = null, ?bool $reopenExisting = null, ?string $useConversationId = null, ?string $idempotencyKey = null): OpenOrCreateConversation
-    {
+    public function openOrCreate(
+        string $contactId,
+        string $channelId,
+        ?string $contactMethodId = null,
+        ?string $action = null,
+        ?bool $reopenExisting = null,
+        ?string $useConversationId = null,
+        ?string $idempotencyKey = null,
+    ): OpenOrCreateConversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/open-or-create',
-            body: Payload::body(['channel_id' => $channelId, 'contact_id' => $contactId, 'action' => $action, 'contact_method_id' => $contactMethodId, 'reopen_existing' => $reopenExisting, 'use_conversation_id' => $useConversationId]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'channel_id' => $channelId,
+                'contact_method_id' => $contactMethodId,
+                'action' => $action,
+                'reopen_existing' => $reopenExisting,
+                'use_conversation_id' => $useConversationId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -335,12 +397,23 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/update_conversation_api_v1_conversations__conversation_id__patch
      */
-    public function update(string $conversationId, ?string $assignedUserId = null, ?string $notes = null, ConversationStatus|string|null $status = null, ?string $subject = null, ?string $idempotencyKey = null): Conversation
-    {
+    public function update(
+        string $conversationId,
+        ConversationStatus|string|null $status = null,
+        ?string $assignedUserId = null,
+        ?string $subject = null,
+        ?string $notes = null,
+        ?string $idempotencyKey = null,
+    ): Conversation {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/conversations/'.Payload::segment($conversationId),
-            body: Payload::body(['assigned_user_id' => $assignedUserId, 'notes' => $notes, 'status' => $status, 'subject' => $subject]),
+            body: Payload::body([
+                'status' => $status,
+                'assigned_user_id' => $assignedUserId,
+                'subject' => $subject,
+                'notes' => $notes,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -468,8 +541,11 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/enable_bot_session_api_v1_conversations__conversation_id__bot_session_enable_post
      */
-    public function enableBotSession(string $conversationId, ?string $botId = null, ?string $idempotencyKey = null): void
-    {
+    public function enableBotSession(
+        string $conversationId,
+        ?string $botId = null,
+        ?string $idempotencyKey = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/bot-session/enable',
@@ -499,8 +575,12 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/close_conversation_api_v1_conversations__conversation_id__close_post
      */
-    public function close(string $conversationId, ?string $notes = null, ?bool $summarize = null, ?string $idempotencyKey = null): Conversation
-    {
+    public function close(
+        string $conversationId,
+        ?string $notes = null,
+        ?bool $summarize = null,
+        ?string $idempotencyKey = null,
+    ): Conversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/close',
@@ -529,21 +609,34 @@ final readonly class Conversations
      *
      * @param  string  $mailboxId  EmailMailbox id to send from (must be active and sendable).
      * @param  string  $toEmail  Recipient email address. Format is validated server-side (400 on invalid).
-     * @param  ?string  $language  Optional ISO 639-1 language override for the email copy (greeting/intro/subject/labels). Unsupported or missing values fall back to the contact's stored language, then English.
      * @param  ?string  $note  Optional free-text note from the agent, shown above the transcript (HTML-escaped; line breaks preserved).
      * @param  ?bool  $saveAsContactMethod  If true, store to_email as an EMAIL contact method on the conversation's contact (idempotent — no duplicate if it already exists).
+     * @param  ?string  $language  Optional ISO 639-1 language override for the email copy (greeting/intro/subject/labels). Unsupported or missing values fall back to the contact's stored language, then English.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/email_conversation_transcript_api_v1_conversations__conversation_id__email_transcript_post
      */
-    public function emailTranscript(string $conversationId, string $mailboxId, string $toEmail, ?string $language = null, ?string $note = null, ?bool $saveAsContactMethod = null, ?string $idempotencyKey = null): EmailTranscript
-    {
+    public function emailTranscript(
+        string $conversationId,
+        string $mailboxId,
+        string $toEmail,
+        ?string $note = null,
+        ?bool $saveAsContactMethod = null,
+        ?string $language = null,
+        ?string $idempotencyKey = null,
+    ): EmailTranscript {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/email-transcript',
-            body: Payload::body(['mailbox_id' => $mailboxId, 'to_email' => $toEmail, 'language' => $language, 'note' => $note, 'save_as_contact_method' => $saveAsContactMethod]),
+            body: Payload::body([
+                'mailbox_id' => $mailboxId,
+                'to_email' => $toEmail,
+                'note' => $note,
+                'save_as_contact_method' => $saveAsContactMethod,
+                'language' => $language,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -571,8 +664,11 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/merge_conversation_api_v1_conversations__conversation_id__merge_post
      */
-    public function merge(string $conversationId, string $sourceConversationId, ?string $idempotencyKey = null): Conversation
-    {
+    public function merge(
+        string $conversationId,
+        string $sourceConversationId,
+        ?string $idempotencyKey = null,
+    ): Conversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/merge',
@@ -727,8 +823,12 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/snooze_conversation_api_v1_conversations__conversation_id__snooze_post
      */
-    public function snooze(string $conversationId, DateTimeInterface|string $snoozedUntil, ?bool $reopenOnMessage = null, ?string $idempotencyKey = null): Conversation
-    {
+    public function snooze(
+        string $conversationId,
+        DateTimeInterface|string $snoozedUntil,
+        ?bool $reopenOnMessage = null,
+        ?string $idempotencyKey = null,
+    ): Conversation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/snooze',
@@ -809,8 +909,11 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/switch_channel_api_v1_conversations__conversation_id__switch_channel_post
      */
-    public function switchChannel(string $conversationId, ?array $channelIds = null, ?string $idempotencyKey = null): ChannelSwitch
-    {
+    public function switchChannel(
+        string $conversationId,
+        ?array $channelIds = null,
+        ?string $idempotencyKey = null,
+    ): ChannelSwitch {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/switch-channel',
@@ -874,8 +977,12 @@ final readonly class Conversations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/create_transcript_export_api_v1_conversations__conversation_id__transcript_post
      */
-    public function createTranscriptExport(string $conversationId, string $format, ?bool $waitForSummary = null, ?string $idempotencyKey = null): TranscriptExportJob
-    {
+    public function createTranscriptExport(
+        string $conversationId,
+        string $format,
+        ?bool $waitForSummary = null,
+        ?string $idempotencyKey = null,
+    ): TranscriptExportJob {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/transcript',

@@ -51,12 +51,21 @@ final readonly class ChannelConnect
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channel%20Connect/list_tokens_api_v1_channel_connect_tokens_get
      */
-    public function listTokens(?bool $includeExpired = null, ?bool $includeRevoked = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listTokens(
+        ?bool $includeExpired = null,
+        ?bool $includeRevoked = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/channel-connect-tokens',
-            query: Payload::query(['include_expired' => $includeExpired, 'include_revoked' => $includeRevoked, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'include_expired' => $includeExpired,
+                'include_revoked' => $includeRevoked,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), ChannelConnectToken::fromArray(...), fn (int $page): Page => $this->listTokens(includeExpired: $includeExpired, includeRevoked: $includeRevoked, page: $page, pageSize: $pageSize));
@@ -75,25 +84,43 @@ final readonly class ChannelConnect
      * Scopes: channels:create.
      *
      * @param  list<string>  $allowedChannelTypes  Channel types allowed to connect: telegram, whatsapp, instagram, messenger, gmail, smtp_imap, proxy, sendgrid_byok, mailgun_byok, sendgrid_managed, sms
-     * @param  array<string, mixed>|null  $allowedChannelModes  Optional per-channel connect-mode restrictions. Shape: {"instagram": ["messaging","social"], "messenger": ["business_messaging","business_social","personal_social"], "whatsapp": ["classic","coexistence"]}. An ABSENT channel key (or a null value) means ALL modes are allowed for that channel (backwards compatible). A channel key MUST list at least one mode — to allow every mode, omit the key rather than passing []. Enforcement is the intersection of these modes with the tenant's feature gating, fail-closed.
+     * @param  ?string  $name  User-friendly name for this token (e.g., 'Acme Corp Setup')
      * @param  ?int  $expiresInHours  Token validity in hours (1-168, default 24)
      * @param  ?int  $maxUses  Maximum number of successful connections (1-100, default 10)
-     * @param  ?string  $name  User-friendly name for this token (e.g., 'Acme Corp Setup')
+     * @param  ?int  $useWindowMinutes  Grace period in minutes after first use (5-1440, default 30)
+     * @param  array<string, mixed>|null  $allowedChannelModes  Optional per-channel connect-mode restrictions. Shape: {"instagram": ["messaging","social"], "messenger": ["business_messaging","business_social","personal_social"], "whatsapp": ["classic","coexistence"]}. An ABSENT channel key (or a null value) means ALL modes are allowed for that channel (backwards compatible). A channel key MUST list at least one mode — to allow every mode, omit the key rather than passing []. Enforcement is the intersection of these modes with the tenant's feature gating, fail-closed.
      * @param  ?string  $partnerName  Partner/client name to display on connect page
      * @param  ?string  $partnerRedirectUrl  URL to redirect to after successful connection
-     * @param  ?int  $useWindowMinutes  Grace period in minutes after first use (5-1440, default 30)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channel%20Connect/create_token_api_v1_channel_connect_tokens_post
      */
-    public function createToken(array $allowedChannelTypes, ?array $allowedChannelModes = null, ?int $expiresInHours = null, ?int $maxUses = null, ?string $name = null, ?string $partnerName = null, ?string $partnerRedirectUrl = null, ?int $useWindowMinutes = null, ?string $idempotencyKey = null): ChannelConnectTokenCreated
-    {
+    public function createToken(
+        array $allowedChannelTypes,
+        ?string $name = null,
+        ?int $expiresInHours = null,
+        ?int $maxUses = null,
+        ?int $useWindowMinutes = null,
+        ?array $allowedChannelModes = null,
+        ?string $partnerName = null,
+        ?string $partnerRedirectUrl = null,
+        ?string $idempotencyKey = null,
+    ): ChannelConnectTokenCreated {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/channel-connect-tokens',
-            body: Payload::body(['allowed_channel_types' => $allowedChannelTypes, 'allowed_channel_modes' => $allowedChannelModes, 'expires_in_hours' => $expiresInHours, 'max_uses' => $maxUses, 'name' => $name, 'partner_name' => $partnerName, 'partner_redirect_url' => $partnerRedirectUrl, 'use_window_minutes' => $useWindowMinutes]),
+            body: Payload::body([
+                'allowed_channel_types' => $allowedChannelTypes,
+                'name' => $name,
+                'expires_in_hours' => $expiresInHours,
+                'max_uses' => $maxUses,
+                'use_window_minutes' => $useWindowMinutes,
+                'allowed_channel_modes' => $allowedChannelModes,
+                'partner_name' => $partnerName,
+                'partner_redirect_url' => $partnerRedirectUrl,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -116,23 +143,35 @@ final readonly class ChannelConnect
      *
      * Scopes: channels:create.
      *
-     * @param  list<string>  $channelTypes  Channel types the link may connect — normally a single platform. The consolidated email option expands to its provider sub-types.
      * @param  string  $email  Address of the colleague/agency who will do the connect
-     * @param  ?int  $expiresInHours  Link validity in hours (1-168, default 48)
-     * @param  ?string  $note  Optional message from the requester, shown in the email
+     * @param  list<string>  $channelTypes  Channel types the link may connect — normally a single platform. The consolidated email option expands to its provider sub-types.
      * @param  ?string  $recipientName  Recipient display name used in the email salutation
+     * @param  ?string  $note  Optional message from the requester, shown in the email
+     * @param  ?int  $expiresInHours  Link validity in hours (1-168, default 48)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channel%20Connect/delegate_connect_api_v1_channel_connect_tokens_delegate_post
      */
-    public function delegate(array $channelTypes, string $email, ?int $expiresInHours = null, ?string $note = null, ?string $recipientName = null, ?string $idempotencyKey = null): ChannelConnectDelegate
-    {
+    public function delegate(
+        string $email,
+        array $channelTypes,
+        ?string $recipientName = null,
+        ?string $note = null,
+        ?int $expiresInHours = null,
+        ?string $idempotencyKey = null,
+    ): ChannelConnectDelegate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/channel-connect-tokens/delegate',
-            body: Payload::body(['channel_types' => $channelTypes, 'email' => $email, 'expires_in_hours' => $expiresInHours, 'note' => $note, 'recipient_name' => $recipientName]),
+            body: Payload::body([
+                'email' => $email,
+                'channel_types' => $channelTypes,
+                'recipient_name' => $recipientName,
+                'note' => $note,
+                'expires_in_hours' => $expiresInHours,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

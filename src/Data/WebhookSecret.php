@@ -21,9 +21,9 @@ final readonly class WebhookSecret extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $message,
-        public string $secretKey,
         public string $webhookId,
+        public string $secretKey,
+        public ?string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,9 +37,9 @@ final readonly class WebhookSecret extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            message: $attributes->nullableString('message'),
-            secretKey: $attributes->string('secret_key'),
             webhookId: $attributes->string('webhook_id'),
+            secretKey: $attributes->string('secret_key'),
+            message: $attributes->nullableString('message'),
             raw: $data,
         );
     }

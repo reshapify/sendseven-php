@@ -21,10 +21,10 @@ final readonly class ChannelProfile extends Data
      */
     public function __construct(
         public string $channelId,
-        public string $channelName,
         public string $channelType,
-        public ?TelegramProfile $telegram,
+        public string $channelName,
         public ?WhatsAppProfile $whatsApp,
+        public ?TelegramProfile $telegram,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class ChannelProfile extends Data
 
         return new self(
             channelId: $attributes->string('channel_id'),
-            channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
-            telegram: $attributes->nullableObject('telegram', TelegramProfile::fromArray(...)),
+            channelName: $attributes->string('channel_name'),
             whatsApp: $attributes->nullableObject('whatsapp', WhatsAppProfile::fromArray(...)),
+            telegram: $attributes->nullableObject('telegram', TelegramProfile::fromArray(...)),
             raw: $data,
         );
     }

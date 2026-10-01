@@ -154,8 +154,12 @@ final readonly class RolesPermissions
      *
      * @see https://api.sendseven.com/api/v1/docs#/Roles%20%26%20Permissions/assign_role_to_user_api_v1_permissions_users__user_id__roles_post
      */
-    public function assignToUser(string $userId, string $roleId, DateTimeInterface|string|null $expiresAt = null, ?string $idempotencyKey = null): RoleAssignment
-    {
+    public function assignToUser(
+        string $userId,
+        string $roleId,
+        DateTimeInterface|string|null $expiresAt = null,
+        ?string $idempotencyKey = null,
+    ): RoleAssignment {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/permissions/users/'.Payload::segment($userId).'/roles',
@@ -226,8 +230,12 @@ final readonly class RolesPermissions
      *
      * @see https://api.sendseven.com/api/v1/docs#/Roles%20%26%20Permissions/grant_direct_scope_api_v1_permissions_users__user_id__scopes_post
      */
-    public function grantDirectScope(string $userId, string $scope, DateTimeInterface|string|null $expiresAt = null, ?string $idempotencyKey = null): ScopeGrant
-    {
+    public function grantDirectScope(
+        string $userId,
+        string $scope,
+        DateTimeInterface|string|null $expiresAt = null,
+        ?string $idempotencyKey = null,
+    ): ScopeGrant {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/permissions/users/'.Payload::segment($userId).'/scopes',
@@ -301,20 +309,30 @@ final readonly class RolesPermissions
      *
      * @param  string  $name  Role name
      * @param  ?string  $description  Role description
-     * @param  ?string  $icon  Lucide icon name (e.g., 'crown', 'shield-check')
      * @param  list<string>|null  $scopes  List of scopes to grant to this role
+     * @param  ?string  $icon  Lucide icon name (e.g., 'crown', 'shield-check')
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Roles%20%26%20Permissions/create_custom_role_api_v1_roles_post
      */
-    public function createCustom(string $name, ?string $description = null, ?string $icon = null, ?array $scopes = null, ?string $idempotencyKey = null): Role
-    {
+    public function createCustom(
+        string $name,
+        ?string $description = null,
+        ?array $scopes = null,
+        ?string $icon = null,
+        ?string $idempotencyKey = null,
+    ): Role {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/roles',
-            body: Payload::body(['name' => $name, 'description' => $description, 'icon' => $icon, 'scopes' => $scopes]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'scopes' => $scopes,
+                'icon' => $icon,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -397,20 +415,24 @@ final readonly class RolesPermissions
      *
      * Scopes: team:admin.
      *
+     * @param  ?string  $name  Role name
      * @param  ?string  $description  Role description
      * @param  ?string  $icon  Lucide icon name
-     * @param  ?string  $name  Role name
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Roles%20%26%20Permissions/update_role_api_v1_roles__role_id__put
      */
-    public function update(string $roleId, ?string $description = null, ?string $icon = null, ?string $name = null): Role
-    {
+    public function update(
+        string $roleId,
+        ?string $name = null,
+        ?string $description = null,
+        ?string $icon = null,
+    ): Role {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/roles/'.Payload::segment($roleId),
-            body: Payload::body(['description' => $description, 'icon' => $icon, 'name' => $name]),
+            body: Payload::body(['name' => $name, 'description' => $description, 'icon' => $icon]),
         ));
 
         return Role::fromArray($response->data());

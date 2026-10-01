@@ -17,34 +17,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TenantEmailSettingsResponse extends Data
 {
     /**
-     * @param  ?string  $campaignDefaultMailboxId  Default mailbox ID for campaigns
-     * @param  string  $createdAt  When settings were created
-     * @param  ?string  $doiMailboxId  Mailbox ID for double opt-in confirmation emails
      * @param  string  $id  Settings record ID
-     * @param  ?string  $supportDefaultMailboxId  Default mailbox ID for support
      * @param  string  $tenantId  Tenant ID
+     * @param  ?string  $campaignDefaultMailboxId  Default mailbox ID for campaigns
+     * @param  ?string  $supportDefaultMailboxId  Default mailbox ID for support
+     * @param  ?string  $doiMailboxId  Mailbox ID for double opt-in confirmation emails
+     * @param  string  $createdAt  When settings were created
      * @param  string  $updatedAt  When settings were last updated
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $allowCustomSender,
-        public ?string $campaignDefaultMailboxId,
+        public string $id,
+        public string $tenantId,
         public ?string $campaignFromEmail,
         public ?string $campaignFromName,
         public ?string $campaignReplyTo,
-        public ?string $complianceFooterHtml,
-        public string $createdAt,
-        public ?string $doiMailboxId,
-        public ?bool $doubleOptInEnabled,
-        public ?string $doubleOptInTemplateId,
-        public string $id,
-        public ?string $supportDefaultMailboxId,
         public ?string $supportFromEmail,
         public ?string $supportFromName,
         public ?string $supportIntegrationId,
-        public string $tenantId,
-        public ?bool $trackClicksDefault,
+        public ?string $campaignDefaultMailboxId,
+        public ?string $supportDefaultMailboxId,
+        public ?string $doiMailboxId,
+        public ?bool $allowCustomSender,
+        public ?bool $doubleOptInEnabled,
+        public ?string $doubleOptInTemplateId,
+        public ?string $complianceFooterHtml,
         public ?bool $trackOpensDefault,
+        public ?bool $trackClicksDefault,
+        public string $createdAt,
         public string $updatedAt,
         array $raw = [],
     ) {
@@ -59,24 +59,24 @@ final readonly class TenantEmailSettingsResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allowCustomSender: $attributes->nullableBool('allow_custom_sender'),
-            campaignDefaultMailboxId: $attributes->nullableString('campaign_default_mailbox_id'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
             campaignFromEmail: $attributes->nullableString('campaign_from_email'),
             campaignFromName: $attributes->nullableString('campaign_from_name'),
             campaignReplyTo: $attributes->nullableString('campaign_reply_to'),
-            complianceFooterHtml: $attributes->nullableString('compliance_footer_html'),
-            createdAt: $attributes->string('created_at'),
-            doiMailboxId: $attributes->nullableString('doi_mailbox_id'),
-            doubleOptInEnabled: $attributes->nullableBool('double_opt_in_enabled'),
-            doubleOptInTemplateId: $attributes->nullableString('double_opt_in_template_id'),
-            id: $attributes->string('id'),
-            supportDefaultMailboxId: $attributes->nullableString('support_default_mailbox_id'),
             supportFromEmail: $attributes->nullableString('support_from_email'),
             supportFromName: $attributes->nullableString('support_from_name'),
             supportIntegrationId: $attributes->nullableString('support_integration_id'),
-            tenantId: $attributes->string('tenant_id'),
-            trackClicksDefault: $attributes->nullableBool('track_clicks_default'),
+            campaignDefaultMailboxId: $attributes->nullableString('campaign_default_mailbox_id'),
+            supportDefaultMailboxId: $attributes->nullableString('support_default_mailbox_id'),
+            doiMailboxId: $attributes->nullableString('doi_mailbox_id'),
+            allowCustomSender: $attributes->nullableBool('allow_custom_sender'),
+            doubleOptInEnabled: $attributes->nullableBool('double_opt_in_enabled'),
+            doubleOptInTemplateId: $attributes->nullableString('double_opt_in_template_id'),
+            complianceFooterHtml: $attributes->nullableString('compliance_footer_html'),
             trackOpensDefault: $attributes->nullableBool('track_opens_default'),
+            trackClicksDefault: $attributes->nullableBool('track_clicks_default'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             raw: $data,
         );

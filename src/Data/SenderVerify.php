@@ -20,10 +20,10 @@ final readonly class SenderVerify extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $code,
+        public string $verificationId,
         public string $msisdn,
         public string $status,
-        public string $verificationId,
+        public ?string $code,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class SenderVerify extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            code: $attributes->nullableString('code'),
+            verificationId: $attributes->string('verification_id'),
             msisdn: $attributes->string('msisdn'),
             status: $attributes->string('status'),
-            verificationId: $attributes->string('verification_id'),
+            code: $attributes->nullableString('code'),
             raw: $data,
         );
     }

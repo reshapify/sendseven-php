@@ -23,19 +23,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CommentAndPrivateReply extends Data
 {
     /**
+     * @param  string  $status  `sent` (all requested parts sent) or `partial` (public reply sent, private DM failed).
+     * @param  ?PublicReply  $public  The public reply, when one was requested and posted.
      * @param  ?PrivateReply  $private  The private DM, when one was requested and sent.
      * @param  ?string  $privateError  Set only on `partial`: why the private DM failed after the public reply already went out.
      * @param  ?string  $privateErrorType  Set only on `partial`: the exception class name of the private-DM failure (e.g. `PrivateReplyAlreadySentError`), so the UI can label it without parsing the message.
-     * @param  ?PublicReply  $public  The public reply, when one was requested and posted.
-     * @param  string  $status  `sent` (all requested parts sent) or `partial` (public reply sent, private DM failed).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $status,
+        public ?PublicReply $public,
         public ?PrivateReply $private,
         public ?string $privateError,
         public ?string $privateErrorType,
-        public ?PublicReply $public,
-        public string $status,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,11 +49,11 @@ final readonly class CommentAndPrivateReply extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            status: $attributes->string('status'),
+            public: $attributes->nullableObject('public', PublicReply::fromArray(...)),
             private: $attributes->nullableObject('private', PrivateReply::fromArray(...)),
             privateError: $attributes->nullableString('private_error'),
             privateErrorType: $attributes->nullableString('private_error_type'),
-            public: $attributes->nullableObject('public', PublicReply::fromArray(...)),
-            status: $attributes->string('status'),
             raw: $data,
         );
     }

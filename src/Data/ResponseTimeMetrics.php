@@ -19,25 +19,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ResponseTimeMetrics extends Data
 {
     /**
-     * @param  ?float  $averageResponseTimeMinutes  Average time to first response in minutes
-     * @param  list<ChannelResponseTime>  $byChannel  Breakdown by channel type
      * @param  int  $conversationsWithResponse  Number of conversations that received a response
      * @param  ?int  $conversationsWithoutResponse  Number of conversations that did not receive a response
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
-     * @param  float  $responseRatePercent  Percentage of conversations with at least one response
      * @param  int  $totalConversations  Total conversations in the period
+     * @param  float  $responseRatePercent  Percentage of conversations with at least one response
+     * @param  ?float  $averageResponseTimeMinutes  Average time to first response in minutes
+     * @param  list<ChannelResponseTime>  $byChannel  Breakdown by channel type
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $averageResponseTimeMinutes,
-        public array $byChannel,
         public int $conversationsWithResponse,
         public ?int $conversationsWithoutResponse,
-        public string $periodEnd,
-        public string $periodStart,
-        public float $responseRatePercent,
         public int $totalConversations,
+        public float $responseRatePercent,
+        public ?float $averageResponseTimeMinutes,
+        public array $byChannel,
+        public string $periodStart,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,14 +51,14 @@ final readonly class ResponseTimeMetrics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            averageResponseTimeMinutes: $attributes->nullableFloat('average_response_time_minutes'),
-            byChannel: $attributes->list('by_channel', ChannelResponseTime::fromArray(...)),
             conversationsWithResponse: $attributes->int('conversations_with_response'),
             conversationsWithoutResponse: $attributes->nullableInt('conversations_without_response'),
-            periodEnd: $attributes->string('period_end'),
-            periodStart: $attributes->string('period_start'),
-            responseRatePercent: $attributes->float('response_rate_percent'),
             totalConversations: $attributes->int('total_conversations'),
+            responseRatePercent: $attributes->float('response_rate_percent'),
+            averageResponseTimeMinutes: $attributes->nullableFloat('average_response_time_minutes'),
+            byChannel: $attributes->list('by_channel', ChannelResponseTime::fromArray(...)),
+            periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

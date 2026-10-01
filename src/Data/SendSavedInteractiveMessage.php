@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendSavedInteractiveMessage extends Data
 {
     /**
-     * @param  string  $conversationId  Conversation UUID
-     * @param  ?string  $error  Error message if status is 'failed'
-     * @param  ?string  $externalId  WhatsApp message ID (wamid)
      * @param  string  $id  Message UUID
-     * @param  ?string  $platform  Platform (always whatsapp)
-     * @param  string  $savedMessageId  ID of the saved message that was sent
+     * @param  string  $conversationId  Conversation UUID
+     * @param  ?string  $externalId  WhatsApp message ID (wamid)
      * @param  string  $status  Message status: pending, sent, failed
+     * @param  ?string  $platform  Platform (always whatsapp)
      * @param  string  $type  Interactive type: buttons, list
+     * @param  string  $savedMessageId  ID of the saved message that was sent
+     * @param  ?string  $error  Error message if status is 'failed'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $conversationId,
-        public ?string $error,
-        public ?string $externalId,
         public string $id,
-        public ?string $platform,
-        public string $savedMessageId,
+        public string $conversationId,
+        public ?string $externalId,
         public string $status,
+        public ?string $platform,
         public string $type,
+        public string $savedMessageId,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class SendSavedInteractiveMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            conversationId: $attributes->string('conversation_id'),
-            error: $attributes->nullableString('error'),
-            externalId: $attributes->nullableString('external_id'),
             id: $attributes->string('id'),
-            platform: $attributes->nullableString('platform'),
-            savedMessageId: $attributes->string('saved_message_id'),
+            conversationId: $attributes->string('conversation_id'),
+            externalId: $attributes->nullableString('external_id'),
             status: $attributes->string('status'),
+            platform: $attributes->nullableString('platform'),
             type: $attributes->string('type'),
+            savedMessageId: $attributes->string('saved_message_id'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

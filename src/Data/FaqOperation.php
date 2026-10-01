@@ -20,10 +20,10 @@ final readonly class FaqOperation extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?bool $success,
+        public string $message,
         public ?string $documentId,
         public ?string $itemId,
-        public string $message,
-        public ?bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class FaqOperation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->nullableBool('success'),
+            message: $attributes->string('message'),
             documentId: $attributes->nullableString('document_id'),
             itemId: $attributes->nullableString('item_id'),
-            message: $attributes->string('message'),
-            success: $attributes->nullableBool('success'),
             raw: $data,
         );
     }

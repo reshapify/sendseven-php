@@ -26,65 +26,65 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Message extends Data
 {
     /**
-     * @param  list<AppSchemasMessageAttachment>  $attachments
-     * @param  ?CampaignInfo  $campaign  Campaign info when this message was sent via a campaign/newsletter
-     * @param  array<array-key, mixed>  $contactInfo  Provider-echoed sender profile captured from the inbound channel webhook at receipt time (inbound message.received only; not a DB lookup). Fields vary by channel: WhatsApp {name, phone}, Telegram {name, username, profile_picture}, Messenger {name, profile_picture}, Instagram {name?, username, profile_picture}. NOTE: `phone` (WhatsApp-only) is deprecated — use `data.contact_method.value` for the authoritative DB-sourced identifier of the method actually used.
-     * @param  ?string  $contentFormat  How this message's body is formatted for the send pipeline: `markdown` (canonical markdown, rendered per-channel) or `plain` (human text, passed through untouched). Derived from `meta.content_format`; defaults to `plain` for every message that did not explicitly opt into markdown.
      * @param  ?string  $conversationId  Conversation the message belongs to. May be null for campaign and flow messages sent to a contact that has no conversation on that channel (campaigns never create conversations; flow messages are attached once the contact replies).
-     * @param  ?string  $editedAt  When this message was last edited by the sender (real column on `messages`, stamped when an edit event is applied). Non-null is the ONLY signal that a message was edited — `text` is silently replaced in place, so without this a client cannot tell an edited message from an original one. Null for every message that was never edited (the overwhelming majority).
-     * @param  ?string  $flowName  Display name of the flow that sent this message. NOT stored on the message row — populated by the API layer via a single batch lookup against `flow_runs JOIN flows` and only set when `flow_run_id` is non-null.
+     * @param  array<array-key, mixed>  $contactInfo  Provider-echoed sender profile captured from the inbound channel webhook at receipt time (inbound message.received only; not a DB lookup). Fields vary by channel: WhatsApp {name, phone}, Telegram {name, username, profile_picture}, Messenger {name, profile_picture}, Instagram {name?, username, profile_picture}. NOTE: `phone` (WhatsApp-only) is deprecated — use `data.contact_method.value` for the authoritative DB-sourced identifier of the method actually used.
+     * @param  list<AppSchemasMessageAttachment>  $attachments
+     * @param  list<string>  $relatedMessageIds  IDs of the additional messages created by the same send request, in delivery order. Non-empty only when a send carried several attachments on a channel that delivers one attachment per message — the response body itself is the FIRST message (it holds the caption and `attachments[0]`), and each id here is a further message carrying the next attachment. Each has its own status and its own delivery webhooks, so poll them individually via `GET /api/v1/messages/{id}`. Empty array for every other message.
+     * @param  array<array-key, mixed>  $meta
+     * @param  ?string  $contentFormat  How this message's body is formatted for the send pipeline: `markdown` (canonical markdown, rendered per-channel) or `plain` (human text, passed through untouched). Derived from `meta.content_format`; defaults to `plain` for every message that did not explicitly opt into markdown.
+     * @param  ?InteractiveContent  $interactive  Interactive message content (WhatsApp-style Meta format) for messages with reply buttons or a list. Hydrated from `meta.interactive`. Null for non-interactive/legacy messages.
+     * @param  ?string  $headerMediaUrl  Resolved media URL for an interactive image/video header
+     * @param  ?string  $headerMediaAttachmentId  Durable attachment id for an interactive image/video header
+     * @param  ?string  $replyToExternalId  Platform message ID of quoted message
+     * @param  ?QuotedMessage  $quotedMessage  Preview of the quoted message
+     * @param  ?CampaignInfo  $campaign  Campaign info when this message was sent via a campaign/newsletter
      * @param  ?string  $flowRunId  FlowRun UUID — set when this message was sent by an automation flow. Frontends use this (together with `flow_name`) to render a 'Sent by flow' badge in the conversation timeline.
      * @param  ?string  $flowStepId  FlowRunStep UUID — identifies the specific Send-node step inside the flow that produced this message. Optional companion to `flow_run_id`.
-     * @param  ?string  $headerMediaAttachmentId  Durable attachment id for an interactive image/video header
-     * @param  ?string  $headerMediaUrl  Resolved media URL for an interactive image/video header
-     * @param  ?InteractiveContent  $interactive  Interactive message content (WhatsApp-style Meta format) for messages with reply buttons or a list. Hydrated from `meta.interactive`. Null for non-interactive/legacy messages.
-     * @param  array<array-key, mixed>  $meta
+     * @param  ?string  $flowName  Display name of the flow that sent this message. NOT stored on the message row — populated by the API layer via a single batch lookup against `flow_runs JOIN flows` and only set when `flow_run_id` is non-null.
+     * @param  ?string  $editedAt  When this message was last edited by the sender (real column on `messages`, stamped when an edit event is applied). Non-null is the ONLY signal that a message was edited — `text` is silently replaced in place, so without this a client cannot tell an edited message from an original one. Null for every message that was never edited (the overwhelming majority).
      * @param  ?string  $previousText  Body this message had immediately BEFORE its most recent edit. Not stored on the message row — resolved by the API layer from the newest APPLIED `message_revisions` row in one batched lookup per page. Null means 'edited, but the superseded body is unknown': most edits arrive before/without the message they target, so the original body was often never captured. Clients must therefore treat null as valid and fall back to a plain non-interactive 'edited' marker instead of an edit-history UI.
-     * @param  ?QuotedMessage  $quotedMessage  Preview of the quoted message
-     * @param  list<string>  $relatedMessageIds  IDs of the additional messages created by the same send request, in delivery order. Non-empty only when a send carried several attachments on a channel that delivers one attachment per message — the response body itself is the FIRST message (it holds the caption and `attachments[0]`), and each id here is a further message carrying the next attachment. Each has its own status and its own delivery webhooks, so poll them individually via `GET /api/v1/messages/{id}`. Empty array for every other message.
-     * @param  ?string  $replyToExternalId  Platform message ID of quoted message
      * @param  ?int  $revisionCount  Number of edits that have actually been APPLIED to this message. Pending revisions (an edit whose target message we never resolved) are deliberately excluded — they describe no visible change to this row. 0 for un-edited messages; a value >1 tells the client the body was edited repeatedly, so `previous_text` is only the last step of a longer history.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $attachments,
-        public ?CampaignInfo $campaign,
+        public string $id,
+        public ?string $conversationId,
+        public ?string $tenantId,
+        public ?string $platform,
         public ?string $channelId,
         public ?string $contactId,
-        public array $contactInfo,
-        public ?ContactMethodInfo $contactMethod,
         public ?string $contactMethodId,
-        public ?string $contentFormat,
-        public ?string $conversationId,
-        public string $createdAt,
-        public ?string $deliveredAt,
+        public ?ContactMethodInfo $contactMethod,
         public MessageDirection|string $direction,
-        public ?string $editedAt,
-        public ?string $errorMessage,
+        public MessageType|string $messageType,
+        public ?string $from,
+        public ?string $to,
+        public array $contactInfo,
+        public ?string $text,
+        public MessageStatus|string $status,
+        public array $attachments,
+        public array $relatedMessageIds,
+        public array $meta,
+        public ?string $contentFormat,
+        public ?InteractiveContent $interactive,
+        public ?string $headerMediaUrl,
+        public ?string $headerMediaAttachmentId,
         public ?string $externalId,
-        public ?string $flowName,
+        public ?string $replyToExternalId,
+        public ?QuotedMessage $quotedMessage,
+        public string $createdAt,
+        public ?string $sentAt,
+        public ?string $deliveredAt,
+        public ?string $readAt,
+        public ?bool $isInternal,
+        public ?string $errorMessage,
+        public ?CampaignInfo $campaign,
         public ?string $flowRunId,
         public ?string $flowStepId,
-        public ?string $from,
-        public ?string $headerMediaAttachmentId,
-        public ?string $headerMediaUrl,
-        public string $id,
-        public ?InteractiveContent $interactive,
-        public ?bool $isInternal,
-        public MessageType|string $messageType,
-        public array $meta,
-        public ?string $platform,
+        public ?string $flowName,
+        public ?string $editedAt,
         public ?string $previousText,
-        public ?QuotedMessage $quotedMessage,
-        public ?string $readAt,
-        public array $relatedMessageIds,
-        public ?string $replyToExternalId,
         public ?int $revisionCount,
-        public ?string $sentAt,
-        public MessageStatus|string $status,
-        public ?string $tenantId,
-        public ?string $text,
-        public ?string $to,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -98,44 +98,44 @@ final readonly class Message extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachments: $attributes->list('attachments', AppSchemasMessageAttachment::fromArray(...)),
-            campaign: $attributes->nullableObject('campaign', CampaignInfo::fromArray(...)),
+            id: $attributes->string('id'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            tenantId: $attributes->nullableString('tenant_id'),
+            platform: $attributes->nullableString('platform'),
             channelId: $attributes->nullableString('channel_id'),
             contactId: $attributes->nullableString('contact_id'),
-            contactInfo: $attributes->array('contact_info'),
-            contactMethod: $attributes->nullableObject('contact_method', ContactMethodInfo::fromArray(...)),
             contactMethodId: $attributes->nullableString('contact_method_id'),
-            contentFormat: $attributes->nullableString('content_format'),
-            conversationId: $attributes->nullableString('conversation_id'),
-            createdAt: $attributes->string('created_at'),
-            deliveredAt: $attributes->nullableString('delivered_at'),
+            contactMethod: $attributes->nullableObject('contact_method', ContactMethodInfo::fromArray(...)),
             direction: $attributes->enum('direction', MessageDirection::class),
-            editedAt: $attributes->nullableString('edited_at'),
-            errorMessage: $attributes->nullableString('error_message'),
+            messageType: $attributes->enum('message_type', MessageType::class),
+            from: $attributes->nullableString('from'),
+            to: $attributes->nullableString('to'),
+            contactInfo: $attributes->array('contact_info'),
+            text: $attributes->nullableString('text'),
+            status: $attributes->enum('status', MessageStatus::class),
+            attachments: $attributes->list('attachments', AppSchemasMessageAttachment::fromArray(...)),
+            relatedMessageIds: $attributes->strings('related_message_ids'),
+            meta: $attributes->array('meta'),
+            contentFormat: $attributes->nullableString('content_format'),
+            interactive: $attributes->nullableObject('interactive', InteractiveContent::fromArray(...)),
+            headerMediaUrl: $attributes->nullableString('header_media_url'),
+            headerMediaAttachmentId: $attributes->nullableString('header_media_attachment_id'),
             externalId: $attributes->nullableString('external_id'),
-            flowName: $attributes->nullableString('flow_name'),
+            replyToExternalId: $attributes->nullableString('reply_to_external_id'),
+            quotedMessage: $attributes->nullableObject('quoted_message', QuotedMessage::fromArray(...)),
+            createdAt: $attributes->string('created_at'),
+            sentAt: $attributes->nullableString('sent_at'),
+            deliveredAt: $attributes->nullableString('delivered_at'),
+            readAt: $attributes->nullableString('read_at'),
+            isInternal: $attributes->nullableBool('is_internal'),
+            errorMessage: $attributes->nullableString('error_message'),
+            campaign: $attributes->nullableObject('campaign', CampaignInfo::fromArray(...)),
             flowRunId: $attributes->nullableString('flow_run_id'),
             flowStepId: $attributes->nullableString('flow_step_id'),
-            from: $attributes->nullableString('from'),
-            headerMediaAttachmentId: $attributes->nullableString('header_media_attachment_id'),
-            headerMediaUrl: $attributes->nullableString('header_media_url'),
-            id: $attributes->string('id'),
-            interactive: $attributes->nullableObject('interactive', InteractiveContent::fromArray(...)),
-            isInternal: $attributes->nullableBool('is_internal'),
-            messageType: $attributes->enum('message_type', MessageType::class),
-            meta: $attributes->array('meta'),
-            platform: $attributes->nullableString('platform'),
+            flowName: $attributes->nullableString('flow_name'),
+            editedAt: $attributes->nullableString('edited_at'),
             previousText: $attributes->nullableString('previous_text'),
-            quotedMessage: $attributes->nullableObject('quoted_message', QuotedMessage::fromArray(...)),
-            readAt: $attributes->nullableString('read_at'),
-            relatedMessageIds: $attributes->strings('related_message_ids'),
-            replyToExternalId: $attributes->nullableString('reply_to_external_id'),
             revisionCount: $attributes->nullableInt('revision_count'),
-            sentAt: $attributes->nullableString('sent_at'),
-            status: $attributes->enum('status', MessageStatus::class),
-            tenantId: $attributes->nullableString('tenant_id'),
-            text: $attributes->nullableString('text'),
-            to: $attributes->nullableString('to'),
             raw: $data,
         );
     }

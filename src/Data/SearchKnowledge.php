@@ -19,19 +19,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SearchKnowledge extends Data
 {
     /**
+     * @param  string  $query  Original search query
      * @param  string  $answer  AI-generated answer
      * @param  list<mixed>  $citations  Citations from source documents
-     * @param  string  $query  Original search query
-     * @param  int  $sourceCount  Number of sources used
      * @param  list<mixed>  $sources  Source documents used for answer
+     * @param  int  $sourceCount  Number of sources used
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $query,
         public string $answer,
         public array $citations,
-        public string $query,
-        public int $sourceCount,
         public array $sources,
+        public int $sourceCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,11 +45,11 @@ final readonly class SearchKnowledge extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            query: $attributes->string('query'),
             answer: $attributes->string('answer'),
             citations: array_values($attributes->array('citations')),
-            query: $attributes->string('query'),
-            sourceCount: $attributes->int('source_count'),
             sources: array_values($attributes->array('sources')),
+            sourceCount: $attributes->int('source_count'),
             raw: $data,
         );
     }

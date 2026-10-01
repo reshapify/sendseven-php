@@ -21,37 +21,37 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TicketSummary extends Data
 {
     /**
-     * @param  ?string  $aiSummary  AI-generated summary
-     * @param  ?DateTimeImmutable  $closedAt  ISO datetime when ticket was closed
-     * @param  ?string  $contactId  Related contact ID
-     * @param  string  $conversationId  Related conversation ID
-     * @param  ?DateTimeImmutable  $createdAt  ISO datetime when ticket was created
-     * @param  ?string  $geminiDocumentName  Vertex AI RAG Corpus reference
      * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $conversationId  Related conversation ID
+     * @param  ?string  $contactId  Related contact ID
+     * @param  ?string  $subject  Ticket subject
+     * @param  ?string  $aiSummary  AI-generated summary
+     * @param  ?string  $userIntent  What the user wanted
      * @param  ?string  $resolutionSummary  How it was resolved
      * @param  ?string  $sentimentAnalysis  Customer sentiment
-     * @param  ?string  $subject  Ticket subject
-     * @param  ?DateTimeImmutable  $summarizedAt  ISO datetime when AI summary was generated
      * @param  list<string>  $tags  AI-generated tags
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $userIntent  What the user wanted
+     * @param  ?string  $geminiDocumentName  Vertex AI RAG Corpus reference
+     * @param  ?DateTimeImmutable  $createdAt  ISO datetime when ticket was created
+     * @param  ?DateTimeImmutable  $closedAt  ISO datetime when ticket was closed
+     * @param  ?DateTimeImmutable  $summarizedAt  ISO datetime when AI summary was generated
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $aiSummary,
-        public ?DateTimeImmutable $closedAt,
-        public ?string $contactId,
-        public string $conversationId,
-        public ?DateTimeImmutable $createdAt,
-        public ?string $geminiDocumentName,
         public string $id,
+        public string $tenantId,
+        public string $conversationId,
+        public ?string $contactId,
+        public ?string $subject,
+        public ?string $aiSummary,
+        public ?string $userIntent,
         public ?string $resolutionSummary,
         public ?string $sentimentAnalysis,
-        public ?string $subject,
-        public ?DateTimeImmutable $summarizedAt,
         public array $tags,
-        public string $tenantId,
-        public ?string $userIntent,
+        public ?string $geminiDocumentName,
+        public ?DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $closedAt,
+        public ?DateTimeImmutable $summarizedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -65,20 +65,20 @@ final readonly class TicketSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiSummary: $attributes->nullableString('ai_summary'),
-            closedAt: $attributes->nullableDateTime('closed_at'),
-            contactId: $attributes->nullableString('contact_id'),
-            conversationId: $attributes->string('conversation_id'),
-            createdAt: $attributes->nullableDateTime('created_at'),
-            geminiDocumentName: $attributes->nullableString('gemini_document_name'),
             id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            conversationId: $attributes->string('conversation_id'),
+            contactId: $attributes->nullableString('contact_id'),
+            subject: $attributes->nullableString('subject'),
+            aiSummary: $attributes->nullableString('ai_summary'),
+            userIntent: $attributes->nullableString('user_intent'),
             resolutionSummary: $attributes->nullableString('resolution_summary'),
             sentimentAnalysis: $attributes->nullableString('sentiment_analysis'),
-            subject: $attributes->nullableString('subject'),
-            summarizedAt: $attributes->nullableDateTime('summarized_at'),
             tags: $attributes->strings('tags'),
-            tenantId: $attributes->string('tenant_id'),
-            userIntent: $attributes->nullableString('user_intent'),
+            geminiDocumentName: $attributes->nullableString('gemini_document_name'),
+            createdAt: $attributes->nullableDateTime('created_at'),
+            closedAt: $attributes->nullableDateTime('closed_at'),
+            summarizedAt: $attributes->nullableDateTime('summarized_at'),
             raw: $data,
         );
     }

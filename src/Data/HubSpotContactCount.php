@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class HubSpotContactCount extends Data
 {
     /**
-     * @param  string  $asOf  ISO-8601 (Z) timestamp the count reflects
-     * @param  bool  $cached  True when served from the ≤5-min server cache
      * @param  int  $total  HubSpot portal contact count for the scope
+     * @param  bool  $cached  True when served from the ≤5-min server cache
+     * @param  string  $asOf  ISO-8601 (Z) timestamp the count reflects
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $asOf,
-        public bool $cached,
         public int $total,
+        public bool $cached,
+        public string $asOf,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class HubSpotContactCount extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            asOf: $attributes->string('as_of'),
-            cached: $attributes->bool('cached'),
             total: $attributes->int('total'),
+            cached: $attributes->bool('cached'),
+            asOf: $attributes->string('as_of'),
             raw: $data,
         );
     }

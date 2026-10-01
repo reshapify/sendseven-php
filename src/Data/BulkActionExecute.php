@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BulkActionExecute extends Data
 {
     /**
-     * @param  string  $pollUrl  GET this URL to poll job status
      * @param  string  $status  pending|processing|completed|failed
+     * @param  string  $pollUrl  GET this URL to poll job status
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $bulkActionId,
-        public string $pollUrl,
         public string $status,
+        public string $pollUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,8 +39,8 @@ final readonly class BulkActionExecute extends Data
 
         return new self(
             bulkActionId: $attributes->string('bulk_action_id'),
-            pollUrl: $attributes->string('poll_url'),
             status: $attributes->string('status'),
+            pollUrl: $attributes->string('poll_url'),
             raw: $data,
         );
     }

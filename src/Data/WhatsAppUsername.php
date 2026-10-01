@@ -18,18 +18,18 @@ final readonly class WhatsAppUsername extends Data
 {
     /**
      * @param  string  $channelId  The channel's ID
-     * @param  ?string  $status  'approved' (live) or 'reserved' (accepted, still propagating)
-     * @param  list<string>  $suggestions  Available usernames suggested by WhatsApp (empty if unavailable)
      * @param  ?string  $username  Current username, or null if none is claimed
+     * @param  ?string  $status  'approved' (live) or 'reserved' (accepted, still propagating)
      * @param  ?string  $waMeUrl  Short link customers can use to start a chat
+     * @param  list<string>  $suggestions  Available usernames suggested by WhatsApp (empty if unavailable)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $channelId,
-        public ?string $status,
-        public array $suggestions,
         public ?string $username,
+        public ?string $status,
         public ?string $waMeUrl,
+        public array $suggestions,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,10 +44,10 @@ final readonly class WhatsAppUsername extends Data
 
         return new self(
             channelId: $attributes->string('channel_id'),
-            status: $attributes->nullableString('status'),
-            suggestions: $attributes->strings('suggestions'),
             username: $attributes->nullableString('username'),
+            status: $attributes->nullableString('status'),
             waMeUrl: $attributes->nullableString('wa_me_url'),
+            suggestions: $attributes->strings('suggestions'),
             raw: $data,
         );
     }

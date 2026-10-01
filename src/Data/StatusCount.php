@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class StatusCount extends Data
 {
     /**
-     * @param  int  $count  Number of subscriptions with this status
      * @param  string  $status  Subscription status (subscribed, pending, unsubscribed, bounced, complained)
+     * @param  int  $count  Number of subscriptions with this status
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $count,
         public string $status,
+        public int $count,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class StatusCount extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            count: $attributes->int('count'),
             status: $attributes->string('status'),
+            count: $attributes->int('count'),
             raw: $data,
         );
     }

@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CatalogueSync extends Data
 {
     /**
-     * @param  ?string  $degradeReason  null | 'app_managed' | 'not_resolvable'
      * @param  int  $synced  Number of products upserted from Meta
+     * @param  ?string  $degradeReason  null | 'app_managed' | 'not_resolvable'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $degradeReason,
         public int $synced,
+        public ?string $degradeReason,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class CatalogueSync extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            degradeReason: $attributes->nullableString('degrade_reason'),
             synced: $attributes->int('synced'),
+            degradeReason: $attributes->nullableString('degrade_reason'),
             raw: $data,
         );
     }

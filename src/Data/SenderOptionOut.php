@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SenderOptionOut extends Data
 {
     /**
-     * @param  ?string  $emailAddress  The visible 'From:' address (when known)
      * @param  string  $id  EmailMailbox id (canonical) OR — for legacy ACL-override entries — an EmailIntegration / EmailProviderConfig id. The client treats this as opaque and POSTs it back as `MessageCreate.sender_id`; the backend dual-accepts mailbox / integration / provider ids.
-     * @param  ?bool  $isAclOverride  True when this option is included ONLY because of the default-reply-sender ACL override — i.e. the caller is not directly on the underlying EmailMailbox ACL. UI may render a 'via inbox' hint.
+     * @param  string  $sourceType  `mailbox`, `integration` or `provider` — for client-side icon hints only
+     * @param  string  $name  Human-readable mailbox / connection name
+     * @param  ?string  $emailAddress  The visible 'From:' address (when known)
      * @param  ?bool  $isDefault  Pre-select this option in the dropdown
      * @param  ?bool  $isDefaultReplySender  True when this option is the conversation's / inbox's default reply sender (the receiving connection's outbound_provider).
-     * @param  string  $name  Human-readable mailbox / connection name
-     * @param  string  $sourceType  `mailbox`, `integration` or `provider` — for client-side icon hints only
+     * @param  ?bool  $isAclOverride  True when this option is included ONLY because of the default-reply-sender ACL override — i.e. the caller is not directly on the underlying EmailMailbox ACL. UI may render a 'via inbox' hint.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $emailAddress,
         public string $id,
-        public ?bool $isAclOverride,
+        public string $sourceType,
+        public string $name,
+        public ?string $emailAddress,
         public ?bool $isDefault,
         public ?bool $isDefaultReplySender,
-        public string $name,
-        public string $sourceType,
+        public ?bool $isAclOverride,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class SenderOptionOut extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            emailAddress: $attributes->nullableString('email_address'),
             id: $attributes->string('id'),
-            isAclOverride: $attributes->nullableBool('is_acl_override'),
+            sourceType: $attributes->string('source_type'),
+            name: $attributes->string('name'),
+            emailAddress: $attributes->nullableString('email_address'),
             isDefault: $attributes->nullableBool('is_default'),
             isDefaultReplySender: $attributes->nullableBool('is_default_reply_sender'),
-            name: $attributes->string('name'),
-            sourceType: $attributes->string('source_type'),
+            isAclOverride: $attributes->nullableBool('is_acl_override'),
             raw: $data,
         );
     }

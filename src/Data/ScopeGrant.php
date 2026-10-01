@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ScopeGrant extends Data
 {
     /**
-     * @param  string  $grantId  ID of the created scope grant
      * @param  string  $message  Success message
+     * @param  string  $grantId  ID of the created scope grant
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $grantId,
         public string $message,
+        public string $grantId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class ScopeGrant extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            grantId: $attributes->string('grant_id'),
             message: $attributes->string('message'),
+            grantId: $attributes->string('grant_id'),
             raw: $data,
         );
     }

@@ -64,32 +64,63 @@ final readonly class TenantEmailSettings
      *
      * Scopes: email_integrations:update.
      *
-     * @param  ?bool  $allowCustomSender  Allow agents to use custom sender addresses
-     * @param  ?string  $campaignDefaultMailboxId  Default mailbox ID for campaigns
      * @param  ?string  $campaignFromEmail  Default from email for campaigns
      * @param  ?string  $campaignFromName  Default from name for campaigns
      * @param  ?string  $campaignReplyTo  Default reply-to for campaigns
-     * @param  ?string  $complianceFooterHtml  HTML compliance footer appended to emails
-     * @param  ?string  $doiMailboxId  Mailbox ID for double opt-in confirmation emails
-     * @param  ?bool  $doubleOptInEnabled  Enable double opt-in for subscriptions
-     * @param  ?string  $doubleOptInTemplateId  Template ID for double opt-in confirmation
-     * @param  ?string  $supportDefaultMailboxId  Default mailbox ID for support
      * @param  ?string  $supportFromEmail  Default from email for support
      * @param  ?string  $supportFromName  Default from name for support
      * @param  ?string  $supportIntegrationId  Preferred email integration ID for support
-     * @param  ?bool  $trackClicksDefault  Default CLICK tracking for new campaigns
+     * @param  ?string  $campaignDefaultMailboxId  Default mailbox ID for campaigns
+     * @param  ?string  $supportDefaultMailboxId  Default mailbox ID for support
+     * @param  ?string  $doiMailboxId  Mailbox ID for double opt-in confirmation emails
+     * @param  ?bool  $allowCustomSender  Allow agents to use custom sender addresses
+     * @param  ?bool  $doubleOptInEnabled  Enable double opt-in for subscriptions
+     * @param  ?string  $doubleOptInTemplateId  Template ID for double opt-in confirmation
+     * @param  ?string  $complianceFooterHtml  HTML compliance footer appended to emails
      * @param  ?bool  $trackOpensDefault  Default OPEN tracking for new campaigns
+     * @param  ?bool  $trackClicksDefault  Default CLICK tracking for new campaigns
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenant%20Email%20Settings/update_email_settings_api_v1_tenant_email_settings_put
      */
-    public function update(?bool $allowCustomSender = null, ?string $campaignDefaultMailboxId = null, ?string $campaignFromEmail = null, ?string $campaignFromName = null, ?string $campaignReplyTo = null, ?string $complianceFooterHtml = null, ?string $doiMailboxId = null, ?bool $doubleOptInEnabled = null, ?string $doubleOptInTemplateId = null, ?string $supportDefaultMailboxId = null, ?string $supportFromEmail = null, ?string $supportFromName = null, ?string $supportIntegrationId = null, ?bool $trackClicksDefault = null, ?bool $trackOpensDefault = null): TenantEmailSettingsResponse
-    {
+    public function update(
+        ?string $campaignFromEmail = null,
+        ?string $campaignFromName = null,
+        ?string $campaignReplyTo = null,
+        ?string $supportFromEmail = null,
+        ?string $supportFromName = null,
+        ?string $supportIntegrationId = null,
+        ?string $campaignDefaultMailboxId = null,
+        ?string $supportDefaultMailboxId = null,
+        ?string $doiMailboxId = null,
+        ?bool $allowCustomSender = null,
+        ?bool $doubleOptInEnabled = null,
+        ?string $doubleOptInTemplateId = null,
+        ?string $complianceFooterHtml = null,
+        ?bool $trackOpensDefault = null,
+        ?bool $trackClicksDefault = null,
+    ): TenantEmailSettingsResponse {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/tenant-email-settings',
-            body: Payload::body(['allow_custom_sender' => $allowCustomSender, 'campaign_default_mailbox_id' => $campaignDefaultMailboxId, 'campaign_from_email' => $campaignFromEmail, 'campaign_from_name' => $campaignFromName, 'campaign_reply_to' => $campaignReplyTo, 'compliance_footer_html' => $complianceFooterHtml, 'doi_mailbox_id' => $doiMailboxId, 'double_opt_in_enabled' => $doubleOptInEnabled, 'double_opt_in_template_id' => $doubleOptInTemplateId, 'support_default_mailbox_id' => $supportDefaultMailboxId, 'support_from_email' => $supportFromEmail, 'support_from_name' => $supportFromName, 'support_integration_id' => $supportIntegrationId, 'track_clicks_default' => $trackClicksDefault, 'track_opens_default' => $trackOpensDefault]),
+            body: Payload::body([
+                'campaign_from_email' => $campaignFromEmail,
+                'campaign_from_name' => $campaignFromName,
+                'campaign_reply_to' => $campaignReplyTo,
+                'support_from_email' => $supportFromEmail,
+                'support_from_name' => $supportFromName,
+                'support_integration_id' => $supportIntegrationId,
+                'campaign_default_mailbox_id' => $campaignDefaultMailboxId,
+                'support_default_mailbox_id' => $supportDefaultMailboxId,
+                'doi_mailbox_id' => $doiMailboxId,
+                'allow_custom_sender' => $allowCustomSender,
+                'double_opt_in_enabled' => $doubleOptInEnabled,
+                'double_opt_in_template_id' => $doubleOptInTemplateId,
+                'compliance_footer_html' => $complianceFooterHtml,
+                'track_opens_default' => $trackOpensDefault,
+                'track_clicks_default' => $trackClicksDefault,
+            ]),
         ));
 
         return TenantEmailSettingsResponse::fromArray($response->data());

@@ -27,10 +27,10 @@ final readonly class Balance extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $autoTopupAmountCents,
+        public string $balanceEur,
         public ?bool $autoTopupEnabled,
         public ?int $autoTopupThresholdCents,
-        public string $balanceEur,
+        public ?int $autoTopupAmountCents,
         public ?DateTimeImmutable $lastCheckedAt,
         public string $lowBalanceWarnEur,
         public ?bool $lowBalanceWarnIsDefault,
@@ -47,10 +47,10 @@ final readonly class Balance extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            autoTopupAmountCents: $attributes->nullableInt('auto_topup_amount_cents'),
+            balanceEur: $attributes->string('balance_eur'),
             autoTopupEnabled: $attributes->nullableBool('auto_topup_enabled'),
             autoTopupThresholdCents: $attributes->nullableInt('auto_topup_threshold_cents'),
-            balanceEur: $attributes->string('balance_eur'),
+            autoTopupAmountCents: $attributes->nullableInt('auto_topup_amount_cents'),
             lastCheckedAt: $attributes->nullableDateTime('last_checked_at'),
             lowBalanceWarnEur: $attributes->string('low_balance_warn_eur'),
             lowBalanceWarnIsDefault: $attributes->nullableBool('low_balance_warn_is_default'),

@@ -17,31 +17,31 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SimilarTicketItem extends Data
 {
     /**
-     * @param  ?string  $closedAt  When ticket was closed
-     * @param  ?string  $contactName  Contact name
-     * @param  string  $conversationId  Associated conversation ID
      * @param  string  $id  Ticket ID
-     * @param  ?string  $resolution  Resolution summary
-     * @param  ?string  $sentiment  Sentiment analysis
-     * @param  ?string  $startedAt  When ticket was created
+     * @param  string  $conversationId  Associated conversation ID
      * @param  ?string  $subject  Ticket subject
      * @param  ?string  $summary  AI-generated summary
-     * @param  list<string>  $tags  Associated tags
      * @param  ?string  $userIntent  Detected user intent
+     * @param  ?string  $resolution  Resolution summary
+     * @param  ?string  $sentiment  Sentiment analysis
+     * @param  list<string>  $tags  Associated tags
+     * @param  ?string  $contactName  Contact name
+     * @param  ?string  $startedAt  When ticket was created
+     * @param  ?string  $closedAt  When ticket was closed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $closedAt,
-        public ?string $contactName,
-        public string $conversationId,
         public string $id,
-        public ?string $resolution,
-        public ?string $sentiment,
-        public ?string $startedAt,
+        public string $conversationId,
         public ?string $subject,
         public ?string $summary,
-        public array $tags,
         public ?string $userIntent,
+        public ?string $resolution,
+        public ?string $sentiment,
+        public array $tags,
+        public ?string $contactName,
+        public ?string $startedAt,
+        public ?string $closedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,17 +55,17 @@ final readonly class SimilarTicketItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            closedAt: $attributes->nullableString('closed_at'),
-            contactName: $attributes->nullableString('contact_name'),
-            conversationId: $attributes->string('conversation_id'),
             id: $attributes->string('id'),
-            resolution: $attributes->nullableString('resolution'),
-            sentiment: $attributes->nullableString('sentiment'),
-            startedAt: $attributes->nullableString('started_at'),
+            conversationId: $attributes->string('conversation_id'),
             subject: $attributes->nullableString('subject'),
             summary: $attributes->nullableString('summary'),
-            tags: $attributes->strings('tags'),
             userIntent: $attributes->nullableString('user_intent'),
+            resolution: $attributes->nullableString('resolution'),
+            sentiment: $attributes->nullableString('sentiment'),
+            tags: $attributes->strings('tags'),
+            contactName: $attributes->nullableString('contact_name'),
+            startedAt: $attributes->nullableString('started_at'),
+            closedAt: $attributes->nullableString('closed_at'),
             raw: $data,
         );
     }

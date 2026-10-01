@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RefreshDomains extends Data
 {
     /**
-     * @param  int  $domainCount  Number of verified domains
      * @param  bool  $success  Whether domain refresh succeeded
-     * @param  string  $updatedAt  ISO8601 timestamp of update
      * @param  list<string>  $verifiedDomains  List of verified domains
+     * @param  int  $domainCount  Number of verified domains
+     * @param  string  $updatedAt  ISO8601 timestamp of update
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $domainCount,
         public bool $success,
-        public string $updatedAt,
         public array $verifiedDomains,
+        public int $domainCount,
+        public string $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class RefreshDomains extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            domainCount: $attributes->int('domain_count'),
             success: $attributes->bool('success'),
-            updatedAt: $attributes->string('updated_at'),
             verifiedDomains: $attributes->strings('verified_domains'),
+            domainCount: $attributes->int('domain_count'),
+            updatedAt: $attributes->string('updated_at'),
             raw: $data,
         );
     }

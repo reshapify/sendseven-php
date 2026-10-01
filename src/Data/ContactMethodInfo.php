@@ -20,11 +20,11 @@ final readonly class ContactMethodInfo extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $displayName,
         public string $id,
-        public ?bool $isPrimary,
         public string $methodType,
         public string $value,
+        public ?string $displayName,
+        public ?bool $isPrimary,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,11 +38,11 @@ final readonly class ContactMethodInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            displayName: $attributes->nullableString('display_name'),
             id: $attributes->string('id'),
-            isPrimary: $attributes->nullableBool('is_primary'),
             methodType: $attributes->string('method_type'),
             value: $attributes->string('value'),
+            displayName: $attributes->nullableString('display_name'),
+            isPrimary: $attributes->nullableBool('is_primary'),
             raw: $data,
         );
     }

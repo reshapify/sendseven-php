@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AttachmentUrl extends Data
 {
     /**
-     * @param  int  $expiresInMinutes  Minutes until URL expires
      * @param  string  $url  Signed download URL
+     * @param  int  $expiresInMinutes  Minutes until URL expires
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $expiresInMinutes,
         public string $url,
+        public int $expiresInMinutes,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class AttachmentUrl extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            expiresInMinutes: $attributes->int('expires_in_minutes'),
             url: $attributes->string('url'),
+            expiresInMinutes: $attributes->int('expires_in_minutes'),
             raw: $data,
         );
     }

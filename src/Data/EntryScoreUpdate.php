@@ -21,16 +21,16 @@ final readonly class EntryScoreUpdate extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $demotedToReview,
         public string $faqItemId,
-        public ?float $negativeMass,
-        public ?float $positiveMass,
-        public ?float $qualityScore,
         public ?string $question,
-        public ?int $ratingCount,
-        public ?float $retrievalRankMultiplier,
         public ?string $status,
+        public ?float $qualityScore,
+        public ?float $positiveMass,
+        public ?float $negativeMass,
+        public ?int $ratingCount,
         public ?bool $verifiedByUsage,
+        public ?float $retrievalRankMultiplier,
+        public ?bool $demotedToReview,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,16 +44,16 @@ final readonly class EntryScoreUpdate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            demotedToReview: $attributes->nullableBool('demoted_to_review'),
             faqItemId: $attributes->string('faq_item_id'),
-            negativeMass: $attributes->nullableFloat('negative_mass'),
-            positiveMass: $attributes->nullableFloat('positive_mass'),
-            qualityScore: $attributes->nullableFloat('quality_score'),
             question: $attributes->nullableString('question'),
-            ratingCount: $attributes->nullableInt('rating_count'),
-            retrievalRankMultiplier: $attributes->nullableFloat('retrieval_rank_multiplier'),
             status: $attributes->nullableString('status'),
+            qualityScore: $attributes->nullableFloat('quality_score'),
+            positiveMass: $attributes->nullableFloat('positive_mass'),
+            negativeMass: $attributes->nullableFloat('negative_mass'),
+            ratingCount: $attributes->nullableInt('rating_count'),
             verifiedByUsage: $attributes->nullableBool('verified_by_usage'),
+            retrievalRankMultiplier: $attributes->nullableFloat('retrieval_rank_multiplier'),
+            demotedToReview: $attributes->nullableBool('demoted_to_review'),
             raw: $data,
         );
     }

@@ -26,12 +26,12 @@ final readonly class LastMessageInList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $attribution,
+        public ?string $messageId,
         public ?string $campaignId,
         public ?string $campaignName,
-        public ?string $messageId,
-        public ?string $preview,
         public ?string $sentAt,
+        public ?string $preview,
+        public string $attribution,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,12 +45,12 @@ final readonly class LastMessageInList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attribution: $attributes->string('attribution'),
+            messageId: $attributes->nullableString('message_id'),
             campaignId: $attributes->nullableString('campaign_id'),
             campaignName: $attributes->nullableString('campaign_name'),
-            messageId: $attributes->nullableString('message_id'),
-            preview: $attributes->nullableString('preview'),
             sentAt: $attributes->nullableString('sent_at'),
+            preview: $attributes->nullableString('preview'),
+            attribution: $attributes->string('attribution'),
             raw: $data,
         );
     }

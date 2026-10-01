@@ -18,19 +18,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RoleAssignmentInfo extends Data
 {
     /**
-     * @param  DateTimeImmutable  $assignedAt  When the role was assigned
-     * @param  ?string  $assignedByUserId  User who assigned this role
-     * @param  ?DateTimeImmutable  $expiresAt  When the role expires (if temporary)
      * @param  string  $roleId  RBAC role ID
      * @param  string  $roleName  RBAC role name
+     * @param  ?string  $assignedByUserId  User who assigned this role
+     * @param  DateTimeImmutable  $assignedAt  When the role was assigned
+     * @param  ?DateTimeImmutable  $expiresAt  When the role expires (if temporary)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $assignedAt,
-        public ?string $assignedByUserId,
-        public ?DateTimeImmutable $expiresAt,
         public string $roleId,
         public string $roleName,
+        public ?string $assignedByUserId,
+        public DateTimeImmutable $assignedAt,
+        public ?DateTimeImmutable $expiresAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,11 +44,11 @@ final readonly class RoleAssignmentInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            assignedAt: $attributes->dateTime('assigned_at'),
-            assignedByUserId: $attributes->nullableString('assigned_by_user_id'),
-            expiresAt: $attributes->nullableDateTime('expires_at'),
             roleId: $attributes->string('role_id'),
             roleName: $attributes->string('role_name'),
+            assignedByUserId: $attributes->nullableString('assigned_by_user_id'),
+            assignedAt: $attributes->dateTime('assigned_at'),
+            expiresAt: $attributes->nullableDateTime('expires_at'),
             raw: $data,
         );
     }

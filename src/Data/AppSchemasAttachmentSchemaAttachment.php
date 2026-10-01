@@ -17,18 +17,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AppSchemasAttachmentSchemaAttachment extends Data
 {
     /**
+     * @param  string  $id  Unique attachment identifier
+     * @param  string  $filename  Original filename
      * @param  string  $contentType  MIME type of the file
      * @param  int  $fileSize  File size in bytes
-     * @param  string  $filename  Original filename
-     * @param  string  $id  Unique attachment identifier
      * @param  string  $url  Signed URL for downloading
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $filename,
         public string $contentType,
         public int $fileSize,
-        public string $filename,
-        public string $id,
         public string $url,
         array $raw = [],
     ) {
@@ -43,10 +43,10 @@ final readonly class AppSchemasAttachmentSchemaAttachment extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            filename: $attributes->string('filename'),
             contentType: $attributes->string('content_type'),
             fileSize: $attributes->int('file_size'),
-            filename: $attributes->string('filename'),
-            id: $attributes->string('id'),
             url: $attributes->string('url'),
             raw: $data,
         );

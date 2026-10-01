@@ -21,22 +21,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CoexistenceStatus extends Data
 {
     /**
-     * @param  ?string  $contactsSyncStatus  One of: not_started, requested, completed, failed, unavailable (24h sync window closed before the address book could be requested)
      * @param  ?string  $historySyncStatus  One of: not_started, requested, in_progress, completed, declined, failed, unavailable (Meta's one-time 24h-from-onboarding sync window closed before history could be requested)
+     * @param  ?string  $contactsSyncStatus  One of: not_started, requested, completed, failed, unavailable (24h sync window closed before the address book could be requested)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $channelId,
-        public ?DateTimeImmutable $coexistenceOnboardedAt,
-        public ?string $contactsSyncStatus,
-        public ?DateTimeImmutable $disconnectedAt,
-        public ?string $disconnectionReason,
-        public ?int $historySyncPhase,
-        public ?int $historySyncProgress,
-        public ?string $historySyncStatus,
         public bool $isCoexistence,
         public ?bool $isOnBizApp,
         public ?string $platformType,
+        public ?DateTimeImmutable $coexistenceOnboardedAt,
+        public ?string $historySyncStatus,
+        public ?int $historySyncProgress,
+        public ?int $historySyncPhase,
+        public ?string $contactsSyncStatus,
+        public ?DateTimeImmutable $disconnectedAt,
+        public ?string $disconnectionReason,
         public ?DateTimeImmutable $reconnectedAt,
         array $raw = [],
     ) {
@@ -52,16 +52,16 @@ final readonly class CoexistenceStatus extends Data
 
         return new self(
             channelId: $attributes->string('channel_id'),
-            coexistenceOnboardedAt: $attributes->nullableDateTime('coexistence_onboarded_at'),
-            contactsSyncStatus: $attributes->nullableString('contacts_sync_status'),
-            disconnectedAt: $attributes->nullableDateTime('disconnected_at'),
-            disconnectionReason: $attributes->nullableString('disconnection_reason'),
-            historySyncPhase: $attributes->nullableInt('history_sync_phase'),
-            historySyncProgress: $attributes->nullableInt('history_sync_progress'),
-            historySyncStatus: $attributes->nullableString('history_sync_status'),
             isCoexistence: $attributes->bool('is_coexistence'),
             isOnBizApp: $attributes->nullableBool('is_on_biz_app'),
             platformType: $attributes->nullableString('platform_type'),
+            coexistenceOnboardedAt: $attributes->nullableDateTime('coexistence_onboarded_at'),
+            historySyncStatus: $attributes->nullableString('history_sync_status'),
+            historySyncProgress: $attributes->nullableInt('history_sync_progress'),
+            historySyncPhase: $attributes->nullableInt('history_sync_phase'),
+            contactsSyncStatus: $attributes->nullableString('contacts_sync_status'),
+            disconnectedAt: $attributes->nullableDateTime('disconnected_at'),
+            disconnectionReason: $attributes->nullableString('disconnection_reason'),
             reconnectedAt: $attributes->nullableDateTime('reconnected_at'),
             raw: $data,
         );

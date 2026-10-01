@@ -20,9 +20,9 @@ final readonly class TestAlert extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public ?string $alertEventId,
         public ?string $note,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class TestAlert extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             alertEventId: $attributes->nullableString('alert_event_id'),
             note: $attributes->nullableString('note'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

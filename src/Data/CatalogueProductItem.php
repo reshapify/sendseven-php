@@ -20,18 +20,18 @@ final readonly class CatalogueProductItem extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $availability,
-        public ?string $currency,
-        public ?string $description,
         public string $id,
-        public ?string $imageUrl,
-        public ?int $inventory,
-        public ?string $name,
-        public ?float $price,
-        public ?string $priceRaw,
         public string $productRetailerId,
-        public ?string $syncedAt,
+        public ?string $name,
+        public ?string $description,
+        public ?string $imageUrl,
         public ?string $url,
+        public ?string $priceRaw,
+        public ?float $price,
+        public ?string $currency,
+        public ?string $availability,
+        public ?int $inventory,
+        public ?string $syncedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,18 +45,18 @@ final readonly class CatalogueProductItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            availability: $attributes->nullableString('availability'),
-            currency: $attributes->nullableString('currency'),
-            description: $attributes->nullableString('description'),
             id: $attributes->string('id'),
-            imageUrl: $attributes->nullableString('image_url'),
-            inventory: $attributes->nullableInt('inventory'),
-            name: $attributes->nullableString('name'),
-            price: $attributes->nullableFloat('price'),
-            priceRaw: $attributes->nullableString('price_raw'),
             productRetailerId: $attributes->string('product_retailer_id'),
-            syncedAt: $attributes->nullableString('synced_at'),
+            name: $attributes->nullableString('name'),
+            description: $attributes->nullableString('description'),
+            imageUrl: $attributes->nullableString('image_url'),
             url: $attributes->nullableString('url'),
+            priceRaw: $attributes->nullableString('price_raw'),
+            price: $attributes->nullableFloat('price'),
+            currency: $attributes->nullableString('currency'),
+            availability: $attributes->nullableString('availability'),
+            inventory: $attributes->nullableInt('inventory'),
+            syncedAt: $attributes->nullableString('synced_at'),
             raw: $data,
         );
     }

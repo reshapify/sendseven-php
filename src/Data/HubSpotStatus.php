@@ -17,31 +17,31 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class HubSpotStatus extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $contactMethodMapping  Category-based mapping: {"contact_methods": {hubspot_property: [target, ...]}, "social_profiles": {hubspot_property: [target, ...]}}. Targets are contact-method/social-profile enum values (email/whatsapp_id/phone for contact_methods; linkedin/instagram_handle/facebook/homepage/social_other for social_profiles). One HubSpot property may map to MULTIPLE targets (e.g. HubSpot 'phone' -> both 'phone' and 'whatsapp_id').
-     * @param  array<array-key, mixed>  $fieldMapping
-     * @param  list<string>  $grantedScopes
      * @param  ?string  $status  pending | active | suspended | disconnected
+     * @param  list<string>  $grantedScopes
      * @param  array<array-key, mixed>  $syncDirectionConfig
+     * @param  array<array-key, mixed>  $fieldMapping
+     * @param  array<array-key, mixed>  $contactMethodMapping  Category-based mapping: {"contact_methods": {hubspot_property: [target, ...]}, "social_profiles": {hubspot_property: [target, ...]}}. Targets are contact-method/social-profile enum values (email/whatsapp_id/phone for contact_methods; linkedin/instagram_handle/facebook/homepage/social_other for social_profiles). One HubSpot property may map to MULTIPLE targets (e.g. HubSpot 'phone' -> both 'phone' and 'whatsapp_id').
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public bool $connected,
-        public ?string $connectedAt,
-        public array $contactMethodMapping,
-        public array $fieldMapping,
-        public array $grantedScopes,
-        public ?string $hubDomain,
-        public ?int $hubId,
-        public ?string $installedAt,
         public ?bool $isConnected,
-        public ?string $lastFullSyncAt,
-        public ?int $linkedContacts,
         public ?int $portalId,
-        public ?bool $sendsevenLinkCompleted,
-        public ?string $status,
         public ?string $syncDirection,
-        public array $syncDirectionConfig,
         public ?bool $syncTranscripts,
+        public ?string $connectedAt,
+        public ?string $status,
+        public ?int $hubId,
+        public ?string $hubDomain,
+        public array $grantedScopes,
+        public array $syncDirectionConfig,
+        public array $fieldMapping,
+        public array $contactMethodMapping,
+        public ?bool $sendsevenLinkCompleted,
+        public ?int $linkedContacts,
+        public ?string $lastFullSyncAt,
+        public ?string $installedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -56,22 +56,22 @@ final readonly class HubSpotStatus extends Data
 
         return new self(
             connected: $attributes->bool('connected'),
-            connectedAt: $attributes->nullableString('connected_at'),
-            contactMethodMapping: $attributes->array('contact_method_mapping'),
-            fieldMapping: $attributes->array('field_mapping'),
-            grantedScopes: $attributes->strings('granted_scopes'),
-            hubDomain: $attributes->nullableString('hub_domain'),
-            hubId: $attributes->nullableInt('hub_id'),
-            installedAt: $attributes->nullableString('installed_at'),
             isConnected: $attributes->nullableBool('is_connected'),
-            lastFullSyncAt: $attributes->nullableString('last_full_sync_at'),
-            linkedContacts: $attributes->nullableInt('linked_contacts'),
             portalId: $attributes->nullableInt('portal_id'),
-            sendsevenLinkCompleted: $attributes->nullableBool('sendseven_link_completed'),
-            status: $attributes->nullableString('status'),
             syncDirection: $attributes->nullableString('sync_direction'),
-            syncDirectionConfig: $attributes->array('sync_direction_config'),
             syncTranscripts: $attributes->nullableBool('sync_transcripts'),
+            connectedAt: $attributes->nullableString('connected_at'),
+            status: $attributes->nullableString('status'),
+            hubId: $attributes->nullableInt('hub_id'),
+            hubDomain: $attributes->nullableString('hub_domain'),
+            grantedScopes: $attributes->strings('granted_scopes'),
+            syncDirectionConfig: $attributes->array('sync_direction_config'),
+            fieldMapping: $attributes->array('field_mapping'),
+            contactMethodMapping: $attributes->array('contact_method_mapping'),
+            sendsevenLinkCompleted: $attributes->nullableBool('sendseven_link_completed'),
+            linkedContacts: $attributes->nullableInt('linked_contacts'),
+            lastFullSyncAt: $attributes->nullableString('last_full_sync_at'),
+            installedAt: $attributes->nullableString('installed_at'),
             raw: $data,
         );
     }

@@ -20,27 +20,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CampaignEmailStats extends Data
 {
     /**
-     * @param  ?float  $bounceRate  Bounce rate percentage (bounced/sent)
-     * @param  ?int  $bounced  Email campaign bounces
-     * @param  ?float  $clickRate  Click rate percentage (clicked/opened)
-     * @param  ?int  $clicked  Email campaign clicks
-     * @param  ?int  $complained  Email campaign spam complaints
-     * @param  ?int  $delivered  Email campaign messages delivered
-     * @param  ?float  $openRate  Open rate percentage (opened/sent)
-     * @param  ?int  $opened  Email campaign opens
      * @param  ?int  $sent  Email campaign messages sent (billable)
+     * @param  ?int  $delivered  Email campaign messages delivered
+     * @param  ?int  $opened  Email campaign opens
+     * @param  ?int  $clicked  Email campaign clicks
+     * @param  ?int  $bounced  Email campaign bounces
+     * @param  ?int  $complained  Email campaign spam complaints
+     * @param  ?float  $openRate  Open rate percentage (opened/sent)
+     * @param  ?float  $clickRate  Click rate percentage (clicked/opened)
+     * @param  ?float  $bounceRate  Bounce rate percentage (bounced/sent)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $bounceRate,
-        public ?int $bounced,
-        public ?float $clickRate,
-        public ?int $clicked,
-        public ?int $complained,
-        public ?int $delivered,
-        public ?float $openRate,
-        public ?int $opened,
         public ?int $sent,
+        public ?int $delivered,
+        public ?int $opened,
+        public ?int $clicked,
+        public ?int $bounced,
+        public ?int $complained,
+        public ?float $openRate,
+        public ?float $clickRate,
+        public ?float $bounceRate,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,15 +54,15 @@ final readonly class CampaignEmailStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounceRate: $attributes->nullableFloat('bounce_rate'),
-            bounced: $attributes->nullableInt('bounced'),
-            clickRate: $attributes->nullableFloat('click_rate'),
-            clicked: $attributes->nullableInt('clicked'),
-            complained: $attributes->nullableInt('complained'),
-            delivered: $attributes->nullableInt('delivered'),
-            openRate: $attributes->nullableFloat('open_rate'),
-            opened: $attributes->nullableInt('opened'),
             sent: $attributes->nullableInt('sent'),
+            delivered: $attributes->nullableInt('delivered'),
+            opened: $attributes->nullableInt('opened'),
+            clicked: $attributes->nullableInt('clicked'),
+            bounced: $attributes->nullableInt('bounced'),
+            complained: $attributes->nullableInt('complained'),
+            openRate: $attributes->nullableFloat('open_rate'),
+            clickRate: $attributes->nullableFloat('click_rate'),
+            bounceRate: $attributes->nullableFloat('bounce_rate'),
             raw: $data,
         );
     }

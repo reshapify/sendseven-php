@@ -228,21 +228,31 @@ final readonly class KbFolders
      *
      * Scopes: knowledge_base:update.
      *
-     * @param  ?bool  $isAiSearchable  Whether this folder is included in AI agent suggestions (/ai, /suggest)
      * @param  ?string  $name  New folder name
      * @param  ?string  $parentId  New parent folder ID. Use 'null' for root level.
      * @param  ?int  $sortOrder  Display order within parent folder
+     * @param  ?bool  $isAiSearchable  Whether this folder is included in AI agent suggestions (/ai, /suggest)
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/KB%20Folders/update_folder_api_v1_knowledge_base_folders__folder_id__put
      */
-    public function update(string $folderId, ?bool $isAiSearchable = null, ?string $name = null, ?string $parentId = null, ?int $sortOrder = null): KbFolder
-    {
+    public function update(
+        string $folderId,
+        ?string $name = null,
+        ?string $parentId = null,
+        ?int $sortOrder = null,
+        ?bool $isAiSearchable = null,
+    ): KbFolder {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/knowledge-base/folders/'.Payload::segment($folderId),
-            body: Payload::body(['is_ai_searchable' => $isAiSearchable, 'name' => $name, 'parent_id' => $parentId, 'sort_order' => $sortOrder]),
+            body: Payload::body([
+                'name' => $name,
+                'parent_id' => $parentId,
+                'sort_order' => $sortOrder,
+                'is_ai_searchable' => $isAiSearchable,
+            ]),
         ));
 
         return KbFolder::fromArray($response->data());
@@ -266,12 +276,20 @@ final readonly class KbFolders
      *
      * @see https://api.sendseven.com/api/v1/docs#/KB%20Folders/get_folder_documents_api_v1_knowledge_base_folders__folder_id__documents_get
      */
-    public function getDocuments(string $folderId, ?bool $includeSubfolders = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function getDocuments(
+        string $folderId,
+        ?bool $includeSubfolders = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/knowledge-base/folders/'.Payload::segment($folderId).'/documents',
-            query: Payload::query(['include_subfolders' => $includeSubfolders, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'include_subfolders' => $includeSubfolders,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), KnowledgeBaseDocument::fromArray(...), fn (int $page): Page => $this->getDocuments(folderId: $folderId, includeSubfolders: $includeSubfolders, page: $page, pageSize: $pageSize));
@@ -294,8 +312,11 @@ final readonly class KbFolders
      *
      * @see https://api.sendseven.com/api/v1/docs#/KB%20Folders/recrawl_website_folder_api_v1_knowledge_base_folders__folder_id__recrawl_post
      */
-    public function recrawlWebsite(string $folderId, ?bool $clearExisting = null, ?string $idempotencyKey = null): WebsiteCrawlJob
-    {
+    public function recrawlWebsite(
+        string $folderId,
+        ?bool $clearExisting = null,
+        ?string $idempotencyKey = null,
+    ): WebsiteCrawlJob {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/folders/'.Payload::segment($folderId).'/recrawl',

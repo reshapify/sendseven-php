@@ -22,8 +22,8 @@ final readonly class Replay extends Data
      */
     public function __construct(
         public ReplayContact $contact,
-        public array $events,
         public ReplayRun $run,
+        public array $events,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,8 +38,8 @@ final readonly class Replay extends Data
 
         return new self(
             contact: $attributes->object('contact', ReplayContact::fromArray(...)),
-            events: $attributes->list('events', ReplayEvent::fromArray(...)),
             run: $attributes->object('run', ReplayRun::fromArray(...)),
+            events: $attributes->list('events', ReplayEvent::fromArray(...)),
             raw: $data,
         );
     }

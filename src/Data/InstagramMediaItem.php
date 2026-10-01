@@ -20,12 +20,12 @@ final readonly class InstagramMediaItem extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $caption,
         public string $id,
-        public ?string $mediaType,
-        public ?string $mediaUrl,
-        public ?string $permalink,
         public ?string $thumbnailUrl,
+        public ?string $mediaUrl,
+        public ?string $caption,
+        public ?string $mediaType,
+        public ?string $permalink,
         public ?string $timestamp,
         array $raw = [],
     ) {
@@ -40,12 +40,12 @@ final readonly class InstagramMediaItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            caption: $attributes->nullableString('caption'),
             id: $attributes->string('id'),
-            mediaType: $attributes->nullableString('media_type'),
-            mediaUrl: $attributes->nullableString('media_url'),
-            permalink: $attributes->nullableString('permalink'),
             thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            mediaUrl: $attributes->nullableString('media_url'),
+            caption: $attributes->nullableString('caption'),
+            mediaType: $attributes->nullableString('media_type'),
+            permalink: $attributes->nullableString('permalink'),
             timestamp: $attributes->nullableString('timestamp'),
             raw: $data,
         );

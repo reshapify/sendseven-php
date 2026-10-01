@@ -23,12 +23,12 @@ final readonly class PostChannelCapability extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public bool $canPublish,
         public string $channelId,
-        public string $channelName,
         public string $channelType,
-        public array $formats,
+        public string $channelName,
         public ?string $identifier,
+        public bool $canPublish,
+        public array $formats,
         public ?int $maxMediaItems,
         array $raw = [],
     ) {
@@ -43,12 +43,12 @@ final readonly class PostChannelCapability extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            canPublish: $attributes->bool('can_publish'),
             channelId: $attributes->string('channel_id'),
-            channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
-            formats: $attributes->array('formats'),
+            channelName: $attributes->string('channel_name'),
             identifier: $attributes->nullableString('identifier'),
+            canPublish: $attributes->bool('can_publish'),
+            formats: $attributes->array('formats'),
             maxMediaItems: $attributes->nullableInt('max_media_items'),
             raw: $data,
         );

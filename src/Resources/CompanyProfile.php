@@ -62,30 +62,56 @@ final readonly class CompanyProfile
      *
      * Scopes: settings:update.
      *
-     * @param  array<string, mixed>|null  $brandColors  Brand color palette
+     * @param  ?string  $companyLegalName  Legal business name
      * @param  ?string  $companyAddressLine1  Physical address line 1
      * @param  ?string  $companyAddressLine2  Physical address line 2
      * @param  ?string  $companyCity  City
-     * @param  ?string  $companyCountry  Country
-     * @param  ?string  $companyDomain  Company domain
-     * @param  ?string  $companyEmail  Company contact email
-     * @param  ?string  $companyLegalName  Legal business name
-     * @param  ?string  $companyName  Display name
-     * @param  ?string  $companyPhone  Company contact phone
-     * @param  ?string  $companyPostalCode  Postal/ZIP code
      * @param  ?string  $companyStateProvince  State/Province/Region
+     * @param  ?string  $companyPostalCode  Postal/ZIP code
+     * @param  ?string  $companyCountry  Country
+     * @param  ?string  $companyEmail  Company contact email
+     * @param  ?string  $companyPhone  Company contact phone
+     * @param  ?string  $companyName  Display name
+     * @param  ?string  $companyDomain  Company domain
+     * @param  array<string, mixed>|null  $brandColors  Brand color palette
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Company%20Profile/update_company_profile_api_v1_company_profile_patch
      */
-    public function update(?array $brandColors = null, ?string $companyAddressLine1 = null, ?string $companyAddressLine2 = null, ?string $companyCity = null, ?string $companyCountry = null, ?string $companyDomain = null, ?string $companyEmail = null, ?string $companyLegalName = null, ?string $companyName = null, ?string $companyPhone = null, ?string $companyPostalCode = null, ?string $companyStateProvince = null, ?string $idempotencyKey = null): CompanyProfileResponse
-    {
+    public function update(
+        ?string $companyLegalName = null,
+        ?string $companyAddressLine1 = null,
+        ?string $companyAddressLine2 = null,
+        ?string $companyCity = null,
+        ?string $companyStateProvince = null,
+        ?string $companyPostalCode = null,
+        ?string $companyCountry = null,
+        ?string $companyEmail = null,
+        ?string $companyPhone = null,
+        ?string $companyName = null,
+        ?string $companyDomain = null,
+        ?array $brandColors = null,
+        ?string $idempotencyKey = null,
+    ): CompanyProfileResponse {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/company-profile',
-            body: Payload::body(['brand_colors' => $brandColors, 'company_address_line1' => $companyAddressLine1, 'company_address_line2' => $companyAddressLine2, 'company_city' => $companyCity, 'company_country' => $companyCountry, 'company_domain' => $companyDomain, 'company_email' => $companyEmail, 'company_legal_name' => $companyLegalName, 'company_name' => $companyName, 'company_phone' => $companyPhone, 'company_postal_code' => $companyPostalCode, 'company_state_province' => $companyStateProvince]),
+            body: Payload::body([
+                'company_legal_name' => $companyLegalName,
+                'company_address_line1' => $companyAddressLine1,
+                'company_address_line2' => $companyAddressLine2,
+                'company_city' => $companyCity,
+                'company_state_province' => $companyStateProvince,
+                'company_postal_code' => $companyPostalCode,
+                'company_country' => $companyCountry,
+                'company_email' => $companyEmail,
+                'company_phone' => $companyPhone,
+                'company_name' => $companyName,
+                'company_domain' => $companyDomain,
+                'brand_colors' => $brandColors,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

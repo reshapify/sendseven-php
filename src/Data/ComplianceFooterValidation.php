@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ComplianceFooterValidation extends Data
 {
     /**
-     * @param  list<string>  $errors  List of validation errors
      * @param  bool  $isValid  Whether the footer HTML is valid
-     * @param  ?string  $sanitizedHtml  Sanitized HTML after validation
+     * @param  list<string>  $errors  List of validation errors
      * @param  list<string>  $warnings  List of validation warnings
+     * @param  ?string  $sanitizedHtml  Sanitized HTML after validation
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $errors,
         public bool $isValid,
-        public ?string $sanitizedHtml,
+        public array $errors,
         public array $warnings,
+        public ?string $sanitizedHtml,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class ComplianceFooterValidation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            errors: $attributes->strings('errors'),
             isValid: $attributes->bool('is_valid'),
-            sanitizedHtml: $attributes->nullableString('sanitized_html'),
+            errors: $attributes->strings('errors'),
             warnings: $attributes->strings('warnings'),
+            sanitizedHtml: $attributes->nullableString('sanitized_html'),
             raw: $data,
         );
     }

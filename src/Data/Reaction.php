@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Reaction extends Data
 {
     /**
+     * @param  bool  $success  Whether the operation succeeded
+     * @param  string  $messageId  Message UUID that was reacted to
+     * @param  ?string  $externalId  Platform reaction message ID
      * @param  ?string  $emoji  Emoji that was added (null for removal)
      * @param  ?string  $error  Error message if operation failed
-     * @param  ?string  $externalId  Platform reaction message ID
-     * @param  string  $messageId  Message UUID that was reacted to
-     * @param  bool  $success  Whether the operation succeeded
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
+        public string $messageId,
+        public ?string $externalId,
         public ?string $emoji,
         public ?string $error,
-        public ?string $externalId,
-        public string $messageId,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class Reaction extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
+            messageId: $attributes->string('message_id'),
+            externalId: $attributes->nullableString('external_id'),
             emoji: $attributes->nullableString('emoji'),
             error: $attributes->nullableString('error'),
-            externalId: $attributes->nullableString('external_id'),
-            messageId: $attributes->string('message_id'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

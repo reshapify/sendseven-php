@@ -22,22 +22,22 @@ final readonly class BotAnalytics extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $abandonedSessions,
-        public ?int $activeSessions,
-        public ?float $avgConfidenceScore,
-        public ?float $avgMessagesPerSession,
         public string $botId,
         public string $botName,
+        public DateTimeImmutable $periodStart,
+        public DateTimeImmutable $periodEnd,
+        public ?int $totalSessions,
+        public ?int $activeSessions,
         public ?int $completedSessions,
         public ?int $escalatedSessions,
-        public ?float $escalationRate,
-        public array $escalationReasons,
-        public DateTimeImmutable $periodEnd,
-        public DateTimeImmutable $periodStart,
+        public ?int $abandonedSessions,
         public ?float $resolutionRate,
+        public ?float $escalationRate,
+        public ?float $avgMessagesPerSession,
+        public ?float $avgConfidenceScore,
         public ?int $totalInputTokens,
         public ?int $totalOutputTokens,
-        public ?int $totalSessions,
+        public array $escalationReasons,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,22 +51,22 @@ final readonly class BotAnalytics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            abandonedSessions: $attributes->nullableInt('abandoned_sessions'),
-            activeSessions: $attributes->nullableInt('active_sessions'),
-            avgConfidenceScore: $attributes->nullableFloat('avg_confidence_score'),
-            avgMessagesPerSession: $attributes->nullableFloat('avg_messages_per_session'),
             botId: $attributes->string('bot_id'),
             botName: $attributes->string('bot_name'),
+            periodStart: $attributes->dateTime('period_start'),
+            periodEnd: $attributes->dateTime('period_end'),
+            totalSessions: $attributes->nullableInt('total_sessions'),
+            activeSessions: $attributes->nullableInt('active_sessions'),
             completedSessions: $attributes->nullableInt('completed_sessions'),
             escalatedSessions: $attributes->nullableInt('escalated_sessions'),
-            escalationRate: $attributes->nullableFloat('escalation_rate'),
-            escalationReasons: $attributes->array('escalation_reasons'),
-            periodEnd: $attributes->dateTime('period_end'),
-            periodStart: $attributes->dateTime('period_start'),
+            abandonedSessions: $attributes->nullableInt('abandoned_sessions'),
             resolutionRate: $attributes->nullableFloat('resolution_rate'),
+            escalationRate: $attributes->nullableFloat('escalation_rate'),
+            avgMessagesPerSession: $attributes->nullableFloat('avg_messages_per_session'),
+            avgConfidenceScore: $attributes->nullableFloat('avg_confidence_score'),
             totalInputTokens: $attributes->nullableInt('total_input_tokens'),
             totalOutputTokens: $attributes->nullableInt('total_output_tokens'),
-            totalSessions: $attributes->nullableInt('total_sessions'),
+            escalationReasons: $attributes->array('escalation_reasons'),
             raw: $data,
         );
     }

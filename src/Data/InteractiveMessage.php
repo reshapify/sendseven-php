@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InteractiveMessage extends Data
 {
     /**
+     * @param  string  $id  Message UUID
      * @param  string  $conversationId  Conversation UUID
+     * @param  ?string  $externalId  Platform message ID (e.g., WhatsApp wamid)
+     * @param  string  $status  Message status: pending, sent, failed
+     * @param  string  $platform  Platform: whatsapp, telegram, etc.
+     * @param  string  $type  Interactive type: buttons, list
      * @param  ?string  $error  Error message if status is 'failed'
      * @param  ?int  $errorCode  WhatsApp API error code (e.g., 131042 for payment issues)
-     * @param  ?string  $externalId  Platform message ID (e.g., WhatsApp wamid)
-     * @param  string  $id  Message UUID
-     * @param  string  $platform  Platform: whatsapp, telegram, etc.
-     * @param  string  $status  Message status: pending, sent, failed
-     * @param  string  $type  Interactive type: buttons, list
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
         public string $conversationId,
+        public ?string $externalId,
+        public string $status,
+        public string $platform,
+        public string $type,
         public ?string $error,
         public ?int $errorCode,
-        public ?string $externalId,
-        public string $id,
-        public string $platform,
-        public string $status,
-        public string $type,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class InteractiveMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
             conversationId: $attributes->string('conversation_id'),
+            externalId: $attributes->nullableString('external_id'),
+            status: $attributes->string('status'),
+            platform: $attributes->string('platform'),
+            type: $attributes->string('type'),
             error: $attributes->nullableString('error'),
             errorCode: $attributes->nullableInt('error_code'),
-            externalId: $attributes->nullableString('external_id'),
-            id: $attributes->string('id'),
-            platform: $attributes->string('platform'),
-            status: $attributes->string('status'),
-            type: $attributes->string('type'),
             raw: $data,
         );
     }

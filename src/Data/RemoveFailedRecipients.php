@@ -21,8 +21,8 @@ final readonly class RemoveFailedRecipients extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $removedCount,
         public ?bool $success,
+        public int $removedCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,8 +36,8 @@ final readonly class RemoveFailedRecipients extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            removedCount: $attributes->int('removed_count'),
             success: $attributes->nullableBool('success'),
+            removedCount: $attributes->int('removed_count'),
             raw: $data,
         );
     }

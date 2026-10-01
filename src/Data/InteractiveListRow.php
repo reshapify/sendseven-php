@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InteractiveListRow extends Data
 {
     /**
-     * @param  ?string  $description  Row description (max 72 chars)
      * @param  string  $id  Unique row identifier (returned when selected)
      * @param  string  $title  Row title (max 24 chars)
+     * @param  ?string  $description  Row description (max 72 chars)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $description,
         public string $id,
         public string $title,
+        public ?string $description,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class InteractiveListRow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            description: $attributes->nullableString('description'),
             id: $attributes->string('id'),
             title: $attributes->string('title'),
+            description: $attributes->nullableString('description'),
             raw: $data,
         );
     }

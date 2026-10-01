@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MultiFileUpload extends Data
 {
     /**
+     * @param  int  $total  Total files submitted
+     * @param  int  $successful  Number of successful uploads
      * @param  int  $failed  Number of failed uploads
      * @param  list<MultiFileUploadResult>  $results  Per-file results
-     * @param  int  $successful  Number of successful uploads
-     * @param  int  $total  Total files submitted
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public int $total,
+        public int $successful,
         public int $failed,
         public array $results,
-        public int $successful,
-        public int $total,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class MultiFileUpload extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            total: $attributes->int('total'),
+            successful: $attributes->int('successful'),
             failed: $attributes->int('failed'),
             results: $attributes->list('results', MultiFileUploadResult::fromArray(...)),
-            successful: $attributes->int('successful'),
-            total: $attributes->int('total'),
             raw: $data,
         );
     }

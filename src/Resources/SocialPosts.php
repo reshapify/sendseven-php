@@ -51,12 +51,23 @@ final readonly class SocialPosts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Social%20Posts/list_social_posts_api_v1_social_posts_get
      */
-    public function list(?string $status = null, DateTimeInterface|string|null $scheduledFrom = null, DateTimeInterface|string|null $scheduledTo = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function list(
+        ?string $status = null,
+        DateTimeInterface|string|null $scheduledFrom = null,
+        DateTimeInterface|string|null $scheduledTo = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/social-posts',
-            query: Payload::query(['status' => $status, 'scheduled_from' => $scheduledFrom, 'scheduled_to' => $scheduledTo, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'status' => $status,
+                'scheduled_from' => $scheduledFrom,
+                'scheduled_to' => $scheduledTo,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), ScheduledPost::fromArray(...), fn (int $page): Page => $this->list(status: $status, scheduledFrom: $scheduledFrom, scheduledTo: $scheduledTo, page: $page, pageSize: $pageSize));
@@ -81,22 +92,40 @@ final readonly class SocialPosts
      * @param  string  $format  `text`, `image`, `video` or `reel`. Per-platform: `reel` is Instagram-only, `text` is Facebook-only, and Instagram always requires media. Unsupported combinations are rejected against the capability matrix before any Meta call.
      * @param  ?string  $caption  Post caption (Instagram/Facebook limit 2200 characters).
      * @param  ?string  $firstComment  Optional self-authored first comment. Posted as a top-level comment on the post from the SAME account immediately after it publishes (IG media / FB post). Best-effort: a comment failure never fails the post. NULL/empty means no first comment.
-     * @param  ?bool  $isAiGenerated  Mark the post as AI-generated (EU AI Act transparency). When true, the AI-content flag is passed through to Meta on publish — set on the Instagram container and, best-effort, on the Facebook feed / photo / video payload.
      * @param  list<string>|null  $mediaAttachmentIds  Ordered list of attachment UUIDs (upload via `POST /api/v1/attachments/*` first). Required for every non-`text` format; NULL/empty for `text`. At most 10. Slide order is preserved. Every id must belong to this workspace.
-     * @param  ?bool  $publishNow  Publish immediately and return the publish result. Mutually exclusive with `scheduled_at`.
      * @param  DateTimeInterface|string|null  $scheduledAt  When to publish (UTC, must be in the future). Omit and set `publish_now` to publish immediately; omit both to save a draft.
+     * @param  ?bool  $publishNow  Publish immediately and return the publish result. Mutually exclusive with `scheduled_at`.
+     * @param  ?bool  $isAiGenerated  Mark the post as AI-generated (EU AI Act transparency). When true, the AI-content flag is passed through to Meta on publish — set on the Instagram container and, best-effort, on the Facebook feed / photo / video payload.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Social%20Posts/create_social_post_api_v1_social_posts_post
      */
-    public function create(array $channelIds, string $format, ?string $caption = null, ?string $firstComment = null, ?bool $isAiGenerated = null, ?array $mediaAttachmentIds = null, ?bool $publishNow = null, DateTimeInterface|string|null $scheduledAt = null, ?string $idempotencyKey = null): ScheduledPost
-    {
+    public function create(
+        array $channelIds,
+        string $format,
+        ?string $caption = null,
+        ?string $firstComment = null,
+        ?array $mediaAttachmentIds = null,
+        DateTimeInterface|string|null $scheduledAt = null,
+        ?bool $publishNow = null,
+        ?bool $isAiGenerated = null,
+        ?string $idempotencyKey = null,
+    ): ScheduledPost {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/social-posts',
-            body: Payload::body(['channel_ids' => $channelIds, 'format' => $format, 'caption' => $caption, 'first_comment' => $firstComment, 'is_ai_generated' => $isAiGenerated, 'media_attachment_ids' => $mediaAttachmentIds, 'publish_now' => $publishNow, 'scheduled_at' => $scheduledAt]),
+            body: Payload::body([
+                'channel_ids' => $channelIds,
+                'format' => $format,
+                'caption' => $caption,
+                'first_comment' => $firstComment,
+                'media_attachment_ids' => $mediaAttachmentIds,
+                'scheduled_at' => $scheduledAt,
+                'publish_now' => $publishNow,
+                'is_ai_generated' => $isAiGenerated,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -193,25 +222,42 @@ final readonly class SocialPosts
      * Scopes: campaigns:update.
      *
      * @param  string  $postId  The authored post id.
-     * @param  ?bool  $cancel  Cancel the post (status → `cancelled`). Cannot be combined with edit fields. Rejected once the post is publishing or published.
      * @param  ?string  $caption  Replacement caption (draft/scheduled only).
-     * @param  list<string>|null  $channelIds  Replacement target channel list (draft/scheduled only). Targets are reconciled: removed channels are dropped, added channels get a new pending target.
      * @param  ?string  $firstComment  Replacement self-authored first comment (draft/scheduled only). Send `""` to clear it.
-     * @param  ?bool  $isAiGenerated  Toggle the AI-generated flag (draft/scheduled only). When set, it is passed through to Meta on publish (EU AI Act transparency).
      * @param  list<string>|null  $mediaAttachmentIds  Replacement ordered media list (draft/scheduled only). Re-validated for ownership and re-bumps retention. Send `[]` to clear media.
      * @param  DateTimeInterface|string|null  $scheduledAt  Reschedule (UTC, future). Draft/scheduled only. Setting this on a draft moves it to `scheduled`.
+     * @param  list<string>|null  $channelIds  Replacement target channel list (draft/scheduled only). Targets are reconciled: removed channels are dropped, added channels get a new pending target.
+     * @param  ?bool  $isAiGenerated  Toggle the AI-generated flag (draft/scheduled only). When set, it is passed through to Meta on publish (EU AI Act transparency).
+     * @param  ?bool  $cancel  Cancel the post (status → `cancelled`). Cannot be combined with edit fields. Rejected once the post is publishing or published.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Social%20Posts/update_social_post_api_v1_social_posts__post_id__patch
      */
-    public function update(string $postId, ?bool $cancel = null, ?string $caption = null, ?array $channelIds = null, ?string $firstComment = null, ?bool $isAiGenerated = null, ?array $mediaAttachmentIds = null, DateTimeInterface|string|null $scheduledAt = null, ?string $idempotencyKey = null): ScheduledPost
-    {
+    public function update(
+        string $postId,
+        ?string $caption = null,
+        ?string $firstComment = null,
+        ?array $mediaAttachmentIds = null,
+        DateTimeInterface|string|null $scheduledAt = null,
+        ?array $channelIds = null,
+        ?bool $isAiGenerated = null,
+        ?bool $cancel = null,
+        ?string $idempotencyKey = null,
+    ): ScheduledPost {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/social-posts/'.Payload::segment($postId),
-            body: Payload::body(['cancel' => $cancel, 'caption' => $caption, 'channel_ids' => $channelIds, 'first_comment' => $firstComment, 'is_ai_generated' => $isAiGenerated, 'media_attachment_ids' => $mediaAttachmentIds, 'scheduled_at' => $scheduledAt]),
+            body: Payload::body([
+                'caption' => $caption,
+                'first_comment' => $firstComment,
+                'media_attachment_ids' => $mediaAttachmentIds,
+                'scheduled_at' => $scheduledAt,
+                'channel_ids' => $channelIds,
+                'is_ai_generated' => $isAiGenerated,
+                'cancel' => $cancel,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

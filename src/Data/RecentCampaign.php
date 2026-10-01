@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RecentCampaign extends Data
 {
     /**
-     * @param  ?string  $completedAt  Completion timestamp (ISO format)
-     * @param  ?int  $deliveredCount  Total messages delivered
      * @param  string  $name  Campaign name
      * @param  ?int  $sentCount  Total messages sent
+     * @param  ?int  $deliveredCount  Total messages delivered
+     * @param  ?string  $completedAt  Completion timestamp (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $completedAt,
-        public ?int $deliveredCount,
         public string $name,
         public ?int $sentCount,
+        public ?int $deliveredCount,
+        public ?string $completedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class RecentCampaign extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            completedAt: $attributes->nullableString('completed_at'),
-            deliveredCount: $attributes->nullableInt('delivered_count'),
             name: $attributes->string('name'),
             sentCount: $attributes->nullableInt('sent_count'),
+            deliveredCount: $attributes->nullableInt('delivered_count'),
+            completedAt: $attributes->nullableString('completed_at'),
             raw: $data,
         );
     }

@@ -21,15 +21,15 @@ final readonly class AlertEvent extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
         public string $alertType,
+        public string $severity,
+        public ?string $entityType,
+        public ?string $entityId,
+        public string $title,
+        public string $status,
         public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $dispatchedAt,
-        public ?string $entityId,
-        public ?string $entityType,
-        public string $id,
-        public string $severity,
-        public string $status,
-        public string $title,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,15 +43,15 @@ final readonly class AlertEvent extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
             alertType: $attributes->string('alert_type'),
+            severity: $attributes->string('severity'),
+            entityType: $attributes->nullableString('entity_type'),
+            entityId: $attributes->nullableString('entity_id'),
+            title: $attributes->string('title'),
+            status: $attributes->string('status'),
             createdAt: $attributes->dateTime('created_at'),
             dispatchedAt: $attributes->nullableDateTime('dispatched_at'),
-            entityId: $attributes->nullableString('entity_id'),
-            entityType: $attributes->nullableString('entity_type'),
-            id: $attributes->string('id'),
-            severity: $attributes->string('severity'),
-            status: $attributes->string('status'),
-            title: $attributes->string('title'),
             raw: $data,
         );
     }

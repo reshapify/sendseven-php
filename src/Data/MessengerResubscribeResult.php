@@ -23,22 +23,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MessengerResubscribeResult extends Data
 {
     /**
-     * @param  ?string  $detail  Human-readable explanation (English; UI translates by `reason`).
      * @param  bool  $ok  True when Facebook accepted the `subscribed_apps` update.
      * @param  string  $reason  Stable machine code: `resubscribed` (success), `missing_credentials`, `graph_error`.
+     * @param  ?string  $detail  Human-readable explanation (English; UI translates by `reason`).
      * @param  list<string>  $subscribedFields  The full field list POSTed (a full replace, incl. `feed`).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $channelId,
-        public string $channelName,
         public string $channelType,
-        public DateTimeImmutable $checkedAt,
-        public ?string $detail,
-        public bool $ok,
+        public string $channelName,
         public ?string $pageId,
+        public bool $ok,
         public string $reason,
+        public ?string $detail,
         public array $subscribedFields,
+        public DateTimeImmutable $checkedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,14 +53,14 @@ final readonly class MessengerResubscribeResult extends Data
 
         return new self(
             channelId: $attributes->string('channel_id'),
-            channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
-            checkedAt: $attributes->dateTime('checked_at'),
-            detail: $attributes->nullableString('detail'),
-            ok: $attributes->bool('ok'),
+            channelName: $attributes->string('channel_name'),
             pageId: $attributes->nullableString('page_id'),
+            ok: $attributes->bool('ok'),
             reason: $attributes->string('reason'),
+            detail: $attributes->nullableString('detail'),
             subscribedFields: $attributes->strings('subscribed_fields'),
+            checkedAt: $attributes->dateTime('checked_at'),
             raw: $data,
         );
     }

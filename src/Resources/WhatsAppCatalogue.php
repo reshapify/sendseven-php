@@ -44,21 +44,31 @@ final readonly class WhatsAppCatalogue
      * Scopes: channels:update.
      *
      * @param  string  $channelId  The WhatsApp channel to attach the catalogue to
+     * @param  ?string  $code  Authorization CODE from the FBLB catalogue dialog. Exchanged server-side for an access token. Provide this OR access_token.
      * @param  ?string  $accessToken  A catalogue access token already exchanged client-side. Provide this OR code.
      * @param  ?string  $catalogId  Optional explicit catalogue id (e.g. copied from Meta Business Suite, or forwarded from the dialog's session_info). Guaranteed unblock for Coexistence numbers, where no Graph edge auto-returns the linked catalogue id. When supplied it is VERIFIED server-side (GET /{catalog_id}/products) before persisting and may be sent alone (without 'code'/'access_token'), since the channel's own WhatsApp token can read a Business-Manager catalogue. When omitted, the id is auto-resolved from the token's granular catalog_management scope. Must be a numeric Meta id.
-     * @param  ?string  $code  Authorization CODE from the FBLB catalogue dialog. Exchanged server-side for an access token. Provide this OR access_token.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Catalogue/connect_catalogue_api_v1_whatsapp_catalog_connect_post
      */
-    public function connect(string $channelId, ?string $accessToken = null, ?string $catalogId = null, ?string $code = null, ?string $idempotencyKey = null): CatalogueConnect
-    {
+    public function connect(
+        string $channelId,
+        ?string $code = null,
+        ?string $accessToken = null,
+        ?string $catalogId = null,
+        ?string $idempotencyKey = null,
+    ): CatalogueConnect {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-catalog/connect',
-            body: Payload::body(['channel_id' => $channelId, 'access_token' => $accessToken, 'catalog_id' => $catalogId, 'code' => $code]),
+            body: Payload::body([
+                'channel_id' => $channelId,
+                'code' => $code,
+                'access_token' => $accessToken,
+                'catalog_id' => $catalogId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -84,12 +94,22 @@ final readonly class WhatsAppCatalogue
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Catalogue/send_single_product_api_v1_whatsapp_catalog_send_product_post
      */
-    public function sendSingleProduct(string $conversationId, string $productRetailerId, ?string $body = null, ?string $footer = null, ?string $idempotencyKey = null): Message
-    {
+    public function sendSingleProduct(
+        string $conversationId,
+        string $productRetailerId,
+        ?string $body = null,
+        ?string $footer = null,
+        ?string $idempotencyKey = null,
+    ): Message {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-catalog/send-product',
-            body: Payload::body(['conversation_id' => $conversationId, 'product_retailer_id' => $productRetailerId, 'body' => $body, 'footer' => $footer]),
+            body: Payload::body([
+                'conversation_id' => $conversationId,
+                'product_retailer_id' => $productRetailerId,
+                'body' => $body,
+                'footer' => $footer,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -105,9 +125,9 @@ final readonly class WhatsAppCatalogue
      *
      * Scopes: messages:create.
      *
-     * @param  string  $body  Required body text for an MPM (Meta cap: 1024 chars)
      * @param  string  $conversationId  Conversation to send the products into
      * @param  string  $headerText  Required header text for an MPM (Meta cap: 60 chars)
+     * @param  string  $body  Required body text for an MPM (Meta cap: 1024 chars)
      * @param  list<array<string, mixed>>  $sections  1-10 sections, <=30 products total
      * @param  ?string  $footer  Optional footer (Meta cap: 60 chars)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -116,12 +136,24 @@ final readonly class WhatsAppCatalogue
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Catalogue/send_product_list_api_v1_whatsapp_catalog_send_product_list_post
      */
-    public function sendProductList(string $body, string $conversationId, string $headerText, array $sections, ?string $footer = null, ?string $idempotencyKey = null): Message
-    {
+    public function sendProductList(
+        string $conversationId,
+        string $headerText,
+        string $body,
+        array $sections,
+        ?string $footer = null,
+        ?string $idempotencyKey = null,
+    ): Message {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-catalog/send-product-list',
-            body: Payload::body(['body' => $body, 'conversation_id' => $conversationId, 'header_text' => $headerText, 'sections' => $sections, 'footer' => $footer]),
+            body: Payload::body([
+                'conversation_id' => $conversationId,
+                'header_text' => $headerText,
+                'body' => $body,
+                'sections' => $sections,
+                'footer' => $footer,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -163,8 +195,12 @@ final readonly class WhatsAppCatalogue
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Catalogue/list_catalogue_products_api_v1_whatsapp_catalog__channel_id__products_get
      */
-    public function listProducts(string $channelId, ?string $search = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listProducts(
+        string $channelId,
+        ?string $search = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/whatsapp-catalog/'.Payload::segment($channelId).'/products',

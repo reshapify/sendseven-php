@@ -23,8 +23,8 @@ final readonly class UpdateVariableMapping extends Data
      */
     public function __construct(
         public string $id,
-        public DateTimeImmutable $updatedAt,
         public array $variableMapping,
+        public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,8 +39,8 @@ final readonly class UpdateVariableMapping extends Data
 
         return new self(
             id: $attributes->string('id'),
-            updatedAt: $attributes->dateTime('updated_at'),
             variableMapping: $attributes->array('variable_mapping'),
+            updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );
     }

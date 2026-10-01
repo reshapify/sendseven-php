@@ -70,21 +70,29 @@ final readonly class ContactBulkActions
      *
      * Scopes: contacts:update.
      *
+     * @param  array<string, mixed>  $selection
      * @param  list<array<string, mixed>>  $actions  Ordered list of actions, executed in order per contact
      * @param  string  $confirmationToken  Signed token from POST /contacts/bulk-actions/preview
-     * @param  array<string, mixed>  $selection
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contact%20Bulk%20Actions/execute_bulk_action_api_v1_contacts_bulk_actions_execute_post
      */
-    public function execute(array $actions, string $confirmationToken, array $selection, ?string $idempotencyKey = null): BulkActionExecute
-    {
+    public function execute(
+        array $selection,
+        array $actions,
+        string $confirmationToken,
+        ?string $idempotencyKey = null,
+    ): BulkActionExecute {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/bulk-actions/execute',
-            body: Payload::body(['actions' => $actions, 'confirmation_token' => $confirmationToken, 'selection' => $selection]),
+            body: Payload::body([
+                'selection' => $selection,
+                'actions' => $actions,
+                'confirmation_token' => $confirmationToken,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -109,20 +117,20 @@ final readonly class ContactBulkActions
      *
      * Scopes: contacts:update.
      *
-     * @param  list<array<string, mixed>>  $actions  Ordered list of actions, executed in order per contact
      * @param  array<string, mixed>  $selection
+     * @param  list<array<string, mixed>>  $actions  Ordered list of actions, executed in order per contact
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contact%20Bulk%20Actions/preview_bulk_action_api_v1_contacts_bulk_actions_preview_post
      */
-    public function preview(array $actions, array $selection, ?string $idempotencyKey = null): BulkActionPreview
+    public function preview(array $selection, array $actions, ?string $idempotencyKey = null): BulkActionPreview
     {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/bulk-actions/preview',
-            body: Payload::body(['actions' => $actions, 'selection' => $selection]),
+            body: Payload::body(['selection' => $selection, 'actions' => $actions]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

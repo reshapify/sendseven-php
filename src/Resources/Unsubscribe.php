@@ -38,12 +38,21 @@ final readonly class Unsubscribe
      *
      * @see https://api.sendseven.com/api/v1/docs#/Unsubscribe/list_unsubscribes_api_v1_unsubscribes_get
      */
-    public function list(?string $campaignId = null, ?string $emailCampaignId = null, ?int $limit = null, ?int $offset = null): UnsubscribeList
-    {
+    public function list(
+        ?string $campaignId = null,
+        ?string $emailCampaignId = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): UnsubscribeList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/unsubscribes',
-            query: Payload::query(['campaign_id' => $campaignId, 'email_campaign_id' => $emailCampaignId, 'limit' => $limit, 'offset' => $offset]),
+            query: Payload::query([
+                'campaign_id' => $campaignId,
+                'email_campaign_id' => $emailCampaignId,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]),
         ));
 
         return UnsubscribeList::fromArray($response->data());
@@ -61,12 +70,19 @@ final readonly class Unsubscribe
      *
      * @see https://api.sendseven.com/api/v1/docs#/Unsubscribe/get_unsubscribe_stats_api_v1_unsubscribes_stats_get
      */
-    public function getStats(?string $campaignId = null, ?string $emailCampaignId = null, ?int $days = null): UnsubscribeStats
-    {
+    public function getStats(
+        ?string $campaignId = null,
+        ?string $emailCampaignId = null,
+        ?int $days = null,
+    ): UnsubscribeStats {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/unsubscribes/stats',
-            query: Payload::query(['campaign_id' => $campaignId, 'email_campaign_id' => $emailCampaignId, 'days' => $days]),
+            query: Payload::query([
+                'campaign_id' => $campaignId,
+                'email_campaign_id' => $emailCampaignId,
+                'days' => $days,
+            ]),
         ));
 
         return UnsubscribeStats::fromArray($response->data());

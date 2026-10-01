@@ -25,14 +25,14 @@ final readonly class Segment extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $campaignId,
-        public DateTimeImmutable $createdAt,
-        public FilterOperator|string|null $filterOperator,
-        public int $filterOrder,
-        public FilterType|string $filterType,
-        public array $filterValue,
         public string $id,
+        public string $campaignId,
+        public FilterType|string $filterType,
+        public FilterOperator|string|null $filterOperator,
+        public array $filterValue,
         public LogicalOperator|string $logicalOperator,
+        public int $filterOrder,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,14 +46,14 @@ final readonly class Segment extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            campaignId: $attributes->string('campaign_id'),
-            createdAt: $attributes->dateTime('created_at'),
-            filterOperator: $attributes->nullableEnum('filter_operator', FilterOperator::class),
-            filterOrder: $attributes->int('filter_order'),
-            filterType: $attributes->enum('filter_type', FilterType::class),
-            filterValue: $attributes->array('filter_value'),
             id: $attributes->string('id'),
+            campaignId: $attributes->string('campaign_id'),
+            filterType: $attributes->enum('filter_type', FilterType::class),
+            filterOperator: $attributes->nullableEnum('filter_operator', FilterOperator::class),
+            filterValue: $attributes->array('filter_value'),
             logicalOperator: $attributes->enum('logical_operator', LogicalOperator::class),
+            filterOrder: $attributes->int('filter_order'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

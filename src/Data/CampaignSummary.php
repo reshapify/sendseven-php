@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CampaignSummary extends Data
 {
     /**
-     * @param  ?int  $emailByok  Email campaigns via BYOK providers (customer's own SendGrid, Mailgun)
      * @param  ?int  $emailManaged  Email campaigns via managed providers (SendGrid Managed, SES)
+     * @param  ?int  $emailByok  Email campaigns via BYOK providers (customer's own SendGrid, Mailgun)
      * @param  ?int  $push  Browser push campaign messages
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $emailByok,
         public ?int $emailManaged,
+        public ?int $emailByok,
         public ?int $push,
         array $raw = [],
     ) {
@@ -39,8 +39,8 @@ final readonly class CampaignSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            emailByok: $attributes->nullableInt('email_byok'),
             emailManaged: $attributes->nullableInt('email_managed'),
+            emailByok: $attributes->nullableInt('email_byok'),
             push: $attributes->nullableInt('push'),
             raw: $data,
         );

@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UnsubscribeList extends Data
 {
     /**
+     * @param  list<UnsubscribeItem>  $unsubscribes  List of unsubscribes
+     * @param  int  $total  Total count
      * @param  int  $limit  Items per page
      * @param  int  $offset  Current offset
-     * @param  int  $total  Total count
-     * @param  list<UnsubscribeItem>  $unsubscribes  List of unsubscribes
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public array $unsubscribes,
+        public int $total,
         public int $limit,
         public int $offset,
-        public int $total,
-        public array $unsubscribes,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class UnsubscribeList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            unsubscribes: $attributes->list('unsubscribes', UnsubscribeItem::fromArray(...)),
+            total: $attributes->int('total'),
             limit: $attributes->int('limit'),
             offset: $attributes->int('offset'),
-            total: $attributes->int('total'),
-            unsubscribes: $attributes->list('unsubscribes', UnsubscribeItem::fromArray(...)),
             raw: $data,
         );
     }

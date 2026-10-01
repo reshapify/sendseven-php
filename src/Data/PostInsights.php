@@ -21,15 +21,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PostInsights extends Data
 {
     /**
-     * @param  ?string  $lastRefreshedAt  The OLDEST per-target `last_refreshed_at` — i.e. the staleness of the stalest number in this response. Null when no target is cached yet.
      * @param  string  $retrievedAt  When THIS response was assembled (server time).
+     * @param  ?string  $lastRefreshedAt  The OLDEST per-target `last_refreshed_at` — i.e. the staleness of the stalest number in this response. Null when no target is cached yet.
      * @param  list<SocialInsightsTarget>  $targets
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $lastRefreshedAt,
         public string $postId,
         public string $retrievedAt,
+        public ?string $lastRefreshedAt,
         public array $targets,
         array $raw = [],
     ) {
@@ -44,9 +44,9 @@ final readonly class PostInsights extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
             postId: $attributes->string('post_id'),
             retrievedAt: $attributes->string('retrieved_at'),
+            lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
             targets: $attributes->list('targets', SocialInsightsTarget::fromArray(...)),
             raw: $data,
         );

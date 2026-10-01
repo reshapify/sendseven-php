@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailTemplatePreview extends Data
 {
     /**
-     * @param  ?string  $contentType  Content type of the previewed template
+     * @param  ?string  $htmlContent  Fully compiled HTML with contact data substituted (html type)
+     * @param  ?string  $textContent  Compiled plain text with contact data substituted (plain_text type)
+     * @param  string  $subjectLine  Compiled subject line
      * @param  ?string  $fromEmail  Resolved sender email address
      * @param  ?string  $fromName  Resolved sender display name
-     * @param  ?string  $htmlContent  Fully compiled HTML with contact data substituted (html type)
-     * @param  string  $subjectLine  Compiled subject line
-     * @param  ?string  $textContent  Compiled plain text with contact data substituted (plain_text type)
      * @param  list<string>  $variablesUsed  List of variables in the template
+     * @param  ?string  $contentType  Content type of the previewed template
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contentType,
+        public ?string $htmlContent,
+        public ?string $textContent,
+        public string $subjectLine,
         public ?string $fromEmail,
         public ?string $fromName,
-        public ?string $htmlContent,
-        public string $subjectLine,
-        public ?string $textContent,
         public array $variablesUsed,
+        public ?string $contentType,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class EmailTemplatePreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contentType: $attributes->nullableString('content_type'),
+            htmlContent: $attributes->nullableString('html_content'),
+            textContent: $attributes->nullableString('text_content'),
+            subjectLine: $attributes->string('subject_line'),
             fromEmail: $attributes->nullableString('from_email'),
             fromName: $attributes->nullableString('from_name'),
-            htmlContent: $attributes->nullableString('html_content'),
-            subjectLine: $attributes->string('subject_line'),
-            textContent: $attributes->nullableString('text_content'),
             variablesUsed: $attributes->strings('variables_used'),
+            contentType: $attributes->nullableString('content_type'),
             raw: $data,
         );
     }

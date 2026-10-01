@@ -17,41 +17,41 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailContactImportSummary extends Data
 {
     /**
-     * @param  ?int  $created  New contacts created (same value as 'imported'; explicit name for the created/matched breakdown).
-     * @param  ?int  $duplicateBlockedCount  Rows blocked because the duplicate_mode was dont_allow_duplicates and the row matched an existing contact. The row was NOT imported and NOT merged.
-     * @param  int  $duplicates  Duplicate contacts skipped
-     * @param  list<string>  $errors  Error messages
+     * @param  int  $total  Total rows in CSV
      * @param  int  $imported  Successfully imported contacts
+     * @param  int  $duplicates  Duplicate contacts skipped
      * @param  int  $invalidRows  Invalid rows (empty or bad email format)
-     * @param  ?int  $matchedByContactMethod  Rows matched to an existing contact by email/phone/whatsapp_id and updated in place (duplicate_mode=update_existing).
-     * @param  ?int  $matchedById  Rows matched to an existing contact via the contact_id UUID column and updated in place.
+     * @param  list<string>  $errors  Error messages
      * @param  ?int  $mergedCount  Rows that auto-merged into an existing contact (auto_merge mode or live_chat-source resurrection). Counted separately from imported (which represents NEW contacts created).
-     * @param  array<array-key, mixed>  $postActions  Result of the optional post-import actions (apply_tag_ids / apply_custom_field), e.g. {"tagged_contacts": 12, "custom_field_set_contacts": 12, "tag_ids": [...], "field_id": "..."}. Null when no action was requested.
+     * @param  ?int  $duplicateBlockedCount  Rows blocked because the duplicate_mode was dont_allow_duplicates and the row matched an existing contact. The row was NOT imported and NOT merged.
+     * @param  ?int  $updatedCount  Rows that updated an existing matched contact under duplicate_mode=update_existing (standard + EAV custom fields). Counted separately from imported (new contacts) and merged.
      * @param  ?int  $skippedFieldValues  Per-field custom-field values skipped during parse because they failed SELECT/MULTISELECT option validation or ISO date validation. The owning row was still imported. See errors[] for the per-value warnings.
      * @param  ?int  $subscriptionsCreated  Total ContactSubscription rows created across all channel targets.
      * @param  array<array-key, mixed>  $subscriptionsSkipped  Per-channel count of subscription targets skipped because the contact lacked the required method (e.g. {"whatsapp": 3}).
-     * @param  int  $total  Total rows in CSV
+     * @param  ?int  $created  New contacts created (same value as 'imported'; explicit name for the created/matched breakdown).
+     * @param  ?int  $matchedById  Rows matched to an existing contact via the contact_id UUID column and updated in place.
+     * @param  ?int  $matchedByContactMethod  Rows matched to an existing contact by email/phone/whatsapp_id and updated in place (duplicate_mode=update_existing).
      * @param  ?int  $unknownContactIdRows  Rows carrying a contact_id UUID that does not exist in this workspace. These rows are ERRORS (listed in errors[]) and never create a contact.
-     * @param  ?int  $updatedCount  Rows that updated an existing matched contact under duplicate_mode=update_existing (standard + EAV custom fields). Counted separately from imported (new contacts) and merged.
+     * @param  array<array-key, mixed>  $postActions  Result of the optional post-import actions (apply_tag_ids / apply_custom_field), e.g. {"tagged_contacts": 12, "custom_field_set_contacts": 12, "tag_ids": [...], "field_id": "..."}. Null when no action was requested.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $created,
-        public ?int $duplicateBlockedCount,
-        public int $duplicates,
-        public array $errors,
+        public int $total,
         public int $imported,
+        public int $duplicates,
         public int $invalidRows,
-        public ?int $matchedByContactMethod,
-        public ?int $matchedById,
+        public array $errors,
         public ?int $mergedCount,
-        public array $postActions,
+        public ?int $duplicateBlockedCount,
+        public ?int $updatedCount,
         public ?int $skippedFieldValues,
         public ?int $subscriptionsCreated,
         public array $subscriptionsSkipped,
-        public int $total,
+        public ?int $created,
+        public ?int $matchedById,
+        public ?int $matchedByContactMethod,
         public ?int $unknownContactIdRows,
-        public ?int $updatedCount,
+        public array $postActions,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -65,22 +65,22 @@ final readonly class EmailContactImportSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            created: $attributes->nullableInt('created'),
-            duplicateBlockedCount: $attributes->nullableInt('duplicate_blocked_count'),
-            duplicates: $attributes->int('duplicates'),
-            errors: $attributes->strings('errors'),
+            total: $attributes->int('total'),
             imported: $attributes->int('imported'),
+            duplicates: $attributes->int('duplicates'),
             invalidRows: $attributes->int('invalid_rows'),
-            matchedByContactMethod: $attributes->nullableInt('matched_by_contact_method'),
-            matchedById: $attributes->nullableInt('matched_by_id'),
+            errors: $attributes->strings('errors'),
             mergedCount: $attributes->nullableInt('merged_count'),
-            postActions: $attributes->array('post_actions'),
+            duplicateBlockedCount: $attributes->nullableInt('duplicate_blocked_count'),
+            updatedCount: $attributes->nullableInt('updated_count'),
             skippedFieldValues: $attributes->nullableInt('skipped_field_values'),
             subscriptionsCreated: $attributes->nullableInt('subscriptions_created'),
             subscriptionsSkipped: $attributes->array('subscriptions_skipped'),
-            total: $attributes->int('total'),
+            created: $attributes->nullableInt('created'),
+            matchedById: $attributes->nullableInt('matched_by_id'),
+            matchedByContactMethod: $attributes->nullableInt('matched_by_contact_method'),
             unknownContactIdRows: $attributes->nullableInt('unknown_contact_id_rows'),
-            updatedCount: $attributes->nullableInt('updated_count'),
+            postActions: $attributes->array('post_actions'),
             raw: $data,
         );
     }

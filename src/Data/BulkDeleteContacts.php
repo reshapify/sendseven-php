@@ -21,9 +21,9 @@ final readonly class BulkDeleteContacts extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public int $successCount,
         public int $failedCount,
         public array $failedIds,
-        public int $successCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,9 +37,9 @@ final readonly class BulkDeleteContacts extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            successCount: $attributes->int('success_count'),
             failedCount: $attributes->int('failed_count'),
             failedIds: $attributes->strings('failed_ids'),
-            successCount: $attributes->int('success_count'),
             raw: $data,
         );
     }

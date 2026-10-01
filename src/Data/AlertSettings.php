@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AlertSettings extends Data
 {
     /**
-     * @param  ?float  $monthlyPaidCapEuros  Monthly paid-alert spend cap in EUR. None = uncapped.
      * @param  array<array-key, mixed>  $severityMatrix  severity → list of channels, e.g. {"warning": ["email","in_app"], "severe": ["email","sms"]}. None = catalog defaults.
      * @param  array<array-key, mixed>  $typeOverrides  Per-alert-type channel overrides. None = none.
+     * @param  ?float  $monthlyPaidCapEuros  Monthly paid-alert spend cap in EUR. None = uncapped.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $billingAccountId,
-        public ?bool $emailAlwaysOn,
-        public string $id,
         public ?string $mode,
-        public ?float $monthlyPaidCapEuros,
-        public string $scope,
         public array $severityMatrix,
-        public ?string $tenantId,
         public array $typeOverrides,
+        public ?bool $emailAlwaysOn,
+        public ?float $monthlyPaidCapEuros,
+        public string $id,
+        public string $billingAccountId,
+        public ?string $tenantId,
+        public string $scope,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,15 +45,15 @@ final readonly class AlertSettings extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            billingAccountId: $attributes->string('billing_account_id'),
-            emailAlwaysOn: $attributes->nullableBool('email_always_on'),
-            id: $attributes->string('id'),
             mode: $attributes->nullableString('mode'),
-            monthlyPaidCapEuros: $attributes->nullableFloat('monthly_paid_cap_euros'),
-            scope: $attributes->string('scope'),
             severityMatrix: $attributes->array('severity_matrix'),
-            tenantId: $attributes->nullableString('tenant_id'),
             typeOverrides: $attributes->array('type_overrides'),
+            emailAlwaysOn: $attributes->nullableBool('email_always_on'),
+            monthlyPaidCapEuros: $attributes->nullableFloat('monthly_paid_cap_euros'),
+            id: $attributes->string('id'),
+            billingAccountId: $attributes->string('billing_account_id'),
+            tenantId: $attributes->nullableString('tenant_id'),
+            scope: $attributes->string('scope'),
             raw: $data,
         );
     }

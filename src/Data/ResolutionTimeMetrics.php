@@ -19,19 +19,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ResolutionTimeMetrics extends Data
 {
     /**
+     * @param  int  $totalClosedConversations  Total number of closed conversations in the period
      * @param  ?float  $averageResolutionHours  Average time to resolution in hours
      * @param  list<ChannelResolutionTime>  $byChannel  Breakdown by channel type
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  string  $periodStart  Start of the reporting period (ISO format)
-     * @param  int  $totalClosedConversations  Total number of closed conversations in the period
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public int $totalClosedConversations,
         public ?float $averageResolutionHours,
         public array $byChannel,
-        public string $periodEnd,
         public string $periodStart,
-        public int $totalClosedConversations,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,11 +45,11 @@ final readonly class ResolutionTimeMetrics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            totalClosedConversations: $attributes->int('total_closed_conversations'),
             averageResolutionHours: $attributes->nullableFloat('average_resolution_hours'),
             byChannel: $attributes->list('by_channel', ChannelResolutionTime::fromArray(...)),
-            periodEnd: $attributes->string('period_end'),
             periodStart: $attributes->string('period_start'),
-            totalClosedConversations: $attributes->int('total_closed_conversations'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

@@ -19,49 +19,49 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelConnectToken extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $allowedChannelModes  Per-channel connect-mode restrictions as authored by the admin. Null (or an absent channel key) means all modes are allowed for that channel.
-     * @param  list<string>  $allowedChannelTypes  Allowed channel types
-     * @param  ?string  $connectUrl  Full connect URL for sharing
-     * @param  string  $createdAt  When token was created
-     * @param  ?string  $createdByUserId  User who created the token
-     * @param  int  $currentUses  Current number of successful connections
-     * @param  string  $expiresAt  Token expiration time
-     * @param  ?string  $firstUsedAt  When token was first used
      * @param  string  $id  Unique identifier (UUID)
-     * @param  bool  $isLocked  Whether token was locked due to failures
-     * @param  bool  $isRevoked  Whether token was manually revoked
-     * @param  bool  $isValid  Whether token is currently usable
-     * @param  int  $maxUses  Maximum allowed uses
      * @param  ?string  $name  Token name
+     * @param  string  $tokenPrefix  Token prefix for display (e.g., 's7_cc_abc12345')
+     * @param  list<string>  $allowedChannelTypes  Allowed channel types
+     * @param  array<array-key, mixed>  $allowedChannelModes  Per-channel connect-mode restrictions as authored by the admin. Null (or an absent channel key) means all modes are allowed for that channel.
      * @param  ?string  $partnerName  Partner name
      * @param  ?string  $partnerRedirectUrl  Redirect URL after connection
-     * @param  int  $remainingUses  Number of remaining uses
-     * @param  ?string  $revokedAt  When token was revoked
-     * @param  string  $tokenPrefix  Token prefix for display (e.g., 's7_cc_abc12345')
+     * @param  ?string  $connectUrl  Full connect URL for sharing
+     * @param  int  $maxUses  Maximum allowed uses
+     * @param  int  $currentUses  Current number of successful connections
      * @param  int  $useWindowMinutes  Grace period after first use
+     * @param  ?string  $firstUsedAt  When token was first used
+     * @param  string  $expiresAt  Token expiration time
+     * @param  bool  $isRevoked  Whether token was manually revoked
+     * @param  bool  $isLocked  Whether token was locked due to failures
+     * @param  bool  $isValid  Whether token is currently usable
+     * @param  int  $remainingUses  Number of remaining uses
+     * @param  string  $createdAt  When token was created
+     * @param  ?string  $revokedAt  When token was revoked
+     * @param  ?string  $createdByUserId  User who created the token
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $allowedChannelModes,
-        public array $allowedChannelTypes,
-        public ?string $connectUrl,
-        public string $createdAt,
-        public ?string $createdByUserId,
-        public int $currentUses,
-        public string $expiresAt,
-        public ?string $firstUsedAt,
         public string $id,
-        public bool $isLocked,
-        public bool $isRevoked,
-        public bool $isValid,
-        public int $maxUses,
         public ?string $name,
+        public string $tokenPrefix,
+        public array $allowedChannelTypes,
+        public array $allowedChannelModes,
         public ?string $partnerName,
         public ?string $partnerRedirectUrl,
-        public int $remainingUses,
-        public ?string $revokedAt,
-        public string $tokenPrefix,
+        public ?string $connectUrl,
+        public int $maxUses,
+        public int $currentUses,
         public int $useWindowMinutes,
+        public ?string $firstUsedAt,
+        public string $expiresAt,
+        public bool $isRevoked,
+        public bool $isLocked,
+        public bool $isValid,
+        public int $remainingUses,
+        public string $createdAt,
+        public ?string $revokedAt,
+        public ?string $createdByUserId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -75,26 +75,26 @@ final readonly class ChannelConnectToken extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allowedChannelModes: $attributes->array('allowed_channel_modes'),
-            allowedChannelTypes: $attributes->strings('allowed_channel_types'),
-            connectUrl: $attributes->nullableString('connect_url'),
-            createdAt: $attributes->string('created_at'),
-            createdByUserId: $attributes->nullableString('created_by_user_id'),
-            currentUses: $attributes->int('current_uses'),
-            expiresAt: $attributes->string('expires_at'),
-            firstUsedAt: $attributes->nullableString('first_used_at'),
             id: $attributes->string('id'),
-            isLocked: $attributes->bool('is_locked'),
-            isRevoked: $attributes->bool('is_revoked'),
-            isValid: $attributes->bool('is_valid'),
-            maxUses: $attributes->int('max_uses'),
             name: $attributes->nullableString('name'),
+            tokenPrefix: $attributes->string('token_prefix'),
+            allowedChannelTypes: $attributes->strings('allowed_channel_types'),
+            allowedChannelModes: $attributes->array('allowed_channel_modes'),
             partnerName: $attributes->nullableString('partner_name'),
             partnerRedirectUrl: $attributes->nullableString('partner_redirect_url'),
-            remainingUses: $attributes->int('remaining_uses'),
-            revokedAt: $attributes->nullableString('revoked_at'),
-            tokenPrefix: $attributes->string('token_prefix'),
+            connectUrl: $attributes->nullableString('connect_url'),
+            maxUses: $attributes->int('max_uses'),
+            currentUses: $attributes->int('current_uses'),
             useWindowMinutes: $attributes->int('use_window_minutes'),
+            firstUsedAt: $attributes->nullableString('first_used_at'),
+            expiresAt: $attributes->string('expires_at'),
+            isRevoked: $attributes->bool('is_revoked'),
+            isLocked: $attributes->bool('is_locked'),
+            isValid: $attributes->bool('is_valid'),
+            remainingUses: $attributes->int('remaining_uses'),
+            createdAt: $attributes->string('created_at'),
+            revokedAt: $attributes->nullableString('revoked_at'),
+            createdByUserId: $attributes->nullableString('created_by_user_id'),
             raw: $data,
         );
     }

@@ -18,27 +18,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UnsubscribeItem extends Data
 {
     /**
-     * @param  ?string  $campaignId  Campaign ID if applicable
-     * @param  string  $contactId  Contact ID
-     * @param  string  $email  Email address that unsubscribed
-     * @param  ?string  $emailCampaignId  Email campaign ID if applicable
      * @param  string  $id  Unsubscribe token ID
-     * @param  ?string  $ipAddress  IP address of unsubscribe request
+     * @param  string  $email  Email address that unsubscribed
+     * @param  string  $contactId  Contact ID
+     * @param  ?string  $campaignId  Campaign ID if applicable
+     * @param  ?string  $emailCampaignId  Email campaign ID if applicable
+     * @param  ?DateTimeImmutable  $unsubscribedAt  When the unsubscribe occurred
      * @param  ?string  $method  Unsubscribe method
      * @param  ?string  $reason  Reason for unsubscribing
-     * @param  ?DateTimeImmutable  $unsubscribedAt  When the unsubscribe occurred
+     * @param  ?string  $ipAddress  IP address of unsubscribe request
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $campaignId,
-        public string $contactId,
-        public string $email,
-        public ?string $emailCampaignId,
         public string $id,
-        public ?string $ipAddress,
+        public string $email,
+        public string $contactId,
+        public ?string $campaignId,
+        public ?string $emailCampaignId,
+        public ?DateTimeImmutable $unsubscribedAt,
         public ?string $method,
         public ?string $reason,
-        public ?DateTimeImmutable $unsubscribedAt,
+        public ?string $ipAddress,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -52,15 +52,15 @@ final readonly class UnsubscribeItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            campaignId: $attributes->nullableString('campaign_id'),
-            contactId: $attributes->string('contact_id'),
-            email: $attributes->string('email'),
-            emailCampaignId: $attributes->nullableString('email_campaign_id'),
             id: $attributes->string('id'),
-            ipAddress: $attributes->nullableString('ip_address'),
+            email: $attributes->string('email'),
+            contactId: $attributes->string('contact_id'),
+            campaignId: $attributes->nullableString('campaign_id'),
+            emailCampaignId: $attributes->nullableString('email_campaign_id'),
+            unsubscribedAt: $attributes->nullableDateTime('unsubscribed_at'),
             method: $attributes->nullableString('method'),
             reason: $attributes->nullableString('reason'),
-            unsubscribedAt: $attributes->nullableDateTime('unsubscribed_at'),
+            ipAddress: $attributes->nullableString('ip_address'),
             raw: $data,
         );
     }

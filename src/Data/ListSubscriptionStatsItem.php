@@ -18,16 +18,16 @@ final readonly class ListSubscriptionStatsItem extends Data
 {
     /**
      * @param  string  $listId  List UUID
-     * @param  int  $netChange  opt_ins - opt_outs
      * @param  int  $optIns  Confirmed opt-ins whose opt-in timestamp falls in the window
      * @param  int  $optOuts  Opt-outs (status=unsubscribed) whose unsubscribed_at falls in the window
+     * @param  int  $netChange  opt_ins - opt_outs
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $listId,
-        public int $netChange,
         public int $optIns,
         public int $optOuts,
+        public int $netChange,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,9 +42,9 @@ final readonly class ListSubscriptionStatsItem extends Data
 
         return new self(
             listId: $attributes->string('list_id'),
-            netChange: $attributes->int('net_change'),
             optIns: $attributes->int('opt_ins'),
             optOuts: $attributes->int('opt_outs'),
+            netChange: $attributes->int('net_change'),
             raw: $data,
         );
     }

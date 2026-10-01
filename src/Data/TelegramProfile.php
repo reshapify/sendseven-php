@@ -21,15 +21,15 @@ final readonly class TelegramProfile extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?string $name,
+        public ?string $username,
+        public ?string $displayName,
+        public ?string $description,
+        public ?string $shortDescription,
+        public array $commands,
         public ?bool $canJoinGroups,
         public ?bool $canReadAllGroupMessages,
-        public array $commands,
-        public ?string $description,
-        public ?string $displayName,
-        public ?string $name,
-        public ?string $shortDescription,
         public ?bool $supportsInlineQueries,
-        public ?string $username,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,15 +43,15 @@ final readonly class TelegramProfile extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            name: $attributes->nullableString('name'),
+            username: $attributes->nullableString('username'),
+            displayName: $attributes->nullableString('display_name'),
+            description: $attributes->nullableString('description'),
+            shortDescription: $attributes->nullableString('short_description'),
+            commands: $attributes->list('commands', TelegramBotCommand::fromArray(...)),
             canJoinGroups: $attributes->nullableBool('can_join_groups'),
             canReadAllGroupMessages: $attributes->nullableBool('can_read_all_group_messages'),
-            commands: $attributes->list('commands', TelegramBotCommand::fromArray(...)),
-            description: $attributes->nullableString('description'),
-            displayName: $attributes->nullableString('display_name'),
-            name: $attributes->nullableString('name'),
-            shortDescription: $attributes->nullableString('short_description'),
             supportsInlineQueries: $attributes->nullableBool('supports_inline_queries'),
-            username: $attributes->nullableString('username'),
             raw: $data,
         );
     }

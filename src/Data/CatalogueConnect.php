@@ -23,9 +23,9 @@ final readonly class CatalogueConnect extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public ?string $catalogId,
         public ?bool $sameCatalog,
-        public bool $success,
         public ?string $warning,
         array $raw = [],
     ) {
@@ -40,9 +40,9 @@ final readonly class CatalogueConnect extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             catalogId: $attributes->nullableString('catalog_id'),
             sameCatalog: $attributes->nullableBool('same_catalog'),
-            success: $attributes->bool('success'),
             warning: $attributes->nullableString('warning'),
             raw: $data,
         );

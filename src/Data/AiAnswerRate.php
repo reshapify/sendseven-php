@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AiAnswerRate extends Data
 {
     /**
-     * @param  ?string  $correctionId  The kb_corrections id when correction_opened is true — link the user to /knowledge-base/corrections. Null otherwise.
      * @param  ?bool  $correctionOpened  True when this rating opened a KB correction and queued it for AI analysis. Always true for 'wrong'; true for 'down' only when the rater wrote substantive text in comment and/or better_answer. False means the verdict was recorded as a score signal only — the UI should NOT promise the feedback becomes a FAQ entry.
+     * @param  ?string  $correctionId  The kb_corrections id when correction_opened is true — link the user to /knowledge-base/corrections. Null otherwise.
      * @param  list<EntryScoreUpdate>  $updatedEntries
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $aiAnswerEventId,
-        public ?string $correctionId,
-        public ?bool $correctionOpened,
-        public AiAnswerRatingSummary $rating,
         public ?bool $success,
+        public AiAnswerRatingSummary $rating,
+        public string $aiAnswerEventId,
+        public ?bool $correctionOpened,
+        public ?string $correctionId,
         public array $updatedEntries,
         array $raw = [],
     ) {
@@ -42,11 +42,11 @@ final readonly class AiAnswerRate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiAnswerEventId: $attributes->string('ai_answer_event_id'),
-            correctionId: $attributes->nullableString('correction_id'),
-            correctionOpened: $attributes->nullableBool('correction_opened'),
-            rating: $attributes->object('rating', AiAnswerRatingSummary::fromArray(...)),
             success: $attributes->nullableBool('success'),
+            rating: $attributes->object('rating', AiAnswerRatingSummary::fromArray(...)),
+            aiAnswerEventId: $attributes->string('ai_answer_event_id'),
+            correctionOpened: $attributes->nullableBool('correction_opened'),
+            correctionId: $attributes->nullableString('correction_id'),
             updatedEntries: $attributes->list('updated_entries', EntryScoreUpdate::fromArray(...)),
             raw: $data,
         );

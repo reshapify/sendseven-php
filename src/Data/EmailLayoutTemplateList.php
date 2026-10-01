@@ -21,18 +21,18 @@ final readonly class EmailLayoutTemplateList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $category,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
         public string $id,
+        public string $tenantId,
+        public string $name,
+        public ?string $description,
+        public ?string $category,
+        public ?string $thumbnailUrl,
+        public bool $isSystemTemplate,
         public ?bool $isActive,
         public ?bool $isHidden,
-        public bool $isSystemTemplate,
-        public string $name,
-        public string $tenantId,
-        public ?string $thumbnailUrl,
-        public DateTimeImmutable $updatedAt,
         public int $version,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,18 +46,18 @@ final readonly class EmailLayoutTemplateList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            category: $attributes->nullableString('category'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
             id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            description: $attributes->nullableString('description'),
+            category: $attributes->nullableString('category'),
+            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            isSystemTemplate: $attributes->bool('is_system_template'),
             isActive: $attributes->nullableBool('is_active'),
             isHidden: $attributes->nullableBool('is_hidden'),
-            isSystemTemplate: $attributes->bool('is_system_template'),
-            name: $attributes->string('name'),
-            tenantId: $attributes->string('tenant_id'),
-            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
-            updatedAt: $attributes->dateTime('updated_at'),
             version: $attributes->int('version'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );
     }

@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TrackingDomainSchema extends Data
 {
     /**
-     * @param  ?bool  $default  Whether this is the default domain
+     * @param  string  $id  Unique identifier for the domain
      * @param  string  $domain  The tracking domain (e.g., c.sendseven.com)
      * @param  string  $format  URL format pattern (e.g., /{code})
-     * @param  string  $id  Unique identifier for the domain
      * @param  string  $label  Human-readable label for the domain
+     * @param  ?bool  $default  Whether this is the default domain
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $default,
+        public string $id,
         public string $domain,
         public string $format,
-        public string $id,
         public string $label,
+        public ?bool $default,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class TrackingDomainSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            default: $attributes->nullableBool('default'),
+            id: $attributes->string('id'),
             domain: $attributes->string('domain'),
             format: $attributes->string('format'),
-            id: $attributes->string('id'),
             label: $attributes->string('label'),
+            default: $attributes->nullableBool('default'),
             raw: $data,
         );
     }

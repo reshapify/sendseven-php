@@ -18,48 +18,48 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WebhookEndpoint extends Data
 {
     /**
+     * @param  bool  $hasAuthorizationHeader  Whether an authorization header is configured (value is not exposed)
+     * @param  list<string>  $subscribedEvents
      * @param  list<string>  $filteredChannelIds
      * @param  list<string>  $filteredEmailIntegrationIds
-     * @param  bool  $hasAuthorizationHeader  Whether an authorization header is configured (value is not exposed)
-     * @param  ?string  $incidentStartedAt  Start of the current failure incident (anchors the reactivation schedule and the 12h deadline across probation cycles); null when there is no open incident
+     * @param  ?string  $verificationMethod  How this endpoint's URL ownership was established / how it is (re)verified: 'challenge' (echo-challenge handshake, the default) or 'oauth_app' (created by a third-party OAuth app; the OAuth grant is the trust anchor, so the challenge is skipped and reactivation probes via real redelivery). Read-only and derived server-side.
+     * @param  ?string  $suspendedAt  Set while the endpoint is suspended by the circuit breaker (events are queued for up to 12h)
      * @param  ?string  $nextReactivationAt  Next scheduled automatic reactivation attempt (UTC)
+     * @param  ?string  $reactivationPendingAt  Set while the endpoint is ON PROBATION: a re-verification challenge succeeded and the suspension is lifted, but the endpoint is not counted as recovered until a real event is delivered successfully. A failed delivery re-suspends it immediately.
+     * @param  ?string  $incidentStartedAt  Start of the current failure incident (anchors the reactivation schedule and the 12h deadline across probation cycles); null when there is no open incident
      * @param  ?int  $queuedEventsCount  Number of events currently queued for replay
      * @param  ?int  $queuedEventsDropped  Events dropped because the suspension queue cap was reached
-     * @param  ?string  $reactivationPendingAt  Set while the endpoint is ON PROBATION: a re-verification challenge succeeded and the suspension is lifted, but the endpoint is not counted as recovered until a real event is delivered successfully. A failed delivery re-suspends it immediately.
-     * @param  list<string>  $subscribedEvents
-     * @param  ?string  $suspendedAt  Set while the endpoint is suspended by the circuit breaker (events are queued for up to 12h)
-     * @param  ?string  $verificationMethod  How this endpoint's URL ownership was established / how it is (re)verified: 'challenge' (echo-challenge handshake, the default) or 'oauth_app' (created by a third-party OAuth app; the OAuth grant is the trust anchor, so the challenge is skipped and reactivation probes via real redelivery). Read-only and derived server-side.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $consecutiveFailures,
-        public string $createdAt,
-        public ?string $createdBy,
+        public string $id,
+        public string $tenantId,
+        public string $name,
+        public string $url,
+        public bool $hasAuthorizationHeader,
+        public array $subscribedEvents,
+        public ?string $sourceFilterMode,
         public array $filteredChannelIds,
         public array $filteredEmailIntegrationIds,
-        public bool $hasAuthorizationHeader,
-        public string $id,
-        public ?string $incidentStartedAt,
         public bool $isActive,
         public bool $isVerified,
-        public ?string $lastError,
-        public ?string $lastFailureAt,
-        public ?string $lastSuccessAt,
+        public ?string $verificationMethod,
+        public RetryStrategy|string $retryStrategy,
         public int $maxRetries,
-        public string $name,
+        public int $timeoutSeconds,
+        public ?string $lastSuccessAt,
+        public ?string $lastFailureAt,
+        public ?string $lastError,
+        public ?int $consecutiveFailures,
+        public ?string $suspendedAt,
         public ?string $nextReactivationAt,
+        public ?string $reactivationPendingAt,
+        public ?string $incidentStartedAt,
         public ?int $queuedEventsCount,
         public ?int $queuedEventsDropped,
-        public ?string $reactivationPendingAt,
-        public RetryStrategy|string $retryStrategy,
-        public ?string $sourceFilterMode,
-        public array $subscribedEvents,
-        public ?string $suspendedAt,
-        public string $tenantId,
-        public int $timeoutSeconds,
+        public string $createdAt,
         public ?string $updatedAt,
-        public string $url,
-        public ?string $verificationMethod,
+        public ?string $createdBy,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -73,34 +73,34 @@ final readonly class WebhookEndpoint extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            consecutiveFailures: $attributes->nullableInt('consecutive_failures'),
-            createdAt: $attributes->string('created_at'),
-            createdBy: $attributes->nullableString('created_by'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            url: $attributes->string('url'),
+            hasAuthorizationHeader: $attributes->bool('has_authorization_header'),
+            subscribedEvents: $attributes->strings('subscribed_events'),
+            sourceFilterMode: $attributes->nullableString('source_filter_mode'),
             filteredChannelIds: $attributes->strings('filtered_channel_ids'),
             filteredEmailIntegrationIds: $attributes->strings('filtered_email_integration_ids'),
-            hasAuthorizationHeader: $attributes->bool('has_authorization_header'),
-            id: $attributes->string('id'),
-            incidentStartedAt: $attributes->nullableString('incident_started_at'),
             isActive: $attributes->bool('is_active'),
             isVerified: $attributes->bool('is_verified'),
-            lastError: $attributes->nullableString('last_error'),
-            lastFailureAt: $attributes->nullableString('last_failure_at'),
-            lastSuccessAt: $attributes->nullableString('last_success_at'),
+            verificationMethod: $attributes->nullableString('verification_method'),
+            retryStrategy: $attributes->enum('retry_strategy', RetryStrategy::class),
             maxRetries: $attributes->int('max_retries'),
-            name: $attributes->string('name'),
+            timeoutSeconds: $attributes->int('timeout_seconds'),
+            lastSuccessAt: $attributes->nullableString('last_success_at'),
+            lastFailureAt: $attributes->nullableString('last_failure_at'),
+            lastError: $attributes->nullableString('last_error'),
+            consecutiveFailures: $attributes->nullableInt('consecutive_failures'),
+            suspendedAt: $attributes->nullableString('suspended_at'),
             nextReactivationAt: $attributes->nullableString('next_reactivation_at'),
+            reactivationPendingAt: $attributes->nullableString('reactivation_pending_at'),
+            incidentStartedAt: $attributes->nullableString('incident_started_at'),
             queuedEventsCount: $attributes->nullableInt('queued_events_count'),
             queuedEventsDropped: $attributes->nullableInt('queued_events_dropped'),
-            reactivationPendingAt: $attributes->nullableString('reactivation_pending_at'),
-            retryStrategy: $attributes->enum('retry_strategy', RetryStrategy::class),
-            sourceFilterMode: $attributes->nullableString('source_filter_mode'),
-            subscribedEvents: $attributes->strings('subscribed_events'),
-            suspendedAt: $attributes->nullableString('suspended_at'),
-            tenantId: $attributes->string('tenant_id'),
-            timeoutSeconds: $attributes->int('timeout_seconds'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->nullableString('updated_at'),
-            url: $attributes->string('url'),
-            verificationMethod: $attributes->nullableString('verification_method'),
+            createdBy: $attributes->nullableString('created_by'),
             raw: $data,
         );
     }

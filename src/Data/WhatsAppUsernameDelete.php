@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WhatsAppUsernameDelete extends Data
 {
     /**
+     * @param  bool  $success  Whether the username was released
      * @param  string  $channelId  The channel's ID
      * @param  string  $message  Human-readable status message
-     * @param  bool  $success  Whether the username was released
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public string $channelId,
         public string $message,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class WhatsAppUsernameDelete extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             channelId: $attributes->string('channel_id'),
             message: $attributes->string('message'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

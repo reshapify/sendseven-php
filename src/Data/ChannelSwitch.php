@@ -22,10 +22,10 @@ final readonly class ChannelSwitch extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $token,
         public array $deeplinks,
         public DateTimeImmutable $expiresAt,
         public string $shareTokenId,
-        public string $token,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class ChannelSwitch extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            token: $attributes->string('token'),
             deeplinks: $attributes->list('deeplinks', ChannelDeeplinkInfo::fromArray(...)),
             expiresAt: $attributes->dateTime('expires_at'),
             shareTokenId: $attributes->string('share_token_id'),
-            token: $attributes->string('token'),
             raw: $data,
         );
     }

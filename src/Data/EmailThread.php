@@ -17,22 +17,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailThread extends Data
 {
     /**
-     * @param  list<EmailThreadMessage>  $messages
-     * @param  list<EmailAddress>  $originalCc
-     * @param  list<EmailAddress>  $originalTo
      * @param  ?string  $subject  Thread subject (from first or most recent message)
+     * @param  list<EmailThreadMessage>  $messages
      * @param  ?int  $totalMessages  Total number of messages in thread
+     * @param  list<EmailAddress>  $originalTo
+     * @param  list<EmailAddress>  $originalCc
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $conversationId,
+        public ?string $threadId,
+        public ?string $subject,
         public array $messages,
-        public array $originalCc,
+        public ?int $totalMessages,
         public ?EmailAddress $originalFrom,
         public array $originalTo,
-        public ?string $subject,
-        public ?string $threadId,
-        public ?int $totalMessages,
+        public array $originalCc,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class EmailThread extends Data
 
         return new self(
             conversationId: $attributes->string('conversation_id'),
+            threadId: $attributes->nullableString('thread_id'),
+            subject: $attributes->nullableString('subject'),
             messages: $attributes->list('messages', EmailThreadMessage::fromArray(...)),
-            originalCc: $attributes->list('original_cc', EmailAddress::fromArray(...)),
+            totalMessages: $attributes->nullableInt('total_messages'),
             originalFrom: $attributes->nullableObject('original_from', EmailAddress::fromArray(...)),
             originalTo: $attributes->list('original_to', EmailAddress::fromArray(...)),
-            subject: $attributes->nullableString('subject'),
-            threadId: $attributes->nullableString('thread_id'),
-            totalMessages: $attributes->nullableInt('total_messages'),
+            originalCc: $attributes->list('original_cc', EmailAddress::fromArray(...)),
             raw: $data,
         );
     }

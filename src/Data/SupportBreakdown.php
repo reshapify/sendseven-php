@@ -23,14 +23,14 @@ final readonly class SupportBreakdown extends Data
 {
     /**
      * @param  ?int  $botMessages  Bot-sent messages in the period (rollup-sourced)
-     * @param  ?int  $emails  Transactional / single emails sent (= email.single.sent)
      * @param  ?int  $humanMessages  Human/manual agent-sent messages in the period (rollup-sourced)
+     * @param  ?int  $emails  Transactional / single emails sent (= email.single.sent)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?int $botMessages,
-        public ?int $emails,
         public ?int $humanMessages,
+        public ?int $emails,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,8 +45,8 @@ final readonly class SupportBreakdown extends Data
 
         return new self(
             botMessages: $attributes->nullableInt('bot_messages'),
-            emails: $attributes->nullableInt('emails'),
             humanMessages: $attributes->nullableInt('human_messages'),
+            emails: $attributes->nullableInt('emails'),
             raw: $data,
         );
     }

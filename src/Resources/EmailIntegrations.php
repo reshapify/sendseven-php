@@ -89,33 +89,65 @@ final readonly class EmailIntegrations
      *
      * Scopes: email_integrations:create.
      *
+     * @param  string  $name  Integration name
      * @param  string  $emailAddress  Email address for this integration
      * @param  EmailIntegrationType|string  $integrationType  Type of integration (gmail, smtp_imap, sendgrid, ses_managed, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type.
-     * @param  string  $name  Integration name
-     * @param  list<string>|null  $acceptedAliases  Additional email aliases that are accepted
-     * @param  ?string  $defaultSignature  Default email signature
+     * @param  array<string, mixed>|null  $smtpConfig
      * @param  array<string, mixed>|null  $imapConfig
-     * @param  ?bool  $includeSignature  Include signature in outgoing emails
-     * @param  ?int  $initialSyncHours  How many hours back to pull emails on first connection. Options: 0 (from now only), 24 (1 day), 72 (3 days), 168 (1 week), 336 (2 weeks), 720 (1 month)
-     * @param  ?string  $outboundMailboxId  ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies.
-     * @param  ?string  $outboundProviderId  DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending.
-     * @param  ?string  $proxyForwardTo  Email to forward proxy emails to
-     * @param  ?string  $recipientValidationMode  Recipient validation mode: 'any', 'strict', or 'whitelist'
      * @param  ?string  $sesDomain  Domain for SES verification
      * @param  ?string  $sesReputationPolicy  SES reputation policy
-     * @param  array<string, mixed>|null  $smtpConfig
+     * @param  ?string  $proxyForwardTo  Email to forward proxy emails to
+     * @param  ?string  $outboundMailboxId  ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies.
+     * @param  ?string  $outboundProviderId  DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending.
+     * @param  ?string  $recipientValidationMode  Recipient validation mode: 'any', 'strict', or 'whitelist'
+     * @param  list<string>|null  $acceptedAliases  Additional email aliases that are accepted
+     * @param  ?string  $defaultSignature  Default email signature
+     * @param  ?bool  $includeSignature  Include signature in outgoing emails
+     * @param  ?int  $initialSyncHours  How many hours back to pull emails on first connection. Options: 0 (from now only), 24 (1 day), 72 (3 days), 168 (1 week), 336 (2 weeks), 720 (1 month)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/create_email_integration_api_v1_email_integrations_post
      */
-    public function create(string $emailAddress, EmailIntegrationType|string $integrationType, string $name, ?array $acceptedAliases = null, ?string $defaultSignature = null, ?array $imapConfig = null, ?bool $includeSignature = null, ?int $initialSyncHours = null, ?string $outboundMailboxId = null, ?string $outboundProviderId = null, ?string $proxyForwardTo = null, ?string $recipientValidationMode = null, ?string $sesDomain = null, ?string $sesReputationPolicy = null, ?array $smtpConfig = null, ?string $idempotencyKey = null): EmailIntegrationCreateResponse
-    {
+    public function create(
+        string $name,
+        string $emailAddress,
+        EmailIntegrationType|string $integrationType,
+        ?array $smtpConfig = null,
+        ?array $imapConfig = null,
+        ?string $sesDomain = null,
+        ?string $sesReputationPolicy = null,
+        ?string $proxyForwardTo = null,
+        ?string $outboundMailboxId = null,
+        ?string $outboundProviderId = null,
+        ?string $recipientValidationMode = null,
+        ?array $acceptedAliases = null,
+        ?string $defaultSignature = null,
+        ?bool $includeSignature = null,
+        ?int $initialSyncHours = null,
+        ?string $idempotencyKey = null,
+    ): EmailIntegrationCreateResponse {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations',
-            body: Payload::body(['email_address' => $emailAddress, 'integration_type' => $integrationType, 'name' => $name, 'accepted_aliases' => $acceptedAliases, 'default_signature' => $defaultSignature, 'imap_config' => $imapConfig, 'include_signature' => $includeSignature, 'initial_sync_hours' => $initialSyncHours, 'outbound_mailbox_id' => $outboundMailboxId, 'outbound_provider_id' => $outboundProviderId, 'proxy_forward_to' => $proxyForwardTo, 'recipient_validation_mode' => $recipientValidationMode, 'ses_domain' => $sesDomain, 'ses_reputation_policy' => $sesReputationPolicy, 'smtp_config' => $smtpConfig]),
+            body: Payload::body([
+                'name' => $name,
+                'email_address' => $emailAddress,
+                'integration_type' => $integrationType,
+                'smtp_config' => $smtpConfig,
+                'imap_config' => $imapConfig,
+                'ses_domain' => $sesDomain,
+                'ses_reputation_policy' => $sesReputationPolicy,
+                'proxy_forward_to' => $proxyForwardTo,
+                'outbound_mailbox_id' => $outboundMailboxId,
+                'outbound_provider_id' => $outboundProviderId,
+                'recipient_validation_mode' => $recipientValidationMode,
+                'accepted_aliases' => $acceptedAliases,
+                'default_signature' => $defaultSignature,
+                'include_signature' => $includeSignature,
+                'initial_sync_hours' => $initialSyncHours,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -188,20 +220,28 @@ final readonly class EmailIntegrations
      * Scopes: email_integrations:update.
      *
      * @param  string  $emailAddress  Email address to block
-     * @param  ?bool  $hideExistingMessages  Also hide all existing messages from this sender
      * @param  ?string  $reason  Reason for blocking
+     * @param  ?bool  $hideExistingMessages  Also hide all existing messages from this sender
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/block_sender_directly_api_v1_email_integrations_blocked_senders_post
      */
-    public function blockSenderDirectly(string $emailAddress, ?bool $hideExistingMessages = null, ?string $reason = null, ?string $idempotencyKey = null): BlockedSender
-    {
+    public function blockSenderDirectly(
+        string $emailAddress,
+        ?string $reason = null,
+        ?bool $hideExistingMessages = null,
+        ?string $idempotencyKey = null,
+    ): BlockedSender {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/blocked-senders',
-            body: Payload::body(['email_address' => $emailAddress, 'hide_existing_messages' => $hideExistingMessages, 'reason' => $reason]),
+            body: Payload::body([
+                'email_address' => $emailAddress,
+                'reason' => $reason,
+                'hide_existing_messages' => $hideExistingMessages,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -264,25 +304,44 @@ final readonly class EmailIntegrations
      * Scopes: email_integrations:update, messages:create.
      *
      * @param  string  $subject  Email subject
-     * @param  list<string>|null  $attachmentIds  IDs of attachments to include
-     * @param  list<string>|null  $bccEmails  BCC recipients
-     * @param  list<string>|null  $ccEmails  CC recipients
-     * @param  ?string  $htmlBody  HTML body (for rich text)
-     * @param  ?string  $senderId  Override the connection used to send this email. Must be one of the ids returned by GET /api/v1/inboxes/{id}/sender-options (or, when composing inside an existing conversation, /api/v1/conversations/{id}/sender-options).
      * @param  ?string  $textBody  Plain text body
+     * @param  ?string  $htmlBody  HTML body (for rich text)
      * @param  ?string  $toEmail  Explicit recipient address. Honored over the contact's primary email; falls back to the contact's primary email when omitted.
+     * @param  list<string>|null  $ccEmails  CC recipients
+     * @param  list<string>|null  $bccEmails  BCC recipients
+     * @param  list<string>|null  $attachmentIds  IDs of attachments to include
+     * @param  ?string  $senderId  Override the connection used to send this email. Must be one of the ids returned by GET /api/v1/inboxes/{id}/sender-options (or, when composing inside an existing conversation, /api/v1/conversations/{id}/sender-options).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/compose_new_email_api_v1_email_integrations_conversations__conversation_id__compose_email_post
      */
-    public function composeNew(string $conversationId, string $subject, ?array $attachmentIds = null, ?array $bccEmails = null, ?array $ccEmails = null, ?string $htmlBody = null, ?string $senderId = null, ?string $textBody = null, ?string $toEmail = null, ?string $idempotencyKey = null): EmailReply
-    {
+    public function composeNew(
+        string $conversationId,
+        string $subject,
+        ?string $textBody = null,
+        ?string $htmlBody = null,
+        ?string $toEmail = null,
+        ?array $ccEmails = null,
+        ?array $bccEmails = null,
+        ?array $attachmentIds = null,
+        ?string $senderId = null,
+        ?string $idempotencyKey = null,
+    ): EmailReply {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/conversations/'.Payload::segment($conversationId).'/compose-email',
-            body: Payload::body(['subject' => $subject, 'attachment_ids' => $attachmentIds, 'bcc_emails' => $bccEmails, 'cc_emails' => $ccEmails, 'html_body' => $htmlBody, 'sender_id' => $senderId, 'text_body' => $textBody, 'to_email' => $toEmail]),
+            body: Payload::body([
+                'subject' => $subject,
+                'text_body' => $textBody,
+                'html_body' => $htmlBody,
+                'to_email' => $toEmail,
+                'cc_emails' => $ccEmails,
+                'bcc_emails' => $bccEmails,
+                'attachment_ids' => $attachmentIds,
+                'sender_id' => $senderId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -304,22 +363,35 @@ final readonly class EmailIntegrations
      * Scopes: email_integrations:update, messages:create.
      *
      * @param  string  $emailContentId  ID of the EmailContent template to use
-     * @param  list<string>|null  $bccEmails  BCC recipients
-     * @param  list<string>|null  $ccEmails  CC recipients
-     * @param  ?bool  $includeSignature  Whether to include email signature
      * @param  array<string, mixed>|null  $variableOverrides  Override template variable values before compilation
+     * @param  list<string>|null  $ccEmails  CC recipients
+     * @param  list<string>|null  $bccEmails  BCC recipients
+     * @param  ?bool  $includeSignature  Whether to include email signature
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/compose_from_template_api_v1_email_integrations_conversations__conversation_id__compose_from_template_post
      */
-    public function composeFromTemplate(string $conversationId, string $emailContentId, ?array $bccEmails = null, ?array $ccEmails = null, ?bool $includeSignature = null, ?array $variableOverrides = null, ?string $idempotencyKey = null): EmailReply
-    {
+    public function composeFromTemplate(
+        string $conversationId,
+        string $emailContentId,
+        ?array $variableOverrides = null,
+        ?array $ccEmails = null,
+        ?array $bccEmails = null,
+        ?bool $includeSignature = null,
+        ?string $idempotencyKey = null,
+    ): EmailReply {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/conversations/'.Payload::segment($conversationId).'/compose-from-template',
-            body: Payload::body(['email_content_id' => $emailContentId, 'bcc_emails' => $bccEmails, 'cc_emails' => $ccEmails, 'include_signature' => $includeSignature, 'variable_overrides' => $variableOverrides]),
+            body: Payload::body([
+                'email_content_id' => $emailContentId,
+                'variable_overrides' => $variableOverrides,
+                'cc_emails' => $ccEmails,
+                'bcc_emails' => $bccEmails,
+                'include_signature' => $includeSignature,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -403,12 +475,19 @@ final readonly class EmailIntegrations
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/preview_template_api_v1_email_integrations_conversations__conversation_id__preview_template_post
      */
-    public function previewTemplate(string $conversationId, string $emailContentId, ?array $variableOverrides = null, ?string $idempotencyKey = null): EmailTemplatePreview
-    {
+    public function previewTemplate(
+        string $conversationId,
+        string $emailContentId,
+        ?array $variableOverrides = null,
+        ?string $idempotencyKey = null,
+    ): EmailTemplatePreview {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/conversations/'.Payload::segment($conversationId).'/preview-template',
-            body: Payload::body(['email_content_id' => $emailContentId, 'variable_overrides' => $variableOverrides]),
+            body: Payload::body([
+                'email_content_id' => $emailContentId,
+                'variable_overrides' => $variableOverrides,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -476,20 +555,24 @@ final readonly class EmailIntegrations
      *
      * Scopes: email_integrations:update.
      *
-     * @param  ?bool  $hideExistingMessages  Also hide all existing messages from this sender
      * @param  ?string  $reason  Reason for blocking
+     * @param  ?bool  $hideExistingMessages  Also hide all existing messages from this sender
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/block_sender_from_message_api_v1_email_integrations_email_messages__email_message_id__block_sender_post
      */
-    public function blockSenderFromMessage(string $emailMessageId, ?bool $hideExistingMessages = null, ?string $reason = null, ?string $idempotencyKey = null): BlockedSender
-    {
+    public function blockSenderFromMessage(
+        string $emailMessageId,
+        ?string $reason = null,
+        ?bool $hideExistingMessages = null,
+        ?string $idempotencyKey = null,
+    ): BlockedSender {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/email-messages/'.Payload::segment($emailMessageId).'/block-sender',
-            body: Payload::body(['hide_existing_messages' => $hideExistingMessages, 'reason' => $reason]),
+            body: Payload::body(['reason' => $reason, 'hide_existing_messages' => $hideExistingMessages]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -537,29 +620,54 @@ final readonly class EmailIntegrations
      *
      * Scopes: email_integrations:update, messages:create.
      *
-     * @param  list<string>|null  $attachmentIds  IDs of attachments to include
-     * @param  list<string>|null  $bccEmails  BCC recipients
-     * @param  list<string>|null  $ccEmails  CC recipients
-     * @param  ?string  $htmlBody  HTML body of reply (for rich text)
-     * @param  ?bool  $includeThreadHistory  Override whether to append the quoted prior-thread history block beneath this reply. When omitted/null, the owning mailbox's include_thread_history default (TRUE) is used.
-     * @param  ?bool  $preserveCc  Auto-include original CC recipients
-     * @param  ?bool  $replyAll  Reply to all original recipients
-     * @param  ?string  $senderId  Override the connection used to send this reply. Must be one of the ids returned by GET /api/v1/conversations/{conversation_id}/sender-options.
-     * @param  ?string  $subjectOverride  Override reply subject (default: Re: original)
      * @param  ?string  $textBody  Plain text body of reply
+     * @param  ?string  $htmlBody  HTML body of reply (for rich text)
+     * @param  list<string>|null  $ccEmails  CC recipients
+     * @param  list<string>|null  $bccEmails  BCC recipients
+     * @param  ?bool  $preserveCc  Auto-include original CC recipients
+     * @param  list<string>|null  $attachmentIds  IDs of attachments to include
      * @param  list<string>|null  $toEmails  Explicit recipient override; when omitted, defaults to the original message's Reply-To or From address. When provided and non-empty, these addresses are used exactly (reply-all expansion is not applied on top).
+     * @param  ?bool  $replyAll  Reply to all original recipients
+     * @param  ?string  $subjectOverride  Override reply subject (default: Re: original)
+     * @param  ?bool  $includeThreadHistory  Override whether to append the quoted prior-thread history block beneath this reply. When omitted/null, the owning mailbox's include_thread_history default (TRUE) is used.
+     * @param  ?string  $senderId  Override the connection used to send this reply. Must be one of the ids returned by GET /api/v1/conversations/{conversation_id}/sender-options.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/send_email_reply_api_v1_email_integrations_email_messages__email_message_id__reply_post
      */
-    public function sendReply(string $emailMessageId, ?array $attachmentIds = null, ?array $bccEmails = null, ?array $ccEmails = null, ?string $htmlBody = null, ?bool $includeThreadHistory = null, ?bool $preserveCc = null, ?bool $replyAll = null, ?string $senderId = null, ?string $subjectOverride = null, ?string $textBody = null, ?array $toEmails = null, ?string $idempotencyKey = null): EmailReply
-    {
+    public function sendReply(
+        string $emailMessageId,
+        ?string $textBody = null,
+        ?string $htmlBody = null,
+        ?array $ccEmails = null,
+        ?array $bccEmails = null,
+        ?bool $preserveCc = null,
+        ?array $attachmentIds = null,
+        ?array $toEmails = null,
+        ?bool $replyAll = null,
+        ?string $subjectOverride = null,
+        ?bool $includeThreadHistory = null,
+        ?string $senderId = null,
+        ?string $idempotencyKey = null,
+    ): EmailReply {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/email-messages/'.Payload::segment($emailMessageId).'/reply',
-            body: Payload::body(['attachment_ids' => $attachmentIds, 'bcc_emails' => $bccEmails, 'cc_emails' => $ccEmails, 'html_body' => $htmlBody, 'include_thread_history' => $includeThreadHistory, 'preserve_cc' => $preserveCc, 'reply_all' => $replyAll, 'sender_id' => $senderId, 'subject_override' => $subjectOverride, 'text_body' => $textBody, 'to_emails' => $toEmails]),
+            body: Payload::body([
+                'text_body' => $textBody,
+                'html_body' => $htmlBody,
+                'cc_emails' => $ccEmails,
+                'bcc_emails' => $bccEmails,
+                'preserve_cc' => $preserveCc,
+                'attachment_ids' => $attachmentIds,
+                'to_emails' => $toEmails,
+                'reply_all' => $replyAll,
+                'subject_override' => $subjectOverride,
+                'include_thread_history' => $includeThreadHistory,
+                'sender_id' => $senderId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -627,15 +735,18 @@ final readonly class EmailIntegrations
      *
      * Scopes: email_integrations:update.
      *
-     * @param  array<string, mixed>  $request
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/upload_inline_image_api_v1_email_integrations_inline_images_post
      */
-    public function uploadInlineImage(array $request, ?string $filename = null, ?string $contentType = null, ?string $idempotencyKey = null): InlineImageUpload
-    {
+    public function uploadInlineImage(
+        mixed $request,
+        ?string $filename = null,
+        ?string $contentType = null,
+        ?string $idempotencyKey = null,
+    ): InlineImageUpload {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-integrations/inline-images',
@@ -737,26 +848,55 @@ final readonly class EmailIntegrations
      *
      * Scopes: email_integrations:update.
      *
-     * @param  list<string>|null  $acceptedAliases  Additional email aliases that are accepted (e.g., dev@yourcompany.com, info@yourcompany.com)
+     * @param  array<string, mixed>|null  $smtpConfig
      * @param  array<string, mixed>|null  $imapConfig
-     * @param  ?int  $initialSyncHours  How many hours back to pull emails on first connection. Options: 0 (from now only), 24 (1 day), 72 (3 days), 168 (1 week), 336 (2 weeks), 720 (1 month)
+     * @param  ?string  $proxyForwardTo  Your email address where proxy emails are forwarded to (e.g., support@yourcompany.com)
      * @param  ?string  $outboundMailboxId  ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies.
      * @param  ?string  $outboundProviderId  DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending.
-     * @param  ?string  $proxyForwardTo  Your email address where proxy emails are forwarded to (e.g., support@yourcompany.com)
+     * @param  list<string>|null  $acceptedAliases  Additional email aliases that are accepted (e.g., dev@yourcompany.com, info@yourcompany.com)
      * @param  ?string  $recipientValidationMode  Recipient validation mode: 'any' (accept all), 'strict' (only proxy_forward_to), 'whitelist' (proxy_forward_to + accepted_aliases)
-     * @param  array<string, mixed>|null  $smtpConfig
+     * @param  ?int  $initialSyncHours  How many hours back to pull emails on first connection. Options: 0 (from now only), 24 (1 day), 72 (3 days), 168 (1 week), 336 (2 weeks), 720 (1 month)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/update_email_integration_api_v1_email_integrations__integration_id__patch
      */
-    public function update(string $integrationId, ?array $acceptedAliases = null, ?string $defaultSignature = null, ?array $imapConfig = null, ?bool $includeSignature = null, ?int $initialSyncHours = null, ?bool $isActive = null, ?string $name = null, ?string $outboundMailboxId = null, ?string $outboundProviderId = null, ?string $proxyForwardTo = null, ?string $recipientValidationMode = null, ?array $smtpConfig = null, ?bool $syncEnabled = null, ?string $idempotencyKey = null): EmailIntegration
-    {
+    public function update(
+        string $integrationId,
+        ?string $name = null,
+        ?bool $isActive = null,
+        ?array $smtpConfig = null,
+        ?array $imapConfig = null,
+        ?string $defaultSignature = null,
+        ?bool $includeSignature = null,
+        ?bool $syncEnabled = null,
+        ?string $proxyForwardTo = null,
+        ?string $outboundMailboxId = null,
+        ?string $outboundProviderId = null,
+        ?array $acceptedAliases = null,
+        ?string $recipientValidationMode = null,
+        ?int $initialSyncHours = null,
+        ?string $idempotencyKey = null,
+    ): EmailIntegration {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-integrations/'.Payload::segment($integrationId),
-            body: Payload::body(['accepted_aliases' => $acceptedAliases, 'default_signature' => $defaultSignature, 'imap_config' => $imapConfig, 'include_signature' => $includeSignature, 'initial_sync_hours' => $initialSyncHours, 'is_active' => $isActive, 'name' => $name, 'outbound_mailbox_id' => $outboundMailboxId, 'outbound_provider_id' => $outboundProviderId, 'proxy_forward_to' => $proxyForwardTo, 'recipient_validation_mode' => $recipientValidationMode, 'smtp_config' => $smtpConfig, 'sync_enabled' => $syncEnabled]),
+            body: Payload::body([
+                'name' => $name,
+                'is_active' => $isActive,
+                'smtp_config' => $smtpConfig,
+                'imap_config' => $imapConfig,
+                'default_signature' => $defaultSignature,
+                'include_signature' => $includeSignature,
+                'sync_enabled' => $syncEnabled,
+                'proxy_forward_to' => $proxyForwardTo,
+                'outbound_mailbox_id' => $outboundMailboxId,
+                'outbound_provider_id' => $outboundProviderId,
+                'accepted_aliases' => $acceptedAliases,
+                'recipient_validation_mode' => $recipientValidationMode,
+                'initial_sync_hours' => $initialSyncHours,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

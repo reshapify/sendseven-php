@@ -20,21 +20,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class JobStatus extends Data
 {
     /**
-     * @param  ?string  $documentId  Document ID if resource_type='document'
-     * @param  ?string  $folderId  Folder ID if resource_type='folder'
      * @param  string  $jobId  Job ID being queried
-     * @param  ?string  $lastError  Last error message if the job failed (documents only).
      * @param  string  $resourceType  Which resource this job_id attaches to.
      * @param  string  $status  Lifecycle status of the target resource. Values come from KBDocumentStatus (for documents) or FolderStatus (for folders).
+     * @param  ?string  $documentId  Document ID if resource_type='document'
+     * @param  ?string  $folderId  Folder ID if resource_type='folder'
+     * @param  ?string  $lastError  Last error message if the job failed (documents only).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $documentId,
-        public ?string $folderId,
         public string $jobId,
-        public ?string $lastError,
         public string $resourceType,
         public string $status,
+        public ?string $documentId,
+        public ?string $folderId,
+        public ?string $lastError,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,12 +48,12 @@ final readonly class JobStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            documentId: $attributes->nullableString('document_id'),
-            folderId: $attributes->nullableString('folder_id'),
             jobId: $attributes->string('job_id'),
-            lastError: $attributes->nullableString('last_error'),
             resourceType: $attributes->string('resource_type'),
             status: $attributes->string('status'),
+            documentId: $attributes->nullableString('document_id'),
+            folderId: $attributes->nullableString('folder_id'),
+            lastError: $attributes->nullableString('last_error'),
             raw: $data,
         );
     }

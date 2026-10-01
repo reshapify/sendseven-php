@@ -20,9 +20,9 @@ final readonly class DeleteSender extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public string $channelId,
         public ?bool $released,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class DeleteSender extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             channelId: $attributes->string('channel_id'),
             released: $attributes->nullableBool('released'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

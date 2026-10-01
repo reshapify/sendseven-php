@@ -21,17 +21,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MergeContactsPreview extends Data
 {
     /**
-     * @param  list<MergeContactsPreviewFlow>  $cancelledFlows
+     * @param  string  $primaryContactId  The contact that would survive the merge
      * @param  int  $flowRunsToCancel  Running flow runs the merge would stop
      * @param  int  $flowRunsToKeep  Running flow runs that would continue on the surviving contact
-     * @param  string  $primaryContactId  The contact that would survive the merge
+     * @param  list<MergeContactsPreviewFlow>  $cancelledFlows
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $cancelledFlows,
+        public string $primaryContactId,
         public int $flowRunsToCancel,
         public int $flowRunsToKeep,
-        public string $primaryContactId,
+        public array $cancelledFlows,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,10 +45,10 @@ final readonly class MergeContactsPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            cancelledFlows: $attributes->list('cancelled_flows', MergeContactsPreviewFlow::fromArray(...)),
+            primaryContactId: $attributes->string('primary_contact_id'),
             flowRunsToCancel: $attributes->int('flow_runs_to_cancel'),
             flowRunsToKeep: $attributes->int('flow_runs_to_keep'),
-            primaryContactId: $attributes->string('primary_contact_id'),
+            cancelledFlows: $attributes->list('cancelled_flows', MergeContactsPreviewFlow::fromArray(...)),
             raw: $data,
         );
     }

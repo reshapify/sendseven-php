@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WebhookSettings extends Data
 {
     /**
-     * @param  string  $expectedWebhookUrl  The webhook URL that should be configured
-     * @param  array<array-key, mixed>  $settings  Current webhook settings from SendGrid
      * @param  bool  $success  Whether settings retrieval succeeded
+     * @param  array<array-key, mixed>  $settings  Current webhook settings from SendGrid
+     * @param  string  $expectedWebhookUrl  The webhook URL that should be configured
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $expectedWebhookUrl,
-        public array $settings,
         public bool $success,
+        public array $settings,
+        public string $expectedWebhookUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class WebhookSettings extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            expectedWebhookUrl: $attributes->string('expected_webhook_url'),
-            settings: $attributes->array('settings'),
             success: $attributes->bool('success'),
+            settings: $attributes->array('settings'),
+            expectedWebhookUrl: $attributes->string('expected_webhook_url'),
             raw: $data,
         );
     }

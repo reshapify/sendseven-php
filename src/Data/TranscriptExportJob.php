@@ -20,33 +20,33 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TranscriptExportJob extends Data
 {
     /**
-     * @param  ?string  $completedAt  When the job finished (UTC); set on completed/failed.
-     * @param  string  $conversationId  Conversation this export targets.
-     * @param  string  $createdAt  When the job was created (UTC).
-     * @param  ?string  $downloadUrl  Signed download URL for the artifact. Present only when status == 'completed'.
-     * @param  ?string  $errorMessage  Failure reason. Present only when status == 'failed'.
-     * @param  string  $format  Requested export format ('pdf' | 'zip').
      * @param  string  $jobId  PubSubJob id (UUID) — poll with this.
-     * @param  ?string  $message  User-facing status message (optional).
-     * @param  ?int  $progressPercent  Progress 0-100 (best-effort; may jump straight to 100).
+     * @param  string  $conversationId  Conversation this export targets.
+     * @param  string  $format  Requested export format ('pdf' | 'zip').
      * @param  string  $status  Job status: 'queued', 'processing', 'completed', or 'failed'.
+     * @param  ?int  $progressPercent  Progress 0-100 (best-effort; may jump straight to 100).
+     * @param  ?string  $message  User-facing status message (optional).
+     * @param  ?string  $downloadUrl  Signed download URL for the artifact. Present only when status == 'completed'.
      * @param  ?string  $storagePath  GCS storage path of the artifact (optional; present when status == 'completed').
+     * @param  ?string  $errorMessage  Failure reason. Present only when status == 'failed'.
+     * @param  string  $createdAt  When the job was created (UTC).
      * @param  ?string  $updatedAt  When the job was last updated (UTC).
+     * @param  ?string  $completedAt  When the job finished (UTC); set on completed/failed.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $completedAt,
-        public string $conversationId,
-        public string $createdAt,
-        public ?string $downloadUrl,
-        public ?string $errorMessage,
-        public string $format,
         public string $jobId,
-        public ?string $message,
-        public ?int $progressPercent,
+        public string $conversationId,
+        public string $format,
         public string $status,
+        public ?int $progressPercent,
+        public ?string $message,
+        public ?string $downloadUrl,
         public ?string $storagePath,
+        public ?string $errorMessage,
+        public string $createdAt,
         public ?string $updatedAt,
+        public ?string $completedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -60,18 +60,18 @@ final readonly class TranscriptExportJob extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            completedAt: $attributes->nullableString('completed_at'),
-            conversationId: $attributes->string('conversation_id'),
-            createdAt: $attributes->string('created_at'),
-            downloadUrl: $attributes->nullableString('download_url'),
-            errorMessage: $attributes->nullableString('error_message'),
-            format: $attributes->string('format'),
             jobId: $attributes->string('job_id'),
-            message: $attributes->nullableString('message'),
-            progressPercent: $attributes->nullableInt('progress_percent'),
+            conversationId: $attributes->string('conversation_id'),
+            format: $attributes->string('format'),
             status: $attributes->string('status'),
+            progressPercent: $attributes->nullableInt('progress_percent'),
+            message: $attributes->nullableString('message'),
+            downloadUrl: $attributes->nullableString('download_url'),
             storagePath: $attributes->nullableString('storage_path'),
+            errorMessage: $attributes->nullableString('error_message'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->nullableString('updated_at'),
+            completedAt: $attributes->nullableString('completed_at'),
             raw: $data,
         );
     }

@@ -17,18 +17,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendNextBatch extends Data
 {
     /**
-     * @param  int  $armed  Recipients released for this batch
      * @param  int  $batchNumber  Number of the batch that is now sending (1-based)
-     * @param  ?int  $remaining  Recipients still waiting for a later batch
+     * @param  int  $armed  Recipients released for this batch
      * @param  ?int  $skippedIneligible  Recipients skipped because they opted out, unsubscribed or are blocked since the campaign was prepared
+     * @param  ?int  $remaining  Recipients still waiting for a later batch
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $armed,
         public int $batchNumber,
-        public Campaign $campaign,
-        public ?int $remaining,
+        public int $armed,
         public ?int $skippedIneligible,
+        public ?int $remaining,
+        public Campaign $campaign,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,11 +42,11 @@ final readonly class SendNextBatch extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            armed: $attributes->int('armed'),
             batchNumber: $attributes->int('batch_number'),
-            campaign: $attributes->object('campaign', Campaign::fromArray(...)),
-            remaining: $attributes->nullableInt('remaining'),
+            armed: $attributes->int('armed'),
             skippedIneligible: $attributes->nullableInt('skipped_ineligible'),
+            remaining: $attributes->nullableInt('remaining'),
+            campaign: $attributes->object('campaign', Campaign::fromArray(...)),
             raw: $data,
         );
     }

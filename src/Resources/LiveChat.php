@@ -88,8 +88,11 @@ final readonly class LiveChat
      *
      * @see https://api.sendseven.com/api/v1/docs#/Live%20Chat/assign_agent_to_session_api_v1_live_chat_sessions__session_id__assign_post
      */
-    public function assignAgentToSession(string $sessionId, string $agentId, ?string $idempotencyKey = null): LiveChatSession
-    {
+    public function assignAgentToSession(
+        string $sessionId,
+        string $agentId,
+        ?string $idempotencyKey = null,
+    ): LiveChatSession {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/live-chat/sessions/'.Payload::segment($sessionId).'/assign',
@@ -139,8 +142,12 @@ final readonly class LiveChat
      *
      * @see https://api.sendseven.com/api/v1/docs#/Live%20Chat/agent_send_message_api_v1_live_chat_sessions__session_id__messages_post
      */
-    public function agentSendMessage(string $sessionId, string $text, ?array $attachments = null, ?string $idempotencyKey = null): LiveChatMessageSendResponse
-    {
+    public function agentSendMessage(
+        string $sessionId,
+        string $text,
+        ?array $attachments = null,
+        ?string $idempotencyKey = null,
+    ): LiveChatMessageSendResponse {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/live-chat/sessions/'.Payload::segment($sessionId).'/messages',

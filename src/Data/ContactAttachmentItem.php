@@ -23,36 +23,36 @@ final readonly class ContactAttachmentItem extends Data
 {
     /**
      * @param  string  $attachmentId  Attachment UUID
-     * @param  string  $category  Media category derived from content_type + message meta. `voice` = audio flagged as a voice note (meta.is_voice); `file` = documents / anything non-AV.
-     * @param  string  $contentType  MIME type
-     * @param  ?string  $conversationId  Conversation the attachment belongs to (for jump-to)
-     * @param  DateTimeImmutable  $createdAt  Message time (when exchanged)
-     * @param  string  $direction  Message direction the attachment was exchanged on
-     * @param  ?int  $duration  Duration in seconds (audio/video)
-     * @param  ?int  $fileSize  Size in bytes
      * @param  string  $filename  Original filename
-     * @param  ?int  $height  Pixel height (image/video)
-     * @param  string  $messageId  Message the attachment belongs to
-     * @param  ?string  $thumbnailUrl  Short-lived signed thumbnail URL; null when no thumbnail exists
-     * @param  ?string  $url  Short-lived signed view URL (60 min); null if signing failed
+     * @param  string  $contentType  MIME type
+     * @param  string  $category  Media category derived from content_type + message meta. `voice` = audio flagged as a voice note (meta.is_voice); `file` = documents / anything non-AV.
+     * @param  ?int  $fileSize  Size in bytes
      * @param  ?int  $width  Pixel width (image/video)
+     * @param  ?int  $height  Pixel height (image/video)
+     * @param  ?int  $duration  Duration in seconds (audio/video)
+     * @param  ?string  $url  Short-lived signed view URL (60 min); null if signing failed
+     * @param  ?string  $thumbnailUrl  Short-lived signed thumbnail URL; null when no thumbnail exists
+     * @param  string  $direction  Message direction the attachment was exchanged on
+     * @param  DateTimeImmutable  $createdAt  Message time (when exchanged)
+     * @param  ?string  $conversationId  Conversation the attachment belongs to (for jump-to)
+     * @param  string  $messageId  Message the attachment belongs to
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $attachmentId,
-        public string $category,
-        public string $contentType,
-        public ?string $conversationId,
-        public DateTimeImmutable $createdAt,
-        public string $direction,
-        public ?int $duration,
-        public ?int $fileSize,
         public string $filename,
-        public ?int $height,
-        public string $messageId,
-        public ?string $thumbnailUrl,
-        public ?string $url,
+        public string $contentType,
+        public string $category,
+        public ?int $fileSize,
         public ?int $width,
+        public ?int $height,
+        public ?int $duration,
+        public ?string $url,
+        public ?string $thumbnailUrl,
+        public string $direction,
+        public DateTimeImmutable $createdAt,
+        public ?string $conversationId,
+        public string $messageId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -67,19 +67,19 @@ final readonly class ContactAttachmentItem extends Data
 
         return new self(
             attachmentId: $attributes->string('attachment_id'),
-            category: $attributes->string('category'),
-            contentType: $attributes->string('content_type'),
-            conversationId: $attributes->nullableString('conversation_id'),
-            createdAt: $attributes->dateTime('created_at'),
-            direction: $attributes->string('direction'),
-            duration: $attributes->nullableInt('duration'),
-            fileSize: $attributes->nullableInt('file_size'),
             filename: $attributes->string('filename'),
-            height: $attributes->nullableInt('height'),
-            messageId: $attributes->string('message_id'),
-            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
-            url: $attributes->nullableString('url'),
+            contentType: $attributes->string('content_type'),
+            category: $attributes->string('category'),
+            fileSize: $attributes->nullableInt('file_size'),
             width: $attributes->nullableInt('width'),
+            height: $attributes->nullableInt('height'),
+            duration: $attributes->nullableInt('duration'),
+            url: $attributes->nullableString('url'),
+            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            direction: $attributes->string('direction'),
+            createdAt: $attributes->dateTime('created_at'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            messageId: $attributes->string('message_id'),
             raw: $data,
         );
     }

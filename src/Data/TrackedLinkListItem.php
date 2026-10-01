@@ -22,18 +22,18 @@ final readonly class TrackedLinkListItem extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $clickCount,
-        public DateTimeImmutable $createdAt,
-        public ?string $customAlias,
-        public ?DateTimeImmutable $expiresAt,
-        public string $featureType,
         public string $id,
-        public bool $isActive,
-        public ?string $label,
-        public string $originalUrl,
         public string $shortCode,
         public string $shortUrl,
+        public string $originalUrl,
+        public string $featureType,
+        public ?string $customAlias,
+        public ?string $label,
         public array $tags,
+        public DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $expiresAt,
+        public bool $isActive,
+        public int $clickCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,18 +47,18 @@ final readonly class TrackedLinkListItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clickCount: $attributes->int('click_count'),
-            createdAt: $attributes->dateTime('created_at'),
-            customAlias: $attributes->nullableString('custom_alias'),
-            expiresAt: $attributes->nullableDateTime('expires_at'),
-            featureType: $attributes->string('feature_type'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            label: $attributes->nullableString('label'),
-            originalUrl: $attributes->string('original_url'),
             shortCode: $attributes->string('short_code'),
             shortUrl: $attributes->string('short_url'),
+            originalUrl: $attributes->string('original_url'),
+            featureType: $attributes->string('feature_type'),
+            customAlias: $attributes->nullableString('custom_alias'),
+            label: $attributes->nullableString('label'),
             tags: $attributes->strings('tags'),
+            createdAt: $attributes->dateTime('created_at'),
+            expiresAt: $attributes->nullableDateTime('expires_at'),
+            isActive: $attributes->bool('is_active'),
+            clickCount: $attributes->int('click_count'),
             raw: $data,
         );
     }

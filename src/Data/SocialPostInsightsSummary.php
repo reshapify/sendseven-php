@@ -26,8 +26,8 @@ final readonly class SocialPostInsightsSummary extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public SocialPostInsightsWindow $allTime,
         public SocialPostInsightsWindow $last30Days,
+        public SocialPostInsightsWindow $allTime,
         public ?string $lastRefreshedAt,
         array $raw = [],
     ) {
@@ -42,8 +42,8 @@ final readonly class SocialPostInsightsSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allTime: $attributes->object('all_time', SocialPostInsightsWindow::fromArray(...)),
             last30Days: $attributes->object('last_30_days', SocialPostInsightsWindow::fromArray(...)),
+            allTime: $attributes->object('all_time', SocialPostInsightsWindow::fromArray(...)),
             lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
             raw: $data,
         );

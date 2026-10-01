@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WidgetAnalyticsTotals extends Data
 {
     /**
-     * @param  ?int  $channelClicks  Total channel clicks
+     * @param  ?int  $views  Total views
      * @param  ?int  $interactions  Total interactions
-     * @param  ?int  $liveChatMessages  Live chat messages sent
+     * @param  ?int  $channelClicks  Total channel clicks
      * @param  ?int  $liveChatStarts  Live chat sessions started
+     * @param  ?int  $liveChatMessages  Live chat messages sent
      * @param  ?int  $newsletterSubmits  Newsletter form submissions
      * @param  ?int  $pushSubscribes  Push notification subscriptions
-     * @param  ?int  $views  Total views
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $channelClicks,
+        public ?int $views,
         public ?int $interactions,
-        public ?int $liveChatMessages,
+        public ?int $channelClicks,
         public ?int $liveChatStarts,
+        public ?int $liveChatMessages,
         public ?int $newsletterSubmits,
         public ?int $pushSubscribes,
-        public ?int $views,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class WidgetAnalyticsTotals extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelClicks: $attributes->nullableInt('channel_clicks'),
+            views: $attributes->nullableInt('views'),
             interactions: $attributes->nullableInt('interactions'),
-            liveChatMessages: $attributes->nullableInt('live_chat_messages'),
+            channelClicks: $attributes->nullableInt('channel_clicks'),
             liveChatStarts: $attributes->nullableInt('live_chat_starts'),
+            liveChatMessages: $attributes->nullableInt('live_chat_messages'),
             newsletterSubmits: $attributes->nullableInt('newsletter_submits'),
             pushSubscribes: $attributes->nullableInt('push_subscribes'),
-            views: $attributes->nullableInt('views'),
             raw: $data,
         );
     }

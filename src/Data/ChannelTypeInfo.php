@@ -20,9 +20,9 @@ final readonly class ChannelTypeInfo extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $value,
         public string $displayName,
         public bool $isAvailable,
-        public string $value,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class ChannelTypeInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            value: $attributes->string('value'),
             displayName: $attributes->string('display_name'),
             isAvailable: $attributes->bool('is_available'),
-            value: $attributes->string('value'),
             raw: $data,
         );
     }

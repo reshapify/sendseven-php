@@ -114,8 +114,11 @@ final readonly class Tags
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tags/add_tag_to_conversation_api_v1_conversations__conversation_id__tags__tag_id__post
      */
-    public function addToConversation(string $conversationId, string $tagId, ?string $idempotencyKey = null): TagAssignment
-    {
+    public function addToConversation(
+        string $conversationId,
+        string $tagId,
+        ?string $idempotencyKey = null,
+    ): TagAssignment {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/tags/'.Payload::segment($tagId),
@@ -173,8 +176,12 @@ final readonly class Tags
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tags/create_tag_api_v1_tags_post
      */
-    public function create(string $name, ?string $color = null, ?string $description = null, ?string $idempotencyKey = null): Tag
-    {
+    public function create(
+        string $name,
+        ?string $color = null,
+        ?string $description = null,
+        ?string $idempotencyKey = null,
+    ): Tag {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/tags',
@@ -240,20 +247,20 @@ final readonly class Tags
      *
      * Scopes: contacts:update, conversations:update.
      *
+     * @param  ?string  $name  Tag name
      * @param  ?string  $color  Hex color code (e.g., #FF0000)
      * @param  ?string  $description  Tag description
-     * @param  ?string  $name  Tag name
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tags/update_tag_api_v1_tags__tag_id__put
      */
-    public function update(string $tagId, ?string $color = null, ?string $description = null, ?string $name = null): Tag
+    public function update(string $tagId, ?string $name = null, ?string $color = null, ?string $description = null): Tag
     {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/tags/'.Payload::segment($tagId),
-            body: Payload::body(['color' => $color, 'description' => $description, 'name' => $name]),
+            body: Payload::body(['name' => $name, 'color' => $color, 'description' => $description]),
         ));
 
         return Tag::fromArray($response->data());

@@ -22,30 +22,30 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelCommentCapability extends Data
 {
     /**
-     * @param  bool  $canReceiveComments  Verified-true only. Instagram: the `instagram_business_manage_comments` scope is recorded as granted. Messenger: the Page is live-confirmed subscribed to the `feed` webhook field.
      * @param  bool  $commentsSupported  Whether this channel TYPE can do comments -> private reply at all (Instagram and Facebook Messenger only). Independent of this particular connection's state.
-     * @param  ?string  $detail  Human-readable explanation (English; UI should translate by `reason`).
-     * @param  ?bool  $grantedScopesKnown  False when the channel has no recorded permission list at all — the 'connected before we tracked this' case, which is why the answer is a fail-closed no rather than a yes.
-     * @param  list<string>  $missingScopes  Permissions that must be granted on reconnect, if any.
-     * @param  string  $reason  Stable machine code: `ok`, `channel_type_not_supported`, `channel_inactive`, `scope_granted_unknown`, `scope_missing`, `feed_not_subscribed`, `subscription_unknown`, `missing_credentials`.
+     * @param  bool  $canReceiveComments  Verified-true only. Instagram: the `instagram_business_manage_comments` scope is recorded as granted. Messenger: the Page is live-confirmed subscribed to the `feed` webhook field.
      * @param  bool  $reconnectRequired  The user must walk the OAuth dialog again — a missing permission cannot be added to a live connection.
      * @param  bool  $resubscribeRequired  No permission is missing; only the Page's webhook subscription needs fixing, which does not require the user.
+     * @param  string  $reason  Stable machine code: `ok`, `channel_type_not_supported`, `channel_inactive`, `scope_granted_unknown`, `scope_missing`, `feed_not_subscribed`, `subscription_unknown`, `missing_credentials`.
+     * @param  ?string  $detail  Human-readable explanation (English; UI should translate by `reason`).
+     * @param  list<string>  $missingScopes  Permissions that must be granted on reconnect, if any.
+     * @param  ?bool  $grantedScopesKnown  False when the channel has no recorded permission list at all — the 'connected before we tracked this' case, which is why the answer is a fail-closed no rather than a yes.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public bool $canReceiveComments,
         public string $channelId,
-        public string $channelName,
         public string $channelType,
-        public DateTimeImmutable $checkedAt,
-        public bool $commentsSupported,
-        public ?string $detail,
-        public ?bool $grantedScopesKnown,
+        public string $channelName,
         public ?string $identifier,
-        public array $missingScopes,
-        public string $reason,
+        public bool $commentsSupported,
+        public bool $canReceiveComments,
         public bool $reconnectRequired,
         public bool $resubscribeRequired,
+        public string $reason,
+        public ?string $detail,
+        public array $missingScopes,
+        public ?bool $grantedScopesKnown,
+        public DateTimeImmutable $checkedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,19 +59,19 @@ final readonly class ChannelCommentCapability extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            canReceiveComments: $attributes->bool('can_receive_comments'),
             channelId: $attributes->string('channel_id'),
-            channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
-            checkedAt: $attributes->dateTime('checked_at'),
-            commentsSupported: $attributes->bool('comments_supported'),
-            detail: $attributes->nullableString('detail'),
-            grantedScopesKnown: $attributes->nullableBool('granted_scopes_known'),
+            channelName: $attributes->string('channel_name'),
             identifier: $attributes->nullableString('identifier'),
-            missingScopes: $attributes->strings('missing_scopes'),
-            reason: $attributes->string('reason'),
+            commentsSupported: $attributes->bool('comments_supported'),
+            canReceiveComments: $attributes->bool('can_receive_comments'),
             reconnectRequired: $attributes->bool('reconnect_required'),
             resubscribeRequired: $attributes->bool('resubscribe_required'),
+            reason: $attributes->string('reason'),
+            detail: $attributes->nullableString('detail'),
+            missingScopes: $attributes->strings('missing_scopes'),
+            grantedScopesKnown: $attributes->nullableBool('granted_scopes_known'),
+            checkedAt: $attributes->dateTime('checked_at'),
             raw: $data,
         );
     }

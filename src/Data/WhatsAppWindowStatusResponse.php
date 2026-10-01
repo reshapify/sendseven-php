@@ -19,25 +19,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WhatsAppWindowStatusResponse extends Data
 {
     /**
-     * @param  ?string  $freeEntryPointAnchorAt  ISO timestamp the 72h FEP window is anchored at (the business's first outbound response after the referral). Null when not a FEP conversation or no business response has been sent yet.
      * @param  bool  $inWindow  Whether the conversation is within the active free-form window
-     * @param  ?bool  $isFreeEntryPoint  Whether this conversation originated from a free entry point (CTWA ad / Page CTA)
-     * @param  ?string  $lastCustomerMessageAt  ISO timestamp of last customer message (null if never)
+     * @param  ?string  $windowType  Active window kind: 'customer_service' (24h) or 'free_entry_point' (72h)
      * @param  ?int  $remainingSeconds  Seconds remaining in the window (null if outside window)
      * @param  bool  $requiresTemplate  Whether a template message is required to send
+     * @param  ?bool  $isFreeEntryPoint  Whether this conversation originated from a free entry point (CTWA ad / Page CTA)
+     * @param  ?string  $lastCustomerMessageAt  ISO timestamp of last customer message (null if never)
      * @param  ?string  $windowEndAt  ISO timestamp when the active window expires
-     * @param  ?string  $windowType  Active window kind: 'customer_service' (24h) or 'free_entry_point' (72h)
+     * @param  ?string  $freeEntryPointAnchorAt  ISO timestamp the 72h FEP window is anchored at (the business's first outbound response after the referral). Null when not a FEP conversation or no business response has been sent yet.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $freeEntryPointAnchorAt,
         public bool $inWindow,
-        public ?bool $isFreeEntryPoint,
-        public ?string $lastCustomerMessageAt,
+        public ?string $windowType,
         public ?int $remainingSeconds,
         public bool $requiresTemplate,
+        public ?bool $isFreeEntryPoint,
+        public ?string $lastCustomerMessageAt,
         public ?string $windowEndAt,
-        public ?string $windowType,
+        public ?string $freeEntryPointAnchorAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,14 +51,14 @@ final readonly class WhatsAppWindowStatusResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            freeEntryPointAnchorAt: $attributes->nullableString('free_entry_point_anchor_at'),
             inWindow: $attributes->bool('in_window'),
-            isFreeEntryPoint: $attributes->nullableBool('is_free_entry_point'),
-            lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
+            windowType: $attributes->nullableString('window_type'),
             remainingSeconds: $attributes->nullableInt('remaining_seconds'),
             requiresTemplate: $attributes->bool('requires_template'),
+            isFreeEntryPoint: $attributes->nullableBool('is_free_entry_point'),
+            lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
             windowEndAt: $attributes->nullableString('window_end_at'),
-            windowType: $attributes->nullableString('window_type'),
+            freeEntryPointAnchorAt: $attributes->nullableString('free_entry_point_anchor_at'),
             raw: $data,
         );
     }

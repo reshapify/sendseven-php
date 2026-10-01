@@ -19,17 +19,17 @@ final readonly class WidgetIdentityVerification extends Data
     /**
      * @param  bool  $enabled  Whether signed identities are verified for this widget
      * @param  bool  $hasSecret  Whether a signing secret has been generated
-     * @param  int  $maxAgeSeconds  Maximum age of a signed identity (`now - issued_at`) in seconds
      * @param  ?string  $secretHint  Last 4 characters of the current secret, or null when there is none
      * @param  ?string  $secretRotatedAt  When the current secret was generated (UTC), or null
+     * @param  int  $maxAgeSeconds  Maximum age of a signed identity (`now - issued_at`) in seconds
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public bool $enabled,
         public bool $hasSecret,
-        public int $maxAgeSeconds,
         public ?string $secretHint,
         public ?string $secretRotatedAt,
+        public int $maxAgeSeconds,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,9 +45,9 @@ final readonly class WidgetIdentityVerification extends Data
         return new self(
             enabled: $attributes->bool('enabled'),
             hasSecret: $attributes->bool('has_secret'),
-            maxAgeSeconds: $attributes->int('max_age_seconds'),
             secretHint: $attributes->nullableString('secret_hint'),
             secretRotatedAt: $attributes->nullableString('secret_rotated_at'),
+            maxAgeSeconds: $attributes->int('max_age_seconds'),
             raw: $data,
         );
     }

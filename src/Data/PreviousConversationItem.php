@@ -21,24 +21,24 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PreviousConversationItem extends Data
 {
     /**
-     * @param  ?string  $lastMessagePreview  Safe one-line preview; never leaks attachment paths
      * @param  string  $status  Conversation status value
+     * @param  ?string  $lastMessagePreview  Safe one-line preview; never leaks attachment paths
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $aiSummary,
+        public string $id,
+        public ?string $subject,
         public ?string $channelId,
         public ?string $channelType,
-        public ?string $closedAt,
-        public ?string $createdAt,
-        public string $id,
-        public ?string $lastMessageAt,
-        public ?string $lastMessagePreview,
-        public ?int $messageCount,
-        public ?string $resolutionSummary,
         public string $status,
-        public ?string $subject,
+        public ?string $createdAt,
+        public ?string $lastMessageAt,
+        public ?string $closedAt,
+        public ?string $aiSummary,
         public ?string $userIntent,
+        public ?string $resolutionSummary,
+        public ?int $messageCount,
+        public ?string $lastMessagePreview,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -52,19 +52,19 @@ final readonly class PreviousConversationItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiSummary: $attributes->nullableString('ai_summary'),
+            id: $attributes->string('id'),
+            subject: $attributes->nullableString('subject'),
             channelId: $attributes->nullableString('channel_id'),
             channelType: $attributes->nullableString('channel_type'),
-            closedAt: $attributes->nullableString('closed_at'),
-            createdAt: $attributes->nullableString('created_at'),
-            id: $attributes->string('id'),
-            lastMessageAt: $attributes->nullableString('last_message_at'),
-            lastMessagePreview: $attributes->nullableString('last_message_preview'),
-            messageCount: $attributes->nullableInt('message_count'),
-            resolutionSummary: $attributes->nullableString('resolution_summary'),
             status: $attributes->string('status'),
-            subject: $attributes->nullableString('subject'),
+            createdAt: $attributes->nullableString('created_at'),
+            lastMessageAt: $attributes->nullableString('last_message_at'),
+            closedAt: $attributes->nullableString('closed_at'),
+            aiSummary: $attributes->nullableString('ai_summary'),
             userIntent: $attributes->nullableString('user_intent'),
+            resolutionSummary: $attributes->nullableString('resolution_summary'),
+            messageCount: $attributes->nullableInt('message_count'),
+            lastMessagePreview: $attributes->nullableString('last_message_preview'),
             raw: $data,
         );
     }

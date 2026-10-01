@@ -105,72 +105,186 @@ final readonly class Automation
      * Scopes: automation:create.
      *
      * @param  string  $name  Bot display name
-     * @param  ?bool  $aiDisclosureIncludeEscalation  Include 'ask for human agent' mention in the AI disclosure
-     * @param  ?string  $aiDisclosureMessage  Custom AI disclosure override. Use {name} as placeholder for bot display name.
-     * @param  ?bool  $autoTranslateMessages  Auto-translate greetings, buttons, and responses to user's detected language
-     * @param  ?string  $avatarUrl  Avatar image URL for the bot
-     * @param  ?string  $baseLanguage  Language the bot's messages are written in (ISO 639-1)
      * @param  BotTypeEnum|string|null  $botType  Type of bot
-     * @param  ?string  $calendlyEventTypeUri  Calendly event type URI for booking appointments
-     * @param  ?string  $coexistBotId  ID of another bot to coexist with
-     * @param  ?string  $coexistMode  Coexistence mode: 'active_when_active' or 'active_when_inactive'
-     * @param  float|int|null  $confidenceThreshold  Minimum confidence score to provide answer (0.0-1.0)
-     * @param  ?bool  $deepAnswersEnabled  Beta: allow deeper KB+web synthesis / reasoning bump (NULL/false = off).
-     * @param  ?string  $displayName  Customer-facing name shown to end users (e.g., 'Eva', 'Max'). Falls back to bot name.
-     * @param  ?bool  $escalationEnabled  When disabled, the bot will never escalate to a human agent regardless of confidence score
-     * @param  list<string>|null  $escalationKeywords  Keywords that trigger escalation (e.g., ['agent', 'human', 'help'])
-     * @param  ?string  $escalationOfferMessage  Custom text appended (after one blank line) offering a human agent. Empty/NULL uses the built-in localized text.
-     * @param  list<array<string, mixed>>|null  $escalationSchedule  Time ranges when human escalation is available
-     * @param  ?string  $escalationTimezone  IANA timezone for escalation schedule (e.g., 'Europe/Berlin')
-     * @param  ?bool  $greetingButtonsEnabled  Show 'Talk to Human' / 'Ask the bot' buttons under the greeting (NULL/false = off)
-     * @param  ?string  $greetingContinueAckMessage  Acknowledgement message sent after the user taps 'Ask the bot'. NULL = localized default.
-     * @param  ?string  $greetingContinueButtonCaption  Caption for the 'Ask the bot' button. NULL = localized default.
-     * @param  ?string  $greetingHumanButtonCaption  Caption for the 'Talk to Human' button. NULL = localized default.
-     * @param  ?string  $greetingMessage  Initial greeting sent to users
-     * @param  ?string  $handoffMessage  Custom message when escalating to human agent (e.g., 'An agent will reply soon')
-     * @param  float|int|null  $immediateHandoffThreshold  Confidence below this triggers immediate escalation offer (0.0-1.0)
      * @param  ?bool  $isActive  Whether bot is active
-     * @param  ?bool  $isDetailedResponse  Allow longer, more detailed bot responses instead of concise chat-style messages
-     * @param  ?bool  $isEmailReplyMode  When TRUE on an 'assistant' bot, the email auto-reply logic kicks in (equivalent to legacy bot_type='email_support'). Default FALSE.
-     * @param  ?bool  $isEscalationScheduleEnabled  Enable time-based escalation gating
-     * @param  ?bool  $isFieldCollectionMode  Enable field collection mode (auto-set for lead_qualification and appointment bots)
+     * @param  ?int  $priority  Bot priority (higher = evaluated first when matching context)
+     * @param  ?string  $personalityPrompt  Custom system prompt defining bot personality
+     * @param  ?string  $greetingMessage  Initial greeting sent to users
+     * @param  list<string>|null  $escalationKeywords  Keywords that trigger escalation (e.g., ['agent', 'human', 'help'])
+     * @param  ?string  $displayName  Customer-facing name shown to end users (e.g., 'Eva', 'Max'). Falls back to bot name.
+     * @param  ?string  $avatarUrl  Avatar image URL for the bot
+     * @param  ?string  $aiDisclosureMessage  Custom AI disclosure override. Use {name} as placeholder for bot display name.
+     * @param  ?bool  $aiDisclosureIncludeEscalation  Include 'ask for human agent' mention in the AI disclosure
      * @param  ?bool  $isKbOnlyMode  Only answer from knowledge base, no general knowledge
-     * @param  ?string  $kbLiveRefreshMode  KB live-refresh mode: 'off' | 'always_live' | 'cached_ttl' | 'live_once'. NULL = 'off'.
-     * @param  ?int  $kbLiveRefreshTtlSeconds  Cache TTL in seconds, only meaningful when kb_live_refresh_mode == 'cached_ttl'. NULL = service default.
+     * @param  ?string  $responseLanguage  ISO 639-1 language code (e.g., 'en', 'de'). null = follow the customer's language (auto-detect); ''/'auto' are stored as null.
+     * @param  float|int|null  $confidenceThreshold  Minimum confidence score to provide answer (0.0-1.0)
+     * @param  ?bool  $isDetailedResponse  Allow longer, more detailed bot responses instead of concise chat-style messages
+     * @param  ?bool  $useFullConversationContext  Feed the full current conversation (bounded) into the KB query instead of only the last few messages. Single-conversation only.
+     * @param  ?bool  $visionEnabled  Beta: let the bot read images customers send (NULL/false = off).
+     * @param  WebSearchModeEnum|string|null  $webSearchMode  Beta: live web-search trigger mode — 'off' (default/NULL), 'kb_fallback' (search only after KB returns no answer), or 'always'. Any other value is rejected 422.
+     * @param  list<string>|null  $webSearchAllowedDomains  Beta: restrict web search to these plain domains (injected as site: operators). Empty list = no restriction; NULL = off. Entries must be plain hosts (no scheme/path); normalized on write.
+     * @param  list<string>|null  $webSearchRequiredKeywords  Beta: keywords appended to every web-search query (e.g. brand name).
+     * @param  ?int  $webSearchMaxPerConversation  Beta: per-conversation cap on web searches (>=0). NULL = default cap.
+     * @param  ?bool  $deepAnswersEnabled  Beta: allow deeper KB+web synthesis / reasoning bump (NULL/false = off).
+     * @param  ?bool  $autoTranslateMessages  Auto-translate greetings, buttons, and responses to user's detected language
      * @param  ?string  $languageDetectionStrategy  How this bot resolves the language it speaks. 'cascade' (default) resolves per conversation via the fallback chain (contact locale -> inferred channel locale -> response_language/base_language); 'fixed' always speaks base_language. Omit / null to keep the default -- NULL is stored and treated as 'cascade' by the runtime, so existing bots are unaffected. Any other value is rejected 422.
-     * @param  ?int  $maxEmailReplies  Max email replies per conversation before handing off to agents (email_support bots)
-     * @param  ?int  $maxFailedAttempts  Low-confidence responses before auto-escalation. Use 0 for bot types where escalation does not apply (e.g. keyword bots).
-     * @param  ?string  $noAnswerMessage  Custom text sent when the knowledge base has no answer. Empty/NULL uses the built-in localized text. Must not mention a human agent -- it is also sent when escalation is disabled.
+     * @param  ?bool  $escalationEnabled  When disabled, the bot will never escalate to a human agent regardless of confidence score
      * @param  ?bool  $offersEscalation  Always offer option to talk to human
+     * @param  ?int  $maxFailedAttempts  Low-confidence responses before auto-escalation. Use 0 for bot types where escalation does not apply (e.g. keyword bots).
+     * @param  ?string  $handoffMessage  Custom message when escalating to human agent (e.g., 'An agent will reply soon')
+     * @param  ?string  $noAnswerMessage  Custom text sent when the knowledge base has no answer. Empty/NULL uses the built-in localized text. Must not mention a human agent -- it is also sent when escalation is disabled.
+     * @param  ?string  $escalationOfferMessage  Custom text appended (after one blank line) offering a human agent. Empty/NULL uses the built-in localized text.
+     * @param  float|int|null  $immediateHandoffThreshold  Confidence below this triggers immediate escalation offer (0.0-1.0)
+     * @param  list<array<string, mixed>>|null  $requiredFields  Fields to collect from users
+     * @param  array<string, mixed>|null  $routingConfig  Routing configuration (required when bot_type='router')
+     * @param  ?bool  $isFieldCollectionMode  Enable field collection mode (auto-set for lead_qualification and appointment bots)
+     * @param  ?string  $calendlyEventTypeUri  Calendly event type URI for booking appointments
      * @param  OfflineEscalationBehaviorEnum|string|null  $offlineEscalationBehavior  Behavior when escalation fires but no agents online (live chat): leave_message, escalate_anyway, continue_bot
      * @param  ?string  $offlineMessage  Custom message shown in offline scenarios (live chat)
      * @param  ?string  $outsideHoursMessage  Custom message for non-livechat channels outside business hours
-     * @param  ?string  $personalityPrompt  Custom system prompt defining bot personality
-     * @param  ?int  $priority  Bot priority (higher = evaluated first when matching context)
-     * @param  list<array<string, mixed>>|null  $requiredFields  Fields to collect from users
-     * @param  ?string  $responseLanguage  ISO 639-1 language code (e.g., 'en', 'de'). null = follow the customer's language (auto-detect); ''/'auto' are stored as null.
-     * @param  array<string, mixed>|null  $routingConfig  Routing configuration (required when bot_type='router')
+     * @param  ?bool  $isEscalationScheduleEnabled  Enable time-based escalation gating
+     * @param  ?string  $escalationTimezone  IANA timezone for escalation schedule (e.g., 'Europe/Berlin')
+     * @param  list<array<string, mixed>>|null  $escalationSchedule  Time ranges when human escalation is available
+     * @param  ?int  $maxEmailReplies  Max email replies per conversation before handing off to agents (email_support bots)
+     * @param  ?bool  $isEmailReplyMode  When TRUE on an 'assistant' bot, the email auto-reply logic kicks in (equivalent to legacy bot_type='email_support'). Default FALSE.
+     * @param  ?string  $coexistBotId  ID of another bot to coexist with
+     * @param  ?string  $coexistMode  Coexistence mode: 'active_when_active' or 'active_when_inactive'
+     * @param  ?string  $baseLanguage  Language the bot's messages are written in (ISO 639-1)
+     * @param  array<string, mixed>|null  $translationCache  Cached translations keyed by language code
+     * @param  ?bool  $greetingButtonsEnabled  Show 'Talk to Human' / 'Ask the bot' buttons under the greeting (NULL/false = off)
+     * @param  ?string  $greetingHumanButtonCaption  Caption for the 'Talk to Human' button. NULL = localized default.
+     * @param  ?string  $greetingContinueButtonCaption  Caption for the 'Ask the bot' button. NULL = localized default.
+     * @param  ?string  $greetingContinueAckMessage  Acknowledgement message sent after the user taps 'Ask the bot'. NULL = localized default.
      * @param  ?string  $sourceFooterMode  Which sources to list: 'urls_only' or 'urls_and_kb'. NULL = column default ('urls_only').
      * @param  array<string, mixed>|null  $sourceLinkParams  Per-channel query params appended to source links, keyed by channel_type with an optional 'default' key. Shape: {channel_type: {param_name: template_string}}. NULL = no decoration.
-     * @param  array<string, mixed>|null  $translationCache  Cached translations keyed by language code
-     * @param  ?bool  $useFullConversationContext  Feed the full current conversation (bounded) into the KB query instead of only the last few messages. Single-conversation only.
-     * @param  ?bool  $visionEnabled  Beta: let the bot read images customers send (NULL/false = off).
-     * @param  list<string>|null  $webSearchAllowedDomains  Beta: restrict web search to these plain domains (injected as site: operators). Empty list = no restriction; NULL = off. Entries must be plain hosts (no scheme/path); normalized on write.
-     * @param  ?int  $webSearchMaxPerConversation  Beta: per-conversation cap on web searches (>=0). NULL = default cap.
-     * @param  WebSearchModeEnum|string|null  $webSearchMode  Beta: live web-search trigger mode — 'off' (default/NULL), 'kb_fallback' (search only after KB returns no answer), or 'always'. Any other value is rejected 422.
-     * @param  list<string>|null  $webSearchRequiredKeywords  Beta: keywords appended to every web-search query (e.g. brand name).
+     * @param  ?string  $kbLiveRefreshMode  KB live-refresh mode: 'off' | 'always_live' | 'cached_ttl' | 'live_once'. NULL = 'off'.
+     * @param  ?int  $kbLiveRefreshTtlSeconds  Cache TTL in seconds, only meaningful when kb_live_refresh_mode == 'cached_ttl'. NULL = service default.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/create_bot_api_v1_automation_bots_post
      */
-    public function createBot(string $name, ?bool $aiDisclosureIncludeEscalation = null, ?string $aiDisclosureMessage = null, ?bool $autoTranslateMessages = null, ?string $avatarUrl = null, ?string $baseLanguage = null, BotTypeEnum|string|null $botType = null, ?string $calendlyEventTypeUri = null, ?string $coexistBotId = null, ?string $coexistMode = null, float|int|null $confidenceThreshold = null, ?bool $deepAnswersEnabled = null, ?string $displayName = null, ?bool $escalationEnabled = null, ?array $escalationKeywords = null, ?string $escalationOfferMessage = null, ?array $escalationSchedule = null, ?string $escalationTimezone = null, ?bool $greetingButtonsEnabled = null, ?string $greetingContinueAckMessage = null, ?string $greetingContinueButtonCaption = null, ?string $greetingHumanButtonCaption = null, ?string $greetingMessage = null, ?string $handoffMessage = null, float|int|null $immediateHandoffThreshold = null, ?bool $isActive = null, ?bool $isDetailedResponse = null, ?bool $isEmailReplyMode = null, ?bool $isEscalationScheduleEnabled = null, ?bool $isFieldCollectionMode = null, ?bool $isKbOnlyMode = null, ?string $kbLiveRefreshMode = null, ?int $kbLiveRefreshTtlSeconds = null, ?string $languageDetectionStrategy = null, ?int $maxEmailReplies = null, ?int $maxFailedAttempts = null, ?string $noAnswerMessage = null, ?bool $offersEscalation = null, OfflineEscalationBehaviorEnum|string|null $offlineEscalationBehavior = null, ?string $offlineMessage = null, ?string $outsideHoursMessage = null, ?string $personalityPrompt = null, ?int $priority = null, ?array $requiredFields = null, ?string $responseLanguage = null, ?array $routingConfig = null, ?bool $sourceFooterEnabled = null, ?string $sourceFooterMode = null, ?array $sourceLinkParams = null, ?array $translationCache = null, ?bool $useFullConversationContext = null, ?bool $visionEnabled = null, ?array $webSearchAllowedDomains = null, ?int $webSearchMaxPerConversation = null, WebSearchModeEnum|string|null $webSearchMode = null, ?array $webSearchRequiredKeywords = null, ?string $idempotencyKey = null): AutomationBot
-    {
+    public function createBot(
+        string $name,
+        BotTypeEnum|string|null $botType = null,
+        ?bool $isActive = null,
+        ?int $priority = null,
+        ?string $personalityPrompt = null,
+        ?string $greetingMessage = null,
+        ?array $escalationKeywords = null,
+        ?string $displayName = null,
+        ?string $avatarUrl = null,
+        ?string $aiDisclosureMessage = null,
+        ?bool $aiDisclosureIncludeEscalation = null,
+        ?bool $isKbOnlyMode = null,
+        ?string $responseLanguage = null,
+        float|int|null $confidenceThreshold = null,
+        ?bool $isDetailedResponse = null,
+        ?bool $useFullConversationContext = null,
+        ?bool $visionEnabled = null,
+        WebSearchModeEnum|string|null $webSearchMode = null,
+        ?array $webSearchAllowedDomains = null,
+        ?array $webSearchRequiredKeywords = null,
+        ?int $webSearchMaxPerConversation = null,
+        ?bool $deepAnswersEnabled = null,
+        ?bool $autoTranslateMessages = null,
+        ?string $languageDetectionStrategy = null,
+        ?bool $escalationEnabled = null,
+        ?bool $offersEscalation = null,
+        ?int $maxFailedAttempts = null,
+        ?string $handoffMessage = null,
+        ?string $noAnswerMessage = null,
+        ?string $escalationOfferMessage = null,
+        float|int|null $immediateHandoffThreshold = null,
+        ?array $requiredFields = null,
+        ?array $routingConfig = null,
+        ?bool $isFieldCollectionMode = null,
+        ?string $calendlyEventTypeUri = null,
+        OfflineEscalationBehaviorEnum|string|null $offlineEscalationBehavior = null,
+        ?string $offlineMessage = null,
+        ?string $outsideHoursMessage = null,
+        ?bool $isEscalationScheduleEnabled = null,
+        ?string $escalationTimezone = null,
+        ?array $escalationSchedule = null,
+        ?int $maxEmailReplies = null,
+        ?bool $isEmailReplyMode = null,
+        ?string $coexistBotId = null,
+        ?string $coexistMode = null,
+        ?string $baseLanguage = null,
+        ?array $translationCache = null,
+        ?bool $greetingButtonsEnabled = null,
+        ?string $greetingHumanButtonCaption = null,
+        ?string $greetingContinueButtonCaption = null,
+        ?string $greetingContinueAckMessage = null,
+        ?bool $sourceFooterEnabled = null,
+        ?string $sourceFooterMode = null,
+        ?array $sourceLinkParams = null,
+        ?string $kbLiveRefreshMode = null,
+        ?int $kbLiveRefreshTtlSeconds = null,
+        ?string $idempotencyKey = null,
+    ): AutomationBot {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/automation/bots',
-            body: Payload::body(['name' => $name, 'ai_disclosure_include_escalation' => $aiDisclosureIncludeEscalation, 'ai_disclosure_message' => $aiDisclosureMessage, 'auto_translate_messages' => $autoTranslateMessages, 'avatar_url' => $avatarUrl, 'base_language' => $baseLanguage, 'bot_type' => $botType, 'calendly_event_type_uri' => $calendlyEventTypeUri, 'coexist_bot_id' => $coexistBotId, 'coexist_mode' => $coexistMode, 'confidence_threshold' => $confidenceThreshold, 'deep_answers_enabled' => $deepAnswersEnabled, 'display_name' => $displayName, 'escalation_enabled' => $escalationEnabled, 'escalation_keywords' => $escalationKeywords, 'escalation_offer_message' => $escalationOfferMessage, 'escalation_schedule' => $escalationSchedule, 'escalation_timezone' => $escalationTimezone, 'greeting_buttons_enabled' => $greetingButtonsEnabled, 'greeting_continue_ack_message' => $greetingContinueAckMessage, 'greeting_continue_button_caption' => $greetingContinueButtonCaption, 'greeting_human_button_caption' => $greetingHumanButtonCaption, 'greeting_message' => $greetingMessage, 'handoff_message' => $handoffMessage, 'immediate_handoff_threshold' => $immediateHandoffThreshold, 'is_active' => $isActive, 'is_detailed_response' => $isDetailedResponse, 'is_email_reply_mode' => $isEmailReplyMode, 'is_escalation_schedule_enabled' => $isEscalationScheduleEnabled, 'is_field_collection_mode' => $isFieldCollectionMode, 'is_kb_only_mode' => $isKbOnlyMode, 'kb_live_refresh_mode' => $kbLiveRefreshMode, 'kb_live_refresh_ttl_seconds' => $kbLiveRefreshTtlSeconds, 'language_detection_strategy' => $languageDetectionStrategy, 'max_email_replies' => $maxEmailReplies, 'max_failed_attempts' => $maxFailedAttempts, 'no_answer_message' => $noAnswerMessage, 'offers_escalation' => $offersEscalation, 'offline_escalation_behavior' => $offlineEscalationBehavior, 'offline_message' => $offlineMessage, 'outside_hours_message' => $outsideHoursMessage, 'personality_prompt' => $personalityPrompt, 'priority' => $priority, 'required_fields' => $requiredFields, 'response_language' => $responseLanguage, 'routing_config' => $routingConfig, 'source_footer_enabled' => $sourceFooterEnabled, 'source_footer_mode' => $sourceFooterMode, 'source_link_params' => $sourceLinkParams, 'translation_cache' => $translationCache, 'use_full_conversation_context' => $useFullConversationContext, 'vision_enabled' => $visionEnabled, 'web_search_allowed_domains' => $webSearchAllowedDomains, 'web_search_max_per_conversation' => $webSearchMaxPerConversation, 'web_search_mode' => $webSearchMode, 'web_search_required_keywords' => $webSearchRequiredKeywords]),
+            body: Payload::body([
+                'name' => $name,
+                'bot_type' => $botType,
+                'is_active' => $isActive,
+                'priority' => $priority,
+                'personality_prompt' => $personalityPrompt,
+                'greeting_message' => $greetingMessage,
+                'escalation_keywords' => $escalationKeywords,
+                'display_name' => $displayName,
+                'avatar_url' => $avatarUrl,
+                'ai_disclosure_message' => $aiDisclosureMessage,
+                'ai_disclosure_include_escalation' => $aiDisclosureIncludeEscalation,
+                'is_kb_only_mode' => $isKbOnlyMode,
+                'response_language' => $responseLanguage,
+                'confidence_threshold' => $confidenceThreshold,
+                'is_detailed_response' => $isDetailedResponse,
+                'use_full_conversation_context' => $useFullConversationContext,
+                'vision_enabled' => $visionEnabled,
+                'web_search_mode' => $webSearchMode,
+                'web_search_allowed_domains' => $webSearchAllowedDomains,
+                'web_search_required_keywords' => $webSearchRequiredKeywords,
+                'web_search_max_per_conversation' => $webSearchMaxPerConversation,
+                'deep_answers_enabled' => $deepAnswersEnabled,
+                'auto_translate_messages' => $autoTranslateMessages,
+                'language_detection_strategy' => $languageDetectionStrategy,
+                'escalation_enabled' => $escalationEnabled,
+                'offers_escalation' => $offersEscalation,
+                'max_failed_attempts' => $maxFailedAttempts,
+                'handoff_message' => $handoffMessage,
+                'no_answer_message' => $noAnswerMessage,
+                'escalation_offer_message' => $escalationOfferMessage,
+                'immediate_handoff_threshold' => $immediateHandoffThreshold,
+                'required_fields' => $requiredFields,
+                'routing_config' => $routingConfig,
+                'is_field_collection_mode' => $isFieldCollectionMode,
+                'calendly_event_type_uri' => $calendlyEventTypeUri,
+                'offline_escalation_behavior' => $offlineEscalationBehavior,
+                'offline_message' => $offlineMessage,
+                'outside_hours_message' => $outsideHoursMessage,
+                'is_escalation_schedule_enabled' => $isEscalationScheduleEnabled,
+                'escalation_timezone' => $escalationTimezone,
+                'escalation_schedule' => $escalationSchedule,
+                'max_email_replies' => $maxEmailReplies,
+                'is_email_reply_mode' => $isEmailReplyMode,
+                'coexist_bot_id' => $coexistBotId,
+                'coexist_mode' => $coexistMode,
+                'base_language' => $baseLanguage,
+                'translation_cache' => $translationCache,
+                'greeting_buttons_enabled' => $greetingButtonsEnabled,
+                'greeting_human_button_caption' => $greetingHumanButtonCaption,
+                'greeting_continue_button_caption' => $greetingContinueButtonCaption,
+                'greeting_continue_ack_message' => $greetingContinueAckMessage,
+                'source_footer_enabled' => $sourceFooterEnabled,
+                'source_footer_mode' => $sourceFooterMode,
+                'source_link_params' => $sourceLinkParams,
+                'kb_live_refresh_mode' => $kbLiveRefreshMode,
+                'kb_live_refresh_ttl_seconds' => $kbLiveRefreshTtlSeconds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -263,36 +377,151 @@ final readonly class Automation
      *
      * Scopes: automation:update.
      *
-     * @param  list<string>|null  $escalationKeywords
-     * @param  list<array<string, mixed>>|null  $escalationSchedule
-     * @param  ?string  $greetingContinueAckMessage  Acknowledgement message sent after tapping 'Ask the bot'. Omit to keep current value; NULL = localized default.
-     * @param  ?string  $greetingContinueButtonCaption  Caption for the 'Ask the bot' button. Omit to keep current value; NULL = localized default.
-     * @param  ?string  $greetingHumanButtonCaption  Caption for the 'Talk to Human' button. Omit to keep current value; NULL = localized default.
-     * @param  ?string  $kbLiveRefreshMode  KB live-refresh mode: 'off' | 'always_live' | 'cached_ttl' | 'live_once'. Omit to keep current value.
-     * @param  ?int  $kbLiveRefreshTtlSeconds  Cache TTL in seconds, only meaningful when kb_live_refresh_mode == 'cached_ttl'. Omit to keep current value.
-     * @param  ?string  $languageDetectionStrategy  How this bot resolves the language (see AutomationBotCreate). 'cascade' | 'fixed'. Omit on PATCH to preserve the current value; any other value is rejected 422. Because NULL means 'cascade', this cannot be reset to NULL via PATCH -- send 'cascade' to restore the default behaviour.
      * @param  ?int  $priority  Bot priority
+     * @param  list<string>|null  $escalationKeywords
+     * @param  WebSearchModeEnum|string|null  $webSearchMode  Beta web-search mode: 'off' | 'kb_fallback' | 'always'. Omit to keep current.
+     * @param  list<string>|null  $webSearchAllowedDomains  Beta: plain domains for site:-restricted web search. Empty list = no restriction. Omit to keep current.
+     * @param  list<string>|null  $webSearchRequiredKeywords  Beta: keywords appended to every web-search query. Omit to keep current.
+     * @param  ?int  $webSearchMaxPerConversation  Beta: per-conversation web-search cap (>=0). Omit to keep current.
+     * @param  ?string  $languageDetectionStrategy  How this bot resolves the language (see AutomationBotCreate). 'cascade' | 'fixed'. Omit on PATCH to preserve the current value; any other value is rejected 422. Because NULL means 'cascade', this cannot be reset to NULL via PATCH -- send 'cascade' to restore the default behaviour.
      * @param  list<array<string, mixed>>|null  $requiredFields
      * @param  array<string, mixed>|null  $routingConfig
+     * @param  list<array<string, mixed>>|null  $escalationSchedule
+     * @param  array<string, mixed>|null  $translationCache
+     * @param  ?string  $greetingHumanButtonCaption  Caption for the 'Talk to Human' button. Omit to keep current value; NULL = localized default.
+     * @param  ?string  $greetingContinueButtonCaption  Caption for the 'Ask the bot' button. Omit to keep current value; NULL = localized default.
+     * @param  ?string  $greetingContinueAckMessage  Acknowledgement message sent after tapping 'Ask the bot'. Omit to keep current value; NULL = localized default.
      * @param  ?string  $sourceFooterMode  Which sources to list: 'urls_only' or 'urls_and_kb'. Omit to keep current value.
      * @param  array<string, mixed>|null  $sourceLinkParams  Per-channel query params appended to source links, keyed by channel_type with an optional 'default' key. Shape: {channel_type: {param_name: template_string}}. Omit to keep current value.
-     * @param  array<string, mixed>|null  $translationCache
-     * @param  list<string>|null  $webSearchAllowedDomains  Beta: plain domains for site:-restricted web search. Empty list = no restriction. Omit to keep current.
-     * @param  ?int  $webSearchMaxPerConversation  Beta: per-conversation web-search cap (>=0). Omit to keep current.
-     * @param  WebSearchModeEnum|string|null  $webSearchMode  Beta web-search mode: 'off' | 'kb_fallback' | 'always'. Omit to keep current.
-     * @param  list<string>|null  $webSearchRequiredKeywords  Beta: keywords appended to every web-search query. Omit to keep current.
+     * @param  ?string  $kbLiveRefreshMode  KB live-refresh mode: 'off' | 'always_live' | 'cached_ttl' | 'live_once'. Omit to keep current value.
+     * @param  ?int  $kbLiveRefreshTtlSeconds  Cache TTL in seconds, only meaningful when kb_live_refresh_mode == 'cached_ttl'. Omit to keep current value.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/update_bot_api_v1_automation_bots__bot_id__patch
      */
-    public function updateBot(string $botId, ?bool $aiDisclosureIncludeEscalation = null, ?string $aiDisclosureMessage = null, ?bool $autoTranslateMessages = null, ?string $avatarUrl = null, ?string $baseLanguage = null, BotTypeEnum|string|null $botType = null, ?string $calendlyEventTypeUri = null, ?string $coexistBotId = null, ?string $coexistMode = null, float|int|null $confidenceThreshold = null, ?bool $deepAnswersEnabled = null, ?string $displayName = null, ?bool $escalationEnabled = null, ?array $escalationKeywords = null, ?string $escalationOfferMessage = null, ?array $escalationSchedule = null, ?string $escalationTimezone = null, ?bool $greetingButtonsEnabled = null, ?string $greetingContinueAckMessage = null, ?string $greetingContinueButtonCaption = null, ?string $greetingHumanButtonCaption = null, ?string $greetingMessage = null, ?string $handoffMessage = null, float|int|null $immediateHandoffThreshold = null, ?bool $isActive = null, ?bool $isDetailedResponse = null, ?bool $isEmailReplyMode = null, ?bool $isEscalationScheduleEnabled = null, ?bool $isFieldCollectionMode = null, ?bool $isKbOnlyMode = null, ?string $kbLiveRefreshMode = null, ?int $kbLiveRefreshTtlSeconds = null, ?string $languageDetectionStrategy = null, ?int $maxEmailReplies = null, ?int $maxFailedAttempts = null, ?string $name = null, ?string $noAnswerMessage = null, ?bool $offersEscalation = null, OfflineEscalationBehaviorEnum|string|null $offlineEscalationBehavior = null, ?string $offlineMessage = null, ?string $outsideHoursMessage = null, ?string $personalityPrompt = null, ?int $priority = null, ?array $requiredFields = null, ?string $responseLanguage = null, ?array $routingConfig = null, ?bool $sourceFooterEnabled = null, ?string $sourceFooterMode = null, ?array $sourceLinkParams = null, ?array $translationCache = null, ?bool $useFullConversationContext = null, ?bool $visionEnabled = null, ?array $webSearchAllowedDomains = null, ?int $webSearchMaxPerConversation = null, WebSearchModeEnum|string|null $webSearchMode = null, ?array $webSearchRequiredKeywords = null, ?string $idempotencyKey = null): AutomationBot
-    {
+    public function updateBot(
+        string $botId,
+        ?string $name = null,
+        BotTypeEnum|string|null $botType = null,
+        ?bool $isActive = null,
+        ?int $priority = null,
+        ?string $personalityPrompt = null,
+        ?string $greetingMessage = null,
+        ?array $escalationKeywords = null,
+        ?string $displayName = null,
+        ?string $avatarUrl = null,
+        ?string $aiDisclosureMessage = null,
+        ?bool $aiDisclosureIncludeEscalation = null,
+        ?bool $isKbOnlyMode = null,
+        ?string $responseLanguage = null,
+        float|int|null $confidenceThreshold = null,
+        ?bool $isDetailedResponse = null,
+        ?bool $useFullConversationContext = null,
+        ?bool $visionEnabled = null,
+        WebSearchModeEnum|string|null $webSearchMode = null,
+        ?array $webSearchAllowedDomains = null,
+        ?array $webSearchRequiredKeywords = null,
+        ?int $webSearchMaxPerConversation = null,
+        ?bool $deepAnswersEnabled = null,
+        ?bool $autoTranslateMessages = null,
+        ?string $languageDetectionStrategy = null,
+        ?bool $escalationEnabled = null,
+        ?bool $offersEscalation = null,
+        ?int $maxFailedAttempts = null,
+        ?string $handoffMessage = null,
+        ?string $noAnswerMessage = null,
+        ?string $escalationOfferMessage = null,
+        float|int|null $immediateHandoffThreshold = null,
+        ?array $requiredFields = null,
+        ?array $routingConfig = null,
+        ?bool $isFieldCollectionMode = null,
+        ?string $calendlyEventTypeUri = null,
+        OfflineEscalationBehaviorEnum|string|null $offlineEscalationBehavior = null,
+        ?string $offlineMessage = null,
+        ?string $outsideHoursMessage = null,
+        ?bool $isEscalationScheduleEnabled = null,
+        ?string $escalationTimezone = null,
+        ?array $escalationSchedule = null,
+        ?int $maxEmailReplies = null,
+        ?bool $isEmailReplyMode = null,
+        ?string $coexistBotId = null,
+        ?string $coexistMode = null,
+        ?string $baseLanguage = null,
+        ?array $translationCache = null,
+        ?bool $greetingButtonsEnabled = null,
+        ?string $greetingHumanButtonCaption = null,
+        ?string $greetingContinueButtonCaption = null,
+        ?string $greetingContinueAckMessage = null,
+        ?bool $sourceFooterEnabled = null,
+        ?string $sourceFooterMode = null,
+        ?array $sourceLinkParams = null,
+        ?string $kbLiveRefreshMode = null,
+        ?int $kbLiveRefreshTtlSeconds = null,
+        ?string $idempotencyKey = null,
+    ): AutomationBot {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/automation/bots/'.Payload::segment($botId),
-            body: Payload::body(['ai_disclosure_include_escalation' => $aiDisclosureIncludeEscalation, 'ai_disclosure_message' => $aiDisclosureMessage, 'auto_translate_messages' => $autoTranslateMessages, 'avatar_url' => $avatarUrl, 'base_language' => $baseLanguage, 'bot_type' => $botType, 'calendly_event_type_uri' => $calendlyEventTypeUri, 'coexist_bot_id' => $coexistBotId, 'coexist_mode' => $coexistMode, 'confidence_threshold' => $confidenceThreshold, 'deep_answers_enabled' => $deepAnswersEnabled, 'display_name' => $displayName, 'escalation_enabled' => $escalationEnabled, 'escalation_keywords' => $escalationKeywords, 'escalation_offer_message' => $escalationOfferMessage, 'escalation_schedule' => $escalationSchedule, 'escalation_timezone' => $escalationTimezone, 'greeting_buttons_enabled' => $greetingButtonsEnabled, 'greeting_continue_ack_message' => $greetingContinueAckMessage, 'greeting_continue_button_caption' => $greetingContinueButtonCaption, 'greeting_human_button_caption' => $greetingHumanButtonCaption, 'greeting_message' => $greetingMessage, 'handoff_message' => $handoffMessage, 'immediate_handoff_threshold' => $immediateHandoffThreshold, 'is_active' => $isActive, 'is_detailed_response' => $isDetailedResponse, 'is_email_reply_mode' => $isEmailReplyMode, 'is_escalation_schedule_enabled' => $isEscalationScheduleEnabled, 'is_field_collection_mode' => $isFieldCollectionMode, 'is_kb_only_mode' => $isKbOnlyMode, 'kb_live_refresh_mode' => $kbLiveRefreshMode, 'kb_live_refresh_ttl_seconds' => $kbLiveRefreshTtlSeconds, 'language_detection_strategy' => $languageDetectionStrategy, 'max_email_replies' => $maxEmailReplies, 'max_failed_attempts' => $maxFailedAttempts, 'name' => $name, 'no_answer_message' => $noAnswerMessage, 'offers_escalation' => $offersEscalation, 'offline_escalation_behavior' => $offlineEscalationBehavior, 'offline_message' => $offlineMessage, 'outside_hours_message' => $outsideHoursMessage, 'personality_prompt' => $personalityPrompt, 'priority' => $priority, 'required_fields' => $requiredFields, 'response_language' => $responseLanguage, 'routing_config' => $routingConfig, 'source_footer_enabled' => $sourceFooterEnabled, 'source_footer_mode' => $sourceFooterMode, 'source_link_params' => $sourceLinkParams, 'translation_cache' => $translationCache, 'use_full_conversation_context' => $useFullConversationContext, 'vision_enabled' => $visionEnabled, 'web_search_allowed_domains' => $webSearchAllowedDomains, 'web_search_max_per_conversation' => $webSearchMaxPerConversation, 'web_search_mode' => $webSearchMode, 'web_search_required_keywords' => $webSearchRequiredKeywords]),
+            body: Payload::body([
+                'name' => $name,
+                'bot_type' => $botType,
+                'is_active' => $isActive,
+                'priority' => $priority,
+                'personality_prompt' => $personalityPrompt,
+                'greeting_message' => $greetingMessage,
+                'escalation_keywords' => $escalationKeywords,
+                'display_name' => $displayName,
+                'avatar_url' => $avatarUrl,
+                'ai_disclosure_message' => $aiDisclosureMessage,
+                'ai_disclosure_include_escalation' => $aiDisclosureIncludeEscalation,
+                'is_kb_only_mode' => $isKbOnlyMode,
+                'response_language' => $responseLanguage,
+                'confidence_threshold' => $confidenceThreshold,
+                'is_detailed_response' => $isDetailedResponse,
+                'use_full_conversation_context' => $useFullConversationContext,
+                'vision_enabled' => $visionEnabled,
+                'web_search_mode' => $webSearchMode,
+                'web_search_allowed_domains' => $webSearchAllowedDomains,
+                'web_search_required_keywords' => $webSearchRequiredKeywords,
+                'web_search_max_per_conversation' => $webSearchMaxPerConversation,
+                'deep_answers_enabled' => $deepAnswersEnabled,
+                'auto_translate_messages' => $autoTranslateMessages,
+                'language_detection_strategy' => $languageDetectionStrategy,
+                'escalation_enabled' => $escalationEnabled,
+                'offers_escalation' => $offersEscalation,
+                'max_failed_attempts' => $maxFailedAttempts,
+                'handoff_message' => $handoffMessage,
+                'no_answer_message' => $noAnswerMessage,
+                'escalation_offer_message' => $escalationOfferMessage,
+                'immediate_handoff_threshold' => $immediateHandoffThreshold,
+                'required_fields' => $requiredFields,
+                'routing_config' => $routingConfig,
+                'is_field_collection_mode' => $isFieldCollectionMode,
+                'calendly_event_type_uri' => $calendlyEventTypeUri,
+                'offline_escalation_behavior' => $offlineEscalationBehavior,
+                'offline_message' => $offlineMessage,
+                'outside_hours_message' => $outsideHoursMessage,
+                'is_escalation_schedule_enabled' => $isEscalationScheduleEnabled,
+                'escalation_timezone' => $escalationTimezone,
+                'escalation_schedule' => $escalationSchedule,
+                'max_email_replies' => $maxEmailReplies,
+                'is_email_reply_mode' => $isEmailReplyMode,
+                'coexist_bot_id' => $coexistBotId,
+                'coexist_mode' => $coexistMode,
+                'base_language' => $baseLanguage,
+                'translation_cache' => $translationCache,
+                'greeting_buttons_enabled' => $greetingButtonsEnabled,
+                'greeting_human_button_caption' => $greetingHumanButtonCaption,
+                'greeting_continue_button_caption' => $greetingContinueButtonCaption,
+                'greeting_continue_ack_message' => $greetingContinueAckMessage,
+                'source_footer_enabled' => $sourceFooterEnabled,
+                'source_footer_mode' => $sourceFooterMode,
+                'source_link_params' => $sourceLinkParams,
+                'kb_live_refresh_mode' => $kbLiveRefreshMode,
+                'kb_live_refresh_ttl_seconds' => $kbLiveRefreshTtlSeconds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -450,13 +679,13 @@ final readonly class Automation
      * Scopes: automation:update.
      *
      * @param  string  $keyword  Keyword to match
+     * @param  ?string  $matchType  Match type: 'exact' or 'contains'
      * @param  list<string>|null  $channelIds  Limit trigger to specific channel IDs. None = all channels.
-     * @param  ?string  $flowId  Top-level 'Start Flow' action — kick off a Flow Engine run when this keyword matches, INSTEAD of sending responses or handing off. Mutually exclusive with handoff_bot_id and handover_to_human. The referenced flow must be published.
+     * @param  ?int  $priority  Trigger priority (higher = evaluated first)
+     * @param  ?bool  $isActive  Whether this trigger is active
      * @param  ?string  $handoffBotId  Bot ID to hand off to after sending responses
      * @param  ?bool  $handoverToHuman  Escalate to human agent after sending responses. Mutually exclusive with handoff_bot_id.
-     * @param  ?bool  $isActive  Whether this trigger is active
-     * @param  ?string  $matchType  Match type: 'exact' or 'contains'
-     * @param  ?int  $priority  Trigger priority (higher = evaluated first)
+     * @param  ?string  $flowId  Top-level 'Start Flow' action — kick off a Flow Engine run when this keyword matches, INSTEAD of sending responses or handing off. Mutually exclusive with handoff_bot_id and handover_to_human. The referenced flow must be published.
      * @param  list<array<string, mixed>>|null  $responses  Response sequence to send when keyword is matched
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -464,12 +693,33 @@ final readonly class Automation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/create_keyword_trigger_api_v1_automation_bots__bot_id__keyword_triggers_post
      */
-    public function createKeywordTrigger(string $botId, string $keyword, ?array $channelIds = null, ?string $flowId = null, ?string $handoffBotId = null, ?bool $handoverToHuman = null, ?bool $isActive = null, ?string $matchType = null, ?int $priority = null, ?array $responses = null, ?string $idempotencyKey = null): KeywordTriggerSchema
-    {
+    public function createKeywordTrigger(
+        string $botId,
+        string $keyword,
+        ?string $matchType = null,
+        ?array $channelIds = null,
+        ?int $priority = null,
+        ?bool $isActive = null,
+        ?string $handoffBotId = null,
+        ?bool $handoverToHuman = null,
+        ?string $flowId = null,
+        ?array $responses = null,
+        ?string $idempotencyKey = null,
+    ): KeywordTriggerSchema {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/automation/bots/'.Payload::segment($botId).'/keyword-triggers',
-            body: Payload::body(['keyword' => $keyword, 'channel_ids' => $channelIds, 'flow_id' => $flowId, 'handoff_bot_id' => $handoffBotId, 'handover_to_human' => $handoverToHuman, 'is_active' => $isActive, 'match_type' => $matchType, 'priority' => $priority, 'responses' => $responses]),
+            body: Payload::body([
+                'keyword' => $keyword,
+                'match_type' => $matchType,
+                'channel_ids' => $channelIds,
+                'priority' => $priority,
+                'is_active' => $isActive,
+                'handoff_bot_id' => $handoffBotId,
+                'handover_to_human' => $handoverToHuman,
+                'flow_id' => $flowId,
+                'responses' => $responses,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -597,12 +847,33 @@ final readonly class Automation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/update_keyword_trigger_api_v1_automation_bots__bot_id__keyword_triggers__trigger_id__put
      */
-    public function updateKeywordTrigger(string $botId, string $triggerId, ?array $channelIds = null, ?string $flowId = null, ?string $handoffBotId = null, ?bool $handoverToHuman = null, ?bool $isActive = null, ?string $keyword = null, ?string $matchType = null, ?int $priority = null, ?array $responses = null): KeywordTriggerSchema
-    {
+    public function updateKeywordTrigger(
+        string $botId,
+        string $triggerId,
+        ?string $keyword = null,
+        ?string $matchType = null,
+        ?array $channelIds = null,
+        ?int $priority = null,
+        ?bool $isActive = null,
+        ?string $handoffBotId = null,
+        ?bool $handoverToHuman = null,
+        ?string $flowId = null,
+        ?array $responses = null,
+    ): KeywordTriggerSchema {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/automation/bots/'.Payload::segment($botId).'/keyword-triggers/'.Payload::segment($triggerId),
-            body: Payload::body(['channel_ids' => $channelIds, 'flow_id' => $flowId, 'handoff_bot_id' => $handoffBotId, 'handover_to_human' => $handoverToHuman, 'is_active' => $isActive, 'keyword' => $keyword, 'match_type' => $matchType, 'priority' => $priority, 'responses' => $responses]),
+            body: Payload::body([
+                'keyword' => $keyword,
+                'match_type' => $matchType,
+                'channel_ids' => $channelIds,
+                'priority' => $priority,
+                'is_active' => $isActive,
+                'handoff_bot_id' => $handoffBotId,
+                'handover_to_human' => $handoverToHuman,
+                'flow_id' => $flowId,
+                'responses' => $responses,
+            ]),
         ));
 
         return KeywordTriggerSchema::fromArray($response->data());
@@ -649,26 +920,49 @@ final readonly class Automation
      *
      * @param  list<string>|null  $channelIds  Specific channel IDs to activate for (preferred over channel_types)
      * @param  list<string>|null  $channelTypes  [DEPRECATED] Channel types to activate for. Use channel_ids instead.
-     * @param  ?bool  $isActive  Whether rule is active
-     * @param  ?bool  $isScheduleEnabled  Enable time-based activation
-     * @param  ?int  $priority  Rule priority (higher = evaluated first)
-     * @param  list<string>|null  $recipientEmailAddresses  Only activate for emails sent TO these addresses (e.g., ['support@example.com'])
-     * @param  ?bool  $requiresNoAgentsOnline  Only activate when no human agents are online
-     * @param  list<array<string, mixed>>|null  $timeRanges  Time ranges when bot should be active
-     * @param  ?string  $timezone  IANA timezone for schedule (e.g., 'Europe/Berlin')
      * @param  list<string>|null  $widgetIds  Specific widget IDs to activate for
+     * @param  ?bool  $isScheduleEnabled  Enable time-based activation
+     * @param  ?string  $timezone  IANA timezone for schedule (e.g., 'Europe/Berlin')
+     * @param  list<array<string, mixed>>|null  $timeRanges  Time ranges when bot should be active
+     * @param  ?bool  $requiresNoAgentsOnline  Only activate when no human agents are online
+     * @param  list<string>|null  $recipientEmailAddresses  Only activate for emails sent TO these addresses (e.g., ['support@example.com'])
+     * @param  ?int  $priority  Rule priority (higher = evaluated first)
+     * @param  ?bool  $isActive  Whether rule is active
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/create_activation_rule_api_v1_automation_bots__bot_id__rules_post
      */
-    public function createActivationRule(string $botId, ?array $channelIds = null, ?array $channelTypes = null, ?bool $isActive = null, ?bool $isScheduleEnabled = null, ?int $priority = null, ?array $recipientEmailAddresses = null, ?bool $requiresNoAgentsOnline = null, ?array $timeRanges = null, ?string $timezone = null, ?array $widgetIds = null, ?string $idempotencyKey = null): BotActivationRule
-    {
+    public function createActivationRule(
+        string $botId,
+        ?array $channelIds = null,
+        ?array $channelTypes = null,
+        ?array $widgetIds = null,
+        ?bool $isScheduleEnabled = null,
+        ?string $timezone = null,
+        ?array $timeRanges = null,
+        ?bool $requiresNoAgentsOnline = null,
+        ?array $recipientEmailAddresses = null,
+        ?int $priority = null,
+        ?bool $isActive = null,
+        ?string $idempotencyKey = null,
+    ): BotActivationRule {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/automation/bots/'.Payload::segment($botId).'/rules',
-            body: Payload::body(['channel_ids' => $channelIds, 'channel_types' => $channelTypes, 'is_active' => $isActive, 'is_schedule_enabled' => $isScheduleEnabled, 'priority' => $priority, 'recipient_email_addresses' => $recipientEmailAddresses, 'requires_no_agents_online' => $requiresNoAgentsOnline, 'time_ranges' => $timeRanges, 'timezone' => $timezone, 'widget_ids' => $widgetIds]),
+            body: Payload::body([
+                'channel_ids' => $channelIds,
+                'channel_types' => $channelTypes,
+                'widget_ids' => $widgetIds,
+                'is_schedule_enabled' => $isScheduleEnabled,
+                'timezone' => $timezone,
+                'time_ranges' => $timeRanges,
+                'requires_no_agents_online' => $requiresNoAgentsOnline,
+                'recipient_email_addresses' => $recipientEmailAddresses,
+                'priority' => $priority,
+                'is_active' => $isActive,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -708,20 +1002,43 @@ final readonly class Automation
      *
      * @param  list<string>|null  $channelIds
      * @param  list<string>|null  $channelTypes
-     * @param  list<string>|null  $recipientEmailAddresses
-     * @param  list<array<string, mixed>>|null  $timeRanges
      * @param  list<string>|null  $widgetIds
+     * @param  list<array<string, mixed>>|null  $timeRanges
+     * @param  list<string>|null  $recipientEmailAddresses
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/update_activation_rule_api_v1_automation_bots__bot_id__rules__rule_id__put
      */
-    public function updateActivationRule(string $botId, string $ruleId, ?array $channelIds = null, ?array $channelTypes = null, ?bool $isActive = null, ?bool $isScheduleEnabled = null, ?int $priority = null, ?array $recipientEmailAddresses = null, ?bool $requiresNoAgentsOnline = null, ?array $timeRanges = null, ?string $timezone = null, ?array $widgetIds = null): BotActivationRule
-    {
+    public function updateActivationRule(
+        string $botId,
+        string $ruleId,
+        ?array $channelIds = null,
+        ?array $channelTypes = null,
+        ?array $widgetIds = null,
+        ?bool $isScheduleEnabled = null,
+        ?string $timezone = null,
+        ?array $timeRanges = null,
+        ?bool $requiresNoAgentsOnline = null,
+        ?array $recipientEmailAddresses = null,
+        ?int $priority = null,
+        ?bool $isActive = null,
+    ): BotActivationRule {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/automation/bots/'.Payload::segment($botId).'/rules/'.Payload::segment($ruleId),
-            body: Payload::body(['channel_ids' => $channelIds, 'channel_types' => $channelTypes, 'is_active' => $isActive, 'is_schedule_enabled' => $isScheduleEnabled, 'priority' => $priority, 'recipient_email_addresses' => $recipientEmailAddresses, 'requires_no_agents_online' => $requiresNoAgentsOnline, 'time_ranges' => $timeRanges, 'timezone' => $timezone, 'widget_ids' => $widgetIds]),
+            body: Payload::body([
+                'channel_ids' => $channelIds,
+                'channel_types' => $channelTypes,
+                'widget_ids' => $widgetIds,
+                'is_schedule_enabled' => $isScheduleEnabled,
+                'timezone' => $timezone,
+                'time_ranges' => $timeRanges,
+                'requires_no_agents_online' => $requiresNoAgentsOnline,
+                'recipient_email_addresses' => $recipientEmailAddresses,
+                'priority' => $priority,
+                'is_active' => $isActive,
+            ]),
         ));
 
         return BotActivationRule::fromArray($response->data());
@@ -800,12 +1117,21 @@ final readonly class Automation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/list_sessions_api_v1_automation_sessions_get
      */
-    public function listSessions(?string $botId = null, ?string $sessionStatus = null, ?int $skip = null, ?int $limit = null): array
-    {
+    public function listSessions(
+        ?string $botId = null,
+        ?string $sessionStatus = null,
+        ?int $skip = null,
+        ?int $limit = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/automation/sessions',
-            query: Payload::query(['bot_id' => $botId, 'session_status' => $sessionStatus, 'skip' => $skip, 'limit' => $limit]),
+            query: Payload::query([
+                'bot_id' => $botId,
+                'session_status' => $sessionStatus,
+                'skip' => $skip,
+                'limit' => $limit,
+            ]),
         ));
 
         return Hydrate::list($response->data(), BotConversationSessionList::fromArray(...));

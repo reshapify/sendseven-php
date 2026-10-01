@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UnsubscribeStats extends Data
 {
     /**
-     * @param  list<string>  $commonReasons  Most common unsubscribe reasons
-     * @param  array<array-key, mixed>  $methods  Breakdown by unsubscribe method
-     * @param  int  $periodDays  Number of days analyzed
      * @param  int  $totalUnsubscribes  Total unsubscribes in period
+     * @param  int  $periodDays  Number of days analyzed
+     * @param  array<array-key, mixed>  $methods  Breakdown by unsubscribe method
+     * @param  list<string>  $commonReasons  Most common unsubscribe reasons
      * @param  ?float  $unsubscribeRatePercent  Unsubscribe rate as percentage (if campaign context available)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $campaignId,
-        public array $commonReasons,
-        public ?string $emailCampaignId,
-        public array $methods,
-        public int $periodDays,
         public int $totalUnsubscribes,
+        public int $periodDays,
+        public array $methods,
+        public array $commonReasons,
         public ?float $unsubscribeRatePercent,
+        public ?string $campaignId,
+        public ?string $emailCampaignId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,13 +45,13 @@ final readonly class UnsubscribeStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            campaignId: $attributes->nullableString('campaign_id'),
-            commonReasons: $attributes->strings('common_reasons'),
-            emailCampaignId: $attributes->nullableString('email_campaign_id'),
-            methods: $attributes->array('methods'),
-            periodDays: $attributes->int('period_days'),
             totalUnsubscribes: $attributes->int('total_unsubscribes'),
+            periodDays: $attributes->int('period_days'),
+            methods: $attributes->array('methods'),
+            commonReasons: $attributes->strings('common_reasons'),
             unsubscribeRatePercent: $attributes->nullableFloat('unsubscribe_rate_percent'),
+            campaignId: $attributes->nullableString('campaign_id'),
+            emailCampaignId: $attributes->nullableString('email_campaign_id'),
             raw: $data,
         );
     }

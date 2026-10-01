@@ -18,35 +18,35 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Invoice extends Data
 {
     /**
-     * @param  string  $amountDueEuros  Amount still due
-     * @param  string  $amountPaidEuros  Amount already paid
-     * @param  ?string  $hostedInvoiceUrl  URL to Stripe-hosted invoice page
      * @param  string  $id  Internal invoice ID
-     * @param  ?string  $invoicePdfUrl  URL to download invoice PDF
-     * @param  DateTimeImmutable  $periodEnd  End of billing period
-     * @param  DateTimeImmutable  $periodStart  Start of billing period
-     * @param  string  $status  Invoice status: draft, open, paid, void, uncollectible
      * @param  string  $stripeInvoiceId  Stripe invoice ID (starts with 'in_')
+     * @param  string  $status  Invoice status: draft, open, paid, void, uncollectible
+     * @param  DateTimeImmutable  $periodStart  Start of billing period
+     * @param  DateTimeImmutable  $periodEnd  End of billing period
      * @param  string  $subtotalEuros  Subtotal before taxes
-     * @param  int  $totalCents  Total in cents for backward compatibility
      * @param  string  $totalEuros  Total amount
+     * @param  string  $amountPaidEuros  Amount already paid
+     * @param  string  $amountDueEuros  Amount still due
+     * @param  ?string  $invoicePdfUrl  URL to download invoice PDF
+     * @param  ?string  $hostedInvoiceUrl  URL to Stripe-hosted invoice page
+     * @param  int  $totalCents  Total in cents for backward compatibility
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $amountDueEuros,
-        public string $amountPaidEuros,
-        public DateTimeImmutable $createdAt,
-        public ?string $hostedInvoiceUrl,
         public string $id,
-        public ?string $invoicePdfUrl,
-        public ?DateTimeImmutable $paidAt,
-        public DateTimeImmutable $periodEnd,
-        public DateTimeImmutable $periodStart,
-        public string $status,
         public string $stripeInvoiceId,
+        public string $status,
+        public DateTimeImmutable $periodStart,
+        public DateTimeImmutable $periodEnd,
         public string $subtotalEuros,
-        public int $totalCents,
         public string $totalEuros,
+        public string $amountPaidEuros,
+        public string $amountDueEuros,
+        public ?string $invoicePdfUrl,
+        public ?string $hostedInvoiceUrl,
+        public DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $paidAt,
+        public int $totalCents,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -60,20 +60,20 @@ final readonly class Invoice extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            amountDueEuros: $attributes->string('amount_due_euros'),
-            amountPaidEuros: $attributes->string('amount_paid_euros'),
-            createdAt: $attributes->dateTime('created_at'),
-            hostedInvoiceUrl: $attributes->nullableString('hosted_invoice_url'),
             id: $attributes->string('id'),
-            invoicePdfUrl: $attributes->nullableString('invoice_pdf_url'),
-            paidAt: $attributes->nullableDateTime('paid_at'),
-            periodEnd: $attributes->dateTime('period_end'),
-            periodStart: $attributes->dateTime('period_start'),
-            status: $attributes->string('status'),
             stripeInvoiceId: $attributes->string('stripe_invoice_id'),
+            status: $attributes->string('status'),
+            periodStart: $attributes->dateTime('period_start'),
+            periodEnd: $attributes->dateTime('period_end'),
             subtotalEuros: $attributes->string('subtotal_euros'),
-            totalCents: $attributes->int('total_cents'),
             totalEuros: $attributes->string('total_euros'),
+            amountPaidEuros: $attributes->string('amount_paid_euros'),
+            amountDueEuros: $attributes->string('amount_due_euros'),
+            invoicePdfUrl: $attributes->nullableString('invoice_pdf_url'),
+            hostedInvoiceUrl: $attributes->nullableString('hosted_invoice_url'),
+            createdAt: $attributes->dateTime('created_at'),
+            paidAt: $attributes->nullableDateTime('paid_at'),
+            totalCents: $attributes->int('total_cents'),
             raw: $data,
         );
     }

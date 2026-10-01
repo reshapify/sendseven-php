@@ -19,39 +19,39 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FaqMigrationStatus extends Data
 {
     /**
-     * @param  int  $clustersRejected  Clusters consumed without producing an entry — refused as non-reusable, blocked for PII, or merged into an existing entry. Stored as ARCHIVED ledger rows
-     * @param  array<array-key, mixed>  $entriesByStatus  Imported entries grouped by current status (draft/published/...)
-     * @param  int  $entriesImported  FAQ entries the migration created (drafts, unless later changed)
-     * @param  ?FaqMigrationEstimate  $estimate  Fresh clustering pass. Only present with `?include_estimate=true` — it re-clusters the whole pending corpus, so do not poll with it
-     * @param  ?string  $lastActivityAt  Newest migrated row — the migration's real heartbeat
-     * @param  int  $migratedRowsTotal  `entries_imported + clusters_rejected`
-     * @param  ?float  $percentSummariesProcessed  summaries_migrated / summaries_total * 100, rounded to 1 decimal. This is the ONLY progress ratio the backend can substantiate — it measures summaries consumed, NOT clusters done and NOT time elapsed, and it moves in jumps of a whole cluster. Null when the tenant has no summaries. There is no cluster-level or ETA progress record; ask `?include_estimate=true` (or /faq-migration/estimate) for a fresh cluster count
-     * @param  array<array-key, mixed>  $rejectedReasons  Breakdown of `clusters_rejected` by reason
-     * @param  ?FaqMigrationRunInfo  $run  The in-flight marker, when one exists
      * @param  bool  $running  INFERRED, not recorded: true when the in-flight marker exists, or when the migration wrote a row in the last few minutes while work remains. See `running_evidence`
      * @param  list<string>  $runningEvidence  Which signals fired: 'lease' and/or 'recent_activity'
+     * @param  ?FaqMigrationRunInfo  $run  The in-flight marker, when one exists
+     * @param  int  $summariesTotal  Distinct conversations with a summary the migration can read. Marginally optimistic: a run also drops records with empty intent text and caps itself at 20000
      * @param  int  $summariesMigrated  Distinct conversation ids recorded as consumed by migrated rows
      * @param  int  $summariesPending  `summaries_total - summaries_migrated`, floored at 0
-     * @param  int  $summariesTotal  Distinct conversations with a summary the migration can read. Marginally optimistic: a run also drops records with empty intent text and caps itself at 20000
+     * @param  ?float  $percentSummariesProcessed  summaries_migrated / summaries_total * 100, rounded to 1 decimal. This is the ONLY progress ratio the backend can substantiate — it measures summaries consumed, NOT clusters done and NOT time elapsed, and it moves in jumps of a whole cluster. Null when the tenant has no summaries. There is no cluster-level or ETA progress record; ask `?include_estimate=true` (or /faq-migration/estimate) for a fresh cluster count
+     * @param  int  $entriesImported  FAQ entries the migration created (drafts, unless later changed)
+     * @param  array<array-key, mixed>  $entriesByStatus  Imported entries grouped by current status (draft/published/...)
+     * @param  int  $clustersRejected  Clusters consumed without producing an entry — refused as non-reusable, blocked for PII, or merged into an existing entry. Stored as ARCHIVED ledger rows
+     * @param  array<array-key, mixed>  $rejectedReasons  Breakdown of `clusters_rejected` by reason
+     * @param  int  $migratedRowsTotal  `entries_imported + clusters_rejected`
+     * @param  ?string  $lastActivityAt  Newest migrated row — the migration's real heartbeat
+     * @param  ?FaqMigrationEstimate  $estimate  Fresh clustering pass. Only present with `?include_estimate=true` — it re-clusters the whole pending corpus, so do not poll with it
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $checkedAt,
-        public int $clustersRejected,
-        public array $entriesByStatus,
-        public int $entriesImported,
-        public ?FaqMigrationEstimate $estimate,
-        public ?string $lastActivityAt,
-        public int $migratedRowsTotal,
-        public ?float $percentSummariesProcessed,
-        public array $rejectedReasons,
-        public ?FaqMigrationRunInfo $run,
+        public string $tenantId,
         public bool $running,
         public array $runningEvidence,
+        public ?FaqMigrationRunInfo $run,
+        public int $summariesTotal,
         public int $summariesMigrated,
         public int $summariesPending,
-        public int $summariesTotal,
-        public string $tenantId,
+        public ?float $percentSummariesProcessed,
+        public int $entriesImported,
+        public array $entriesByStatus,
+        public int $clustersRejected,
+        public array $rejectedReasons,
+        public int $migratedRowsTotal,
+        public ?string $lastActivityAt,
+        public ?FaqMigrationEstimate $estimate,
+        public string $checkedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -65,22 +65,22 @@ final readonly class FaqMigrationStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            checkedAt: $attributes->string('checked_at'),
-            clustersRejected: $attributes->int('clusters_rejected'),
-            entriesByStatus: $attributes->array('entries_by_status'),
-            entriesImported: $attributes->int('entries_imported'),
-            estimate: $attributes->nullableObject('estimate', FaqMigrationEstimate::fromArray(...)),
-            lastActivityAt: $attributes->nullableString('last_activity_at'),
-            migratedRowsTotal: $attributes->int('migrated_rows_total'),
-            percentSummariesProcessed: $attributes->nullableFloat('percent_summaries_processed'),
-            rejectedReasons: $attributes->array('rejected_reasons'),
-            run: $attributes->nullableObject('run', FaqMigrationRunInfo::fromArray(...)),
+            tenantId: $attributes->string('tenant_id'),
             running: $attributes->bool('running'),
             runningEvidence: $attributes->strings('running_evidence'),
+            run: $attributes->nullableObject('run', FaqMigrationRunInfo::fromArray(...)),
+            summariesTotal: $attributes->int('summaries_total'),
             summariesMigrated: $attributes->int('summaries_migrated'),
             summariesPending: $attributes->int('summaries_pending'),
-            summariesTotal: $attributes->int('summaries_total'),
-            tenantId: $attributes->string('tenant_id'),
+            percentSummariesProcessed: $attributes->nullableFloat('percent_summaries_processed'),
+            entriesImported: $attributes->int('entries_imported'),
+            entriesByStatus: $attributes->array('entries_by_status'),
+            clustersRejected: $attributes->int('clusters_rejected'),
+            rejectedReasons: $attributes->array('rejected_reasons'),
+            migratedRowsTotal: $attributes->int('migrated_rows_total'),
+            lastActivityAt: $attributes->nullableString('last_activity_at'),
+            estimate: $attributes->nullableObject('estimate', FaqMigrationEstimate::fromArray(...)),
+            checkedAt: $attributes->string('checked_at'),
             raw: $data,
         );
     }

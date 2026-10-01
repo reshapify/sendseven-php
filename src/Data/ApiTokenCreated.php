@@ -21,26 +21,26 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ApiTokenCreated extends Data
 {
     /**
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this token belongs to
+     * @param  string  $userId  User who created this token
+     * @param  string  $name  Human-readable name for this token
+     * @param  string  $token  Plaintext token - shown only once!
+     * @param  list<string>  $scopes  Scopes granted to this token
      * @param  DateTimeImmutable  $createdAt  When the token was created
      * @param  ?DateTimeImmutable  $expiresAt  When the token expires
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  string  $name  Human-readable name for this token
-     * @param  list<string>  $scopes  Scopes granted to this token
-     * @param  string  $tenantId  Tenant this token belongs to
-     * @param  string  $token  Plaintext token - shown only once!
-     * @param  string  $userId  User who created this token
      * @param  ?string  $warning  Security warning
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $tenantId,
+        public string $userId,
+        public string $name,
+        public string $token,
+        public array $scopes,
         public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $expiresAt,
-        public string $id,
-        public string $name,
-        public array $scopes,
-        public string $tenantId,
-        public string $token,
-        public string $userId,
         public ?string $warning,
         array $raw = [],
     ) {
@@ -55,14 +55,14 @@ final readonly class ApiTokenCreated extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            userId: $attributes->string('user_id'),
+            name: $attributes->string('name'),
+            token: $attributes->string('token'),
+            scopes: $attributes->strings('scopes'),
             createdAt: $attributes->dateTime('created_at'),
             expiresAt: $attributes->nullableDateTime('expires_at'),
-            id: $attributes->string('id'),
-            name: $attributes->string('name'),
-            scopes: $attributes->strings('scopes'),
-            tenantId: $attributes->string('tenant_id'),
-            token: $attributes->string('token'),
-            userId: $attributes->string('user_id'),
             warning: $attributes->nullableString('warning'),
             raw: $data,
         );

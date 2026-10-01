@@ -47,12 +47,27 @@ final readonly class AuditLog
      *
      * @see https://api.sendseven.com/api/v1/docs#/Audit%20Log/list_audit_log_api_v1_audit_log_get
      */
-    public function list(?string $method = null, ?int $statusCode = null, ?string $path = null, DateTimeInterface|string|null $startDate = null, DateTimeInterface|string|null $endDate = null, ?int $page = null, ?int $pageSize = null): void
-    {
+    public function list(
+        ?string $method = null,
+        ?int $statusCode = null,
+        ?string $path = null,
+        DateTimeInterface|string|null $startDate = null,
+        DateTimeInterface|string|null $endDate = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Get,
             '/audit-log',
-            query: Payload::query(['method' => $method, 'status_code' => $statusCode, 'path' => $path, 'start_date' => $startDate, 'end_date' => $endDate, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'method' => $method,
+                'status_code' => $statusCode,
+                'path' => $path,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
     }
 }

@@ -1,0 +1,22 @@
+{
+    "description": "Clearer method names and types where the spec's are awkward or missing.",
+    "operations": {
+        "get_my_tenants_api_v1_tenants_me_get": {"x-php-method": "mine"},
+        "get_my_retention_api_v1_tenants_me_retention_get": {"x-php-method": "retention"},
+        "update_my_retention_api_v1_tenants_me_retention_put": {"x-php-method": "updateRetention"},
+        "get_tenant_features_api_v1_tenants_features_get": {"x-php-method": "features"},
+        "get_available_scopes_for_token_api_v1_api_tokens_available_scopes_get": {"x-php-method": "availableScopes"},
+        "message_pricing_api_v1_sms_message_pricing_get": {"x-php-method": "priceMessage"},
+        "get_sms_pricelist_api_v1_sms_pricelist_get": {"x-php-method": "pricelist"}
+    },
+    "schemas": {
+        "MessageCreate": {
+            "properties": {
+                "to": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "description": "The recipient's address on the channel: a phone number (E.164) for WhatsApp, SMS and RCS, an email address, or the channel's ID for the person (e.g. a Telegram chat ID). Optional when conversation_id, contact_method_id or contact_id identifies them."
+                }
+            }
+        }
+    }
+}

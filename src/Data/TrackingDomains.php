@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TrackingDomains extends Data
 {
     /**
-     * @param  string  $defaultDomain  The default tracking domain
      * @param  list<TrackingDomainSchema>  $domains  List of available tracking domains
+     * @param  string  $defaultDomain  The default tracking domain
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $defaultDomain,
         public array $domains,
+        public string $defaultDomain,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class TrackingDomains extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            defaultDomain: $attributes->string('default_domain'),
             domains: $attributes->list('domains', TrackingDomainSchema::fromArray(...)),
+            defaultDomain: $attributes->string('default_domain'),
             raw: $data,
         );
     }

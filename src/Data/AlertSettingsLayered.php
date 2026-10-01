@@ -22,14 +22,14 @@ final readonly class AlertSettingsLayered extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?AlertSettings $account,
-        public array $destinations,
-        public ?AlertSettings $effective,
         public string $effectiveScope,
+        public ?AlertSettings $effective,
+        public ?AlertSettings $account,
+        public ?AlertSettings $tenant,
+        public array $destinations,
         public ?bool $paidChannelsAvailable,
         public ?string $paidChannelsReason,
         public array $smsAllowedCountries,
-        public ?AlertSettings $tenant,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,14 +43,14 @@ final readonly class AlertSettingsLayered extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            account: $attributes->nullableObject('account', AlertSettings::fromArray(...)),
-            destinations: $attributes->list('destinations', AlertDestination::fromArray(...)),
-            effective: $attributes->nullableObject('effective', AlertSettings::fromArray(...)),
             effectiveScope: $attributes->string('effective_scope'),
+            effective: $attributes->nullableObject('effective', AlertSettings::fromArray(...)),
+            account: $attributes->nullableObject('account', AlertSettings::fromArray(...)),
+            tenant: $attributes->nullableObject('tenant', AlertSettings::fromArray(...)),
+            destinations: $attributes->list('destinations', AlertDestination::fromArray(...)),
             paidChannelsAvailable: $attributes->nullableBool('paid_channels_available'),
             paidChannelsReason: $attributes->nullableString('paid_channels_reason'),
             smsAllowedCountries: $attributes->strings('sms_allowed_countries'),
-            tenant: $attributes->nullableObject('tenant', AlertSettings::fromArray(...)),
             raw: $data,
         );
     }

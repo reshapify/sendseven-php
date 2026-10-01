@@ -22,20 +22,20 @@ final readonly class Invitation extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $acceptedAt,
-        public DateTimeImmutable $createdAt,
-        public ?DateTimeImmutable $declinedAt,
-        public string $email,
-        public DateTimeImmutable $expiresAt,
         public string $id,
-        public string $invitationToken,
-        public ?string $invitedByName,
-        public string $invitedByUserId,
-        public string $invitedRole,
-        public InvitationStatusEnum|string $status,
         public string $tenantId,
-        public ?string $tenantName,
+        public string $email,
+        public string $invitedRole,
+        public string $invitedByUserId,
+        public string $invitationToken,
+        public InvitationStatusEnum|string $status,
+        public DateTimeImmutable $expiresAt,
+        public ?DateTimeImmutable $acceptedAt,
+        public ?DateTimeImmutable $declinedAt,
+        public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $updatedAt,
+        public ?string $tenantName,
+        public ?string $invitedByName,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,20 +49,20 @@ final readonly class Invitation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            acceptedAt: $attributes->nullableDateTime('accepted_at'),
-            createdAt: $attributes->dateTime('created_at'),
-            declinedAt: $attributes->nullableDateTime('declined_at'),
-            email: $attributes->string('email'),
-            expiresAt: $attributes->dateTime('expires_at'),
             id: $attributes->string('id'),
-            invitationToken: $attributes->string('invitation_token'),
-            invitedByName: $attributes->nullableString('invited_by_name'),
-            invitedByUserId: $attributes->string('invited_by_user_id'),
-            invitedRole: $attributes->string('invited_role'),
-            status: $attributes->enum('status', InvitationStatusEnum::class),
             tenantId: $attributes->string('tenant_id'),
-            tenantName: $attributes->nullableString('tenant_name'),
+            email: $attributes->string('email'),
+            invitedRole: $attributes->string('invited_role'),
+            invitedByUserId: $attributes->string('invited_by_user_id'),
+            invitationToken: $attributes->string('invitation_token'),
+            status: $attributes->enum('status', InvitationStatusEnum::class),
+            expiresAt: $attributes->dateTime('expires_at'),
+            acceptedAt: $attributes->nullableDateTime('accepted_at'),
+            declinedAt: $attributes->nullableDateTime('declined_at'),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->nullableDateTime('updated_at'),
+            tenantName: $attributes->nullableString('tenant_name'),
+            invitedByName: $attributes->nullableString('invited_by_name'),
             raw: $data,
         );
     }

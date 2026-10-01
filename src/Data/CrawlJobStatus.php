@@ -19,50 +19,50 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CrawlJobStatus extends Data
 {
     /**
-     * @param  ?string  $baseUrl  Base URL being crawled
-     * @param  ?int  $blockedCount  Total number of pages blocked by the target server
-     * @param  list<mixed>  $blockedPages  Pages blocked by the target server (429 rate limited or 403 forbidden)
-     * @param  ?string  $completedAt  ISO datetime when job completed
-     * @param  array<array-key, mixed>  $crawlStatistics  Detailed crawl stats
-     * @param  ?int  $discoveredCount  Real-time count of pages discovered so far (during crawl)
-     * @param  list<mixed>  $discoveredUrls  List of discovered URLs with url, title (optional), and priority
-     * @param  list<string>  $documentIds  IDs of created documents
-     * @param  ?int  $documentsCreated  Documents created in KB
-     * @param  list<string>  $errors  List of error messages
-     * @param  ?string  $finalizePhase  Current finalization phase: 'importing', 'cleaning_up', 'saving_history'. Only present after all pages are crawled and before job completes.
      * @param  string  $jobId  Unique job ID
+     * @param  string  $status  Status: discovering, uploading, completed, failed
      * @param  string  $message  Human-readable status message
+     * @param  ?string  $baseUrl  Base URL being crawled
+     * @param  list<mixed>  $discoveredUrls  List of discovered URLs with url, title (optional), and priority
+     * @param  ?int  $totalPages  Total pages discovered
+     * @param  ?int  $discoveredCount  Real-time count of pages discovered so far (during crawl)
      * @param  ?int  $pagesCrawled  Pages successfully crawled
      * @param  ?int  $pagesFailed  Pages that failed to crawl
+     * @param  ?int  $documentsCreated  Documents created in KB
+     * @param  list<string>  $documentIds  IDs of created documents
+     * @param  array<array-key, mixed>  $crawlStatistics  Detailed crawl stats
+     * @param  list<string>  $errors  List of error messages
+     * @param  list<mixed>  $blockedPages  Pages blocked by the target server (429 rate limited or 403 forbidden)
+     * @param  ?int  $blockedCount  Total number of pages blocked by the target server
+     * @param  ?string  $finalizePhase  Current finalization phase: 'importing', 'cleaning_up', 'saving_history'. Only present after all pages are crawled and before job completes.
      * @param  ?int  $ragImportedFiles  Number of files imported to RAG so far (during 'importing' phase)
      * @param  ?int  $ragTotalFiles  Total number of files to import to RAG (during 'importing' phase)
      * @param  ?string  $startedAt  ISO datetime when job started
-     * @param  string  $status  Status: discovering, uploading, completed, failed
-     * @param  ?int  $totalPages  Total pages discovered
+     * @param  ?string  $completedAt  ISO datetime when job completed
      * @param  ?string  $updatedAt  ISO datetime of last update
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $baseUrl,
-        public ?int $blockedCount,
-        public array $blockedPages,
-        public ?string $completedAt,
-        public array $crawlStatistics,
-        public ?int $discoveredCount,
-        public array $discoveredUrls,
-        public array $documentIds,
-        public ?int $documentsCreated,
-        public array $errors,
-        public ?string $finalizePhase,
         public string $jobId,
+        public string $status,
         public string $message,
+        public ?string $baseUrl,
+        public array $discoveredUrls,
+        public ?int $totalPages,
+        public ?int $discoveredCount,
         public ?int $pagesCrawled,
         public ?int $pagesFailed,
+        public ?int $documentsCreated,
+        public array $documentIds,
+        public array $crawlStatistics,
+        public array $errors,
+        public array $blockedPages,
+        public ?int $blockedCount,
+        public ?string $finalizePhase,
         public ?int $ragImportedFiles,
         public ?int $ragTotalFiles,
         public ?string $startedAt,
-        public string $status,
-        public ?int $totalPages,
+        public ?string $completedAt,
         public ?string $updatedAt,
         array $raw = [],
     ) {
@@ -77,26 +77,26 @@ final readonly class CrawlJobStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            baseUrl: $attributes->nullableString('base_url'),
-            blockedCount: $attributes->nullableInt('blocked_count'),
-            blockedPages: array_values($attributes->array('blocked_pages')),
-            completedAt: $attributes->nullableString('completed_at'),
-            crawlStatistics: $attributes->array('crawl_statistics'),
-            discoveredCount: $attributes->nullableInt('discovered_count'),
-            discoveredUrls: array_values($attributes->array('discovered_urls')),
-            documentIds: $attributes->strings('document_ids'),
-            documentsCreated: $attributes->nullableInt('documents_created'),
-            errors: $attributes->strings('errors'),
-            finalizePhase: $attributes->nullableString('finalize_phase'),
             jobId: $attributes->string('job_id'),
+            status: $attributes->string('status'),
             message: $attributes->string('message'),
+            baseUrl: $attributes->nullableString('base_url'),
+            discoveredUrls: array_values($attributes->array('discovered_urls')),
+            totalPages: $attributes->nullableInt('total_pages'),
+            discoveredCount: $attributes->nullableInt('discovered_count'),
             pagesCrawled: $attributes->nullableInt('pages_crawled'),
             pagesFailed: $attributes->nullableInt('pages_failed'),
+            documentsCreated: $attributes->nullableInt('documents_created'),
+            documentIds: $attributes->strings('document_ids'),
+            crawlStatistics: $attributes->array('crawl_statistics'),
+            errors: $attributes->strings('errors'),
+            blockedPages: array_values($attributes->array('blocked_pages')),
+            blockedCount: $attributes->nullableInt('blocked_count'),
+            finalizePhase: $attributes->nullableString('finalize_phase'),
             ragImportedFiles: $attributes->nullableInt('rag_imported_files'),
             ragTotalFiles: $attributes->nullableInt('rag_total_files'),
             startedAt: $attributes->nullableString('started_at'),
-            status: $attributes->string('status'),
-            totalPages: $attributes->nullableInt('total_pages'),
+            completedAt: $attributes->nullableString('completed_at'),
             updatedAt: $attributes->nullableString('updated_at'),
             raw: $data,
         );

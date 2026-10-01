@@ -17,27 +17,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelConnectAuditLog extends Data
 {
     /**
-     * @param  ?string  $channelId  Connected channel ID (on success)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tokenId  Token ID
+     * @param  string  $eventType  Event type
      * @param  ?string  $channelType  Channel type (for connection events)
-     * @param  string  $createdAt  Event timestamp
+     * @param  ?string  $channelId  Connected channel ID (on success)
+     * @param  ?string  $ipAddress  Client IP address
      * @param  ?string  $errorCode  Error code (for failures)
      * @param  ?string  $errorMessage  Error message (for failures)
-     * @param  string  $eventType  Event type
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  ?string  $ipAddress  Client IP address
-     * @param  string  $tokenId  Token ID
+     * @param  string  $createdAt  Event timestamp
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $channelId,
+        public string $id,
+        public string $tokenId,
+        public string $eventType,
         public ?string $channelType,
-        public string $createdAt,
+        public ?string $channelId,
+        public ?string $ipAddress,
         public ?string $errorCode,
         public ?string $errorMessage,
-        public string $eventType,
-        public string $id,
-        public ?string $ipAddress,
-        public string $tokenId,
+        public string $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,15 +51,15 @@ final readonly class ChannelConnectAuditLog extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->nullableString('channel_id'),
+            id: $attributes->string('id'),
+            tokenId: $attributes->string('token_id'),
+            eventType: $attributes->string('event_type'),
             channelType: $attributes->nullableString('channel_type'),
-            createdAt: $attributes->string('created_at'),
+            channelId: $attributes->nullableString('channel_id'),
+            ipAddress: $attributes->nullableString('ip_address'),
             errorCode: $attributes->nullableString('error_code'),
             errorMessage: $attributes->nullableString('error_message'),
-            eventType: $attributes->string('event_type'),
-            id: $attributes->string('id'),
-            ipAddress: $attributes->nullableString('ip_address'),
-            tokenId: $attributes->string('token_id'),
+            createdAt: $attributes->string('created_at'),
             raw: $data,
         );
     }

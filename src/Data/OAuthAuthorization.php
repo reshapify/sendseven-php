@@ -22,12 +22,12 @@ final readonly class OAuthAuthorization extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $createdAt,
-        public array $grantedScopes,
         public string $id,
         public OAuthApp $oAuthApp,
         public string $tenantId,
         public string $tenantName,
+        public array $grantedScopes,
+        public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
@@ -42,12 +42,12 @@ final readonly class OAuthAuthorization extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->dateTime('created_at'),
-            grantedScopes: $attributes->strings('granted_scopes'),
             id: $attributes->string('id'),
             oAuthApp: $attributes->object('oauth_app', OAuthApp::fromArray(...)),
             tenantId: $attributes->string('tenant_id'),
             tenantName: $attributes->string('tenant_name'),
+            grantedScopes: $attributes->strings('granted_scopes'),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );

@@ -27,9 +27,9 @@ final readonly class SmsPricelist extends Data
     public function __construct(
         public array $countries,
         public ?string $currency,
-        public ?string $lastUpdated,
         public string $sendsevenMarginEur,
         public string $source,
+        public ?string $lastUpdated,
         public array $supportedCountries,
         array $raw = [],
     ) {
@@ -46,9 +46,9 @@ final readonly class SmsPricelist extends Data
         return new self(
             countries: $attributes->list('countries', SmsPricelistRow::fromArray(...)),
             currency: $attributes->nullableString('currency'),
-            lastUpdated: $attributes->nullableString('last_updated'),
             sendsevenMarginEur: $attributes->string('sendseven_margin_eur'),
             source: $attributes->string('source'),
+            lastUpdated: $attributes->nullableString('last_updated'),
             supportedCountries: $attributes->strings('supported_countries'),
             raw: $data,
         );

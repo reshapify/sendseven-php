@@ -17,22 +17,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AccountInsights extends Data
 {
     /**
+     * @param  string  $platform  `instagram` or `messenger`.
+     * @param  ?string  $objectId  The IG account id / FB page id the insights are for.
      * @param  ?bool  $authorized  False when the connection lacks the insights permission.
      * @param  ?string  $errorCode  `insights_not_authorized`, `insights_unavailable`, or `insights_error`. Null on success.
      * @param  ?string  $message  Human-readable detail.
-     * @param  ?string  $objectId  The IG account id / FB page id the insights are for.
-     * @param  string  $platform  `instagram` or `messenger`.
      * @param  string  $retrievedAt  When these numbers were fetched (nothing is stored).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $authorized,
         public string $channelId,
+        public string $platform,
+        public ?string $objectId,
+        public ?bool $authorized,
         public ?string $errorCode,
         public ?string $message,
         public ?SocialInsightsMetrics $metrics,
-        public ?string $objectId,
-        public string $platform,
         public string $retrievedAt,
         array $raw = [],
     ) {
@@ -47,13 +47,13 @@ final readonly class AccountInsights extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            authorized: $attributes->nullableBool('authorized'),
             channelId: $attributes->string('channel_id'),
+            platform: $attributes->string('platform'),
+            objectId: $attributes->nullableString('object_id'),
+            authorized: $attributes->nullableBool('authorized'),
             errorCode: $attributes->nullableString('error_code'),
             message: $attributes->nullableString('message'),
             metrics: $attributes->nullableObject('metrics', SocialInsightsMetrics::fromArray(...)),
-            objectId: $attributes->nullableString('object_id'),
-            platform: $attributes->string('platform'),
             retrievedAt: $attributes->string('retrieved_at'),
             raw: $data,
         );

@@ -20,10 +20,10 @@ final readonly class TranslateMessage extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $language,
-        public string $messageId,
         public string $original,
         public string $translated,
+        public string $language,
+        public string $messageId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class TranslateMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            language: $attributes->string('language'),
-            messageId: $attributes->string('message_id'),
             original: $attributes->string('original'),
             translated: $attributes->string('translated'),
+            language: $attributes->string('language'),
+            messageId: $attributes->string('message_id'),
             raw: $data,
         );
     }

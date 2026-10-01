@@ -65,15 +65,19 @@ final readonly class CustomFields
      *
      * Scopes: contacts:update.
      *
-     * @param  array<string, mixed>  $value  Field value (type depends on field_type)
+     * @param  mixed  $value  Field value (type depends on field_type)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Custom%20Fields/set_contact_field_value_api_v1_contacts__contact_id__fields__field_id__post
      */
-    public function setContactValue(string $contactId, string $fieldId, array $value, ?string $idempotencyKey = null): Success
-    {
+    public function setContactValue(
+        string $contactId,
+        string $fieldId,
+        mixed $value,
+        ?string $idempotencyKey = null,
+    ): Success {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/'.Payload::segment($contactId).'/fields/'.Payload::segment($fieldId),
@@ -133,29 +137,53 @@ final readonly class CustomFields
      *
      * Scopes: settings:update.
      *
-     * @param  FieldType|string  $fieldType  Data type for the field
-     * @param  string  $key  Internal key (snake_case, starts with letter)
      * @param  string  $name  Display name for the field
-     * @param  ?bool  $agentEditable  Whether agents can edit this field
-     * @param  ?bool  $agentVisible  Whether agents can see this field
-     * @param  ?string  $defaultValue  Default value for new contacts
+     * @param  string  $key  Internal key (snake_case, starts with letter)
+     * @param  FieldType|string  $fieldType  Data type for the field
      * @param  ?string  $description  Help text describing the field
-     * @param  ?int  $displayOrder  Display order in UI (lower = first)
      * @param  list<string>|null  $options  Options for SELECT/MULTISELECT field types
      * @param  ?bool  $required  Whether this field is required
+     * @param  ?string  $defaultValue  Default value for new contacts
+     * @param  ?bool  $agentVisible  Whether agents can see this field
+     * @param  ?bool  $agentEditable  Whether agents can edit this field
      * @param  ?bool  $userEditable  Whether contacts can edit this field (self-service)
+     * @param  ?int  $displayOrder  Display order in UI (lower = first)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Custom%20Fields/create_custom_field_api_v1_custom_fields_post
      */
-    public function create(FieldType|string $fieldType, string $key, string $name, ?bool $agentEditable = null, ?bool $agentVisible = null, ?string $defaultValue = null, ?string $description = null, ?int $displayOrder = null, ?array $options = null, ?bool $required = null, ?bool $userEditable = null, ?string $idempotencyKey = null): CustomFieldDefinition
-    {
+    public function create(
+        string $name,
+        string $key,
+        FieldType|string $fieldType,
+        ?string $description = null,
+        ?array $options = null,
+        ?bool $required = null,
+        ?string $defaultValue = null,
+        ?bool $agentVisible = null,
+        ?bool $agentEditable = null,
+        ?bool $userEditable = null,
+        ?int $displayOrder = null,
+        ?string $idempotencyKey = null,
+    ): CustomFieldDefinition {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/custom-fields',
-            body: Payload::body(['field_type' => $fieldType, 'key' => $key, 'name' => $name, 'agent_editable' => $agentEditable, 'agent_visible' => $agentVisible, 'default_value' => $defaultValue, 'description' => $description, 'display_order' => $displayOrder, 'options' => $options, 'required' => $required, 'user_editable' => $userEditable]),
+            body: Payload::body([
+                'name' => $name,
+                'key' => $key,
+                'field_type' => $fieldType,
+                'description' => $description,
+                'options' => $options,
+                'required' => $required,
+                'default_value' => $defaultValue,
+                'agent_visible' => $agentVisible,
+                'agent_editable' => $agentEditable,
+                'user_editable' => $userEditable,
+                'display_order' => $displayOrder,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -219,26 +247,46 @@ final readonly class CustomFields
      *
      * Scopes: settings:update.
      *
-     * @param  ?bool  $agentEditable  Whether agents can edit this field
-     * @param  ?bool  $agentVisible  Whether agents can see this field
-     * @param  ?string  $defaultValue  Default value for new contacts
-     * @param  ?string  $description  Help text describing the field
-     * @param  ?int  $displayOrder  Display order in UI (lower = first)
      * @param  ?string  $name  Display name for the field
+     * @param  ?string  $description  Help text describing the field
      * @param  list<string>|null  $options  Options for SELECT/MULTISELECT field types
      * @param  ?bool  $required  Whether this field is required
+     * @param  ?string  $defaultValue  Default value for new contacts
+     * @param  ?bool  $agentVisible  Whether agents can see this field
+     * @param  ?bool  $agentEditable  Whether agents can edit this field
      * @param  ?bool  $userEditable  Whether contacts can edit this field (self-service)
+     * @param  ?int  $displayOrder  Display order in UI (lower = first)
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Custom%20Fields/update_custom_field_api_v1_custom_fields__field_id__put
      */
-    public function update(string $fieldId, ?bool $agentEditable = null, ?bool $agentVisible = null, ?string $defaultValue = null, ?string $description = null, ?int $displayOrder = null, ?string $name = null, ?array $options = null, ?bool $required = null, ?bool $userEditable = null): CustomFieldDefinition
-    {
+    public function update(
+        string $fieldId,
+        ?string $name = null,
+        ?string $description = null,
+        ?array $options = null,
+        ?bool $required = null,
+        ?string $defaultValue = null,
+        ?bool $agentVisible = null,
+        ?bool $agentEditable = null,
+        ?bool $userEditable = null,
+        ?int $displayOrder = null,
+    ): CustomFieldDefinition {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/custom-fields/'.Payload::segment($fieldId),
-            body: Payload::body(['agent_editable' => $agentEditable, 'agent_visible' => $agentVisible, 'default_value' => $defaultValue, 'description' => $description, 'display_order' => $displayOrder, 'name' => $name, 'options' => $options, 'required' => $required, 'user_editable' => $userEditable]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'options' => $options,
+                'required' => $required,
+                'default_value' => $defaultValue,
+                'agent_visible' => $agentVisible,
+                'agent_editable' => $agentEditable,
+                'user_editable' => $userEditable,
+                'display_order' => $displayOrder,
+            ]),
         ));
 
         return CustomFieldDefinition::fromArray($response->data());

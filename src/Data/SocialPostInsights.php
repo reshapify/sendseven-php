@@ -29,18 +29,18 @@ final readonly class SocialPostInsights extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $authorized,
-        public ?int $clicks,
-        public ?int $comments,
-        public ?int $engagement,
-        public ?string $errorCode,
-        public ?int $impressions,
-        public ?string $lastRefreshedAt,
-        public ?int $likes,
         public ?int $reach,
-        public ?int $saves,
+        public ?int $impressions,
+        public ?int $engagement,
+        public ?int $likes,
+        public ?int $comments,
         public ?int $shares,
+        public ?int $saves,
         public ?int $videoViews,
+        public ?int $clicks,
+        public ?bool $authorized,
+        public ?string $errorCode,
+        public ?string $lastRefreshedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,18 +54,18 @@ final readonly class SocialPostInsights extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            authorized: $attributes->nullableBool('authorized'),
-            clicks: $attributes->nullableInt('clicks'),
-            comments: $attributes->nullableInt('comments'),
-            engagement: $attributes->nullableInt('engagement'),
-            errorCode: $attributes->nullableString('error_code'),
-            impressions: $attributes->nullableInt('impressions'),
-            lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
-            likes: $attributes->nullableInt('likes'),
             reach: $attributes->nullableInt('reach'),
-            saves: $attributes->nullableInt('saves'),
+            impressions: $attributes->nullableInt('impressions'),
+            engagement: $attributes->nullableInt('engagement'),
+            likes: $attributes->nullableInt('likes'),
+            comments: $attributes->nullableInt('comments'),
             shares: $attributes->nullableInt('shares'),
+            saves: $attributes->nullableInt('saves'),
             videoViews: $attributes->nullableInt('video_views'),
+            clicks: $attributes->nullableInt('clicks'),
+            authorized: $attributes->nullableBool('authorized'),
+            errorCode: $attributes->nullableString('error_code'),
+            lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
             raw: $data,
         );
     }

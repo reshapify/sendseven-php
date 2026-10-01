@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WidgetEmbedCode extends Data
 {
     /**
+     * @param  string  $widgetId  Widget ID
      * @param  string  $embedCode  HTML/JS code to embed the widget
      * @param  string  $scriptUrl  URL to the widget script
-     * @param  string  $widgetId  Widget ID
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $widgetId,
         public string $embedCode,
         public string $scriptUrl,
-        public string $widgetId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class WidgetEmbedCode extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            widgetId: $attributes->string('widget_id'),
             embedCode: $attributes->string('embed_code'),
             scriptUrl: $attributes->string('script_url'),
-            widgetId: $attributes->string('widget_id'),
             raw: $data,
         );
     }

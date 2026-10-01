@@ -19,21 +19,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BillingSummary extends Data
 {
     /**
-     * @param  ?CampaignSummary  $campaigns  Campaign counts matching billing aggregation
-     * @param  ?DirectionMessageSummary  $inboundMessages  Inbound message counts matching billing aggregation
-     * @param  ?int  $kbQueries  Knowledge base query count
      * @param  ?DirectionMessageSummary  $outboundMessages  Outbound message counts matching billing aggregation
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
+     * @param  ?DirectionMessageSummary  $inboundMessages  Inbound message counts matching billing aggregation
+     * @param  ?CampaignSummary  $campaigns  Campaign counts matching billing aggregation
+     * @param  ?int  $kbQueries  Knowledge base query count
      * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?CampaignSummary $campaigns,
-        public ?DirectionMessageSummary $inboundMessages,
-        public ?int $kbQueries,
         public ?DirectionMessageSummary $outboundMessages,
-        public string $periodEnd,
+        public ?DirectionMessageSummary $inboundMessages,
+        public ?CampaignSummary $campaigns,
+        public ?int $kbQueries,
         public string $periodStart,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,12 +47,12 @@ final readonly class BillingSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            campaigns: $attributes->nullableObject('campaigns', CampaignSummary::fromArray(...)),
-            inboundMessages: $attributes->nullableObject('inbound_messages', DirectionMessageSummary::fromArray(...)),
-            kbQueries: $attributes->nullableInt('kb_queries'),
             outboundMessages: $attributes->nullableObject('outbound_messages', DirectionMessageSummary::fromArray(...)),
-            periodEnd: $attributes->string('period_end'),
+            inboundMessages: $attributes->nullableObject('inbound_messages', DirectionMessageSummary::fromArray(...)),
+            campaigns: $attributes->nullableObject('campaigns', CampaignSummary::fromArray(...)),
+            kbQueries: $attributes->nullableInt('kb_queries'),
             periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

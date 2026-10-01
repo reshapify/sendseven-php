@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelResolutionTime extends Data
 {
     /**
-     * @param  ?float  $avgHours  Average resolution time in hours
      * @param  string  $channelType  Channel type
      * @param  int  $count  Number of closed conversations
+     * @param  ?float  $avgHours  Average resolution time in hours
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $avgHours,
         public string $channelType,
         public int $count,
+        public ?float $avgHours,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class ChannelResolutionTime extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            avgHours: $attributes->nullableFloat('avg_hours'),
             channelType: $attributes->string('channel_type'),
             count: $attributes->int('count'),
+            avgHours: $attributes->nullableFloat('avg_hours'),
             raw: $data,
         );
     }

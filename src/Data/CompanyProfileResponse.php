@@ -17,37 +17,37 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CompanyProfileResponse extends Data
 {
     /**
-     * @param  ?BrandColors  $brandColors  Brand color palette
+     * @param  ?string  $companyLegalName  Legal business name
      * @param  ?string  $companyAddressLine1  Physical address line 1 (required for CAN-SPAM)
      * @param  ?string  $companyAddressLine2  Physical address line 2 (suite, floor, etc.)
      * @param  ?string  $companyCity  City
-     * @param  ?string  $companyCountry  Country
-     * @param  ?string  $companyDomain  Company domain (e.g., example.com)
-     * @param  ?string  $companyEmail  Company contact email
-     * @param  ?string  $companyLegalName  Legal business name
-     * @param  ?string  $companyName  Display name (used in templates and UI)
-     * @param  ?string  $companyPhone  Company contact phone
-     * @param  ?string  $companyPostalCode  Postal/ZIP code
      * @param  ?string  $companyStateProvince  State/Province/Region
-     * @param  ?bool  $isCompleteForEmail  Whether company profile has all required fields for CAN-SPAM compliance
+     * @param  ?string  $companyPostalCode  Postal/ZIP code
+     * @param  ?string  $companyCountry  Country
+     * @param  ?string  $companyEmail  Company contact email
+     * @param  ?string  $companyPhone  Company contact phone
+     * @param  ?string  $companyName  Display name (used in templates and UI)
+     * @param  ?string  $companyDomain  Company domain (e.g., example.com)
+     * @param  ?BrandColors  $brandColors  Brand color palette
      * @param  ?LogoVariants  $logoVariants  Logo files at different sizes
+     * @param  ?bool  $isCompleteForEmail  Whether company profile has all required fields for CAN-SPAM compliance
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?BrandColors $brandColors,
+        public ?string $companyLegalName,
         public ?string $companyAddressLine1,
         public ?string $companyAddressLine2,
         public ?string $companyCity,
-        public ?string $companyCountry,
-        public ?string $companyDomain,
-        public ?string $companyEmail,
-        public ?string $companyLegalName,
-        public ?string $companyName,
-        public ?string $companyPhone,
-        public ?string $companyPostalCode,
         public ?string $companyStateProvince,
-        public ?bool $isCompleteForEmail,
+        public ?string $companyPostalCode,
+        public ?string $companyCountry,
+        public ?string $companyEmail,
+        public ?string $companyPhone,
+        public ?string $companyName,
+        public ?string $companyDomain,
+        public ?BrandColors $brandColors,
         public ?LogoVariants $logoVariants,
+        public ?bool $isCompleteForEmail,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -61,20 +61,20 @@ final readonly class CompanyProfileResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            brandColors: $attributes->nullableObject('brand_colors', BrandColors::fromArray(...)),
+            companyLegalName: $attributes->nullableString('company_legal_name'),
             companyAddressLine1: $attributes->nullableString('company_address_line1'),
             companyAddressLine2: $attributes->nullableString('company_address_line2'),
             companyCity: $attributes->nullableString('company_city'),
-            companyCountry: $attributes->nullableString('company_country'),
-            companyDomain: $attributes->nullableString('company_domain'),
-            companyEmail: $attributes->nullableString('company_email'),
-            companyLegalName: $attributes->nullableString('company_legal_name'),
-            companyName: $attributes->nullableString('company_name'),
-            companyPhone: $attributes->nullableString('company_phone'),
-            companyPostalCode: $attributes->nullableString('company_postal_code'),
             companyStateProvince: $attributes->nullableString('company_state_province'),
-            isCompleteForEmail: $attributes->nullableBool('is_complete_for_email'),
+            companyPostalCode: $attributes->nullableString('company_postal_code'),
+            companyCountry: $attributes->nullableString('company_country'),
+            companyEmail: $attributes->nullableString('company_email'),
+            companyPhone: $attributes->nullableString('company_phone'),
+            companyName: $attributes->nullableString('company_name'),
+            companyDomain: $attributes->nullableString('company_domain'),
+            brandColors: $attributes->nullableObject('brand_colors', BrandColors::fromArray(...)),
             logoVariants: $attributes->nullableObject('logo_variants', LogoVariants::fromArray(...)),
+            isCompleteForEmail: $attributes->nullableBool('is_complete_for_email'),
             raw: $data,
         );
     }

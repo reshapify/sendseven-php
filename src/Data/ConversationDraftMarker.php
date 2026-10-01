@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ConversationDraftMarker extends Data
 {
     /**
-     * @param  ?string  $mode  'reply' or 'note'
      * @param  ?string  $snippet  Plain text, first ~140 chars, whitespace collapsed, HTML stripped
+     * @param  ?string  $mode  'reply' or 'note'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $hasAttachments,
-        public ?string $mode,
         public ?string $snippet,
+        public ?string $mode,
+        public ?bool $hasAttachments,
         public ?string $updatedAt,
         array $raw = [],
     ) {
@@ -39,9 +39,9 @@ final readonly class ConversationDraftMarker extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            hasAttachments: $attributes->nullableBool('has_attachments'),
-            mode: $attributes->nullableString('mode'),
             snippet: $attributes->nullableString('snippet'),
+            mode: $attributes->nullableString('mode'),
+            hasAttachments: $attributes->nullableBool('has_attachments'),
             updatedAt: $attributes->nullableString('updated_at'),
             raw: $data,
         );

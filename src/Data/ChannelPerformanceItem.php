@@ -21,10 +21,10 @@ final readonly class ChannelPerformanceItem extends Data
      */
     public function __construct(
         public string $channel,
+        public int $sent,
         public float $deliveredPct,
         public float $openPct,
         public float $replyPct,
-        public int $sent,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class ChannelPerformanceItem extends Data
 
         return new self(
             channel: $attributes->string('channel'),
+            sent: $attributes->int('sent'),
             deliveredPct: $attributes->float('delivered_pct'),
             openPct: $attributes->float('open_pct'),
             replyPct: $attributes->float('reply_pct'),
-            sent: $attributes->int('sent'),
             raw: $data,
         );
     }

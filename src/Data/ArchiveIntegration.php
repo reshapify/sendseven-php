@@ -21,10 +21,10 @@ final readonly class ArchiveIntegration extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $archivedAt,
+        public bool $success,
         public string $integrationId,
         public string $message,
-        public bool $success,
+        public ?DateTimeImmutable $archivedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,10 +38,10 @@ final readonly class ArchiveIntegration extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            archivedAt: $attributes->nullableDateTime('archived_at'),
+            success: $attributes->bool('success'),
             integrationId: $attributes->string('integration_id'),
             message: $attributes->string('message'),
-            success: $attributes->bool('success'),
+            archivedAt: $attributes->nullableDateTime('archived_at'),
             raw: $data,
         );
     }

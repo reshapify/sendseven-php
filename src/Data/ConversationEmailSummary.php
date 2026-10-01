@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ConversationEmailSummary extends Data
 {
     /**
+     * @param  list<EmailAddress>  $participants
      * @param  list<EmailAddress>  $ccParticipants
      * @param  list<string>  $labels
-     * @param  list<EmailAddress>  $participants
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $ccParticipants,
         public string $conversationId,
-        public ?string $firstMessageAt,
-        public ?string $integrationEmail,
-        public ?bool $isUnread,
-        public array $labels,
-        public ?string $lastMessageAt,
+        public ?string $subject,
         public ?string $participantEmail,
         public ?string $participantName,
-        public array $participants,
-        public ?string $subject,
+        public ?string $integrationEmail,
         public ?int $threadCount,
         public ?int $totalAttachments,
+        public ?string $firstMessageAt,
+        public ?string $lastMessageAt,
+        public array $participants,
+        public array $ccParticipants,
+        public array $labels,
+        public ?bool $isUnread,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,19 +49,19 @@ final readonly class ConversationEmailSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            ccParticipants: $attributes->list('cc_participants', EmailAddress::fromArray(...)),
             conversationId: $attributes->string('conversation_id'),
-            firstMessageAt: $attributes->nullableString('first_message_at'),
-            integrationEmail: $attributes->nullableString('integration_email'),
-            isUnread: $attributes->nullableBool('is_unread'),
-            labels: $attributes->strings('labels'),
-            lastMessageAt: $attributes->nullableString('last_message_at'),
+            subject: $attributes->nullableString('subject'),
             participantEmail: $attributes->nullableString('participant_email'),
             participantName: $attributes->nullableString('participant_name'),
-            participants: $attributes->list('participants', EmailAddress::fromArray(...)),
-            subject: $attributes->nullableString('subject'),
+            integrationEmail: $attributes->nullableString('integration_email'),
             threadCount: $attributes->nullableInt('thread_count'),
             totalAttachments: $attributes->nullableInt('total_attachments'),
+            firstMessageAt: $attributes->nullableString('first_message_at'),
+            lastMessageAt: $attributes->nullableString('last_message_at'),
+            participants: $attributes->list('participants', EmailAddress::fromArray(...)),
+            ccParticipants: $attributes->list('cc_participants', EmailAddress::fromArray(...)),
+            labels: $attributes->strings('labels'),
+            isUnread: $attributes->nullableBool('is_unread'),
             raw: $data,
         );
     }

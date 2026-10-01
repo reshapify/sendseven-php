@@ -22,14 +22,14 @@ final readonly class BounceAnalytics extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public float $hardBounceRate,
+        public int $totalBounces,
         public int $hardBounces,
-        public int $periodDays,
-        public float $softBounceRate,
         public int $softBounces,
+        public float $hardBounceRate,
+        public float $softBounceRate,
         public array $topCategories,
         public array $topDomains,
-        public int $totalBounces,
+        public int $periodDays,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,14 +43,14 @@ final readonly class BounceAnalytics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            hardBounceRate: $attributes->float('hard_bounce_rate'),
+            totalBounces: $attributes->int('total_bounces'),
             hardBounces: $attributes->int('hard_bounces'),
-            periodDays: $attributes->int('period_days'),
-            softBounceRate: $attributes->float('soft_bounce_rate'),
             softBounces: $attributes->int('soft_bounces'),
+            hardBounceRate: $attributes->float('hard_bounce_rate'),
+            softBounceRate: $attributes->float('soft_bounce_rate'),
             topCategories: $attributes->list('top_categories', BounceAnalyticsCategoryCount::fromArray(...)),
             topDomains: $attributes->list('top_domains', BounceAnalyticsDomainCount::fromArray(...)),
-            totalBounces: $attributes->int('total_bounces'),
+            periodDays: $attributes->int('period_days'),
             raw: $data,
         );
     }

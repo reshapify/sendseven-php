@@ -46,8 +46,11 @@ final readonly class AgentSuggestions
      *
      * @see https://api.sendseven.com/api/v1/docs#/Agent%20Suggestions/search_similar_tickets_for_conversation_api_v1_conversations__conversation_id__search_similar_tickets_post
      */
-    public function searchSimilarTicketsForConversation(string $conversationId, ?array $body = null, ?string $idempotencyKey = null): SimilarTickets
-    {
+    public function searchSimilarTicketsForConversation(
+        string $conversationId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): SimilarTickets {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/search-similar-tickets',
@@ -137,12 +140,19 @@ final readonly class AgentSuggestions
      *
      * @see https://api.sendseven.com/api/v1/docs#/Agent%20Suggestions/accept_suggestion_api_v1_suggestions__suggestion_id__accept_post
      */
-    public function accept(string $suggestionId, ?string $acceptedSourceId = null, ?string $aiAnswerEventId = null, ?string $idempotencyKey = null): SuggestionAccept
-    {
+    public function accept(
+        string $suggestionId,
+        ?string $acceptedSourceId = null,
+        ?string $aiAnswerEventId = null,
+        ?string $idempotencyKey = null,
+    ): SuggestionAccept {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/suggestions/'.Payload::segment($suggestionId).'/accept',
-            query: Payload::query(['accepted_source_id' => $acceptedSourceId, 'ai_answer_event_id' => $aiAnswerEventId]),
+            query: Payload::query([
+                'accepted_source_id' => $acceptedSourceId,
+                'ai_answer_event_id' => $aiAnswerEventId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

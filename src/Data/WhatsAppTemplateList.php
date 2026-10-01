@@ -22,10 +22,10 @@ final readonly class WhatsAppTemplateList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $channelId,
-        public TemplateStatus|string|null $statusFilter,
         public array $templates,
         public int $total,
+        public ?string $channelId,
+        public TemplateStatus|string|null $statusFilter,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class WhatsAppTemplateList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->nullableString('channel_id'),
-            statusFilter: $attributes->nullableEnum('status_filter', TemplateStatus::class),
             templates: $attributes->list('templates', WhatsAppTemplate::fromArray(...)),
             total: $attributes->int('total'),
+            channelId: $attributes->nullableString('channel_id'),
+            statusFilter: $attributes->nullableEnum('status_filter', TemplateStatus::class),
             raw: $data,
         );
     }

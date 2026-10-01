@@ -67,12 +67,29 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/list_comment_inbox_api_v1_comments_get
      */
-    public function listInbox(?string $channelId = null, ?array $state = null, ?bool $includeOwner = null, ?bool $includeReply = null, ?bool $includePost = null, ?string $sortOrder = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listInbox(
+        ?string $channelId = null,
+        ?array $state = null,
+        ?bool $includeOwner = null,
+        ?bool $includeReply = null,
+        ?bool $includePost = null,
+        ?string $sortOrder = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/comments',
-            query: Payload::query(['channel_id' => $channelId, 'state' => $state, 'include_owner' => $includeOwner, 'include_reply' => $includeReply, 'include_post' => $includePost, 'sort_order' => $sortOrder, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'channel_id' => $channelId,
+                'state' => $state,
+                'include_owner' => $includeOwner,
+                'include_reply' => $includeReply,
+                'include_post' => $includePost,
+                'sort_order' => $sortOrder,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), SocialComment::fromArray(...), fn (int $page): Page => $this->listInbox(channelId: $channelId, state: $state, includeOwner: $includeOwner, includeReply: $includeReply, includePost: $includePost, sortOrder: $sortOrder, page: $page, pageSize: $pageSize));
@@ -105,8 +122,10 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/resubscribe_messenger_comments_api_v1_comments_messenger_resubscribe_post
      */
-    public function resubscribeMessenger(?string $channelId = null, ?string $idempotencyKey = null): MessengerResubscribe
-    {
+    public function resubscribeMessenger(
+        ?string $channelId = null,
+        ?string $idempotencyKey = null,
+    ): MessengerResubscribe {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/comments/messenger/resubscribe',
@@ -143,12 +162,21 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/list_social_posts_api_v1_comments_posts_get
      */
-    public function listSocialPosts(?string $channelId = null, ?bool $hasUnanswered = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listSocialPosts(
+        ?string $channelId = null,
+        ?bool $hasUnanswered = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/comments/posts',
-            query: Payload::query(['channel_id' => $channelId, 'has_unanswered' => $hasUnanswered, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'channel_id' => $channelId,
+                'has_unanswered' => $hasUnanswered,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), SocialPost::fromArray(...), fn (int $page): Page => $this->listSocialPosts(channelId: $channelId, hasUnanswered: $hasUnanswered, page: $page, pageSize: $pageSize));
@@ -175,8 +203,11 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/refresh_posts_insights_bulk_api_v1_comments_posts_insights_refresh_post
      */
-    public function refreshPostsInsightsBulk(?string $channelId = null, ?int $limit = null, ?string $idempotencyKey = null): SocialPostInsightsBulkRefresh
-    {
+    public function refreshPostsInsightsBulk(
+        ?string $channelId = null,
+        ?int $limit = null,
+        ?string $idempotencyKey = null,
+    ): SocialPostInsightsBulkRefresh {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/comments/posts/insights/refresh',
@@ -242,8 +273,11 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/sync_social_posts_api_v1_comments_posts_sync_post
      */
-    public function syncSocialPosts(?string $channelId = null, ?int $limit = null, ?string $idempotencyKey = null): SyncPosts
-    {
+    public function syncSocialPosts(
+        ?string $channelId = null,
+        ?int $limit = null,
+        ?string $idempotencyKey = null,
+    ): SyncPosts {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/comments/posts/sync',
@@ -282,12 +316,26 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/list_post_comments_api_v1_comments_posts__post_id__comments_get
      */
-    public function listPost(string $postId, ?array $state = null, ?bool $includeOwner = null, ?bool $includeReply = null, ?string $sortOrder = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listPost(
+        string $postId,
+        ?array $state = null,
+        ?bool $includeOwner = null,
+        ?bool $includeReply = null,
+        ?string $sortOrder = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/comments/posts/'.Payload::segment($postId).'/comments',
-            query: Payload::query(['state' => $state, 'include_owner' => $includeOwner, 'include_reply' => $includeReply, 'sort_order' => $sortOrder, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'state' => $state,
+                'include_owner' => $includeOwner,
+                'include_reply' => $includeReply,
+                'sort_order' => $sortOrder,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), SocialComment::fromArray(...), fn (int $page): Page => $this->listPost(postId: $postId, state: $state, includeOwner: $includeOwner, includeReply: $includeReply, sortOrder: $sortOrder, page: $page, pageSize: $pageSize));
@@ -409,22 +457,35 @@ final readonly class Comments
      *
      * @param  string  $commentId  Meta's comment id (Instagram: numeric; Facebook: `{post_id}_{comment_id}`) — exactly as delivered by the webhook.
      * @param  string  $text  The message body — or the button template's body when `buttons` is set.
-     * @param  list<array<string, mixed>>|null  $buttons  Up to 3 buttons, sent as a button template. Each is either a `url` button (opens a link) or a `postback` button (sends a value back to you, and can start a flow). Supported on both Facebook Messenger and Instagram. Cannot be combined with `image_url`.
      * @param  ?string  $channelId  The Instagram or Facebook Messenger channel whose post was commented on. Optional when the comment is already stored in your workspace (the stored channel wins); **required** otherwise — for example when you received the comment id from a `comment.received` webhook before it was persisted.
-     * @param  ?string  $imageUrl  **Facebook Messenger only.** Publicly reachable image URL sent as an attachment. Rejected with 400 on Instagram. Cannot be combined with `buttons`.
+     * @param  list<array<string, mixed>>|null  $buttons  Up to 3 buttons, sent as a button template. Each is either a `url` button (opens a link) or a `postback` button (sends a value back to you, and can start a flow). Supported on both Facebook Messenger and Instagram. Cannot be combined with `image_url`.
      * @param  list<array<string, mixed>>|null  $quickReplies  **DEPRECATED / IGNORED.** Comment private replies are buttons-only since 2026-08-13. This field is still accepted so existing clients do not get a 422, but any chips supplied are silently ignored and never sent to Meta — use `buttons` instead.
+     * @param  ?string  $imageUrl  **Facebook Messenger only.** Publicly reachable image URL sent as an attachment. Rejected with 400 on Instagram. Cannot be combined with `buttons`.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/send_comment_private_reply_api_v1_comments__comment_id__private_reply_post
      */
-    public function sendPrivateReply(string $commentId, string $text, ?array $buttons = null, ?string $channelId = null, ?string $imageUrl = null, ?array $quickReplies = null, ?string $idempotencyKey = null): PrivateReply
-    {
+    public function sendPrivateReply(
+        string $commentId,
+        string $text,
+        ?string $channelId = null,
+        ?array $buttons = null,
+        ?array $quickReplies = null,
+        ?string $imageUrl = null,
+        ?string $idempotencyKey = null,
+    ): PrivateReply {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/comments/'.Payload::segment($commentId).'/private-reply',
-            body: Payload::body(['text' => $text, 'buttons' => $buttons, 'channel_id' => $channelId, 'image_url' => $imageUrl, 'quick_replies' => $quickReplies]),
+            body: Payload::body([
+                'text' => $text,
+                'channel_id' => $channelId,
+                'buttons' => $buttons,
+                'quick_replies' => $quickReplies,
+                'image_url' => $imageUrl,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -457,8 +518,12 @@ final readonly class Comments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/send_comment_public_reply_api_v1_comments__comment_id__public_reply_post
      */
-    public function sendPublicReply(string $commentId, string $text, ?string $channelId = null, ?string $idempotencyKey = null): PublicReply
-    {
+    public function sendPublicReply(
+        string $commentId,
+        string $text,
+        ?string $channelId = null,
+        ?string $idempotencyKey = null,
+    ): PublicReply {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/comments/'.Payload::segment($commentId).'/public-reply',
@@ -483,24 +548,39 @@ final readonly class Comments
      * Scopes: messages:create.
      *
      * @param  string  $commentId  Meta's comment id (Instagram: numeric; Facebook: `{post_id}_{comment_id}`) — exactly as delivered by the webhook.
-     * @param  list<array<string, mixed>>|null  $buttons  Up to 3 buttons on the **private DM** (sent as a button template). Cannot be combined with `image_url`. Ignored unless `private_text` is set.
-     * @param  ?string  $channelId  The Instagram or Facebook Messenger channel whose post was commented on. Optional when the comment is stored in your workspace (the stored channel wins); **required** otherwise.
-     * @param  ?string  $imageUrl  **Facebook Messenger only.** Image URL on the **private DM**. Rejected on Instagram. Cannot be combined with `buttons`. Ignored unless `private_text` is set.
-     * @param  ?string  $privateText  Private DM body — or the button template's body when `buttons` is set. Omit to post only a public reply.
      * @param  ?string  $publicText  Public reply body, posted under the comment (text only). Omit to send only a private DM.
+     * @param  ?string  $privateText  Private DM body — or the button template's body when `buttons` is set. Omit to post only a public reply.
+     * @param  ?string  $channelId  The Instagram or Facebook Messenger channel whose post was commented on. Optional when the comment is stored in your workspace (the stored channel wins); **required** otherwise.
+     * @param  list<array<string, mixed>>|null  $buttons  Up to 3 buttons on the **private DM** (sent as a button template). Cannot be combined with `image_url`. Ignored unless `private_text` is set.
      * @param  list<array<string, mixed>>|null  $quickReplies  **DEPRECATED / IGNORED.** Comment private replies are buttons-only since 2026-08-13. Accepted for backwards compatibility (no 422), but any chips are silently ignored and never sent to Meta — use `buttons` instead.
+     * @param  ?string  $imageUrl  **Facebook Messenger only.** Image URL on the **private DM**. Rejected on Instagram. Cannot be combined with `buttons`. Ignored unless `private_text` is set.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Comments/send_comment_and_private_reply_api_v1_comments__comment_id__reply_post
      */
-    public function sendAndPrivateReply(string $commentId, ?array $buttons = null, ?string $channelId = null, ?string $imageUrl = null, ?string $privateText = null, ?string $publicText = null, ?array $quickReplies = null, ?string $idempotencyKey = null): CommentAndPrivateReply
-    {
+    public function sendAndPrivateReply(
+        string $commentId,
+        ?string $publicText = null,
+        ?string $privateText = null,
+        ?string $channelId = null,
+        ?array $buttons = null,
+        ?array $quickReplies = null,
+        ?string $imageUrl = null,
+        ?string $idempotencyKey = null,
+    ): CommentAndPrivateReply {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/comments/'.Payload::segment($commentId).'/reply',
-            body: Payload::body(['buttons' => $buttons, 'channel_id' => $channelId, 'image_url' => $imageUrl, 'private_text' => $privateText, 'public_text' => $publicText, 'quick_replies' => $quickReplies]),
+            body: Payload::body([
+                'public_text' => $publicText,
+                'private_text' => $privateText,
+                'channel_id' => $channelId,
+                'buttons' => $buttons,
+                'quick_replies' => $quickReplies,
+                'image_url' => $imageUrl,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

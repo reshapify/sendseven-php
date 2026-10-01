@@ -19,25 +19,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class User extends Data
 {
     /**
+     * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $email  User email address
+     * @param  string  $name  User display name
      * @param  ?string  $avatarUrl  URL to user's avatar image
      * @param  ?string  $chatNickname  Chat display nickname
-     * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  string  $email  User email address
-     * @param  string  $id  Unique identifier (UUID)
      * @param  ?bool  $liveChatAvailable  Available for live chat assignment
-     * @param  string  $name  User display name
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $createdAt,
+        public ?string $updatedAt,
+        public string $id,
+        public string $email,
+        public string $name,
         public ?string $avatarUrl,
         public ?string $chatNickname,
-        public string $createdAt,
-        public string $email,
-        public string $id,
         public ?bool $liveChatAvailable,
-        public string $name,
-        public ?string $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,14 +51,14 @@ final readonly class User extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            email: $attributes->string('email'),
+            name: $attributes->string('name'),
             avatarUrl: $attributes->nullableString('avatar_url'),
             chatNickname: $attributes->nullableString('chat_nickname'),
-            createdAt: $attributes->string('created_at'),
-            email: $attributes->string('email'),
-            id: $attributes->string('id'),
             liveChatAvailable: $attributes->nullableBool('live_chat_available'),
-            name: $attributes->string('name'),
-            updatedAt: $attributes->nullableString('updated_at'),
             raw: $data,
         );
     }

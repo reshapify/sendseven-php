@@ -17,34 +17,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SavedInteractiveMessage extends Data
 {
     /**
-     * @param  list<InteractiveButton>  $buttons
      * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  list<InteractiveListSection>  $sections
-     * @param  string  $tenantId  Tenant this resource belongs to
      * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  list<InteractiveButton>  $buttons
+     * @param  list<InteractiveListSection>  $sections
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $body,
-        public ?string $buttonText,
-        public array $buttons,
-        public ?string $category,
         public string $createdAt,
-        public ?string $createdByUserId,
-        public ?string $footerText,
-        public ?string $headerAttachmentId,
-        public ?string $headerMediaUrl,
-        public ?string $headerText,
-        public ?string $headerType,
+        public ?string $updatedAt,
         public string $id,
-        public string $interactiveType,
-        public bool $isShared,
-        public array $sections,
-        public ?string $shortcut,
         public string $tenantId,
         public string $title,
-        public ?string $updatedAt,
+        public ?string $shortcut,
+        public ?string $category,
+        public string $interactiveType,
+        public string $body,
+        public ?string $headerText,
+        public ?string $headerType,
+        public ?string $headerMediaUrl,
+        public ?string $headerAttachmentId,
+        public ?string $footerText,
+        public array $buttons,
+        public array $sections,
+        public ?string $buttonText,
+        public bool $isShared,
+        public ?string $createdByUserId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,25 +58,25 @@ final readonly class SavedInteractiveMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            body: $attributes->string('body'),
-            buttonText: $attributes->nullableString('button_text'),
-            buttons: $attributes->list('buttons', InteractiveButton::fromArray(...)),
-            category: $attributes->nullableString('category'),
             createdAt: $attributes->string('created_at'),
-            createdByUserId: $attributes->nullableString('created_by_user_id'),
-            footerText: $attributes->nullableString('footer_text'),
-            headerAttachmentId: $attributes->nullableString('header_attachment_id'),
-            headerMediaUrl: $attributes->nullableString('header_media_url'),
-            headerText: $attributes->nullableString('header_text'),
-            headerType: $attributes->nullableString('header_type'),
+            updatedAt: $attributes->nullableString('updated_at'),
             id: $attributes->string('id'),
-            interactiveType: $attributes->string('interactive_type'),
-            isShared: $attributes->bool('is_shared'),
-            sections: $attributes->list('sections', InteractiveListSection::fromArray(...)),
-            shortcut: $attributes->nullableString('shortcut'),
             tenantId: $attributes->string('tenant_id'),
             title: $attributes->string('title'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            shortcut: $attributes->nullableString('shortcut'),
+            category: $attributes->nullableString('category'),
+            interactiveType: $attributes->string('interactive_type'),
+            body: $attributes->string('body'),
+            headerText: $attributes->nullableString('header_text'),
+            headerType: $attributes->nullableString('header_type'),
+            headerMediaUrl: $attributes->nullableString('header_media_url'),
+            headerAttachmentId: $attributes->nullableString('header_attachment_id'),
+            footerText: $attributes->nullableString('footer_text'),
+            buttons: $attributes->list('buttons', InteractiveButton::fromArray(...)),
+            sections: $attributes->list('sections', InteractiveListSection::fromArray(...)),
+            buttonText: $attributes->nullableString('button_text'),
+            isShared: $attributes->bool('is_shared'),
+            createdByUserId: $attributes->nullableString('created_by_user_id'),
             raw: $data,
         );
     }

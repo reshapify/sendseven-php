@@ -59,12 +59,22 @@ final readonly class Flows
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/list_flow_runs_for_contact_api_v1_contacts__contact_id__flow_runs_get
      */
-    public function listRunsForContact(string $contactId, FlowRunStatus|string|null $status = null, ?string $flowId = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listRunsForContact(
+        string $contactId,
+        FlowRunStatus|string|null $status = null,
+        ?string $flowId = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/contacts/'.Payload::segment($contactId).'/flow-runs',
-            query: Payload::query(['status' => $status, 'flow_id' => $flowId, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'status' => $status,
+                'flow_id' => $flowId,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), FlowRun::fromArray(...), fn (int $page): Page => $this->listRunsForContact(contactId: $contactId, status: $status, flowId: $flowId, page: $page, pageSize: $pageSize));
@@ -86,12 +96,23 @@ final readonly class Flows
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/list_flows_api_v1_flows_get
      */
-    public function list(FlowStatus|string|null $status = null, ?string $name = null, ?bool $manuallyTriggerable = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function list(
+        FlowStatus|string|null $status = null,
+        ?string $name = null,
+        ?bool $manuallyTriggerable = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/flows',
-            query: Payload::query(['status' => $status, 'name' => $name, 'manually_triggerable' => $manuallyTriggerable, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'status' => $status,
+                'name' => $name,
+                'manually_triggerable' => $manuallyTriggerable,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), AppSchemasFlowSchemaFlow::fromArray(...), fn (int $page): Page => $this->list(status: $status, name: $name, manuallyTriggerable: $manuallyTriggerable, page: $page, pageSize: $pageSize));
@@ -108,28 +129,56 @@ final readonly class Flows
      * Scopes: flows:write.
      *
      * @param  array<string, mixed>  $definition  The full flow graph: ``trigger`` + ``nodes[]`` + ``edges[]`` + ``entry_node_id``. See ``fl01_create_flows.py`` migration docstring for the locked JSON shape. Hard-capped at 256 KB JSON-encoded; validated against the structural rules in ``FlowDefinitionValidator``.
-     * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
-     * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level channel fallback chain — May 2026 this is the SINGLE source of truth for channel order (per-node ``channel_chain`` has been removed; node configs only carry content). Bare channel-type strings (``["whatsapp", "live_chat"]``) OR ``{channel_type, channel_id?}`` objects pinning a specific Channel row. When omitted / NULL on create, the server seeds from the tenant's active channels in a sensible order. A flow with any send/choice/collect_input node MUST have a non-empty chain to validate.
-     * @param  ?string  $defaultLanguage  Per-flow fallback language used by the runtime when a contact has no resolvable locale. Typically set by the frontend to the operator's current UI language at create time. Backend defaults to ``'en'`` (DB server_default) if omitted. Must be one of the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
-     * @param  ?bool  $exclusive  When True, while a run of this entry-triggered flow is actively running on a conversation, NO other entry-triggered flow may start on that conversation (background manual/api/schedule flows are exempt). Default False preserves today's fire-all behaviour.
-     * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language they speak to a contact. ``cascade`` (the default) resolves per run via the fallback chain (contact locale → inferred channel locale → ``default_language``). ``fixed`` always speaks ``default_language``, skipping the cascade. OMIT / ``null`` to keep the default — NULL is stored and treated as ``cascade`` by the runtime, so existing flows are unaffected. Any value other than ``cascade`` / ``fixed`` is rejected with 422.
-     * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is ``manual``.
-     * @param  ?int  $priority  Trigger-arbitration priority among INBOUND-EVENT-triggered (entry) flows. LOWER = higher priority (evaluated FIRST). When multiple entry flows match the same inbound event they start in ascending-priority order. Default 0. Background flows (manual/api_event/schedule) ignore this field.
      * @param  ?string  $reEntryPolicy  How to behave when the same contact is triggered again while a run is already in flight. MVP only enforces ``block`` (ignore the new trigger). ``restart`` and ``parallel`` are scaffolded for Phase 3 UX.
+     * @param  ?string  $defaultLanguage  Per-flow fallback language used by the runtime when a contact has no resolvable locale. Typically set by the frontend to the operator's current UI language at create time. Backend defaults to ``'en'`` (DB server_default) if omitted. Must be one of the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
+     * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is ``manual``.
+     * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
+     * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language they speak to a contact. ``cascade`` (the default) resolves per run via the fallback chain (contact locale → inferred channel locale → ``default_language``). ``fixed`` always speaks ``default_language``, skipping the cascade. OMIT / ``null`` to keep the default — NULL is stored and treated as ``cascade`` by the runtime, so existing flows are unaffected. Any value other than ``cascade`` / ``fixed`` is rejected with 422.
+     * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level channel fallback chain — May 2026 this is the SINGLE source of truth for channel order (per-node ``channel_chain`` has been removed; node configs only carry content). Bare channel-type strings (``["whatsapp", "live_chat"]``) OR ``{channel_type, channel_id?}`` objects pinning a specific Channel row. When omitted / NULL on create, the server seeds from the tenant's active channels in a sensible order. A flow with any send/choice/collect_input node MUST have a non-empty chain to validate.
      * @param  ?bool  $stopOnAgentReply  When True (the default), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Bot replies and flow-Send messages do NOT trip the hook — only operator-authored outbound messages do. Set to False for long-running drips whose cadence should be independent of agent activity.
      * @param  ?bool  $stopOnConversationClosed  When True (the default), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Only runs whose recorded ``context.conversation_id`` matches the closed conversation are canceled — flows without a recorded conversation are left untouched. Set to False for long-running re-engagement drips that intentionally outlive the original conversation.
+     * @param  ?int  $priority  Trigger-arbitration priority among INBOUND-EVENT-triggered (entry) flows. LOWER = higher priority (evaluated FIRST). When multiple entry flows match the same inbound event they start in ascending-priority order. Default 0. Background flows (manual/api_event/schedule) ignore this field.
+     * @param  ?bool  $exclusive  When True, while a run of this entry-triggered flow is actively running on a conversation, NO other entry-triggered flow may start on that conversation (background manual/api/schedule flows are exempt). Default False preserves today's fire-all behaviour.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/create_flow_api_v1_flows_post
      */
-    public function create(array $definition, string $name, ?bool $autoTranslateMessages = null, ?array $defaultChannelChain = null, ?string $defaultLanguage = null, ?string $description = null, ?bool $exclusive = null, ?string $languageDetectionStrategy = null, ?bool $manuallyTriggerable = null, ?int $priority = null, ?string $reEntryPolicy = null, ?bool $stopOnAgentReply = null, ?bool $stopOnConversationClosed = null, ?string $idempotencyKey = null): AppSchemasFlowSchemaFlow
-    {
+    public function create(
+        string $name,
+        array $definition,
+        ?string $description = null,
+        ?string $reEntryPolicy = null,
+        ?string $defaultLanguage = null,
+        ?bool $manuallyTriggerable = null,
+        ?bool $autoTranslateMessages = null,
+        ?string $languageDetectionStrategy = null,
+        ?array $defaultChannelChain = null,
+        ?bool $stopOnAgentReply = null,
+        ?bool $stopOnConversationClosed = null,
+        ?int $priority = null,
+        ?bool $exclusive = null,
+        ?string $idempotencyKey = null,
+    ): AppSchemasFlowSchemaFlow {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/flows',
-            body: Payload::body(['definition' => $definition, 'name' => $name, 'auto_translate_messages' => $autoTranslateMessages, 'default_channel_chain' => $defaultChannelChain, 'default_language' => $defaultLanguage, 'description' => $description, 'exclusive' => $exclusive, 'language_detection_strategy' => $languageDetectionStrategy, 'manually_triggerable' => $manuallyTriggerable, 'priority' => $priority, 're_entry_policy' => $reEntryPolicy, 'stop_on_agent_reply' => $stopOnAgentReply, 'stop_on_conversation_closed' => $stopOnConversationClosed]),
+            body: Payload::body([
+                'name' => $name,
+                'definition' => $definition,
+                'description' => $description,
+                're_entry_policy' => $reEntryPolicy,
+                'default_language' => $defaultLanguage,
+                'manually_triggerable' => $manuallyTriggerable,
+                'auto_translate_messages' => $autoTranslateMessages,
+                'language_detection_strategy' => $languageDetectionStrategy,
+                'default_channel_chain' => $defaultChannelChain,
+                'stop_on_agent_reply' => $stopOnAgentReply,
+                'stop_on_conversation_closed' => $stopOnConversationClosed,
+                'priority' => $priority,
+                'exclusive' => $exclusive,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -415,29 +464,60 @@ final readonly class Flows
      *
      * Scopes: flows:write.
      *
-     * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
-     * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level fallback channel chain — see ``CreateFlowRequest``. Omitting this field on PATCH preserves the existing value; send an explicit empty list to clear it back to "no default" (stored as the empty list, not NULL, when explicitly cleared).
-     * @param  ?string  $defaultLanguage  Per-flow fallback language (see ``CreateFlowRequest``). Must be in the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
      * @param  array<string, mixed>|null  $definition
-     * @param  ?bool  $exclusive  When True, a running run of this entry flow blocks all OTHER entry flows from starting on the same conversation. Omit on PATCH to preserve the current value.
-     * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language (see ``CreateFlowRequest``). ``cascade`` | ``fixed``. Omit on PATCH to preserve the current value; any other value is rejected with 422. Note: because NULL means "cascade", this field cannot be explicitly reset to NULL via PATCH — send ``"cascade"`` to restore the default behaviour.
-     * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is changed to ``manual``; never auto-cleared when the trigger is changed away from manual (operator preference is preserved).
+     * @param  ?string  $defaultLanguage  Per-flow fallback language (see ``CreateFlowRequest``). Must be in the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
      * @param  ?bool  $preferOriginatingChannel  When True, outbound nodes attempt to send on the channel the contact originally entered the flow on, falling back to the node's ``channel_chain`` if that channel isn't allowed by the chain or the contact has no method for it. Defaults to True at the DB level.
-     * @param  ?int  $priority  Trigger-arbitration priority among entry flows (LOWER = higher priority, evaluated first). Omit on PATCH to preserve the current value. The bulk reorder endpoint writes this field.
+     * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is changed to ``manual``; never auto-cleared when the trigger is changed away from manual (operator preference is preserved).
+     * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
+     * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language (see ``CreateFlowRequest``). ``cascade`` | ``fixed``. Omit on PATCH to preserve the current value; any other value is rejected with 422. Note: because NULL means "cascade", this field cannot be explicitly reset to NULL via PATCH — send ``"cascade"`` to restore the default behaviour.
+     * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level fallback channel chain — see ``CreateFlowRequest``. Omitting this field on PATCH preserves the existing value; send an explicit empty list to clear it back to "no default" (stored as the empty list, not NULL, when explicitly cleared).
      * @param  ?bool  $stopOnAgentReply  When True (the default for new flows), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Omit on PATCH to preserve the current setting.
      * @param  ?bool  $stopOnConversationClosed  When True (the default for new flows), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Omit on PATCH to preserve the current setting.
+     * @param  ?int  $priority  Trigger-arbitration priority among entry flows (LOWER = higher priority, evaluated first). Omit on PATCH to preserve the current value. The bulk reorder endpoint writes this field.
+     * @param  ?bool  $exclusive  When True, a running run of this entry flow blocks all OTHER entry flows from starting on the same conversation. Omit on PATCH to preserve the current value.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/update_flow_api_v1_flows__flow_id__patch
      */
-    public function update(string $flowId, ?bool $autoTranslateMessages = null, ?array $defaultChannelChain = null, ?string $defaultLanguage = null, ?array $definition = null, ?string $description = null, ?bool $exclusive = null, ?string $languageDetectionStrategy = null, ?bool $manuallyTriggerable = null, ?string $name = null, ?bool $preferOriginatingChannel = null, ?int $priority = null, ?string $reEntryPolicy = null, ?bool $stopOnAgentReply = null, ?bool $stopOnConversationClosed = null, ?string $idempotencyKey = null): AppSchemasFlowSchemaFlow
-    {
+    public function update(
+        string $flowId,
+        ?string $name = null,
+        ?string $description = null,
+        ?array $definition = null,
+        ?string $reEntryPolicy = null,
+        ?string $defaultLanguage = null,
+        ?bool $preferOriginatingChannel = null,
+        ?bool $manuallyTriggerable = null,
+        ?bool $autoTranslateMessages = null,
+        ?string $languageDetectionStrategy = null,
+        ?array $defaultChannelChain = null,
+        ?bool $stopOnAgentReply = null,
+        ?bool $stopOnConversationClosed = null,
+        ?int $priority = null,
+        ?bool $exclusive = null,
+        ?string $idempotencyKey = null,
+    ): AppSchemasFlowSchemaFlow {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/flows/'.Payload::segment($flowId),
-            body: Payload::body(['auto_translate_messages' => $autoTranslateMessages, 'default_channel_chain' => $defaultChannelChain, 'default_language' => $defaultLanguage, 'definition' => $definition, 'description' => $description, 'exclusive' => $exclusive, 'language_detection_strategy' => $languageDetectionStrategy, 'manually_triggerable' => $manuallyTriggerable, 'name' => $name, 'prefer_originating_channel' => $preferOriginatingChannel, 'priority' => $priority, 're_entry_policy' => $reEntryPolicy, 'stop_on_agent_reply' => $stopOnAgentReply, 'stop_on_conversation_closed' => $stopOnConversationClosed]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'definition' => $definition,
+                're_entry_policy' => $reEntryPolicy,
+                'default_language' => $defaultLanguage,
+                'prefer_originating_channel' => $preferOriginatingChannel,
+                'manually_triggerable' => $manuallyTriggerable,
+                'auto_translate_messages' => $autoTranslateMessages,
+                'language_detection_strategy' => $languageDetectionStrategy,
+                'default_channel_chain' => $defaultChannelChain,
+                'stop_on_agent_reply' => $stopOnAgentReply,
+                'stop_on_conversation_closed' => $stopOnConversationClosed,
+                'priority' => $priority,
+                'exclusive' => $exclusive,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -465,8 +545,11 @@ final readonly class Flows
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/duplicate_flow_api_v1_flows__flow_id__duplicate_post
      */
-    public function duplicate(string $flowId, ?array $body = null, ?string $idempotencyKey = null): AppSchemasFlowSchemaFlow
-    {
+    public function duplicate(
+        string $flowId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): AppSchemasFlowSchemaFlow {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/flows/'.Payload::segment($flowId).'/duplicate',
@@ -494,8 +577,11 @@ final readonly class Flows
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/get_observability_channels_api_v1_flows__flow_id__observability_channels_get
      */
-    public function getObservabilityChannels(string $flowId, ?string $since = null, ?string $until = null): ChannelPerformance
-    {
+    public function getObservabilityChannels(
+        string $flowId,
+        ?string $since = null,
+        ?string $until = null,
+    ): ChannelPerformance {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/flows/'.Payload::segment($flowId).'/observability/channels',
@@ -640,12 +726,22 @@ final readonly class Flows
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/list_flow_runs_api_v1_flows__flow_id__runs_get
      */
-    public function listRuns(string $flowId, ?string $contactId = null, FlowRunStatus|string|null $status = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listRuns(
+        string $flowId,
+        ?string $contactId = null,
+        FlowRunStatus|string|null $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/flows/'.Payload::segment($flowId).'/runs',
-            query: Payload::query(['contact_id' => $contactId, 'status' => $status, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'contact_id' => $contactId,
+                'status' => $status,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), FlowRun::fromArray(...), fn (int $page): Page => $this->listRuns(flowId: $flowId, contactId: $contactId, status: $status, page: $page, pageSize: $pageSize));
@@ -666,21 +762,32 @@ final readonly class Flows
      * Scopes: flows:write.
      *
      * @param  string  $contactId  Contact UUID on the tenant's shard
-     * @param  array<string, mixed>|null  $contactMethodOverrides  Optional map of ``ChannelType`` (string value, e.g. ``email``, ``sms``, ``whatsapp``, ``telegram``, ``messenger``, ``instagram``, ``browser_push``) → ``contact_method.id``. When the flow sends on the matching channel, this specific contact_method's value is used as the destination instead of the contact's primary method. Per-channel keys are independent; omitted channels fall back to the default (primary) resolution. Each referenced contact_method must belong to the same tenant, the same contact, and have a method_type that matches the channel key.
-     * @param  array<string, mixed>|null  $context  Extra variables to seed ``flow_runs.context.vars``. Hard-capped at 16 KB JSON-encoded.
      * @param  ?string  $idempotencyKey  Optional caller-supplied idempotency key for at-most-once start semantics. If a run with the same (tenant_id, idempotency_key) already exists, the existing run is returned with HTTP 200 instead of creating a new one. If omitted, the engine derives a key from the request payload (e.g. ``manual:<flow_id>:<contact_id>:<request_id>``).
+     * @param  array<string, mixed>|null  $context  Extra variables to seed ``flow_runs.context.vars``. Hard-capped at 16 KB JSON-encoded.
+     * @param  array<string, mixed>|null  $contactMethodOverrides  Optional map of ``ChannelType`` (string value, e.g. ``email``, ``sms``, ``whatsapp``, ``telegram``, ``messenger``, ``instagram``, ``browser_push``) → ``contact_method.id``. When the flow sends on the matching channel, this specific contact_method's value is used as the destination instead of the contact's primary method. Per-channel keys are independent; omitted channels fall back to the default (primary) resolution. Each referenced contact_method must belong to the same tenant, the same contact, and have a method_type that matches the channel key.
      * @param  ?string  $idempotencyKeyIdempotency  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Flows/start_flow_run_api_v1_flows__flow_id__runs_post
      */
-    public function startRun(string $flowId, string $contactId, ?array $contactMethodOverrides = null, ?array $context = null, ?string $idempotencyKey = null, ?string $idempotencyKeyIdempotency = null): FlowRun
-    {
+    public function startRun(
+        string $flowId,
+        string $contactId,
+        ?string $idempotencyKey = null,
+        ?array $context = null,
+        ?array $contactMethodOverrides = null,
+        ?string $idempotencyKeyIdempotency = null,
+    ): FlowRun {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/flows/'.Payload::segment($flowId).'/runs',
-            body: Payload::body(['contact_id' => $contactId, 'contact_method_overrides' => $contactMethodOverrides, 'context' => $context, 'idempotency_key' => $idempotencyKey]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'idempotency_key' => $idempotencyKey,
+                'context' => $context,
+                'contact_method_overrides' => $contactMethodOverrides,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

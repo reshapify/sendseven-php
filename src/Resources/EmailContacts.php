@@ -53,12 +53,23 @@ final readonly class EmailContacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contacts/list_email_contacts_api_v1_email_contacts_get
      */
-    public function list(SubscriptionStatusEnum|string|null $subscriptionStatus = null, ?string $category = null, ?string $search = null, ?int $limit = null, ?int $offset = null): EmailContactList
-    {
+    public function list(
+        SubscriptionStatusEnum|string|null $subscriptionStatus = null,
+        ?string $category = null,
+        ?string $search = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): EmailContactList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/email-contacts',
-            query: Payload::query(['subscription_status' => $subscriptionStatus, 'category' => $category, 'search' => $search, 'limit' => $limit, 'offset' => $offset]),
+            query: Payload::query([
+                'subscription_status' => $subscriptionStatus,
+                'category' => $category,
+                'search' => $search,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]),
         ));
 
         return EmailContactList::fromArray($response->data());
@@ -78,15 +89,15 @@ final readonly class EmailContacts
      * Scopes: contacts:create.
      *
      * @param  FilePart  $file  CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields.
-     * @param  ?string  $applyCustomField  Post-import action: JSON object {"field_id": "...", "value": ...} — the custom-field value is set (overwrite) on EVERY contact this import creates OR updates. The field must be an active custom field of the tenant; SELECT/MULTISELECT values are options-validated, DATE/DATETIME must be ISO.
-     * @param  ?string  $applyTagIds  Post-import action: JSON array of tag IDs (e.g. ["id1","id2"]) applied to EVERY contact this import creates OR updates. Tag IDs must belong to the tenant (404 otherwise).
      * @param  ?string  $columnMapping  JSON string mapping target fields to CSV column names, e.g. {"email": "E-Mail", "name": "Full Name", "phone": "Telefon"}. Per-EAV custom-field targets use the key "custom_field:<field_definition_id>".
-     * @param  ?string  $defaultPhoneRegion  ISO-3166 alpha-2 region (e.g. 'DE') used to auto-prefix phone numbers lacking a '+' to E.164 (national '0175…' → '+49175…'). Omit to keep the lenient digit-prepend behaviour.
-     * @param  ?string  $delimiter  CSV delimiter override. One of: ',' ';' tab '|'. Omit to auto-sniff.
      * @param  ?string  $duplicateMode  Override the tenant's duplicate_contact_mode for this import. Values: auto_merge, allow_duplicates, dont_allow_duplicates, update_existing. Omit to use the tenant default.
-     * @param  ?string  $quotechar  CSV quote character override (default '"'). Omit to auto-detect.
-     * @param  ?string  $subscriptions  JSON array of structured channel->list subscription targets, e.g. [{"channel_type":"email","list_id":"..."},{"channel_type":"whatsapp","list_id":"..."}]. A contact is subscribed to a target only if it has the channel's required method (email→email, sms→phone, whatsapp→whatsapp_id/phone); others are silently skipped. Supported channels: email, sms, whatsapp. Takes precedence over create_subscription. Requires optin_confirmed=true.
      * @param  ?string  $updateFieldMode  Only used with duplicate_mode=update_existing. 'overwrite' (default) replaces standard + EAV custom fields from the CSV (blank cells never wipe); 'fill_empty' only populates empty fields. Values: overwrite, fill_empty.
+     * @param  ?string  $subscriptions  JSON array of structured channel->list subscription targets, e.g. [{"channel_type":"email","list_id":"..."},{"channel_type":"whatsapp","list_id":"..."}]. A contact is subscribed to a target only if it has the channel's required method (email→email, sms→phone, whatsapp→whatsapp_id/phone); others are silently skipped. Supported channels: email, sms, whatsapp. Takes precedence over create_subscription. Requires optin_confirmed=true.
+     * @param  ?string  $delimiter  CSV delimiter override. One of: ',' ';' tab '|'. Omit to auto-sniff.
+     * @param  ?string  $quotechar  CSV quote character override (default '"'). Omit to auto-detect.
+     * @param  ?string  $defaultPhoneRegion  ISO-3166 alpha-2 region (e.g. 'DE') used to auto-prefix phone numbers lacking a '+' to E.164 (national '0175…' → '+49175…'). Omit to keep the lenient digit-prepend behaviour.
+     * @param  ?string  $applyTagIds  Post-import action: JSON array of tag IDs (e.g. ["id1","id2"]) applied to EVERY contact this import creates OR updates. Tag IDs must belong to the tenant (404 otherwise).
+     * @param  ?string  $applyCustomField  Post-import action: JSON object {"field_id": "...", "value": ...} — the custom-field value is set (overwrite) on EVERY contact this import creates OR updates. The field must be an active custom field of the tenant; SELECT/MULTISELECT values are options-validated, DATE/DATETIME must be ISO.
      * @param  ?bool  $createSubscription  Create email subscriptions for imported contacts
      * @param  ?bool  $optinConfirmed  User confirms all contacts have valid opt-in consent
      * @param  ?string  $listId  Optional list ID to add imported contacts to
@@ -97,14 +108,45 @@ final readonly class EmailContacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contacts/import_email_contacts_api_v1_email_contacts_import_post
      */
-    public function import(FilePart $file, ?string $applyCustomField = null, ?string $applyTagIds = null, ?string $columnMapping = null, ?string $defaultPhoneRegion = null, ?string $delimiter = null, ?string $duplicateMode = null, ?string $quotechar = null, ?string $subscriptions = null, ?string $updateFieldMode = null, ?bool $createSubscription = null, ?bool $optinConfirmed = null, ?string $listId = null, ?string $listIds = null, ?string $idempotencyKey = null): ImportJobStart
-    {
+    public function import(
+        FilePart $file,
+        ?string $columnMapping = null,
+        ?string $duplicateMode = null,
+        ?string $updateFieldMode = null,
+        ?string $subscriptions = null,
+        ?string $delimiter = null,
+        ?string $quotechar = null,
+        ?string $defaultPhoneRegion = null,
+        ?string $applyTagIds = null,
+        ?string $applyCustomField = null,
+        ?bool $createSubscription = null,
+        ?bool $optinConfirmed = null,
+        ?string $listId = null,
+        ?string $listIds = null,
+        ?string $idempotencyKey = null,
+    ): ImportJobStart {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-contacts/import',
-            query: Payload::query(['create_subscription' => $createSubscription, 'optin_confirmed' => $optinConfirmed, 'list_id' => $listId, 'list_ids' => $listIds]),
+            query: Payload::query([
+                'create_subscription' => $createSubscription,
+                'optin_confirmed' => $optinConfirmed,
+                'list_id' => $listId,
+                'list_ids' => $listIds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-            multipart: Payload::multipart(['file' => $file, 'apply_custom_field' => $applyCustomField, 'apply_tag_ids' => $applyTagIds, 'column_mapping' => $columnMapping, 'default_phone_region' => $defaultPhoneRegion, 'delimiter' => $delimiter, 'duplicate_mode' => $duplicateMode, 'quotechar' => $quotechar, 'subscriptions' => $subscriptions, 'update_field_mode' => $updateFieldMode]),
+            multipart: Payload::multipart([
+                'file' => $file,
+                'column_mapping' => $columnMapping,
+                'duplicate_mode' => $duplicateMode,
+                'update_field_mode' => $updateFieldMode,
+                'subscriptions' => $subscriptions,
+                'delimiter' => $delimiter,
+                'quotechar' => $quotechar,
+                'default_phone_region' => $defaultPhoneRegion,
+                'apply_tag_ids' => $applyTagIds,
+                'apply_custom_field' => $applyCustomField,
+            ]),
         ));
 
         return ImportJobStart::fromArray($response->data());
@@ -259,12 +301,25 @@ final readonly class EmailContacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contacts/update_email_contact_api_v1_email_contacts__subscription_id__patch
      */
-    public function update(string $subscriptionId, ?string $name = null, ?string $phone = null, ?string $subscriptionCategory = null, SubscriptionStatusEnum|string|null $subscriptionStatus = null, ?string $unsubscribeReason = null, ?string $idempotencyKey = null): EmailContact
-    {
+    public function update(
+        string $subscriptionId,
+        ?string $name = null,
+        ?string $phone = null,
+        SubscriptionStatusEnum|string|null $subscriptionStatus = null,
+        ?string $subscriptionCategory = null,
+        ?string $unsubscribeReason = null,
+        ?string $idempotencyKey = null,
+    ): EmailContact {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-contacts/'.Payload::segment($subscriptionId),
-            body: Payload::body(['name' => $name, 'phone' => $phone, 'subscription_category' => $subscriptionCategory, 'subscription_status' => $subscriptionStatus, 'unsubscribe_reason' => $unsubscribeReason]),
+            body: Payload::body([
+                'name' => $name,
+                'phone' => $phone,
+                'subscription_status' => $subscriptionStatus,
+                'subscription_category' => $subscriptionCategory,
+                'unsubscribe_reason' => $unsubscribeReason,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FaqMigrationClusterPreview extends Data
 {
     /**
-     * @param  float  $cohesion  Mean intra-cluster similarity (0-1)
-     * @param  bool  $eligible  Whether size >= the effective min_cluster_size
-     * @param  string  $representativeIntent  Intent text of the representative conversation (truncated)
      * @param  int  $size  Conversations in the cluster
+     * @param  float  $cohesion  Mean intra-cluster similarity (0-1)
+     * @param  string  $representativeIntent  Intent text of the representative conversation (truncated)
+     * @param  bool  $eligible  Whether size >= the effective min_cluster_size
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public float $cohesion,
-        public bool $eligible,
-        public string $representativeIntent,
         public int $size,
+        public float $cohesion,
+        public string $representativeIntent,
+        public bool $eligible,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class FaqMigrationClusterPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            cohesion: $attributes->float('cohesion'),
-            eligible: $attributes->bool('eligible'),
-            representativeIntent: $attributes->string('representative_intent'),
             size: $attributes->int('size'),
+            cohesion: $attributes->float('cohesion'),
+            representativeIntent: $attributes->string('representative_intent'),
+            eligible: $attributes->bool('eligible'),
             raw: $data,
         );
     }

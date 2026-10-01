@@ -73,8 +73,11 @@ final readonly class BounceHandling
      *
      * @see https://api.sendseven.com/api/v1/docs#/Bounce%20Handling/get_suppression_list_api_v1_bounce_suppressions_get
      */
-    public function getSuppressionList(?string $bounceType = null, ?int $limit = null, ?int $offset = null): BounceSuppressionList
-    {
+    public function getSuppressionList(
+        ?string $bounceType = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): BounceSuppressionList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/bounce-suppressions',
@@ -103,8 +106,11 @@ final readonly class BounceHandling
      *
      * @see https://api.sendseven.com/api/v1/docs#/Bounce%20Handling/bulk_suppress_emails_api_v1_bounce_suppressions_bulk_add_post
      */
-    public function bulkSuppressEmails(array $emails, ?string $reason = null, ?string $idempotencyKey = null): BulkSuppress
-    {
+    public function bulkSuppressEmails(
+        array $emails,
+        ?string $reason = null,
+        ?string $idempotencyKey = null,
+    ): BulkSuppress {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/bounce-suppressions/bulk-add',

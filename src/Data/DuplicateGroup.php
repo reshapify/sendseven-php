@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DuplicateGroup extends Data
 {
     /**
-     * @param  list<ContactSummary>  $contacts
      * @param  string  $signal  One of: phone, email, platform_id, name
      * @param  string  $value  The shared value (e.g., a phone number, email, platform ID)
+     * @param  list<ContactSummary>  $contacts
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $contacts,
         public string $signal,
         public string $value,
+        public array $contacts,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class DuplicateGroup extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contacts: $attributes->list('contacts', ContactSummary::fromArray(...)),
             signal: $attributes->string('signal'),
             value: $attributes->string('value'),
+            contacts: $attributes->list('contacts', ContactSummary::fromArray(...)),
             raw: $data,
         );
     }

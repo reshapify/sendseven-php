@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ArchiveEmailProvider extends Data
 {
     /**
-     * @param  string  $id  ID of the archived provider
-     * @param  string  $message  Status message
      * @param  bool  $success  Whether the archive operation succeeded
+     * @param  string  $message  Status message
+     * @param  string  $id  ID of the archived provider
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $id,
-        public string $message,
         public bool $success,
+        public string $message,
+        public string $id,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class ArchiveEmailProvider extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            id: $attributes->string('id'),
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
+            id: $attributes->string('id'),
             raw: $data,
         );
     }

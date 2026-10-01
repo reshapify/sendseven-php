@@ -17,32 +17,32 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactExportStatus extends Data
 {
     /**
+     * @param  string  $status  queued | processing | completed | failed | cancelled
+     * @param  ?string  $message  Human-readable status message
+     * @param  ?int  $progressPercent  0-100
+     * @param  ?int  $totalItems  Total contacts matched by the filters
+     * @param  ?int  $processedItems  Contacts written so far
+     * @param  ?string  $format  csv | xlsx (once known)
+     * @param  ?string  $filename  Download filename; present once status == completed
+     * @param  ?int  $totalContacts  Contacts in the finished file; present when completed
      * @param  list<string>  $columns  Ordered export column headers; present when completed
      * @param  ?string  $downloadUrl  Relative download URL (302 to a signed URL); present when completed
      * @param  ?string  $errorMessage  Present when status == failed
-     * @param  ?string  $filename  Download filename; present once status == completed
-     * @param  ?string  $format  csv | xlsx (once known)
-     * @param  ?string  $message  Human-readable status message
-     * @param  ?int  $processedItems  Contacts written so far
-     * @param  ?int  $progressPercent  0-100
-     * @param  string  $status  queued | processing | completed | failed | cancelled
-     * @param  ?int  $totalContacts  Contacts in the finished file; present when completed
-     * @param  ?int  $totalItems  Total contacts matched by the filters
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $jobId,
+        public string $status,
+        public ?string $message,
+        public ?int $progressPercent,
+        public ?int $totalItems,
+        public ?int $processedItems,
+        public ?string $format,
+        public ?string $filename,
+        public ?int $totalContacts,
         public array $columns,
         public ?string $downloadUrl,
         public ?string $errorMessage,
-        public ?string $filename,
-        public ?string $format,
-        public string $jobId,
-        public ?string $message,
-        public ?int $processedItems,
-        public ?int $progressPercent,
-        public string $status,
-        public ?int $totalContacts,
-        public ?int $totalItems,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -56,18 +56,18 @@ final readonly class ContactExportStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            jobId: $attributes->string('job_id'),
+            status: $attributes->string('status'),
+            message: $attributes->nullableString('message'),
+            progressPercent: $attributes->nullableInt('progress_percent'),
+            totalItems: $attributes->nullableInt('total_items'),
+            processedItems: $attributes->nullableInt('processed_items'),
+            format: $attributes->nullableString('format'),
+            filename: $attributes->nullableString('filename'),
+            totalContacts: $attributes->nullableInt('total_contacts'),
             columns: $attributes->strings('columns'),
             downloadUrl: $attributes->nullableString('download_url'),
             errorMessage: $attributes->nullableString('error_message'),
-            filename: $attributes->nullableString('filename'),
-            format: $attributes->nullableString('format'),
-            jobId: $attributes->string('job_id'),
-            message: $attributes->nullableString('message'),
-            processedItems: $attributes->nullableInt('processed_items'),
-            progressPercent: $attributes->nullableInt('progress_percent'),
-            status: $attributes->string('status'),
-            totalContacts: $attributes->nullableInt('total_contacts'),
-            totalItems: $attributes->nullableInt('total_items'),
             raw: $data,
         );
     }

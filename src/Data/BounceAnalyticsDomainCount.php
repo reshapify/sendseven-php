@@ -20,8 +20,8 @@ final readonly class BounceAnalyticsDomainCount extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $count,
         public string $domain,
+        public int $count,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class BounceAnalyticsDomainCount extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            count: $attributes->int('count'),
             domain: $attributes->string('domain'),
+            count: $attributes->int('count'),
             raw: $data,
         );
     }

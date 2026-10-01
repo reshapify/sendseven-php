@@ -17,34 +17,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AiAnswerSource extends Data
 {
     /**
-     * @param  ?bool  $cited  The generator grounded on this source
-     * @param  ?string  $conversationId  Source conversation when kind=history
-     * @param  ?string  $documentId  knowledge_base_documents.id
-     * @param  ?string  $entryId  faq_items.id when kind=faq_entry
-     * @param  ?float  $entryQualityScore  NULL = not enough rating mass to judge
-     * @param  ?string  $excerpt  Matched chunk, <= 500 chars
      * @param  string  $kind  faq_entry | document | website | history
-     * @param  ?int  $rank  1-based position in the result set
-     * @param  ?float  $score  Retrieval similarity, if known
+     * @param  ?string  $entryId  faq_items.id when kind=faq_entry
+     * @param  ?string  $documentId  knowledge_base_documents.id
+     * @param  ?string  $conversationId  Source conversation when kind=history
      * @param  ?string  $uri  gs:// or https:// location
+     * @param  ?string  $excerpt  Matched chunk, <= 500 chars
+     * @param  ?float  $score  Retrieval similarity, if known
+     * @param  ?int  $rank  1-based position in the result set
+     * @param  ?bool  $cited  The generator grounded on this source
+     * @param  ?float  $entryQualityScore  NULL = not enough rating mass to judge
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $cited,
-        public ?string $conversationId,
-        public ?string $documentId,
-        public ?int $entryFlaggedCount,
-        public ?string $entryId,
-        public ?float $entryQualityScore,
-        public ?string $entryStatus,
-        public ?int $entryTimesInSentReply,
-        public ?bool $entryVerifiedByUsage,
-        public ?string $excerpt,
         public string $kind,
-        public ?int $rank,
-        public ?float $score,
+        public ?string $entryId,
+        public ?string $documentId,
+        public ?string $conversationId,
         public ?string $title,
         public ?string $uri,
+        public ?string $excerpt,
+        public ?float $score,
+        public ?int $rank,
+        public ?bool $cited,
+        public ?string $entryStatus,
+        public ?float $entryQualityScore,
+        public ?bool $entryVerifiedByUsage,
+        public ?int $entryTimesInSentReply,
+        public ?int $entryFlaggedCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,21 +58,21 @@ final readonly class AiAnswerSource extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            cited: $attributes->nullableBool('cited'),
-            conversationId: $attributes->nullableString('conversation_id'),
-            documentId: $attributes->nullableString('document_id'),
-            entryFlaggedCount: $attributes->nullableInt('entry_flagged_count'),
-            entryId: $attributes->nullableString('entry_id'),
-            entryQualityScore: $attributes->nullableFloat('entry_quality_score'),
-            entryStatus: $attributes->nullableString('entry_status'),
-            entryTimesInSentReply: $attributes->nullableInt('entry_times_in_sent_reply'),
-            entryVerifiedByUsage: $attributes->nullableBool('entry_verified_by_usage'),
-            excerpt: $attributes->nullableString('excerpt'),
             kind: $attributes->string('kind'),
-            rank: $attributes->nullableInt('rank'),
-            score: $attributes->nullableFloat('score'),
+            entryId: $attributes->nullableString('entry_id'),
+            documentId: $attributes->nullableString('document_id'),
+            conversationId: $attributes->nullableString('conversation_id'),
             title: $attributes->nullableString('title'),
             uri: $attributes->nullableString('uri'),
+            excerpt: $attributes->nullableString('excerpt'),
+            score: $attributes->nullableFloat('score'),
+            rank: $attributes->nullableInt('rank'),
+            cited: $attributes->nullableBool('cited'),
+            entryStatus: $attributes->nullableString('entry_status'),
+            entryQualityScore: $attributes->nullableFloat('entry_quality_score'),
+            entryVerifiedByUsage: $attributes->nullableBool('entry_verified_by_usage'),
+            entryTimesInSentReply: $attributes->nullableInt('entry_times_in_sent_reply'),
+            entryFlaggedCount: $attributes->nullableInt('entry_flagged_count'),
             raw: $data,
         );
     }

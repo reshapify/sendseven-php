@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactAvatar extends Data
 {
     /**
-     * @param  ?bool  $avatarIsCustom  True while a manually uploaded picture is in place; platform profile-picture syncing is suppressed until it is removed.
      * @param  ?string  $avatarUrl  Permanent URL of the stored picture, or null after removal. Always points at our own proxy — never at a platform CDN, whose signed URLs expire within days.
+     * @param  ?bool  $avatarIsCustom  True while a manually uploaded picture is in place; platform profile-picture syncing is suppressed until it is removed.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $avatarIsCustom,
-        public ?string $avatarUrl,
-        public string $contactId,
         public ?bool $success,
+        public string $contactId,
+        public ?string $avatarUrl,
+        public ?bool $avatarIsCustom,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class ContactAvatar extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            avatarIsCustom: $attributes->nullableBool('avatar_is_custom'),
-            avatarUrl: $attributes->nullableString('avatar_url'),
-            contactId: $attributes->string('contact_id'),
             success: $attributes->nullableBool('success'),
+            contactId: $attributes->string('contact_id'),
+            avatarUrl: $attributes->nullableString('avatar_url'),
+            avatarIsCustom: $attributes->nullableBool('avatar_is_custom'),
             raw: $data,
         );
     }

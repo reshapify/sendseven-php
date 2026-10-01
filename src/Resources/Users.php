@@ -86,20 +86,25 @@ final readonly class Users
      *
      * @param  string  $email  Email address to invite
      * @param  string  $name  User's display name
-     * @param  UserRole|string|null  $role  DEPRECATED legacy role enum. Ignored when `role_id` is set.
      * @param  ?string  $roleId  RBAC role UUID to assign (system OR this tenant's custom role). Get valid ids from GET /roles. Preferred over the legacy `role` field.
+     * @param  UserRole|string|null  $role  DEPRECATED legacy role enum. Ignored when `role_id` is set.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Users/invite_user_api_v1_users_invite_post
      */
-    public function invite(string $email, string $name, UserRole|string|null $role = null, ?string $roleId = null, ?string $idempotencyKey = null): UserInvite
-    {
+    public function invite(
+        string $email,
+        string $name,
+        ?string $roleId = null,
+        UserRole|string|null $role = null,
+        ?string $idempotencyKey = null,
+    ): UserInvite {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/users/invite',
-            body: Payload::body(['email' => $email, 'name' => $name, 'role' => $role, 'role_id' => $roleId]),
+            body: Payload::body(['email' => $email, 'name' => $name, 'role_id' => $roleId, 'role' => $role]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -177,32 +182,62 @@ final readonly class Users
      * X-Tenant-ID header) - title: Agent's job title for email signatures (per-tenant, requires
      * X-Tenant-ID header)
      *
-     * @param  ?bool  $autoTranslateEnabled  Enable automatic translation of incoming messages (user-global). Omit or null to leave unchanged.
-     * @param  ?string  $chatNickname  Chat display nickname
      * @param  ?string  $displayName  User-editable display name
-     * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting your signature into the composer (per-tenant)
-     * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert your signature when opening a new-email composer (per-tenant)
-     * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert your signature when opening a reply composer (per-tenant)
+     * @param  ?string  $chatNickname  Chat display nickname
      * @param  ?bool  $liveChatAvailable  Available for live chat assignment
      * @param  ?string  $personalPhone  Personal phone for receiving notifications (user-global)
-     * @param  ?string  $phone  Agent's phone number for email signatures (per-tenant)
      * @param  ?string  $preferredLanguage  Preferred UI language code (e.g., en, de, fr)
      * @param  ?string  $preferredTranslationLanguage  Preferred language for chat translations (e.g., en, de, fr, es)
+     * @param  ?bool  $autoTranslateEnabled  Enable automatic translation of incoming messages (user-global). Omit or null to leave unchanged.
      * @param  ?bool  $shoutboxHidden  Hide/deactivate the team-chat Shoutbox widget across all devices (user-global). Omit or null to leave unchanged.
      * @param  ?string  $spokenLanguages  Comma-separated ISO 639-1 codes the user speaks (e.g., 'de,en'). Empty string clears the value; omit or null to leave unchanged.
+     * @param  ?string  $phone  Agent's phone number for email signatures (per-tenant)
      * @param  ?string  $title  Agent's job title for email signatures (per-tenant)
+     * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting your signature into the composer (per-tenant)
+     * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert your signature when opening a reply composer (per-tenant)
+     * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert your signature when opening a new-email composer (per-tenant)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Users/update_current_user_api_v1_users_me_patch
      */
-    public function updateCurrent(?bool $autoTranslateEnabled = null, ?string $chatNickname = null, ?string $displayName = null, ?bool $emailAutoSignatureEnabled = null, ?bool $emailAutoSignatureOnNew = null, ?bool $emailAutoSignatureOnReplies = null, ?bool $liveChatAvailable = null, ?string $personalPhone = null, ?string $phone = null, ?string $preferredLanguage = null, ?string $preferredTranslationLanguage = null, ?bool $shoutboxHidden = null, ?string $spokenLanguages = null, ?string $title = null, ?string $idempotencyKey = null): CurrentUser
-    {
+    public function updateCurrent(
+        ?string $displayName = null,
+        ?string $chatNickname = null,
+        ?bool $liveChatAvailable = null,
+        ?string $personalPhone = null,
+        ?string $preferredLanguage = null,
+        ?string $preferredTranslationLanguage = null,
+        ?bool $autoTranslateEnabled = null,
+        ?bool $shoutboxHidden = null,
+        ?string $spokenLanguages = null,
+        ?string $phone = null,
+        ?string $title = null,
+        ?bool $emailAutoSignatureEnabled = null,
+        ?bool $emailAutoSignatureOnReplies = null,
+        ?bool $emailAutoSignatureOnNew = null,
+        ?string $idempotencyKey = null,
+    ): CurrentUser {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/users/me',
-            body: Payload::body(['auto_translate_enabled' => $autoTranslateEnabled, 'chat_nickname' => $chatNickname, 'display_name' => $displayName, 'email_auto_signature_enabled' => $emailAutoSignatureEnabled, 'email_auto_signature_on_new' => $emailAutoSignatureOnNew, 'email_auto_signature_on_replies' => $emailAutoSignatureOnReplies, 'live_chat_available' => $liveChatAvailable, 'personal_phone' => $personalPhone, 'phone' => $phone, 'preferred_language' => $preferredLanguage, 'preferred_translation_language' => $preferredTranslationLanguage, 'shoutbox_hidden' => $shoutboxHidden, 'spoken_languages' => $spokenLanguages, 'title' => $title]),
+            body: Payload::body([
+                'display_name' => $displayName,
+                'chat_nickname' => $chatNickname,
+                'live_chat_available' => $liveChatAvailable,
+                'personal_phone' => $personalPhone,
+                'preferred_language' => $preferredLanguage,
+                'preferred_translation_language' => $preferredTranslationLanguage,
+                'auto_translate_enabled' => $autoTranslateEnabled,
+                'shoutbox_hidden' => $shoutboxHidden,
+                'spoken_languages' => $spokenLanguages,
+                'phone' => $phone,
+                'title' => $title,
+                'email_auto_signature_enabled' => $emailAutoSignatureEnabled,
+                'email_auto_signature_on_replies' => $emailAutoSignatureOnReplies,
+                'email_auto_signature_on_new' => $emailAutoSignatureOnNew,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -277,32 +312,62 @@ final readonly class Users
      *
      * Authentication: Required (no specific scope needed)
      *
-     * @param  ?bool  $autoTranslateEnabled  Enable automatic translation of incoming messages (user-global). Omit or null to leave unchanged.
-     * @param  ?string  $chatNickname  Chat display nickname
      * @param  ?string  $displayName  User-editable display name
-     * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting your signature into the composer (per-tenant)
-     * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert your signature when opening a new-email composer (per-tenant)
-     * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert your signature when opening a reply composer (per-tenant)
+     * @param  ?string  $chatNickname  Chat display nickname
      * @param  ?bool  $liveChatAvailable  Available for live chat assignment
      * @param  ?string  $personalPhone  Personal phone for receiving notifications (user-global)
-     * @param  ?string  $phone  Agent's phone number for email signatures (per-tenant)
      * @param  ?string  $preferredLanguage  Preferred UI language code (e.g., en, de, fr)
      * @param  ?string  $preferredTranslationLanguage  Preferred language for chat translations (e.g., en, de, fr, es)
+     * @param  ?bool  $autoTranslateEnabled  Enable automatic translation of incoming messages (user-global). Omit or null to leave unchanged.
      * @param  ?bool  $shoutboxHidden  Hide/deactivate the team-chat Shoutbox widget across all devices (user-global). Omit or null to leave unchanged.
      * @param  ?string  $spokenLanguages  Comma-separated ISO 639-1 codes the user speaks (e.g., 'de,en'). Empty string clears the value; omit or null to leave unchanged.
+     * @param  ?string  $phone  Agent's phone number for email signatures (per-tenant)
      * @param  ?string  $title  Agent's job title for email signatures (per-tenant)
+     * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting your signature into the composer (per-tenant)
+     * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert your signature when opening a reply composer (per-tenant)
+     * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert your signature when opening a new-email composer (per-tenant)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Users/update_current_user_profile_api_v1_users_me_profile_patch
      */
-    public function updateCurrentProfile(?bool $autoTranslateEnabled = null, ?string $chatNickname = null, ?string $displayName = null, ?bool $emailAutoSignatureEnabled = null, ?bool $emailAutoSignatureOnNew = null, ?bool $emailAutoSignatureOnReplies = null, ?bool $liveChatAvailable = null, ?string $personalPhone = null, ?string $phone = null, ?string $preferredLanguage = null, ?string $preferredTranslationLanguage = null, ?bool $shoutboxHidden = null, ?string $spokenLanguages = null, ?string $title = null, ?string $idempotencyKey = null): CurrentUser
-    {
+    public function updateCurrentProfile(
+        ?string $displayName = null,
+        ?string $chatNickname = null,
+        ?bool $liveChatAvailable = null,
+        ?string $personalPhone = null,
+        ?string $preferredLanguage = null,
+        ?string $preferredTranslationLanguage = null,
+        ?bool $autoTranslateEnabled = null,
+        ?bool $shoutboxHidden = null,
+        ?string $spokenLanguages = null,
+        ?string $phone = null,
+        ?string $title = null,
+        ?bool $emailAutoSignatureEnabled = null,
+        ?bool $emailAutoSignatureOnReplies = null,
+        ?bool $emailAutoSignatureOnNew = null,
+        ?string $idempotencyKey = null,
+    ): CurrentUser {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/users/me/profile',
-            body: Payload::body(['auto_translate_enabled' => $autoTranslateEnabled, 'chat_nickname' => $chatNickname, 'display_name' => $displayName, 'email_auto_signature_enabled' => $emailAutoSignatureEnabled, 'email_auto_signature_on_new' => $emailAutoSignatureOnNew, 'email_auto_signature_on_replies' => $emailAutoSignatureOnReplies, 'live_chat_available' => $liveChatAvailable, 'personal_phone' => $personalPhone, 'phone' => $phone, 'preferred_language' => $preferredLanguage, 'preferred_translation_language' => $preferredTranslationLanguage, 'shoutbox_hidden' => $shoutboxHidden, 'spoken_languages' => $spokenLanguages, 'title' => $title]),
+            body: Payload::body([
+                'display_name' => $displayName,
+                'chat_nickname' => $chatNickname,
+                'live_chat_available' => $liveChatAvailable,
+                'personal_phone' => $personalPhone,
+                'preferred_language' => $preferredLanguage,
+                'preferred_translation_language' => $preferredTranslationLanguage,
+                'auto_translate_enabled' => $autoTranslateEnabled,
+                'shoutbox_hidden' => $shoutboxHidden,
+                'spoken_languages' => $spokenLanguages,
+                'phone' => $phone,
+                'title' => $title,
+                'email_auto_signature_enabled' => $emailAutoSignatureEnabled,
+                'email_auto_signature_on_replies' => $emailAutoSignatureOnReplies,
+                'email_auto_signature_on_new' => $emailAutoSignatureOnNew,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -390,21 +455,31 @@ final readonly class Users
      *
      * Scopes: team:update.
      *
+     * @param  ?string  $name  User's display name
      * @param  ?string  $avatarUrl  URL to user's avatar image
      * @param  ?string  $chatNickname  Chat display nickname
      * @param  ?bool  $liveChatAvailable  Available for live chat assignment
-     * @param  ?string  $name  User's display name
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Users/update_user_api_v1_users__user_id__put
      */
-    public function update(string $userId, ?string $avatarUrl = null, ?string $chatNickname = null, ?bool $liveChatAvailable = null, ?string $name = null): User
-    {
+    public function update(
+        string $userId,
+        ?string $name = null,
+        ?string $avatarUrl = null,
+        ?string $chatNickname = null,
+        ?bool $liveChatAvailable = null,
+    ): User {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/users/'.Payload::segment($userId),
-            body: Payload::body(['avatar_url' => $avatarUrl, 'chat_nickname' => $chatNickname, 'live_chat_available' => $liveChatAvailable, 'name' => $name]),
+            body: Payload::body([
+                'name' => $name,
+                'avatar_url' => $avatarUrl,
+                'chat_nickname' => $chatNickname,
+                'live_chat_available' => $liveChatAvailable,
+            ]),
         ));
 
         return User::fromArray($response->data());

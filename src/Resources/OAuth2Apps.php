@@ -66,25 +66,41 @@ final readonly class OAuth2Apps
      *
      * Scopes: api:admin.
      *
-     * @param  list<string>  $allowedScopes  Scopes the app can request
      * @param  string  $name  App display name
      * @param  list<string>  $redirectUris  Allowed redirect URIs
+     * @param  list<string>  $allowedScopes  Scopes the app can request
      * @param  ?string  $description  App description for consent screen
+     * @param  ?string  $logoUrl  App logo URL
      * @param  ?string  $homepageUrl  App homepage URL
      * @param  ?bool  $isPublic  Can authorize users outside creator's organization
-     * @param  ?string  $logoUrl  App logo URL
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/OAuth2%20Apps/create_app_api_v1_oauth_apps_apps_post
      */
-    public function create(array $allowedScopes, string $name, array $redirectUris, ?string $description = null, ?string $homepageUrl = null, ?bool $isPublic = null, ?string $logoUrl = null, ?string $idempotencyKey = null): OAuthAppCreateResponse
-    {
+    public function create(
+        string $name,
+        array $redirectUris,
+        array $allowedScopes,
+        ?string $description = null,
+        ?string $logoUrl = null,
+        ?string $homepageUrl = null,
+        ?bool $isPublic = null,
+        ?string $idempotencyKey = null,
+    ): OAuthAppCreateResponse {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/oauth-apps/apps',
-            body: Payload::body(['allowed_scopes' => $allowedScopes, 'name' => $name, 'redirect_uris' => $redirectUris, 'description' => $description, 'homepage_url' => $homepageUrl, 'is_public' => $isPublic, 'logo_url' => $logoUrl]),
+            body: Payload::body([
+                'name' => $name,
+                'redirect_uris' => $redirectUris,
+                'allowed_scopes' => $allowedScopes,
+                'description' => $description,
+                'logo_url' => $logoUrl,
+                'homepage_url' => $homepageUrl,
+                'is_public' => $isPublic,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -147,19 +163,37 @@ final readonly class OAuth2Apps
      *
      * Scopes: api:admin.
      *
-     * @param  list<string>|null  $allowedScopes
      * @param  list<string>|null  $redirectUris
+     * @param  list<string>|null  $allowedScopes
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/OAuth2%20Apps/update_app_api_v1_oauth_apps_apps__app_id__put
      */
-    public function update(string $appId, ?array $allowedScopes = null, ?string $description = null, ?string $homepageUrl = null, ?bool $isActive = null, ?bool $isPublic = null, ?string $logoUrl = null, ?string $name = null, ?array $redirectUris = null): OAuthApp
-    {
+    public function update(
+        string $appId,
+        ?string $name = null,
+        ?array $redirectUris = null,
+        ?array $allowedScopes = null,
+        ?string $description = null,
+        ?string $logoUrl = null,
+        ?string $homepageUrl = null,
+        ?bool $isActive = null,
+        ?bool $isPublic = null,
+    ): OAuthApp {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/oauth-apps/apps/'.Payload::segment($appId),
-            body: Payload::body(['allowed_scopes' => $allowedScopes, 'description' => $description, 'homepage_url' => $homepageUrl, 'is_active' => $isActive, 'is_public' => $isPublic, 'logo_url' => $logoUrl, 'name' => $name, 'redirect_uris' => $redirectUris]),
+            body: Payload::body([
+                'name' => $name,
+                'redirect_uris' => $redirectUris,
+                'allowed_scopes' => $allowedScopes,
+                'description' => $description,
+                'logo_url' => $logoUrl,
+                'homepage_url' => $homepageUrl,
+                'is_active' => $isActive,
+                'is_public' => $isPublic,
+            ]),
         ));
 
         return OAuthApp::fromArray($response->data());

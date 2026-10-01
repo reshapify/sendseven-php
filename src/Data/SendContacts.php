@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendContacts extends Data
 {
     /**
-     * @param  int  $contactsCount  Number of contacts sent
-     * @param  string  $conversationId  Conversation UUID
-     * @param  ?string  $error  Error message if status is 'failed'
-     * @param  ?string  $externalId  WhatsApp message ID (wamid)
      * @param  string  $id  Message UUID
-     * @param  ?string  $platform  Platform (always whatsapp)
+     * @param  string  $conversationId  Conversation UUID
+     * @param  ?string  $externalId  WhatsApp message ID (wamid)
      * @param  string  $status  Message status: pending, sent, failed
+     * @param  ?string  $platform  Platform (always whatsapp)
+     * @param  int  $contactsCount  Number of contacts sent
+     * @param  ?string  $error  Error message if status is 'failed'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $contactsCount,
-        public string $conversationId,
-        public ?string $error,
-        public ?string $externalId,
         public string $id,
-        public ?string $platform,
+        public string $conversationId,
+        public ?string $externalId,
         public string $status,
+        public ?string $platform,
+        public int $contactsCount,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class SendContacts extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contactsCount: $attributes->int('contacts_count'),
-            conversationId: $attributes->string('conversation_id'),
-            error: $attributes->nullableString('error'),
-            externalId: $attributes->nullableString('external_id'),
             id: $attributes->string('id'),
-            platform: $attributes->nullableString('platform'),
+            conversationId: $attributes->string('conversation_id'),
+            externalId: $attributes->nullableString('external_id'),
             status: $attributes->string('status'),
+            platform: $attributes->nullableString('platform'),
+            contactsCount: $attributes->int('contacts_count'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

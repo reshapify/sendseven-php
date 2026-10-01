@@ -86,25 +86,75 @@ final readonly class Campaigns
      * Scopes: campaigns:create.
      *
      * @param  array<string, mixed>|null  $channelContent
-     * @param  list<string>|null  $channelFilter
      * @param  list<string>|null  $listIds
+     * @param  list<string>|null  $channelFilter
      * @param  list<string>|null  $selectedChannelIds
-     * @param  ?int  $sendBatchSize  Recipients per batch (1-1,000,000). The campaign pauses after each batch until the next batch is sent. Null = no batches.
      * @param  ?int  $sendRateLimit  Send speed in messages per minute (1-60000). Null = channel default speed.
-     * @param  array<string, mixed>|null  $sendSplitConfig
+     * @param  ?int  $sendBatchSize  Recipients per batch (1-1,000,000). The campaign pauses after each batch until the next batch is sent. Null = no batches.
      * @param  array<string, mixed>|null  $whatsAppTemplateVariableMapping
+     * @param  array<string, mixed>|null  $sendSplitConfig
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/create_campaign_api_v1_campaigns_post
      */
-    public function create(string $name, ?bool $acknowledgeWarmupWarning = null, ?string $attachmentId = null, ?string $browserPushTitle = null, ?array $channelContent = null, ?array $channelFilter = null, ?string $description = null, ?int $duplicateWindowHours = null, ?array $listIds = null, ?string $messageText = null, ?string $messageType = null, DateTimeInterface|string|null $scheduledAt = null, ?array $selectedChannelIds = null, ?int $sendBatchSize = null, ?int $sendRateLimit = null, ?array $sendSplitConfig = null, ?bool $shouldSkipDuplicates = null, ?bool $smsOptoutLinkEnabled = null, ?string $targetUrl = null, ?string $timezone = null, ?string $whatsAppTemplateId = null, ?string $whatsAppTemplateLanguage = null, ?string $whatsAppTemplateName = null, ?array $whatsAppTemplateVariableMapping = null, ?string $idempotencyKey = null): Campaign
-    {
+    public function create(
+        string $name,
+        ?string $description = null,
+        ?array $channelContent = null,
+        ?string $messageText = null,
+        ?string $messageType = null,
+        ?string $attachmentId = null,
+        ?string $targetUrl = null,
+        ?string $browserPushTitle = null,
+        ?array $listIds = null,
+        ?array $channelFilter = null,
+        ?array $selectedChannelIds = null,
+        DateTimeInterface|string|null $scheduledAt = null,
+        ?string $timezone = null,
+        ?int $sendRateLimit = null,
+        ?int $sendBatchSize = null,
+        ?bool $shouldSkipDuplicates = null,
+        ?int $duplicateWindowHours = null,
+        ?string $whatsAppTemplateId = null,
+        ?string $whatsAppTemplateName = null,
+        ?string $whatsAppTemplateLanguage = null,
+        ?array $whatsAppTemplateVariableMapping = null,
+        ?array $sendSplitConfig = null,
+        ?bool $smsOptoutLinkEnabled = null,
+        ?bool $acknowledgeWarmupWarning = null,
+        ?string $idempotencyKey = null,
+    ): Campaign {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns',
-            body: Payload::body(['name' => $name, 'acknowledge_warmup_warning' => $acknowledgeWarmupWarning, 'attachment_id' => $attachmentId, 'browser_push_title' => $browserPushTitle, 'channel_content' => $channelContent, 'channel_filter' => $channelFilter, 'description' => $description, 'duplicate_window_hours' => $duplicateWindowHours, 'list_ids' => $listIds, 'message_text' => $messageText, 'message_type' => $messageType, 'scheduled_at' => $scheduledAt, 'selected_channel_ids' => $selectedChannelIds, 'send_batch_size' => $sendBatchSize, 'send_rate_limit' => $sendRateLimit, 'send_split_config' => $sendSplitConfig, 'should_skip_duplicates' => $shouldSkipDuplicates, 'sms_optout_link_enabled' => $smsOptoutLinkEnabled, 'target_url' => $targetUrl, 'timezone' => $timezone, 'whatsapp_template_id' => $whatsAppTemplateId, 'whatsapp_template_language' => $whatsAppTemplateLanguage, 'whatsapp_template_name' => $whatsAppTemplateName, 'whatsapp_template_variable_mapping' => $whatsAppTemplateVariableMapping]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'channel_content' => $channelContent,
+                'message_text' => $messageText,
+                'message_type' => $messageType,
+                'attachment_id' => $attachmentId,
+                'target_url' => $targetUrl,
+                'browser_push_title' => $browserPushTitle,
+                'list_ids' => $listIds,
+                'channel_filter' => $channelFilter,
+                'selected_channel_ids' => $selectedChannelIds,
+                'scheduled_at' => $scheduledAt,
+                'timezone' => $timezone,
+                'send_rate_limit' => $sendRateLimit,
+                'send_batch_size' => $sendBatchSize,
+                'should_skip_duplicates' => $shouldSkipDuplicates,
+                'duplicate_window_hours' => $duplicateWindowHours,
+                'whatsapp_template_id' => $whatsAppTemplateId,
+                'whatsapp_template_name' => $whatsAppTemplateName,
+                'whatsapp_template_language' => $whatsAppTemplateLanguage,
+                'whatsapp_template_variable_mapping' => $whatsAppTemplateVariableMapping,
+                'send_split_config' => $sendSplitConfig,
+                'sms_optout_link_enabled' => $smsOptoutLinkEnabled,
+                'acknowledge_warmup_warning' => $acknowledgeWarmupWarning,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -288,24 +338,72 @@ final readonly class Campaigns
      * Scopes: campaigns:update.
      *
      * @param  array<string, mixed>|null  $channelContent
-     * @param  list<string>|null  $channelFilter
      * @param  list<string>|null  $listIds
+     * @param  list<string>|null  $channelFilter
      * @param  list<string>|null  $selectedChannelIds
-     * @param  ?int  $sendBatchSize  Recipients per batch (1-1,000,000). Null clears it (no further batches).
      * @param  ?int  $sendRateLimit  Send speed in messages per minute (1-60000). Null clears it (channel default speed).
-     * @param  array<string, mixed>|null  $sendSplitConfig
+     * @param  ?int  $sendBatchSize  Recipients per batch (1-1,000,000). Null clears it (no further batches).
      * @param  array<string, mixed>|null  $whatsAppTemplateVariableMapping
+     * @param  array<string, mixed>|null  $sendSplitConfig
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/update_campaign_api_v1_campaigns__campaign_id__put
      */
-    public function update(string $campaignId, ?string $attachmentId = null, ?string $browserPushTitle = null, ?array $channelContent = null, ?array $channelFilter = null, ?string $description = null, ?int $duplicateWindowHours = null, ?array $listIds = null, ?string $messageText = null, ?string $messageType = null, ?string $name = null, DateTimeInterface|string|null $scheduledAt = null, ?array $selectedChannelIds = null, ?int $sendBatchSize = null, ?int $sendRateLimit = null, ?array $sendSplitConfig = null, ?bool $shouldSkipDuplicates = null, ?bool $smsOptoutLinkEnabled = null, ?string $targetUrl = null, ?string $timezone = null, ?string $whatsAppTemplateId = null, ?string $whatsAppTemplateLanguage = null, ?string $whatsAppTemplateName = null, ?array $whatsAppTemplateVariableMapping = null): Campaign
-    {
+    public function update(
+        string $campaignId,
+        ?string $name = null,
+        ?string $description = null,
+        ?array $channelContent = null,
+        ?string $messageText = null,
+        ?string $messageType = null,
+        ?string $attachmentId = null,
+        ?string $targetUrl = null,
+        ?string $browserPushTitle = null,
+        ?array $listIds = null,
+        ?array $channelFilter = null,
+        ?array $selectedChannelIds = null,
+        DateTimeInterface|string|null $scheduledAt = null,
+        ?string $timezone = null,
+        ?int $sendRateLimit = null,
+        ?int $sendBatchSize = null,
+        ?bool $shouldSkipDuplicates = null,
+        ?int $duplicateWindowHours = null,
+        ?string $whatsAppTemplateId = null,
+        ?string $whatsAppTemplateName = null,
+        ?string $whatsAppTemplateLanguage = null,
+        ?array $whatsAppTemplateVariableMapping = null,
+        ?array $sendSplitConfig = null,
+        ?bool $smsOptoutLinkEnabled = null,
+    ): Campaign {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/campaigns/'.Payload::segment($campaignId),
-            body: Payload::body(['attachment_id' => $attachmentId, 'browser_push_title' => $browserPushTitle, 'channel_content' => $channelContent, 'channel_filter' => $channelFilter, 'description' => $description, 'duplicate_window_hours' => $duplicateWindowHours, 'list_ids' => $listIds, 'message_text' => $messageText, 'message_type' => $messageType, 'name' => $name, 'scheduled_at' => $scheduledAt, 'selected_channel_ids' => $selectedChannelIds, 'send_batch_size' => $sendBatchSize, 'send_rate_limit' => $sendRateLimit, 'send_split_config' => $sendSplitConfig, 'should_skip_duplicates' => $shouldSkipDuplicates, 'sms_optout_link_enabled' => $smsOptoutLinkEnabled, 'target_url' => $targetUrl, 'timezone' => $timezone, 'whatsapp_template_id' => $whatsAppTemplateId, 'whatsapp_template_language' => $whatsAppTemplateLanguage, 'whatsapp_template_name' => $whatsAppTemplateName, 'whatsapp_template_variable_mapping' => $whatsAppTemplateVariableMapping]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'channel_content' => $channelContent,
+                'message_text' => $messageText,
+                'message_type' => $messageType,
+                'attachment_id' => $attachmentId,
+                'target_url' => $targetUrl,
+                'browser_push_title' => $browserPushTitle,
+                'list_ids' => $listIds,
+                'channel_filter' => $channelFilter,
+                'selected_channel_ids' => $selectedChannelIds,
+                'scheduled_at' => $scheduledAt,
+                'timezone' => $timezone,
+                'send_rate_limit' => $sendRateLimit,
+                'send_batch_size' => $sendBatchSize,
+                'should_skip_duplicates' => $shouldSkipDuplicates,
+                'duplicate_window_hours' => $duplicateWindowHours,
+                'whatsapp_template_id' => $whatsAppTemplateId,
+                'whatsapp_template_name' => $whatsAppTemplateName,
+                'whatsapp_template_language' => $whatsAppTemplateLanguage,
+                'whatsapp_template_variable_mapping' => $whatsAppTemplateVariableMapping,
+                'send_split_config' => $sendSplitConfig,
+                'sms_optout_link_enabled' => $smsOptoutLinkEnabled,
+            ]),
         ));
 
         return Campaign::fromArray($response->data());
@@ -517,12 +615,22 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/list_campaign_recipients_api_v1_campaigns__campaign_id__recipients_get
      */
-    public function listRecipients(string $campaignId, ?string $status = null, ?int $page = null, ?int $pageSize = null, ?string $search = null): Page
-    {
+    public function listRecipients(
+        string $campaignId,
+        ?string $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $search = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/campaigns/'.Payload::segment($campaignId).'/recipients',
-            query: Payload::query(['status' => $status, 'page' => $page, 'page_size' => $pageSize, 'search' => $search]),
+            query: Payload::query([
+                'status' => $status,
+                'page' => $page,
+                'page_size' => $pageSize,
+                'search' => $search,
+            ]),
         ));
 
         return Hydrate::page($response->data(), CampaignRecipientItem::fromArray(...), fn (int $page): Page => $this->listRecipients(campaignId: $campaignId, status: $status, page: $page, pageSize: $pageSize, search: $search));
@@ -600,8 +708,11 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/retry_campaign_recipient_api_v1_campaigns__campaign_id__recipients__recipient_id__retry_post
      */
-    public function retryRecipient(string $campaignId, string $recipientId, ?string $idempotencyKey = null): CampaignRecipientItem
-    {
+    public function retryRecipient(
+        string $campaignId,
+        string $recipientId,
+        ?string $idempotencyKey = null,
+    ): CampaignRecipientItem {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns/'.Payload::segment($campaignId).'/recipients/'.Payload::segment($recipientId).'/retry',
@@ -635,8 +746,11 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/unsubscribe_campaign_recipient_api_v1_campaigns__campaign_id__recipients__recipient_id__unsubscribe_post
      */
-    public function unsubscribeRecipient(string $campaignId, string $recipientId, ?string $idempotencyKey = null): RecipientUnsubscribe
-    {
+    public function unsubscribeRecipient(
+        string $campaignId,
+        string $recipientId,
+        ?string $idempotencyKey = null,
+    ): RecipientUnsubscribe {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns/'.Payload::segment($campaignId).'/recipients/'.Payload::segment($recipientId).'/unsubscribe',
@@ -715,8 +829,11 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/retry_failed_recipients_api_v1_campaigns__campaign_id__retry_failed_post
      */
-    public function retryFailedRecipients(string $campaignId, ?array $body = null, ?string $idempotencyKey = null): array
-    {
+    public function retryFailedRecipients(
+        string $campaignId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns/'.Payload::segment($campaignId).'/retry-failed',
@@ -745,12 +862,21 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/schedule_campaign_api_v1_campaigns__campaign_id__schedule_post
      */
-    public function schedule(string $campaignId, DateTimeInterface|string $scheduledAt, string $timezone, ?bool $acknowledgeWarmupWarning = null, ?string $idempotencyKey = null): Campaign
-    {
+    public function schedule(
+        string $campaignId,
+        DateTimeInterface|string $scheduledAt,
+        string $timezone,
+        ?bool $acknowledgeWarmupWarning = null,
+        ?string $idempotencyKey = null,
+    ): Campaign {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns/'.Payload::segment($campaignId).'/schedule',
-            body: Payload::body(['scheduled_at' => $scheduledAt, 'timezone' => $timezone, 'acknowledge_warmup_warning' => $acknowledgeWarmupWarning]),
+            body: Payload::body([
+                'scheduled_at' => $scheduledAt,
+                'timezone' => $timezone,
+                'acknowledge_warmup_warning' => $acknowledgeWarmupWarning,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -771,12 +897,25 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/add_segment_api_v1_campaigns__campaign_id__segments_post
      */
-    public function addSegment(string $campaignId, FilterType|string $filterType, FilterOperator|string|null $filterOperator = null, ?int $filterOrder = null, ?array $filterValue = null, LogicalOperator|string|null $logicalOperator = null, ?string $idempotencyKey = null): Segment
-    {
+    public function addSegment(
+        string $campaignId,
+        FilterType|string $filterType,
+        FilterOperator|string|null $filterOperator = null,
+        ?array $filterValue = null,
+        LogicalOperator|string|null $logicalOperator = null,
+        ?int $filterOrder = null,
+        ?string $idempotencyKey = null,
+    ): Segment {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns/'.Payload::segment($campaignId).'/segments',
-            body: Payload::body(['filter_type' => $filterType, 'filter_operator' => $filterOperator, 'filter_order' => $filterOrder, 'filter_value' => $filterValue, 'logical_operator' => $logicalOperator]),
+            body: Payload::body([
+                'filter_type' => $filterType,
+                'filter_operator' => $filterOperator,
+                'filter_value' => $filterValue,
+                'logical_operator' => $logicalOperator,
+                'filter_order' => $filterOrder,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -846,8 +985,11 @@ final readonly class Campaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Campaigns/send_next_batch_api_v1_campaigns__campaign_id__send_next_batch_post
      */
-    public function sendNextBatch(string $campaignId, ?array $body = null, ?string $idempotencyKey = null): SendNextBatch
-    {
+    public function sendNextBatch(
+        string $campaignId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): SendNextBatch {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/campaigns/'.Payload::segment($campaignId).'/send-next-batch',

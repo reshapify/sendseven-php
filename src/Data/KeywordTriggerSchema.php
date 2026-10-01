@@ -23,18 +23,18 @@ final readonly class KeywordTriggerSchema extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $botId,
-        public array $channelIds,
-        public DateTimeImmutable $createdAt,
-        public ?string $flowId,
-        public ?string $handoffBotId,
-        public ?bool $handoverToHuman,
         public string $id,
-        public bool $isActive,
+        public string $botId,
         public string $keyword,
         public string $matchType,
+        public array $channelIds,
         public int $priority,
+        public bool $isActive,
+        public ?string $handoffBotId,
+        public ?bool $handoverToHuman,
+        public ?string $flowId,
         public array $responses,
+        public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
@@ -49,18 +49,18 @@ final readonly class KeywordTriggerSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            botId: $attributes->string('bot_id'),
-            channelIds: $attributes->strings('channel_ids'),
-            createdAt: $attributes->dateTime('created_at'),
-            flowId: $attributes->nullableString('flow_id'),
-            handoffBotId: $attributes->nullableString('handoff_bot_id'),
-            handoverToHuman: $attributes->nullableBool('handover_to_human'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
+            botId: $attributes->string('bot_id'),
             keyword: $attributes->string('keyword'),
             matchType: $attributes->string('match_type'),
+            channelIds: $attributes->strings('channel_ids'),
             priority: $attributes->int('priority'),
+            isActive: $attributes->bool('is_active'),
+            handoffBotId: $attributes->nullableString('handoff_bot_id'),
+            handoverToHuman: $attributes->nullableBool('handover_to_human'),
+            flowId: $attributes->nullableString('flow_id'),
             responses: $attributes->list('responses', KeywordTriggerResponseSchema::fromArray(...)),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->nullableDateTime('updated_at'),
             raw: $data,
         );

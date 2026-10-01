@@ -20,19 +20,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LibraryTemplateButton extends Data
 {
     /**
-     * @param  ?string  $otpType  COPY_CODE | ONE_TAP | ZERO_TAP (OTP buttons)
-     * @param  ?string  $phoneNumber  Example phone number (PHONE_NUMBER buttons)
-     * @param  ?string  $text  Button label
      * @param  string  $type  QUICK_REPLY | URL | PHONE_NUMBER | OTP | …
+     * @param  ?string  $text  Button label
      * @param  ?string  $url  Example URL (URL buttons)
+     * @param  ?string  $phoneNumber  Example phone number (PHONE_NUMBER buttons)
+     * @param  ?string  $otpType  COPY_CODE | ONE_TAP | ZERO_TAP (OTP buttons)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $otpType,
-        public ?string $phoneNumber,
-        public ?string $text,
         public string $type,
+        public ?string $text,
         public ?string $url,
+        public ?string $phoneNumber,
+        public ?string $otpType,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,11 +46,11 @@ final readonly class LibraryTemplateButton extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            otpType: $attributes->nullableString('otp_type'),
-            phoneNumber: $attributes->nullableString('phone_number'),
-            text: $attributes->nullableString('text'),
             type: $attributes->string('type'),
+            text: $attributes->nullableString('text'),
             url: $attributes->nullableString('url'),
+            phoneNumber: $attributes->nullableString('phone_number'),
+            otpType: $attributes->nullableString('otp_type'),
             raw: $data,
         );
     }

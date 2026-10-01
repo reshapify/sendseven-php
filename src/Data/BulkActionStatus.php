@@ -17,24 +17,24 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BulkActionStatus extends Data
 {
     /**
-     * @param  list<mixed>  $actions
+     * @param  string  $status  pending|processing|completed|failed
      * @param  int  $affectedCount  Contacts actually CHANGED so far (running total while processing; final total when completed)
      * @param  array<array-key, mixed>  $selection
-     * @param  string  $status  pending|processing|completed|failed
+     * @param  list<mixed>  $actions
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $actions,
-        public int $affectedCount,
-        public ?string $completedAt,
-        public string $createdAt,
-        public ?string $error,
         public string $id,
-        public array $selection,
-        public ?string $startedAt,
-        public string $status,
         public string $tenantId,
         public string $userId,
+        public string $status,
+        public int $affectedCount,
+        public array $selection,
+        public array $actions,
+        public ?string $error,
+        public string $createdAt,
+        public ?string $startedAt,
+        public ?string $completedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,17 +48,17 @@ final readonly class BulkActionStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            actions: array_values($attributes->array('actions')),
-            affectedCount: $attributes->int('affected_count'),
-            completedAt: $attributes->nullableString('completed_at'),
-            createdAt: $attributes->string('created_at'),
-            error: $attributes->nullableString('error'),
             id: $attributes->string('id'),
-            selection: $attributes->array('selection'),
-            startedAt: $attributes->nullableString('started_at'),
-            status: $attributes->string('status'),
             tenantId: $attributes->string('tenant_id'),
             userId: $attributes->string('user_id'),
+            status: $attributes->string('status'),
+            affectedCount: $attributes->int('affected_count'),
+            selection: $attributes->array('selection'),
+            actions: array_values($attributes->array('actions')),
+            error: $attributes->nullableString('error'),
+            createdAt: $attributes->string('created_at'),
+            startedAt: $attributes->nullableString('started_at'),
+            completedAt: $attributes->nullableString('completed_at'),
             raw: $data,
         );
     }

@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PendingConfirmationList extends Data
 {
     /**
-     * @param  int  $limit  Items per page
-     * @param  int  $offset  Current offset
      * @param  list<PendingConfirmation>  $pendingConfirmations  List of pending confirmations
      * @param  int  $total  Total number of pending confirmations
+     * @param  int  $limit  Items per page
+     * @param  int  $offset  Current offset
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $limit,
-        public int $offset,
         public array $pendingConfirmations,
         public int $total,
+        public int $limit,
+        public int $offset,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class PendingConfirmationList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            limit: $attributes->int('limit'),
-            offset: $attributes->int('offset'),
             pendingConfirmations: $attributes->list('pending_confirmations', PendingConfirmation::fromArray(...)),
             total: $attributes->int('total'),
+            limit: $attributes->int('limit'),
+            offset: $attributes->int('offset'),
             raw: $data,
         );
     }

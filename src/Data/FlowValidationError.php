@@ -25,8 +25,8 @@ final readonly class FlowValidationError extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $message,
         public ?string $path,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,8 +40,8 @@ final readonly class FlowValidationError extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            message: $attributes->string('message'),
             path: $attributes->nullableString('path'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

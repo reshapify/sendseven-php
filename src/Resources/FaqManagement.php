@@ -63,12 +63,39 @@ final readonly class FaqManagement
      *
      * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/list_faq_entries_api_v1_knowledge_base_faq_entries_get
      */
-    public function listEntries(?string $folderId = null, ?string $documentId = null, ?string $status = null, ?string $origin = null, ?string $language = null, ?string $search = null, ?bool $flaggedOnly = null, ?bool $reviewOnly = null, ?bool $includeLedger = null, ?string $sortBy = null, ?string $sortDir = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listEntries(
+        ?string $folderId = null,
+        ?string $documentId = null,
+        ?string $status = null,
+        ?string $origin = null,
+        ?string $language = null,
+        ?string $search = null,
+        ?bool $flaggedOnly = null,
+        ?bool $reviewOnly = null,
+        ?bool $includeLedger = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/knowledge-base/faq-entries',
-            query: Payload::query(['folder_id' => $folderId, 'document_id' => $documentId, 'status' => $status, 'origin' => $origin, 'language' => $language, 'search' => $search, 'flagged_only' => $flaggedOnly, 'review_only' => $reviewOnly, 'include_ledger' => $includeLedger, 'sort_by' => $sortBy, 'sort_dir' => $sortDir, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'folder_id' => $folderId,
+                'document_id' => $documentId,
+                'status' => $status,
+                'origin' => $origin,
+                'language' => $language,
+                'search' => $search,
+                'flagged_only' => $flaggedOnly,
+                'review_only' => $reviewOnly,
+                'include_ledger' => $includeLedger,
+                'sort_by' => $sortBy,
+                'sort_dir' => $sortDir,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), FaqItem::fromArray(...), fn (int $page): Page => $this->listEntries(folderId: $folderId, documentId: $documentId, status: $status, origin: $origin, language: $language, search: $search, flaggedOnly: $flaggedOnly, reviewOnly: $reviewOnly, includeLedger: $includeLedger, sortBy: $sortBy, sortDir: $sortDir, page: $page, pageSize: $pageSize));
@@ -119,8 +146,8 @@ final readonly class FaqManagement
      *
      * Scopes: knowledge_base:delete.
      *
-     * @param  list<string>  $loserIds  Entries folded into the winner then archived
      * @param  string  $winnerId  Entry that survives the merge
+     * @param  list<string>  $loserIds  Entries folded into the winner then archived
      * @param  ?bool  $dryRun  Preview only (default). Set false to EXECUTE the destructive merge (deletes loser RAG files + GCS blobs, archives losers).
      * @param  ?bool  $keepLoserQuestionsAsVariants  Keep loser phrasings as retrievable alt-questions on the winner
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -129,12 +156,22 @@ final readonly class FaqManagement
      *
      * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/merge_faq_entries_api_v1_knowledge_base_faq_entries_merge_post
      */
-    public function mergeEntries(array $loserIds, string $winnerId, ?bool $dryRun = null, ?bool $keepLoserQuestionsAsVariants = null, ?string $idempotencyKey = null): void
-    {
+    public function mergeEntries(
+        string $winnerId,
+        array $loserIds,
+        ?bool $dryRun = null,
+        ?bool $keepLoserQuestionsAsVariants = null,
+        ?string $idempotencyKey = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/faq-entries/merge',
-            body: Payload::body(['loser_ids' => $loserIds, 'winner_id' => $winnerId, 'dry_run' => $dryRun, 'keep_loser_questions_as_variants' => $keepLoserQuestionsAsVariants]),
+            body: Payload::body([
+                'winner_id' => $winnerId,
+                'loser_ids' => $loserIds,
+                'dry_run' => $dryRun,
+                'keep_loser_questions_as_variants' => $keepLoserQuestionsAsVariants,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }
@@ -204,25 +241,41 @@ final readonly class FaqManagement
      *
      * Scopes: knowledge_base:create.
      *
-     * @param  string  $answer  The answer
      * @param  string  $question  The question
-     * @param  ?bool  $allowDuplicate  When false (default), a standalone create is rejected with 409 if a near-identical entry already exists. Set true to create anyway. Ignored when document_id is given.
+     * @param  string  $answer  The answer
      * @param  ?string  $documentId  Legacy: append to this compiled managed FAQ document. Omit to create a standalone entry (recommended).
      * @param  ?string  $folderId  KB folder for a standalone entry. Defaults to the tenant's 'Managed FAQ' system folder. Ignored when document_id is given.
-     * @param  ?string  $language  BCP-47-ish language tag for a standalone entry
      * @param  ?string  $status  draft | published | needs_review | archived. Defaults to 'published' — an entry written in the editor is authored, not proposed. Only 'published' entries are indexed for retrieval. Ignored when document_id is given.
+     * @param  ?string  $language  BCP-47-ish language tag for a standalone entry
+     * @param  ?bool  $allowDuplicate  When false (default), a standalone create is rejected with 409 if a near-identical entry already exists. Set true to create anyway. Ignored when document_id is given.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/create_faq_item_api_v1_knowledge_base_faq_items_post
      */
-    public function createItem(string $answer, string $question, ?bool $allowDuplicate = null, ?string $documentId = null, ?string $folderId = null, ?string $language = null, ?string $status = null, ?string $idempotencyKey = null): FaqItem
-    {
+    public function createItem(
+        string $question,
+        string $answer,
+        ?string $documentId = null,
+        ?string $folderId = null,
+        ?string $status = null,
+        ?string $language = null,
+        ?bool $allowDuplicate = null,
+        ?string $idempotencyKey = null,
+    ): FaqItem {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/faq-items',
-            body: Payload::body(['answer' => $answer, 'question' => $question, 'allow_duplicate' => $allowDuplicate, 'document_id' => $documentId, 'folder_id' => $folderId, 'language' => $language, 'status' => $status]),
+            body: Payload::body([
+                'question' => $question,
+                'answer' => $answer,
+                'document_id' => $documentId,
+                'folder_id' => $folderId,
+                'status' => $status,
+                'language' => $language,
+                'allow_duplicate' => $allowDuplicate,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -348,23 +401,37 @@ final readonly class FaqManagement
      *
      * Scopes: knowledge_base:update.
      *
+     * @param  ?string  $question  The question
      * @param  ?string  $answer  The answer
+     * @param  ?string  $status  draft | published | needs_review | archived
      * @param  ?string  $folderId  Move the entry to another KB folder
      * @param  ?string  $language  BCP-47-ish language tag
-     * @param  ?string  $question  The question
      * @param  ?string  $reviewNotes  Why the entry needs review / what to check
-     * @param  ?string  $status  draft | published | needs_review | archived
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/update_faq_item_api_v1_knowledge_base_faq_items__item_id__put
      */
-    public function updateItem(string $itemId, ?string $answer = null, ?string $folderId = null, ?string $language = null, ?string $question = null, ?string $reviewNotes = null, ?string $status = null): FaqItem
-    {
+    public function updateItem(
+        string $itemId,
+        ?string $question = null,
+        ?string $answer = null,
+        ?string $status = null,
+        ?string $folderId = null,
+        ?string $language = null,
+        ?string $reviewNotes = null,
+    ): FaqItem {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/knowledge-base/faq-items/'.Payload::segment($itemId),
-            body: Payload::body(['answer' => $answer, 'folder_id' => $folderId, 'language' => $language, 'question' => $question, 'review_notes' => $reviewNotes, 'status' => $status]),
+            body: Payload::body([
+                'question' => $question,
+                'answer' => $answer,
+                'status' => $status,
+                'folder_id' => $folderId,
+                'language' => $language,
+                'review_notes' => $reviewNotes,
+            ]),
         ));
 
         return FaqItem::fromArray($response->data());

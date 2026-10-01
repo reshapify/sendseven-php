@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ConfigureWebhooks extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $currentSettings  Current webhook settings from SendGrid
-     * @param  string  $message  Status message
      * @param  bool  $success  Whether webhook configuration succeeded
      * @param  string  $webhookUrl  The configured webhook URL
+     * @param  string  $message  Status message
+     * @param  array<array-key, mixed>  $currentSettings  Current webhook settings from SendGrid
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $currentSettings,
-        public string $message,
         public bool $success,
         public string $webhookUrl,
+        public string $message,
+        public array $currentSettings,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class ConfigureWebhooks extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            currentSettings: $attributes->array('current_settings'),
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
             webhookUrl: $attributes->string('webhook_url'),
+            message: $attributes->string('message'),
+            currentSettings: $attributes->array('current_settings'),
             raw: $data,
         );
     }

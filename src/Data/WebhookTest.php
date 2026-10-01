@@ -20,12 +20,12 @@ final readonly class WebhookTest extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public string $deliveryId,
-        public ?string $error,
-        public string $message,
         public ?int $responseStatusCode,
         public ?int $responseTimeMs,
-        public bool $success,
+        public ?string $error,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,12 +39,12 @@ final readonly class WebhookTest extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             deliveryId: $attributes->string('delivery_id'),
-            error: $attributes->nullableString('error'),
-            message: $attributes->string('message'),
             responseStatusCode: $attributes->nullableInt('response_status_code'),
             responseTimeMs: $attributes->nullableInt('response_time_ms'),
-            success: $attributes->bool('success'),
+            error: $attributes->nullableString('error'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

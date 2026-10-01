@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ConnectionTest extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $imap
      * @param  array<array-key, mixed>  $smtp
+     * @param  array<array-key, mixed>  $imap
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $imap,
         public string $integrationId,
+        public bool $success,
+        public string $status,
         public string $message,
         public array $smtp,
-        public string $status,
-        public bool $success,
+        public array $imap,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,12 +41,12 @@ final readonly class ConnectionTest extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            imap: $attributes->array('imap'),
             integrationId: $attributes->string('integration_id'),
+            success: $attributes->bool('success'),
+            status: $attributes->string('status'),
             message: $attributes->string('message'),
             smtp: $attributes->array('smtp'),
-            status: $attributes->string('status'),
-            success: $attributes->bool('success'),
+            imap: $attributes->array('imap'),
             raw: $data,
         );
     }

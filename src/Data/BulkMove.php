@@ -21,18 +21,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BulkMove extends Data
 {
     /**
-     * @param  ?int  $corpusMoveCount  Number of documents with successful Vertex AI corpus moves. If less than success_count, some documents may not be AI-searchable in the new folder.
+     * @param  int  $successCount  Number of documents successfully moved in database
      * @param  int  $failedCount  Number of documents that failed to move
      * @param  list<string>  $failedIds  IDs of documents that failed to move
-     * @param  int  $successCount  Number of documents successfully moved in database
+     * @param  ?int  $corpusMoveCount  Number of documents with successful Vertex AI corpus moves. If less than success_count, some documents may not be AI-searchable in the new folder.
      * @param  list<string>  $warnings  Warning messages for documents that were moved in database but had corpus issues
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $corpusMoveCount,
+        public int $successCount,
         public int $failedCount,
         public array $failedIds,
-        public int $successCount,
+        public ?int $corpusMoveCount,
         public array $warnings,
         array $raw = [],
     ) {
@@ -47,10 +47,10 @@ final readonly class BulkMove extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            corpusMoveCount: $attributes->nullableInt('corpus_move_count'),
+            successCount: $attributes->int('success_count'),
             failedCount: $attributes->int('failed_count'),
             failedIds: $attributes->strings('failed_ids'),
-            successCount: $attributes->int('success_count'),
+            corpusMoveCount: $attributes->nullableInt('corpus_move_count'),
             warnings: $attributes->strings('warnings'),
             raw: $data,
         );

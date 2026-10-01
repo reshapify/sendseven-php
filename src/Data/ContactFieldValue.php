@@ -22,7 +22,7 @@ final readonly class ContactFieldValue extends Data
      * @param  string  $fieldKey  Field key
      * @param  string  $fieldName  Field display name
      * @param  FieldType|string  $fieldType  Field data type
-     * @param  array<array-key, mixed>  $value  Current value
+     * @param  mixed  $value  Current value
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -30,7 +30,7 @@ final readonly class ContactFieldValue extends Data
         public string $fieldKey,
         public string $fieldName,
         public FieldType|string $fieldType,
-        public array $value,
+        public mixed $value,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,7 +48,7 @@ final readonly class ContactFieldValue extends Data
             fieldKey: $attributes->string('field_key'),
             fieldName: $attributes->string('field_name'),
             fieldType: $attributes->enum('field_type', FieldType::class),
-            value: $attributes->array('value'),
+            value: $data['value'] ?? null,
             raw: $data,
         );
     }

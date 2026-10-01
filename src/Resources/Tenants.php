@@ -43,12 +43,46 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/create_tenant_api_v1_tenants_post
      */
-    public function create(string $name, ?bool $aiFeaturesEnabled = null, ?bool $allowMessagingOtherAgentsConversations = null, ?bool $autoSummarizeLiveChat = null, ?string $autoSummarizeOnClose = null, ?string $autoTranscriptExportFormat = null, ?string $billingAccountId = null, ?string $companyEmail = null, ?array $defaultChannels = null, ?string $defaultCountry = null, ?string $defaultTimezone = null, ?bool $multiAgentMode = null, ?string $pricingModelId = null, ?string $slug = null, ?string $supportEmail = null, ?bool $suppressCustomerAlert = null, ?string $idempotencyKey = null): Tenant
-    {
+    public function create(
+        string $name,
+        ?string $slug = null,
+        ?string $companyEmail = null,
+        ?string $billingAccountId = null,
+        ?string $pricingModelId = null,
+        ?bool $aiFeaturesEnabled = null,
+        ?bool $multiAgentMode = null,
+        ?string $autoSummarizeOnClose = null,
+        ?string $autoTranscriptExportFormat = null,
+        ?bool $autoSummarizeLiveChat = null,
+        ?bool $allowMessagingOtherAgentsConversations = null,
+        ?bool $suppressCustomerAlert = null,
+        ?array $defaultChannels = null,
+        ?string $supportEmail = null,
+        ?string $defaultTimezone = null,
+        ?string $defaultCountry = null,
+        ?string $idempotencyKey = null,
+    ): Tenant {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/tenants',
-            body: Payload::body(['name' => $name, 'ai_features_enabled' => $aiFeaturesEnabled, 'allow_messaging_other_agents_conversations' => $allowMessagingOtherAgentsConversations, 'auto_summarize_live_chat' => $autoSummarizeLiveChat, 'auto_summarize_on_close' => $autoSummarizeOnClose, 'auto_transcript_export_format' => $autoTranscriptExportFormat, 'billing_account_id' => $billingAccountId, 'company_email' => $companyEmail, 'default_channels' => $defaultChannels, 'default_country' => $defaultCountry, 'default_timezone' => $defaultTimezone, 'multi_agent_mode' => $multiAgentMode, 'pricing_model_id' => $pricingModelId, 'slug' => $slug, 'support_email' => $supportEmail, 'suppress_customer_alert' => $suppressCustomerAlert]),
+            body: Payload::body([
+                'name' => $name,
+                'slug' => $slug,
+                'company_email' => $companyEmail,
+                'billing_account_id' => $billingAccountId,
+                'pricing_model_id' => $pricingModelId,
+                'ai_features_enabled' => $aiFeaturesEnabled,
+                'multi_agent_mode' => $multiAgentMode,
+                'auto_summarize_on_close' => $autoSummarizeOnClose,
+                'auto_transcript_export_format' => $autoTranscriptExportFormat,
+                'auto_summarize_live_chat' => $autoSummarizeLiveChat,
+                'allow_messaging_other_agents_conversations' => $allowMessagingOtherAgentsConversations,
+                'suppress_customer_alert' => $suppressCustomerAlert,
+                'default_channels' => $defaultChannels,
+                'support_email' => $supportEmail,
+                'default_timezone' => $defaultTimezone,
+                'default_country' => $defaultCountry,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -70,7 +104,7 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/get_tenant_features_api_v1_tenants_features_get
      */
-    public function getFeatures(): FeatureAvailability
+    public function features(): FeatureAvailability
     {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -91,7 +125,7 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/get_my_tenants_api_v1_tenants_me_get
      */
-    public function getMy(): array
+    public function mine(): array
     {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -116,7 +150,7 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/get_my_retention_api_v1_tenants_me_retention_get
      */
-    public function getMyRetention(): RetentionPolicy
+    public function retention(): RetentionPolicy
     {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -143,7 +177,7 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/update_my_retention_api_v1_tenants_me_retention_put
      */
-    public function updateMyRetention(int $messageRetentionDays): RetentionPolicy
+    public function updateRetention(int $messageRetentionDays): RetentionPolicy
     {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -214,12 +248,58 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/update_tenant_api_v1_tenants__tenant_id__put
      */
-    public function update(string $tenantId, ?bool $allowMessagingOtherAgentsConversations = null, ?bool $autoSummarizeLiveChat = null, ?string $autoSummarizeOnClose = null, ?string $autoTranscriptExportFormat = null, ?string $botNotificationPolicy = null, ?array $brandColors = null, ?string $companyDomain = null, ?string $companyEmail = null, ?string $companyName = null, ?int $dashboardWaitThresholdNormal = null, ?int $dashboardWaitThresholdUrgent = null, ?string $defaultCountry = null, ?string $defaultLanguage = null, ?string $defaultTimezone = null, ?string $duplicateContactMode = null, ?string $faqGenerationMode = null, ?int $faqMinClusterSize = null, float|int|null $kbAutoApplyThreshold = null, ?string $kbCorrectionMode = null, ?string $liveChatContactVisibility = null, ?bool $multiAgentMode = null, ?string $name = null): Tenant
-    {
+    public function update(
+        string $tenantId,
+        ?string $name = null,
+        ?string $companyEmail = null,
+        ?bool $multiAgentMode = null,
+        ?string $autoSummarizeOnClose = null,
+        ?string $autoTranscriptExportFormat = null,
+        ?bool $autoSummarizeLiveChat = null,
+        ?bool $allowMessagingOtherAgentsConversations = null,
+        ?string $liveChatContactVisibility = null,
+        ?string $duplicateContactMode = null,
+        ?string $faqGenerationMode = null,
+        ?string $kbCorrectionMode = null,
+        float|int|null $kbAutoApplyThreshold = null,
+        ?int $faqMinClusterSize = null,
+        ?string $botNotificationPolicy = null,
+        ?array $brandColors = null,
+        ?string $companyName = null,
+        ?string $companyDomain = null,
+        ?int $dashboardWaitThresholdNormal = null,
+        ?int $dashboardWaitThresholdUrgent = null,
+        ?string $defaultTimezone = null,
+        ?string $defaultCountry = null,
+        ?string $defaultLanguage = null,
+    ): Tenant {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/tenants/'.Payload::segment($tenantId),
-            body: Payload::body(['allow_messaging_other_agents_conversations' => $allowMessagingOtherAgentsConversations, 'auto_summarize_live_chat' => $autoSummarizeLiveChat, 'auto_summarize_on_close' => $autoSummarizeOnClose, 'auto_transcript_export_format' => $autoTranscriptExportFormat, 'bot_notification_policy' => $botNotificationPolicy, 'brand_colors' => $brandColors, 'company_domain' => $companyDomain, 'company_email' => $companyEmail, 'company_name' => $companyName, 'dashboard_wait_threshold_normal' => $dashboardWaitThresholdNormal, 'dashboard_wait_threshold_urgent' => $dashboardWaitThresholdUrgent, 'default_country' => $defaultCountry, 'default_language' => $defaultLanguage, 'default_timezone' => $defaultTimezone, 'duplicate_contact_mode' => $duplicateContactMode, 'faq_generation_mode' => $faqGenerationMode, 'faq_min_cluster_size' => $faqMinClusterSize, 'kb_auto_apply_threshold' => $kbAutoApplyThreshold, 'kb_correction_mode' => $kbCorrectionMode, 'live_chat_contact_visibility' => $liveChatContactVisibility, 'multi_agent_mode' => $multiAgentMode, 'name' => $name]),
+            body: Payload::body([
+                'name' => $name,
+                'company_email' => $companyEmail,
+                'multi_agent_mode' => $multiAgentMode,
+                'auto_summarize_on_close' => $autoSummarizeOnClose,
+                'auto_transcript_export_format' => $autoTranscriptExportFormat,
+                'auto_summarize_live_chat' => $autoSummarizeLiveChat,
+                'allow_messaging_other_agents_conversations' => $allowMessagingOtherAgentsConversations,
+                'live_chat_contact_visibility' => $liveChatContactVisibility,
+                'duplicate_contact_mode' => $duplicateContactMode,
+                'faq_generation_mode' => $faqGenerationMode,
+                'kb_correction_mode' => $kbCorrectionMode,
+                'kb_auto_apply_threshold' => $kbAutoApplyThreshold,
+                'faq_min_cluster_size' => $faqMinClusterSize,
+                'bot_notification_policy' => $botNotificationPolicy,
+                'brand_colors' => $brandColors,
+                'company_name' => $companyName,
+                'company_domain' => $companyDomain,
+                'dashboard_wait_threshold_normal' => $dashboardWaitThresholdNormal,
+                'dashboard_wait_threshold_urgent' => $dashboardWaitThresholdUrgent,
+                'default_timezone' => $defaultTimezone,
+                'default_country' => $defaultCountry,
+                'default_language' => $defaultLanguage,
+            ]),
         ));
 
         return Tenant::fromArray($response->data());

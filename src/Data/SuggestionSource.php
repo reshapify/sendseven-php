@@ -17,35 +17,35 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SuggestionSource extends Data
 {
     /**
-     * @param  ?string  $closedAt  When ticket was closed
-     * @param  ?string  $content  Relevant content snippet
      * @param  ?string  $id  Source document ID
+     * @param  string  $type  Source type: faq, article, ticket, manual
+     * @param  string  $title  Source title
+     * @param  ?string  $content  Relevant content snippet
      * @param  ?float  $relevanceScore  Relevance score 0-1
-     * @param  ?string  $resolution  Resolution summary
-     * @param  ?string  $sentiment  Sentiment analysis
+     * @param  ?string  $ticketId  Ticket ID if type is ticket
      * @param  ?string  $subject  Ticket subject
      * @param  ?string  $summary  AI-generated summary
-     * @param  list<string>  $tags  Associated tags
-     * @param  ?string  $ticketId  Ticket ID if type is ticket
-     * @param  string  $title  Source title
-     * @param  string  $type  Source type: faq, article, ticket, manual
      * @param  ?string  $userIntent  Detected user intent
+     * @param  ?string  $resolution  Resolution summary
+     * @param  ?string  $sentiment  Sentiment analysis
+     * @param  list<string>  $tags  Associated tags
+     * @param  ?string  $closedAt  When ticket was closed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $closedAt,
-        public ?string $content,
         public ?string $id,
+        public string $type,
+        public string $title,
+        public ?string $content,
         public ?float $relevanceScore,
-        public ?string $resolution,
-        public ?string $sentiment,
+        public ?string $ticketId,
         public ?string $subject,
         public ?string $summary,
-        public array $tags,
-        public ?string $ticketId,
-        public string $title,
-        public string $type,
         public ?string $userIntent,
+        public ?string $resolution,
+        public ?string $sentiment,
+        public array $tags,
+        public ?string $closedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,19 +59,19 @@ final readonly class SuggestionSource extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            closedAt: $attributes->nullableString('closed_at'),
-            content: $attributes->nullableString('content'),
             id: $attributes->nullableString('id'),
+            type: $attributes->string('type'),
+            title: $attributes->string('title'),
+            content: $attributes->nullableString('content'),
             relevanceScore: $attributes->nullableFloat('relevance_score'),
-            resolution: $attributes->nullableString('resolution'),
-            sentiment: $attributes->nullableString('sentiment'),
+            ticketId: $attributes->nullableString('ticket_id'),
             subject: $attributes->nullableString('subject'),
             summary: $attributes->nullableString('summary'),
-            tags: $attributes->strings('tags'),
-            ticketId: $attributes->nullableString('ticket_id'),
-            title: $attributes->string('title'),
-            type: $attributes->string('type'),
             userIntent: $attributes->nullableString('user_intent'),
+            resolution: $attributes->nullableString('resolution'),
+            sentiment: $attributes->nullableString('sentiment'),
+            tags: $attributes->strings('tags'),
+            closedAt: $attributes->nullableString('closed_at'),
             raw: $data,
         );
     }

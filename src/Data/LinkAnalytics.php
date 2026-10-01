@@ -23,20 +23,20 @@ final readonly class LinkAnalytics extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contactId,
-        public string $createdAt,
-        public ?string $expiresAt,
-        public ?string $featureId,
-        public string $featureType,
-        public ?string $firstClickAt,
-        public bool $isActive,
-        public ?string $label,
-        public ?string $lastClickAt,
-        public string $originalUrl,
+        public string $trackedLinkId,
         public string $shortCode,
         public string $shortUrl,
+        public string $originalUrl,
+        public string $featureType,
+        public ?string $featureId,
+        public ?string $contactId,
+        public ?string $label,
         public int $totalClicks,
-        public string $trackedLinkId,
+        public ?string $firstClickAt,
+        public ?string $lastClickAt,
+        public string $createdAt,
+        public ?string $expiresAt,
+        public bool $isActive,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -50,20 +50,20 @@ final readonly class LinkAnalytics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contactId: $attributes->nullableString('contact_id'),
-            createdAt: $attributes->string('created_at'),
-            expiresAt: $attributes->nullableString('expires_at'),
-            featureId: $attributes->nullableString('feature_id'),
-            featureType: $attributes->string('feature_type'),
-            firstClickAt: $attributes->nullableString('first_click_at'),
-            isActive: $attributes->bool('is_active'),
-            label: $attributes->nullableString('label'),
-            lastClickAt: $attributes->nullableString('last_click_at'),
-            originalUrl: $attributes->string('original_url'),
+            trackedLinkId: $attributes->string('tracked_link_id'),
             shortCode: $attributes->string('short_code'),
             shortUrl: $attributes->string('short_url'),
+            originalUrl: $attributes->string('original_url'),
+            featureType: $attributes->string('feature_type'),
+            featureId: $attributes->nullableString('feature_id'),
+            contactId: $attributes->nullableString('contact_id'),
+            label: $attributes->nullableString('label'),
             totalClicks: $attributes->int('total_clicks'),
-            trackedLinkId: $attributes->string('tracked_link_id'),
+            firstClickAt: $attributes->nullableString('first_click_at'),
+            lastClickAt: $attributes->nullableString('last_click_at'),
+            createdAt: $attributes->string('created_at'),
+            expiresAt: $attributes->nullableString('expires_at'),
+            isActive: $attributes->bool('is_active'),
             raw: $data,
         );
     }

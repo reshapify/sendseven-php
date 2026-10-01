@@ -21,8 +21,8 @@ final readonly class DnsVerificationCheck extends Data
      */
     public function __construct(
         public string $integrationId,
-        public string $message,
         public string $status,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class DnsVerificationCheck extends Data
 
         return new self(
             integrationId: $attributes->string('integration_id'),
-            message: $attributes->string('message'),
             status: $attributes->string('status'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

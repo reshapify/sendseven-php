@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AgentSuggestion extends Data
 {
     /**
+     * @param  string  $suggestionId  Unique ID to track this suggestion
      * @param  ?string  $aiAnswerEventId  AI answer event id (Managed FAQ telemetry). Pass it to POST /ai-answers/{event_id}/rate and to /suggestions/{id}/accept. NULL when telemetry recording failed — never treat that as an error.
      * @param  string  $answer  AI-generated suggested response
+     * @param  list<SuggestionSource>  $sources  Source documents used
      * @param  list<mixed>  $citations  In-text citations
+     * @param  string  $query  Query text used for search
      * @param  float  $confidence  Confidence score 0-1
      * @param  ?string  $contentFormat  Format of `answer`: same literal values as the per-message content_format flag ("markdown" | "plain"). Always "markdown" here — this text is canonical GitHub-flavored markdown AI output. The frontend should tag the resulting message-create send with content_format="markdown" so the send-side renderer converts it to the target channel's dialect.
-     * @param  string  $query  Query text used for search
-     * @param  list<SuggestionSource>  $sources  Source documents used
-     * @param  string  $suggestionId  Unique ID to track this suggestion
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $suggestionId,
         public ?string $aiAnswerEventId,
         public string $answer,
+        public array $sources,
         public array $citations,
+        public string $query,
         public float $confidence,
         public ?string $contentFormat,
-        public string $query,
-        public array $sources,
-        public string $suggestionId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class AgentSuggestion extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            suggestionId: $attributes->string('suggestion_id'),
             aiAnswerEventId: $attributes->nullableString('ai_answer_event_id'),
             answer: $attributes->string('answer'),
+            sources: $attributes->list('sources', SuggestionSource::fromArray(...)),
             citations: array_values($attributes->array('citations')),
+            query: $attributes->string('query'),
             confidence: $attributes->float('confidence'),
             contentFormat: $attributes->nullableString('content_format'),
-            query: $attributes->string('query'),
-            sources: $attributes->list('sources', SuggestionSource::fromArray(...)),
-            suggestionId: $attributes->string('suggestion_id'),
             raw: $data,
         );
     }

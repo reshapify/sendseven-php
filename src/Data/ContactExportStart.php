@@ -20,19 +20,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactExportStart extends Data
 {
     /**
-     * @param  string  $downloadUrl  Relative URL that serves the finished file (302 to a short-lived signed URL). Returns 409 until the job is completed.
      * @param  string  $jobId  PubSubJob id; use to poll status
+     * @param  ?string  $status  Initial job status
      * @param  string  $message  Human-readable status message
      * @param  string  $pollUrl  Relative URL to poll for progress
-     * @param  ?string  $status  Initial job status
+     * @param  string  $downloadUrl  Relative URL that serves the finished file (302 to a short-lived signed URL). Returns 409 until the job is completed.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $downloadUrl,
         public string $jobId,
+        public ?string $status,
         public string $message,
         public string $pollUrl,
-        public ?string $status,
+        public string $downloadUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,11 +46,11 @@ final readonly class ContactExportStart extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            downloadUrl: $attributes->string('download_url'),
             jobId: $attributes->string('job_id'),
+            status: $attributes->nullableString('status'),
             message: $attributes->string('message'),
             pollUrl: $attributes->string('poll_url'),
-            status: $attributes->nullableString('status'),
+            downloadUrl: $attributes->string('download_url'),
             raw: $data,
         );
     }

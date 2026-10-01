@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InitiateConversation extends Data
 {
     /**
-     * @param  string  $channelType  Channel type used
      * @param  string  $conversationId  Created or existing conversation ID
-     * @param  ?string  $error  Error message if failed
      * @param  ?string  $messageId  Sent message ID (if successful)
-     * @param  ?bool  $requiresTemplate  Whether a WhatsApp template is required (24h window closed)
+     * @param  string  $channelType  Channel type used
      * @param  string  $status  Message status: sent, queued, failed, template_required
+     * @param  ?bool  $requiresTemplate  Whether a WhatsApp template is required (24h window closed)
      * @param  ?WhatsAppWindowStatus  $windowStatus  WhatsApp messaging window status (WhatsApp only)
+     * @param  ?string  $error  Error message if failed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelType,
         public string $conversationId,
-        public ?string $error,
         public ?string $messageId,
-        public ?bool $requiresTemplate,
+        public string $channelType,
         public string $status,
+        public ?bool $requiresTemplate,
         public ?WhatsAppWindowStatus $windowStatus,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class InitiateConversation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelType: $attributes->string('channel_type'),
             conversationId: $attributes->string('conversation_id'),
-            error: $attributes->nullableString('error'),
             messageId: $attributes->nullableString('message_id'),
-            requiresTemplate: $attributes->nullableBool('requires_template'),
+            channelType: $attributes->string('channel_type'),
             status: $attributes->string('status'),
+            requiresTemplate: $attributes->nullableBool('requires_template'),
             windowStatus: $attributes->nullableObject('window_status', WhatsAppWindowStatus::fromArray(...)),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

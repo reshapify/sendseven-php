@@ -19,26 +19,26 @@ final readonly class ArchivedEmailIntegration extends Data
 {
     /**
      * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  string  $id  Unique identifier (UUID)
      * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $createdAt,
+        public ?string $updatedAt,
+        public string $id,
+        public string $tenantId,
+        public string $name,
+        public ?string $emailAddress,
+        public ?string $oAuthEmail,
+        public string $integrationType,
+        public ?string $connectionStatus,
+        public ?bool $isArchived,
         public ?DateTimeImmutable $archivedAt,
         public ?string $archivedByUserId,
-        public ?string $connectionStatus,
-        public string $createdAt,
-        public ?string $emailAddress,
-        public string $id,
-        public string $integrationType,
-        public ?bool $isArchived,
-        public string $name,
-        public ?string $oAuthEmail,
-        public ?string $proxyAddress,
         public ?string $sesDomain,
-        public string $tenantId,
-        public ?string $updatedAt,
+        public ?string $proxyAddress,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -52,20 +52,20 @@ final readonly class ArchivedEmailIntegration extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            emailAddress: $attributes->nullableString('email_address'),
+            oAuthEmail: $attributes->nullableString('oauth_email'),
+            integrationType: $attributes->string('integration_type'),
+            connectionStatus: $attributes->nullableString('connection_status'),
+            isArchived: $attributes->nullableBool('is_archived'),
             archivedAt: $attributes->nullableDateTime('archived_at'),
             archivedByUserId: $attributes->nullableString('archived_by_user_id'),
-            connectionStatus: $attributes->nullableString('connection_status'),
-            createdAt: $attributes->string('created_at'),
-            emailAddress: $attributes->nullableString('email_address'),
-            id: $attributes->string('id'),
-            integrationType: $attributes->string('integration_type'),
-            isArchived: $attributes->nullableBool('is_archived'),
-            name: $attributes->string('name'),
-            oAuthEmail: $attributes->nullableString('oauth_email'),
-            proxyAddress: $attributes->nullableString('proxy_address'),
             sesDomain: $attributes->nullableString('ses_domain'),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            proxyAddress: $attributes->nullableString('proxy_address'),
             raw: $data,
         );
     }

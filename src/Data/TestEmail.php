@@ -20,10 +20,10 @@ final readonly class TestEmail extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $error,
+        public bool $success,
         public string $message,
         public ?string $providerMessageId,
-        public bool $success,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class TestEmail extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            error: $attributes->nullableString('error'),
+            success: $attributes->bool('success'),
             message: $attributes->string('message'),
             providerMessageId: $attributes->nullableString('provider_message_id'),
-            success: $attributes->bool('success'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

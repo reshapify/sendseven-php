@@ -21,20 +21,20 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CheckExistingConversation extends Data
 {
     /**
-     * @param  string  $channelType  Channel type
-     * @param  ?ExistingConversationInfo  $existingClosedInfo  Details about the existing closed conversation
+     * @param  bool  $hasExistingOpen  True if an open or assigned conversation exists
      * @param  ?string  $existingOpenConversationId  ID of the existing open conversation (if has_existing_open=True)
      * @param  bool  $hasExistingClosed  True if a closed conversation exists (when no open conversation)
-     * @param  bool  $hasExistingOpen  True if an open or assigned conversation exists
+     * @param  ?ExistingConversationInfo  $existingClosedInfo  Details about the existing closed conversation
+     * @param  string  $channelType  Channel type
      * @param  ?WhatsAppChannelWindowStatus  $windowStatus  WhatsApp window status (WhatsApp channels only)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelType,
-        public ?ExistingConversationInfo $existingClosedInfo,
+        public bool $hasExistingOpen,
         public ?string $existingOpenConversationId,
         public bool $hasExistingClosed,
-        public bool $hasExistingOpen,
+        public ?ExistingConversationInfo $existingClosedInfo,
+        public string $channelType,
         public ?WhatsAppChannelWindowStatus $windowStatus,
         array $raw = [],
     ) {
@@ -49,11 +49,11 @@ final readonly class CheckExistingConversation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelType: $attributes->string('channel_type'),
-            existingClosedInfo: $attributes->nullableObject('existing_closed_info', ExistingConversationInfo::fromArray(...)),
+            hasExistingOpen: $attributes->bool('has_existing_open'),
             existingOpenConversationId: $attributes->nullableString('existing_open_conversation_id'),
             hasExistingClosed: $attributes->bool('has_existing_closed'),
-            hasExistingOpen: $attributes->bool('has_existing_open'),
+            existingClosedInfo: $attributes->nullableObject('existing_closed_info', ExistingConversationInfo::fromArray(...)),
+            channelType: $attributes->string('channel_type'),
             windowStatus: $attributes->nullableObject('window_status', WhatsAppChannelWindowStatus::fromArray(...)),
             raw: $data,
         );

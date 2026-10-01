@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class OpenOrCreateConversation extends Data
 {
     /**
-     * @param  string  $channelType  Channel type
      * @param  string  $conversationId  Conversation ID (existing or newly created)
-     * @param  ?ExistingConversationInfo  $existingClosedConversation  If a closed conversation exists (and wasn't reopened), info is provided here so UI can offer to reopen it
-     * @param  list<ExistingEmailThreadInfo>  $existingOpenEmailThreads  For email channels: list of existing open threads with this contact. UI can let user choose to continue one or start fresh.
      * @param  bool  $isNew  True if a new conversation was created
      * @param  ?bool  $isReopened  True if an existing closed conversation was reopened
+     * @param  string  $channelType  Channel type
      * @param  ?WhatsAppChannelWindowStatus  $windowStatus  WhatsApp window status (WhatsApp channels only)
+     * @param  ?ExistingConversationInfo  $existingClosedConversation  If a closed conversation exists (and wasn't reopened), info is provided here so UI can offer to reopen it
+     * @param  list<ExistingEmailThreadInfo>  $existingOpenEmailThreads  For email channels: list of existing open threads with this contact. UI can let user choose to continue one or start fresh.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelType,
         public string $conversationId,
-        public ?ExistingConversationInfo $existingClosedConversation,
-        public array $existingOpenEmailThreads,
         public bool $isNew,
         public ?bool $isReopened,
+        public string $channelType,
         public ?WhatsAppChannelWindowStatus $windowStatus,
+        public ?ExistingConversationInfo $existingClosedConversation,
+        public array $existingOpenEmailThreads,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class OpenOrCreateConversation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelType: $attributes->string('channel_type'),
             conversationId: $attributes->string('conversation_id'),
-            existingClosedConversation: $attributes->nullableObject('existing_closed_conversation', ExistingConversationInfo::fromArray(...)),
-            existingOpenEmailThreads: $attributes->list('existing_open_email_threads', ExistingEmailThreadInfo::fromArray(...)),
             isNew: $attributes->bool('is_new'),
             isReopened: $attributes->nullableBool('is_reopened'),
+            channelType: $attributes->string('channel_type'),
             windowStatus: $attributes->nullableObject('window_status', WhatsAppChannelWindowStatus::fromArray(...)),
+            existingClosedConversation: $attributes->nullableObject('existing_closed_conversation', ExistingConversationInfo::fromArray(...)),
+            existingOpenEmailThreads: $attributes->list('existing_open_email_threads', ExistingEmailThreadInfo::fromArray(...)),
             raw: $data,
         );
     }

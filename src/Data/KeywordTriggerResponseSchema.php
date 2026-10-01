@@ -25,29 +25,29 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class KeywordTriggerResponseSchema extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $headerData
-     * @param  array<array-key, mixed>  $interactiveData
      * @param  array<array-key, mixed>  $templateVariables
+     * @param  array<array-key, mixed>  $interactiveData
+     * @param  array<array-key, mixed>  $headerData
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $attachmentId,
-        public DateTimeImmutable $createdAt,
-        public int $delaySeconds,
-        public ?string $footerText,
-        public array $headerData,
         public string $id,
-        public array $interactiveData,
-        public ?string $mediaFilename,
-        public ?string $mediaUrl,
-        public int $order,
-        public ?bool $passMessageToFlow,
+        public string $triggerId,
         public string $responseType,
-        public ?string $targetFlowId,
+        public ?string $text,
+        public ?string $mediaUrl,
+        public ?string $mediaFilename,
+        public ?string $attachmentId,
         public ?string $templateId,
         public array $templateVariables,
-        public ?string $text,
-        public string $triggerId,
+        public array $interactiveData,
+        public array $headerData,
+        public ?string $footerText,
+        public int $order,
+        public int $delaySeconds,
+        public DateTimeImmutable $createdAt,
+        public ?string $targetFlowId,
+        public ?bool $passMessageToFlow,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -61,23 +61,23 @@ final readonly class KeywordTriggerResponseSchema extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachmentId: $attributes->nullableString('attachment_id'),
-            createdAt: $attributes->dateTime('created_at'),
-            delaySeconds: $attributes->int('delay_seconds'),
-            footerText: $attributes->nullableString('footer_text'),
-            headerData: $attributes->array('header_data'),
             id: $attributes->string('id'),
-            interactiveData: $attributes->array('interactive_data'),
-            mediaFilename: $attributes->nullableString('media_filename'),
-            mediaUrl: $attributes->nullableString('media_url'),
-            order: $attributes->int('order'),
-            passMessageToFlow: $attributes->nullableBool('pass_message_to_flow'),
+            triggerId: $attributes->string('trigger_id'),
             responseType: $attributes->string('response_type'),
-            targetFlowId: $attributes->nullableString('target_flow_id'),
+            text: $attributes->nullableString('text'),
+            mediaUrl: $attributes->nullableString('media_url'),
+            mediaFilename: $attributes->nullableString('media_filename'),
+            attachmentId: $attributes->nullableString('attachment_id'),
             templateId: $attributes->nullableString('template_id'),
             templateVariables: $attributes->array('template_variables'),
-            text: $attributes->nullableString('text'),
-            triggerId: $attributes->string('trigger_id'),
+            interactiveData: $attributes->array('interactive_data'),
+            headerData: $attributes->array('header_data'),
+            footerText: $attributes->nullableString('footer_text'),
+            order: $attributes->int('order'),
+            delaySeconds: $attributes->int('delay_seconds'),
+            createdAt: $attributes->dateTime('created_at'),
+            targetFlowId: $attributes->nullableString('target_flow_id'),
+            passMessageToFlow: $attributes->nullableBool('pass_message_to_flow'),
             raw: $data,
         );
     }

@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SuggestionAccept extends Data
 {
     /**
-     * @param  ?string  $aiAnswerEventId  AI answer event marked as accepted, if one was resolved
      * @param  string  $message  Success message
      * @param  string  $suggestionId  ID of accepted suggestion
+     * @param  ?string  $aiAnswerEventId  AI answer event marked as accepted, if one was resolved
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $aiAnswerEventId,
         public string $message,
         public string $suggestionId,
+        public ?string $aiAnswerEventId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class SuggestionAccept extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiAnswerEventId: $attributes->nullableString('ai_answer_event_id'),
             message: $attributes->string('message'),
             suggestionId: $attributes->string('suggestion_id'),
+            aiAnswerEventId: $attributes->nullableString('ai_answer_event_id'),
             raw: $data,
         );
     }

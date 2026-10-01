@@ -19,19 +19,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CtwaAdBreakdownItem extends Data
 {
     /**
-     * @param  int  $count  Number of conversations driven by this source in the range
-     * @param  ?string  $headline  Human-readable ad label (may be null if not captured)
      * @param  ?string  $sourceId  Ad/post identity — the grouping key for the breakdown
+     * @param  ?string  $headline  Human-readable ad label (may be null if not captured)
      * @param  ?string  $sourceType  Source type, e.g. 'ad' or 'post' (FB vs IG); may be null
      * @param  ?string  $sourceUrl  Link to the originating ad/post (may be null)
+     * @param  int  $count  Number of conversations driven by this source in the range
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $count,
-        public ?string $headline,
         public ?string $sourceId,
+        public ?string $headline,
         public ?string $sourceType,
         public ?string $sourceUrl,
+        public int $count,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,11 +45,11 @@ final readonly class CtwaAdBreakdownItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            count: $attributes->int('count'),
-            headline: $attributes->nullableString('headline'),
             sourceId: $attributes->nullableString('source_id'),
+            headline: $attributes->nullableString('headline'),
             sourceType: $attributes->nullableString('source_type'),
             sourceUrl: $attributes->nullableString('source_url'),
+            count: $attributes->int('count'),
             raw: $data,
         );
     }

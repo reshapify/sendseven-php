@@ -17,33 +17,33 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AppSchemasFlowSchemaFlow extends Data
 {
     /**
-     * @param  list<mixed>  $defaultChannelChain
      * @param  array<array-key, mixed>  $definition
+     * @param  list<mixed>  $defaultChannelChain
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $autoTranslateMessages,
-        public string $createdAt,
-        public ?string $createdByUserId,
-        public array $defaultChannelChain,
-        public ?string $defaultLanguage,
-        public array $definition,
-        public ?string $description,
-        public ?bool $exclusive,
         public string $id,
-        public ?string $languageDetectionStrategy,
-        public ?bool $manuallyTriggerable,
+        public string $tenantId,
         public string $name,
-        public ?bool $preferOriginatingChannel,
-        public ?int $priority,
-        public string $reEntryPolicy,
-        public ?int $runCount,
+        public ?string $description,
         public string $status,
+        public array $definition,
+        public string $reEntryPolicy,
+        public ?string $defaultLanguage,
+        public ?bool $preferOriginatingChannel,
+        public ?bool $manuallyTriggerable,
+        public ?bool $autoTranslateMessages,
+        public ?string $languageDetectionStrategy,
+        public array $defaultChannelChain,
         public ?bool $stopOnAgentReply,
         public ?bool $stopOnConversationClosed,
-        public string $tenantId,
+        public ?int $priority,
+        public ?bool $exclusive,
+        public ?string $createdByUserId,
+        public string $createdAt,
         public string $updatedAt,
         public ?FlowValidationStatus $validation,
+        public ?int $runCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -57,28 +57,28 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            autoTranslateMessages: $attributes->nullableBool('auto_translate_messages'),
-            createdAt: $attributes->string('created_at'),
-            createdByUserId: $attributes->nullableString('created_by_user_id'),
-            defaultChannelChain: array_values($attributes->array('default_channel_chain')),
-            defaultLanguage: $attributes->nullableString('default_language'),
-            definition: $attributes->array('definition'),
-            description: $attributes->nullableString('description'),
-            exclusive: $attributes->nullableBool('exclusive'),
             id: $attributes->string('id'),
-            languageDetectionStrategy: $attributes->nullableString('language_detection_strategy'),
-            manuallyTriggerable: $attributes->nullableBool('manually_triggerable'),
+            tenantId: $attributes->string('tenant_id'),
             name: $attributes->string('name'),
-            preferOriginatingChannel: $attributes->nullableBool('prefer_originating_channel'),
-            priority: $attributes->nullableInt('priority'),
-            reEntryPolicy: $attributes->string('re_entry_policy'),
-            runCount: $attributes->nullableInt('run_count'),
+            description: $attributes->nullableString('description'),
             status: $attributes->string('status'),
+            definition: $attributes->array('definition'),
+            reEntryPolicy: $attributes->string('re_entry_policy'),
+            defaultLanguage: $attributes->nullableString('default_language'),
+            preferOriginatingChannel: $attributes->nullableBool('prefer_originating_channel'),
+            manuallyTriggerable: $attributes->nullableBool('manually_triggerable'),
+            autoTranslateMessages: $attributes->nullableBool('auto_translate_messages'),
+            languageDetectionStrategy: $attributes->nullableString('language_detection_strategy'),
+            defaultChannelChain: array_values($attributes->array('default_channel_chain')),
             stopOnAgentReply: $attributes->nullableBool('stop_on_agent_reply'),
             stopOnConversationClosed: $attributes->nullableBool('stop_on_conversation_closed'),
-            tenantId: $attributes->string('tenant_id'),
+            priority: $attributes->nullableInt('priority'),
+            exclusive: $attributes->nullableBool('exclusive'),
+            createdByUserId: $attributes->nullableString('created_by_user_id'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             validation: $attributes->nullableObject('validation', FlowValidationStatus::fromArray(...)),
+            runCount: $attributes->nullableInt('run_count'),
             raw: $data,
         );
     }

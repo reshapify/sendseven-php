@@ -22,9 +22,9 @@ final readonly class AvailableNumbersList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $cachedUntil,
-        public string $country,
         public array $items,
+        public string $country,
+        public ?DateTimeImmutable $cachedUntil,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,9 +38,9 @@ final readonly class AvailableNumbersList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            cachedUntil: $attributes->nullableDateTime('cached_until'),
-            country: $attributes->string('country'),
             items: $attributes->list('items', AvailableNumber::fromArray(...)),
+            country: $attributes->string('country'),
+            cachedUntil: $attributes->nullableDateTime('cached_until'),
             raw: $data,
         );
     }

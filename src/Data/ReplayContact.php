@@ -20,9 +20,9 @@ final readonly class ReplayContact extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $avatarUrl,
         public string $id,
         public ?string $name,
+        public ?string $avatarUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class ReplayContact extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            avatarUrl: $attributes->nullableString('avatar_url'),
             id: $attributes->string('id'),
             name: $attributes->nullableString('name'),
+            avatarUrl: $attributes->nullableString('avatar_url'),
             raw: $data,
         );
     }

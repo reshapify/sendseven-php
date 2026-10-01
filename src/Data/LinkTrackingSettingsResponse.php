@@ -20,8 +20,8 @@ final readonly class LinkTrackingSettingsResponse extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $linkExpirationDays,
         public ?string $trackingDomain,
+        public ?int $linkExpirationDays,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class LinkTrackingSettingsResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            linkExpirationDays: $attributes->nullableInt('link_expiration_days'),
             trackingDomain: $attributes->nullableString('tracking_domain'),
+            linkExpirationDays: $attributes->nullableInt('link_expiration_days'),
             raw: $data,
         );
     }

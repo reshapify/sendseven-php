@@ -20,13 +20,13 @@ final readonly class TopLink extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $clicks,
-        public ?string $firstClickAt,
-        public ?string $label,
-        public ?string $lastClickAt,
-        public string $originalUrl,
         public string $shortCode,
         public string $shortUrl,
+        public string $originalUrl,
+        public ?string $label,
+        public int $clicks,
+        public ?string $firstClickAt,
+        public ?string $lastClickAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,13 +40,13 @@ final readonly class TopLink extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clicks: $attributes->int('clicks'),
-            firstClickAt: $attributes->nullableString('first_click_at'),
-            label: $attributes->nullableString('label'),
-            lastClickAt: $attributes->nullableString('last_click_at'),
-            originalUrl: $attributes->string('original_url'),
             shortCode: $attributes->string('short_code'),
             shortUrl: $attributes->string('short_url'),
+            originalUrl: $attributes->string('original_url'),
+            label: $attributes->nullableString('label'),
+            clicks: $attributes->int('clicks'),
+            firstClickAt: $attributes->nullableString('first_click_at'),
+            lastClickAt: $attributes->nullableString('last_click_at'),
             raw: $data,
         );
     }

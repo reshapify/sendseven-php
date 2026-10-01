@@ -21,19 +21,19 @@ final readonly class ContactMethod extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $bounceCount,
-        public ?string $channelId,
-        public string $contactId,
-        public ?DateTimeImmutable $createdAt,
-        public ?string $displayName,
-        public ?string $emailStatus,
         public string $id,
+        public string $contactId,
+        public string $methodType,
+        public string $value,
+        public ?string $channelId,
+        public ?string $displayName,
+        public ?string $phoneType,
         public ?bool $isPrimary,
+        public ?string $emailStatus,
+        public ?int $bounceCount,
         public ?DateTimeImmutable $lastBounceAt,
         public ?DateTimeImmutable $lastUsedAt,
-        public string $methodType,
-        public ?string $phoneType,
-        public string $value,
+        public ?DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,19 +47,19 @@ final readonly class ContactMethod extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounceCount: $attributes->nullableInt('bounce_count'),
-            channelId: $attributes->nullableString('channel_id'),
-            contactId: $attributes->string('contact_id'),
-            createdAt: $attributes->nullableDateTime('created_at'),
-            displayName: $attributes->nullableString('display_name'),
-            emailStatus: $attributes->nullableString('email_status'),
             id: $attributes->string('id'),
+            contactId: $attributes->string('contact_id'),
+            methodType: $attributes->string('method_type'),
+            value: $attributes->string('value'),
+            channelId: $attributes->nullableString('channel_id'),
+            displayName: $attributes->nullableString('display_name'),
+            phoneType: $attributes->nullableString('phone_type'),
             isPrimary: $attributes->nullableBool('is_primary'),
+            emailStatus: $attributes->nullableString('email_status'),
+            bounceCount: $attributes->nullableInt('bounce_count'),
             lastBounceAt: $attributes->nullableDateTime('last_bounce_at'),
             lastUsedAt: $attributes->nullableDateTime('last_used_at'),
-            methodType: $attributes->string('method_type'),
-            phoneType: $attributes->nullableString('phone_type'),
-            value: $attributes->string('value'),
+            createdAt: $attributes->nullableDateTime('created_at'),
             raw: $data,
         );
     }

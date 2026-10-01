@@ -72,29 +72,53 @@ final readonly class Lists
      *
      * Scopes: lists:create.
      *
-     * @param  ListType|string  $listType  Type of list: static, dynamic, or newsletter
      * @param  string  $name  List name
+     * @param  ListType|string  $listType  Type of list: static, dynamic, or newsletter
      * @param  ?string  $description  List description
-     * @param  array<string, mixed>|null  $hubSpotOptinFieldConfig  Per-channel HubSpot contact-property mapping applied on opt-in / opt-out (`{default, per_channel}` of `{property_name, opt_in_value, opt_out_value}`). Persisted here; the HubSpot write is performed off the contact.subscribed/unsubscribed event by the integrations layer.
-     * @param  ?bool  $isDefault  Whether this is the default list for global 'start'/'stop' keywords. Only one list per tenant can be default.
+     * @param  array<string, mixed>|null  $segmentConditions  Segment conditions for dynamic lists
+     * @param  ?string  $slug  URL-safe slug for newsletter lists (auto-generated if not provided)
      * @param  ?string  $newsletterConfig  JSON string for newsletter configuration. Keys: `opt_in_keywords`, `opt_out_keywords`, `welcome_message`, `goodbye_message`, `confirmation_message`, `auto_subscribe_via_deeplink`, plus the button lists `welcome_buttons` / `goodbye_buttons` — each up to 3 objects of `{"type": "unsubscribe"|"unsubscribe_all"|"subscribe"|"url", "caption": "max 20 chars", "url": "https://… (url type only)"}`. Buttons render natively on WhatsApp / Telegram / Messenger / Instagram and degrade to a keyword text hint elsewhere. Omitting `goodbye_buttons` entirely means a default "Re-subscribe" button is added; send `[]` for none.
+     * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center (the 'Manage preferences' link in emails). Defaults to false — opt in explicitly to expose a list. Lists created before this field existed remain visible.
+     * @param  ?bool  $isDefault  Whether this is the default list for global 'start'/'stop' keywords. Only one list per tenant can be default.
      * @param  array<string, mixed>|null  $optInAction  Per-channel opt-in action (send a MESSAGE or start a FLOW — never both). `{default, per_channel}`; per_channel keys are SubscriptionChannelType values. Omit to keep the legacy welcome message from `newsletter_config`. Flow actions must reference a published, same-tenant flow.
      * @param  array<string, mixed>|null  $optOutAction  Per-channel opt-out action (MESSAGE or FLOW). Same shape as `opt_in_action`. Omit to keep the legacy goodbye message.
-     * @param  array<string, mixed>|null  $segmentConditions  Segment conditions for dynamic lists
-     * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center (the 'Manage preferences' link in emails). Defaults to false — opt in explicitly to expose a list. Lists created before this field existed remain visible.
-     * @param  ?string  $slug  URL-safe slug for newsletter lists (auto-generated if not provided)
+     * @param  array<string, mixed>|null  $hubSpotOptinFieldConfig  Per-channel HubSpot contact-property mapping applied on opt-in / opt-out (`{default, per_channel}` of `{property_name, opt_in_value, opt_out_value}`). Persisted here; the HubSpot write is performed off the contact.subscribed/unsubscribed event by the integrations layer.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/create_list_api_v1_lists_post
      */
-    public function create(ListType|string $listType, string $name, ?string $description = null, ?array $hubSpotOptinFieldConfig = null, ?bool $isDefault = null, ?string $newsletterConfig = null, ?array $optInAction = null, ?array $optOutAction = null, ?array $segmentConditions = null, ?bool $showInPreferenceCenter = null, ?string $slug = null, ?string $idempotencyKey = null): ListResponse
-    {
+    public function create(
+        string $name,
+        ListType|string $listType,
+        ?string $description = null,
+        ?array $segmentConditions = null,
+        ?string $slug = null,
+        ?string $newsletterConfig = null,
+        ?bool $showInPreferenceCenter = null,
+        ?bool $isDefault = null,
+        ?array $optInAction = null,
+        ?array $optOutAction = null,
+        ?array $hubSpotOptinFieldConfig = null,
+        ?string $idempotencyKey = null,
+    ): ListResponse {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/lists',
-            body: Payload::body(['list_type' => $listType, 'name' => $name, 'description' => $description, 'hubspot_optin_field_config' => $hubSpotOptinFieldConfig, 'is_default' => $isDefault, 'newsletter_config' => $newsletterConfig, 'opt_in_action' => $optInAction, 'opt_out_action' => $optOutAction, 'segment_conditions' => $segmentConditions, 'show_in_preference_center' => $showInPreferenceCenter, 'slug' => $slug]),
+            body: Payload::body([
+                'name' => $name,
+                'list_type' => $listType,
+                'description' => $description,
+                'segment_conditions' => $segmentConditions,
+                'slug' => $slug,
+                'newsletter_config' => $newsletterConfig,
+                'show_in_preference_center' => $showInPreferenceCenter,
+                'is_default' => $isDefault,
+                'opt_in_action' => $optInAction,
+                'opt_out_action' => $optOutAction,
+                'hubspot_optin_field_config' => $hubSpotOptinFieldConfig,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -113,21 +137,25 @@ final readonly class Lists
      *
      * Scopes: lists:read.
      *
+     * @param  ?string  $operator  Logical operator: AND or OR
      * @param  list<array<string, mixed>>|null  $conditions  Flat list of conditions (legacy format)
      * @param  list<array<string, mixed>>|null  $groups  Nested condition groups for complex queries
-     * @param  ?string  $operator  Logical operator: AND or OR
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/evaluate_conditions_count_api_v1_lists_evaluate_count_post
      */
-    public function evaluateConditionsCount(?array $conditions = null, ?array $groups = null, ?string $operator = null, ?string $idempotencyKey = null): void
-    {
+    public function evaluateConditionsCount(
+        ?string $operator = null,
+        ?array $conditions = null,
+        ?array $groups = null,
+        ?string $idempotencyKey = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Post,
             '/lists/evaluate-count',
-            body: Payload::body(['conditions' => $conditions, 'groups' => $groups, 'operator' => $operator]),
+            body: Payload::body(['operator' => $operator, 'conditions' => $conditions, 'groups' => $groups]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }
@@ -219,24 +247,46 @@ final readonly class Lists
      *
      * Scopes: lists:update.
      *
-     * @param  array<string, mixed>|null  $hubSpotOptinFieldConfig  Per-channel HubSpot opt-in/opt-out field mapping. Omit to leave unchanged.
-     * @param  ?bool  $isDefault  Whether this is the default list for global 'start'/'stop' keywords. Setting to true unsets any other default list for this tenant.
+     * @param  array<string, mixed>|null  $segmentConditions
      * @param  ?string  $newsletterConfig  Newsletter configuration JSON — same shape as on create, including `welcome_buttons` / `goodbye_buttons`
+     * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center. Omit to leave unchanged.
+     * @param  ?bool  $isDefault  Whether this is the default list for global 'start'/'stop' keywords. Setting to true unsets any other default list for this tenant.
      * @param  array<string, mixed>|null  $optInAction  Per-channel opt-in action (MESSAGE or FLOW). Omit to leave unchanged. Flow actions must reference a published, same-tenant flow.
      * @param  array<string, mixed>|null  $optOutAction  Per-channel opt-out action (MESSAGE or FLOW). Omit to leave unchanged.
-     * @param  array<string, mixed>|null  $segmentConditions
-     * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center. Omit to leave unchanged.
+     * @param  array<string, mixed>|null  $hubSpotOptinFieldConfig  Per-channel HubSpot opt-in/opt-out field mapping. Omit to leave unchanged.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/update_list_api_v1_lists__list_id__put
      */
-    public function update(string $listId, ?string $description = null, ?array $hubSpotOptinFieldConfig = null, ?bool $isDefault = null, ?string $name = null, ?string $newsletterConfig = null, ?array $optInAction = null, ?array $optOutAction = null, ?array $segmentConditions = null, ?bool $showInPreferenceCenter = null, ?string $slug = null): ListResponse
-    {
+    public function update(
+        string $listId,
+        ?string $name = null,
+        ?string $description = null,
+        ?array $segmentConditions = null,
+        ?string $slug = null,
+        ?string $newsletterConfig = null,
+        ?bool $showInPreferenceCenter = null,
+        ?bool $isDefault = null,
+        ?array $optInAction = null,
+        ?array $optOutAction = null,
+        ?array $hubSpotOptinFieldConfig = null,
+    ): ListResponse {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/lists/'.Payload::segment($listId),
-            body: Payload::body(['description' => $description, 'hubspot_optin_field_config' => $hubSpotOptinFieldConfig, 'is_default' => $isDefault, 'name' => $name, 'newsletter_config' => $newsletterConfig, 'opt_in_action' => $optInAction, 'opt_out_action' => $optOutAction, 'segment_conditions' => $segmentConditions, 'show_in_preference_center' => $showInPreferenceCenter, 'slug' => $slug]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'segment_conditions' => $segmentConditions,
+                'slug' => $slug,
+                'newsletter_config' => $newsletterConfig,
+                'show_in_preference_center' => $showInPreferenceCenter,
+                'is_default' => $isDefault,
+                'opt_in_action' => $optInAction,
+                'opt_out_action' => $optOutAction,
+                'hubspot_optin_field_config' => $hubSpotOptinFieldConfig,
+            ]),
         ));
 
         return ListResponse::fromArray($response->data());
@@ -304,21 +354,26 @@ final readonly class Lists
      *
      * Scopes: lists:read.
      *
+     * @param  ?string  $operator  Logical operator: AND or OR
      * @param  list<array<string, mixed>>|null  $conditions  Flat list of conditions (legacy format)
      * @param  list<array<string, mixed>>|null  $groups  Nested condition groups for complex queries
-     * @param  ?string  $operator  Logical operator: AND or OR
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/evaluate_dynamic_list_api_v1_lists__list_id__evaluate_post
      */
-    public function evaluateDynamic(string $listId, ?array $conditions = null, ?array $groups = null, ?string $operator = null, ?string $idempotencyKey = null): ListContacts
-    {
+    public function evaluateDynamic(
+        string $listId,
+        ?string $operator = null,
+        ?array $conditions = null,
+        ?array $groups = null,
+        ?string $idempotencyKey = null,
+    ): ListContacts {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/lists/'.Payload::segment($listId).'/evaluate',
-            body: Payload::body(['conditions' => $conditions, 'groups' => $groups, 'operator' => $operator]),
+            body: Payload::body(['operator' => $operator, 'conditions' => $conditions, 'groups' => $groups]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -341,20 +396,29 @@ final readonly class Lists
      * Scopes: lists:update.
      *
      * @param  string  $contactId  ID of the contact to add
-     * @param  ?string  $channelId  Channel ID (which bot/page). Required only for scoped newsletter channels: telegram, messenger, instagram.
      * @param  ?string  $channelType  Required for newsletter subscriptions (email, telegram, messenger, instagram, ...). DEPRECATED fallback: if omitted for a newsletter list it defaults to email, but this fallback will be removed in a future release — always pass channel_type.
+     * @param  ?string  $channelId  Channel ID (which bot/page). Required only for scoped newsletter channels: telegram, messenger, instagram.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/add_contact_to_list_api_v1_lists__list_id__members_post
      */
-    public function addContactTo(string $listId, string $contactId, ?string $channelId = null, ?string $channelType = null, ?string $idempotencyKey = null): AddMember
-    {
+    public function addContactTo(
+        string $listId,
+        string $contactId,
+        ?string $channelType = null,
+        ?string $channelId = null,
+        ?string $idempotencyKey = null,
+    ): AddMember {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/lists/'.Payload::segment($listId).'/members',
-            body: Payload::body(['contact_id' => $contactId, 'channel_id' => $channelId, 'channel_type' => $channelType]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'channel_type' => $channelType,
+                'channel_id' => $channelId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -442,12 +506,22 @@ final readonly class Lists
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/get_list_subscription_activity_api_v1_lists__list_id__subscription_activity_get
      */
-    public function getSubscriptionActivity(string $listId, ?int $windowDays = null, ?string $direction = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function getSubscriptionActivity(
+        string $listId,
+        ?int $windowDays = null,
+        ?string $direction = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/lists/'.Payload::segment($listId).'/subscription-activity',
-            query: Payload::query(['window_days' => $windowDays, 'direction' => $direction, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'window_days' => $windowDays,
+                'direction' => $direction,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), SubscriptionActivityItem::fromArray(...), fn (int $page): Page => $this->getSubscriptionActivity(listId: $listId, windowDays: $windowDays, direction: $direction, page: $page, pageSize: $pageSize));

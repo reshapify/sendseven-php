@@ -18,30 +18,30 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InboxOut extends Data
 {
     /**
-     * @param  list<string>  $allowedUserIds
      * @param  list<string>  $channelIds
      * @param  list<InboxEmailConnection>  $emailConnections
-     * @param  list<FieldFilterRule>  $fieldFilters
      * @param  list<string>  $tagIds
+     * @param  list<FieldFilterRule>  $fieldFilters
+     * @param  list<string>  $allowedUserIds
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $accessMode,
-        public array $allowedUserIds,
-        public array $channelIds,
-        public ?string $color,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
-        public array $emailConnections,
-        public array $fieldFilters,
-        public ?string $icon,
         public string $id,
-        public bool $isActive,
-        public string $name,
-        public int $sortOrder,
-        public string $tagFilterMode,
-        public array $tagIds,
         public string $tenantId,
+        public string $name,
+        public ?string $description,
+        public ?string $icon,
+        public ?string $color,
+        public string $accessMode,
+        public string $tagFilterMode,
+        public bool $isActive,
+        public int $sortOrder,
+        public array $channelIds,
+        public array $emailConnections,
+        public array $tagIds,
+        public array $fieldFilters,
+        public array $allowedUserIds,
+        public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
@@ -56,22 +56,22 @@ final readonly class InboxOut extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            accessMode: $attributes->string('access_mode'),
-            allowedUserIds: $attributes->strings('allowed_user_ids'),
-            channelIds: $attributes->strings('channel_ids'),
-            color: $attributes->nullableString('color'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
-            emailConnections: $attributes->list('email_connections', InboxEmailConnection::fromArray(...)),
-            fieldFilters: $attributes->list('field_filters', FieldFilterRule::fromArray(...)),
-            icon: $attributes->nullableString('icon'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            name: $attributes->string('name'),
-            sortOrder: $attributes->int('sort_order'),
-            tagFilterMode: $attributes->string('tag_filter_mode'),
-            tagIds: $attributes->strings('tag_ids'),
             tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            description: $attributes->nullableString('description'),
+            icon: $attributes->nullableString('icon'),
+            color: $attributes->nullableString('color'),
+            accessMode: $attributes->string('access_mode'),
+            tagFilterMode: $attributes->string('tag_filter_mode'),
+            isActive: $attributes->bool('is_active'),
+            sortOrder: $attributes->int('sort_order'),
+            channelIds: $attributes->strings('channel_ids'),
+            emailConnections: $attributes->list('email_connections', InboxEmailConnection::fromArray(...)),
+            tagIds: $attributes->strings('tag_ids'),
+            fieldFilters: $attributes->list('field_filters', FieldFilterRule::fromArray(...)),
+            allowedUserIds: $attributes->strings('allowed_user_ids'),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );

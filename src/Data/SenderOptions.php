@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SenderOptions extends Data
 {
     /**
+     * @param  list<SenderOptionOut>  $options
      * @param  ?string  $defaultOptionId  The id the client should pre-select
      * @param  ?string  $defaultReplySenderId  The id the outbound send path will accept regardless of the user's EmailMailbox ACL (when set).
-     * @param  list<SenderOptionOut>  $options
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public array $options,
         public ?string $defaultOptionId,
         public ?string $defaultReplySenderId,
-        public array $options,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class SenderOptions extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            options: $attributes->list('options', SenderOptionOut::fromArray(...)),
             defaultOptionId: $attributes->nullableString('default_option_id'),
             defaultReplySenderId: $attributes->nullableString('default_reply_sender_id'),
-            options: $attributes->list('options', SenderOptionOut::fromArray(...)),
             raw: $data,
         );
     }

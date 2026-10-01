@@ -19,43 +19,43 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DashboardMetrics extends Data
 {
     /**
+     * @param  int  $totalMessages  Total number of messages in the period
+     * @param  int  $inboundMessages  Number of inbound (customer) messages
+     * @param  int  $outboundMessages  Number of outbound (agent) messages
+     * @param  int  $totalConversations  Total number of conversations
+     * @param  int  $openConversations  Number of currently open conversations
+     * @param  int  $closedConversations  Number of closed conversations
+     * @param  int  $totalContacts  Total number of contacts
      * @param  int  $activeChannels  Number of active channels
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
+     * @param  ?int  $billingMessagesSent  Billing-account-wide billable messages sent for the current calendar month (matches /settings/billing 'Messages' line)
      * @param  ?int  $billingEmailCampaignSends  Billing-account-wide billable email campaign sends (managed + BYOK) for the current calendar month
      * @param  ?int  $billingKbQueries  Billing-account-wide billable KB queries for the current calendar month
-     * @param  ?int  $billingMessagesSent  Billing-account-wide billable messages sent for the current calendar month (matches /settings/billing 'Messages' line)
-     * @param  ?string  $billingPeriodEnd  End of the billing window (now), ISO format
      * @param  ?string  $billingPeriodStart  Start of the billing (calendar month) window, ISO format
-     * @param  int  $closedConversations  Number of closed conversations
-     * @param  int  $inboundMessages  Number of inbound (customer) messages
-     * @param  int  $openConversations  Number of currently open conversations
-     * @param  int  $outboundMessages  Number of outbound (agent) messages
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
-     * @param  ?string  $rcsMauPeriod  Month of rcs_monthly_active_recipients as YYYY-MM (Europe/Berlin). Null when rcs_monthly_active_recipients is null.
+     * @param  ?string  $billingPeriodEnd  End of the billing window (now), ISO format
      * @param  ?int  $rcsMonthlyActiveRecipients  This workspace's RCS monthly active recipients for the current month (Europe/Berlin) on agents billed per monthly active recipient. Null when the workspace has no such agent.
-     * @param  int  $totalContacts  Total number of contacts
-     * @param  int  $totalConversations  Total number of conversations
-     * @param  int  $totalMessages  Total number of messages in the period
+     * @param  ?string  $rcsMauPeriod  Month of rcs_monthly_active_recipients as YYYY-MM (Europe/Berlin). Null when rcs_monthly_active_recipients is null.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public int $totalMessages,
+        public int $inboundMessages,
+        public int $outboundMessages,
+        public int $totalConversations,
+        public int $openConversations,
+        public int $closedConversations,
+        public int $totalContacts,
         public int $activeChannels,
+        public string $periodStart,
+        public string $periodEnd,
+        public ?int $billingMessagesSent,
         public ?int $billingEmailCampaignSends,
         public ?int $billingKbQueries,
-        public ?int $billingMessagesSent,
-        public ?string $billingPeriodEnd,
         public ?string $billingPeriodStart,
-        public int $closedConversations,
-        public int $inboundMessages,
-        public int $openConversations,
-        public int $outboundMessages,
-        public string $periodEnd,
-        public string $periodStart,
-        public ?string $rcsMauPeriod,
+        public ?string $billingPeriodEnd,
         public ?int $rcsMonthlyActiveRecipients,
-        public int $totalContacts,
-        public int $totalConversations,
-        public int $totalMessages,
+        public ?string $rcsMauPeriod,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -69,23 +69,23 @@ final readonly class DashboardMetrics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            totalMessages: $attributes->int('total_messages'),
+            inboundMessages: $attributes->int('inbound_messages'),
+            outboundMessages: $attributes->int('outbound_messages'),
+            totalConversations: $attributes->int('total_conversations'),
+            openConversations: $attributes->int('open_conversations'),
+            closedConversations: $attributes->int('closed_conversations'),
+            totalContacts: $attributes->int('total_contacts'),
             activeChannels: $attributes->int('active_channels'),
+            periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
+            billingMessagesSent: $attributes->nullableInt('billing_messages_sent'),
             billingEmailCampaignSends: $attributes->nullableInt('billing_email_campaign_sends'),
             billingKbQueries: $attributes->nullableInt('billing_kb_queries'),
-            billingMessagesSent: $attributes->nullableInt('billing_messages_sent'),
-            billingPeriodEnd: $attributes->nullableString('billing_period_end'),
             billingPeriodStart: $attributes->nullableString('billing_period_start'),
-            closedConversations: $attributes->int('closed_conversations'),
-            inboundMessages: $attributes->int('inbound_messages'),
-            openConversations: $attributes->int('open_conversations'),
-            outboundMessages: $attributes->int('outbound_messages'),
-            periodEnd: $attributes->string('period_end'),
-            periodStart: $attributes->string('period_start'),
-            rcsMauPeriod: $attributes->nullableString('rcs_mau_period'),
+            billingPeriodEnd: $attributes->nullableString('billing_period_end'),
             rcsMonthlyActiveRecipients: $attributes->nullableInt('rcs_monthly_active_recipients'),
-            totalContacts: $attributes->int('total_contacts'),
-            totalConversations: $attributes->int('total_conversations'),
-            totalMessages: $attributes->int('total_messages'),
+            rcsMauPeriod: $attributes->nullableString('rcs_mau_period'),
             raw: $data,
         );
     }

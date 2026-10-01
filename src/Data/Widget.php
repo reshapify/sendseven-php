@@ -24,17 +24,17 @@ final readonly class Widget extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $config,
-        public DateTimeImmutable $createdAt,
         public string $id,
-        public bool $isActive,
-        public bool $isAnalyticsEnabled,
-        public string $name,
-        public ?string $privacyUrl,
         public string $tenantId,
-        public DateTimeImmutable $updatedAt,
-        public WidgetUseCase|string $useCase,
+        public string $name,
         public WidgetType|string $widgetType,
+        public WidgetUseCase|string $useCase,
+        public array $config,
+        public ?string $privacyUrl,
+        public bool $isAnalyticsEnabled,
+        public bool $isActive,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,17 +48,17 @@ final readonly class Widget extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            config: $attributes->array('config'),
-            createdAt: $attributes->dateTime('created_at'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            isAnalyticsEnabled: $attributes->bool('is_analytics_enabled'),
-            name: $attributes->string('name'),
-            privacyUrl: $attributes->nullableString('privacy_url'),
             tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->dateTime('updated_at'),
-            useCase: $attributes->enum('use_case', WidgetUseCase::class),
+            name: $attributes->string('name'),
             widgetType: $attributes->enum('widget_type', WidgetType::class),
+            useCase: $attributes->enum('use_case', WidgetUseCase::class),
+            config: $attributes->array('config'),
+            privacyUrl: $attributes->nullableString('privacy_url'),
+            isAnalyticsEnabled: $attributes->bool('is_analytics_enabled'),
+            isActive: $attributes->bool('is_active'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );
     }

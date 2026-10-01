@@ -68,7 +68,11 @@ final readonly class EmailCampaigns
         $response = $this->connector->send(new Request(
             Method::Get,
             '/email-campaigns',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'campaign_status' => $campaignStatus]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'campaign_status' => $campaignStatus,
+            ]),
         ));
 
         return Hydrate::page($response->data(), EmailCampaignListItem::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, campaignStatus: $campaignStatus));
@@ -88,36 +92,78 @@ final readonly class EmailCampaigns
      *
      * @param  string  $name  Campaign name
      * @param  string  $subjectLine  Email subject
-     * @param  ?string  $emailContentId  Email content (NEW - 3-tier system with layouts)
-     * @param  ?string  $emailIntegrationId  SES email integration to use (Type 4)
-     * @param  ?string  $emailProviderConfigId  Email provider to use (SendGrid/Mailgun)
-     * @param  ?string  $emailTemplateId  Email template (LEGACY - for backward compatibility)
-     * @param  ?string  $fromEmail  From email address (optional when mailbox_id is set)
-     * @param  ?string  $fromName  From name (optional when mailbox_id is set)
-     * @param  list<string>|null  $listIds  Target specific lists (max 100; must belong to this workspace)
      * @param  ?string  $mailboxId  Email mailbox to send from. Auto-resolves from_email, from_name, and sending method. When provided, from_email/from_name/provider/integration fields become optional.
-     * @param  ?bool  $personalizationEnabled  Enable personalization
+     * @param  ?string  $emailProviderConfigId  Email provider to use (SendGrid/Mailgun)
+     * @param  ?string  $emailIntegrationId  SES email integration to use (Type 4)
+     * @param  ?string  $emailTemplateId  Email template (LEGACY - for backward compatibility)
+     * @param  ?string  $emailContentId  Email content (NEW - 3-tier system with layouts)
      * @param  ?string  $previewText  Email preview text
+     * @param  ?string  $fromName  From name (optional when mailbox_id is set)
+     * @param  ?string  $fromEmail  From email address (optional when mailbox_id is set)
      * @param  ?string  $replyToEmail  Reply-to email address
-     * @param  DateTimeInterface|string|null  $scheduledAt  Schedule for future send
-     * @param  ?int  $sendBatchSize  Recipients per batch (1-1000000). The campaign pauses after each batch until the next batch is sent. Null = no batches. Out of range -> 422 send_batch_size_invalid.
-     * @param  ?int  $sendRateLimit  Send speed in emails per minute (1-60000). Null = default speed.
-     * @param  ?string  $status  Campaign status
      * @param  list<string>|null  $subscriptionCategories  Target specific subscription categories (max 100)
-     * @param  ?bool  $trackClicks  Track link CLICKS. Omit to inherit the tenant's track_clicks_default (defaults True).
+     * @param  list<string>|null  $listIds  Target specific lists (max 100; must belong to this workspace)
+     * @param  ?bool  $personalizationEnabled  Enable personalization
      * @param  ?bool  $trackingEnabled  Track email OPENS. Omit to inherit the tenant's track_opens_default (defaults True).
+     * @param  ?bool  $trackClicks  Track link CLICKS. Omit to inherit the tenant's track_clicks_default (defaults True).
+     * @param  DateTimeInterface|string|null  $scheduledAt  Schedule for future send
+     * @param  ?string  $status  Campaign status
+     * @param  ?int  $sendRateLimit  Send speed in emails per minute (1-60000). Null = default speed.
+     * @param  ?int  $sendBatchSize  Recipients per batch (1-1000000). The campaign pauses after each batch until the next batch is sent. Null = no batches. Out of range -> 422 send_batch_size_invalid.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/create_campaign_api_v1_email_campaigns_post
      */
-    public function create(string $name, string $subjectLine, ?string $emailContentId = null, ?string $emailIntegrationId = null, ?string $emailProviderConfigId = null, ?string $emailTemplateId = null, ?string $fromEmail = null, ?string $fromName = null, ?array $listIds = null, ?string $mailboxId = null, ?bool $personalizationEnabled = null, ?string $previewText = null, ?string $replyToEmail = null, DateTimeInterface|string|null $scheduledAt = null, ?int $sendBatchSize = null, ?int $sendRateLimit = null, ?string $status = null, ?array $subscriptionCategories = null, ?bool $trackClicks = null, ?bool $trackingEnabled = null, ?string $idempotencyKey = null): EmailCampaign
-    {
+    public function create(
+        string $name,
+        string $subjectLine,
+        ?string $mailboxId = null,
+        ?string $emailProviderConfigId = null,
+        ?string $emailIntegrationId = null,
+        ?string $emailTemplateId = null,
+        ?string $emailContentId = null,
+        ?string $previewText = null,
+        ?string $fromName = null,
+        ?string $fromEmail = null,
+        ?string $replyToEmail = null,
+        ?array $subscriptionCategories = null,
+        ?array $listIds = null,
+        ?bool $personalizationEnabled = null,
+        ?bool $trackingEnabled = null,
+        ?bool $trackClicks = null,
+        DateTimeInterface|string|null $scheduledAt = null,
+        ?string $status = null,
+        ?int $sendRateLimit = null,
+        ?int $sendBatchSize = null,
+        ?string $idempotencyKey = null,
+    ): EmailCampaign {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns',
-            body: Payload::body(['name' => $name, 'subject_line' => $subjectLine, 'email_content_id' => $emailContentId, 'email_integration_id' => $emailIntegrationId, 'email_provider_config_id' => $emailProviderConfigId, 'email_template_id' => $emailTemplateId, 'from_email' => $fromEmail, 'from_name' => $fromName, 'list_ids' => $listIds, 'mailbox_id' => $mailboxId, 'personalization_enabled' => $personalizationEnabled, 'preview_text' => $previewText, 'reply_to_email' => $replyToEmail, 'scheduled_at' => $scheduledAt, 'send_batch_size' => $sendBatchSize, 'send_rate_limit' => $sendRateLimit, 'status' => $status, 'subscription_categories' => $subscriptionCategories, 'track_clicks' => $trackClicks, 'tracking_enabled' => $trackingEnabled]),
+            body: Payload::body([
+                'name' => $name,
+                'subject_line' => $subjectLine,
+                'mailbox_id' => $mailboxId,
+                'email_provider_config_id' => $emailProviderConfigId,
+                'email_integration_id' => $emailIntegrationId,
+                'email_template_id' => $emailTemplateId,
+                'email_content_id' => $emailContentId,
+                'preview_text' => $previewText,
+                'from_name' => $fromName,
+                'from_email' => $fromEmail,
+                'reply_to_email' => $replyToEmail,
+                'subscription_categories' => $subscriptionCategories,
+                'list_ids' => $listIds,
+                'personalization_enabled' => $personalizationEnabled,
+                'tracking_enabled' => $trackingEnabled,
+                'track_clicks' => $trackClicks,
+                'scheduled_at' => $scheduledAt,
+                'status' => $status,
+                'send_rate_limit' => $sendRateLimit,
+                'send_batch_size' => $sendBatchSize,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -139,22 +185,34 @@ final readonly class EmailCampaigns
      * Scopes: campaigns:read.
      *
      * @param  ?bool  $allContacts  Target all contacts with email addresses
-     * @param  ?string  $emailIntegrationId  SES email integration the draft will send with (enables the cost quote)
-     * @param  ?string  $emailProviderConfigId  Email provider the draft will send with (enables the cost quote)
      * @param  list<string>|null  $listIds  Target specific lists (max 100)
      * @param  list<string>|null  $subscriptionCategories  Filter by subscription categories (max 100)
+     * @param  ?string  $emailProviderConfigId  Email provider the draft will send with (enables the cost quote)
+     * @param  ?string  $emailIntegrationId  SES email integration the draft will send with (enables the cost quote)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/get_recipient_count_api_v1_email_campaigns_recipient_count_post
      */
-    public function getRecipientCount(?bool $allContacts = null, ?string $emailIntegrationId = null, ?string $emailProviderConfigId = null, ?array $listIds = null, ?array $subscriptionCategories = null, ?string $idempotencyKey = null): RecipientCount
-    {
+    public function getRecipientCount(
+        ?bool $allContacts = null,
+        ?array $listIds = null,
+        ?array $subscriptionCategories = null,
+        ?string $emailProviderConfigId = null,
+        ?string $emailIntegrationId = null,
+        ?string $idempotencyKey = null,
+    ): RecipientCount {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns/recipient-count',
-            body: Payload::body(['all_contacts' => $allContacts, 'email_integration_id' => $emailIntegrationId, 'email_provider_config_id' => $emailProviderConfigId, 'list_ids' => $listIds, 'subscription_categories' => $subscriptionCategories]),
+            body: Payload::body([
+                'all_contacts' => $allContacts,
+                'list_ids' => $listIds,
+                'subscription_categories' => $subscriptionCategories,
+                'email_provider_config_id' => $emailProviderConfigId,
+                'email_integration_id' => $emailIntegrationId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -253,24 +311,63 @@ final readonly class EmailCampaigns
      *
      * Scopes: campaigns:update.
      *
-     * @param  list<string>|null  $listIds  Target specific lists (max 100; must belong to this workspace)
-     * @param  ?int  $sendBatchSize  Recipients per batch (1-1000000). Null clears it (no further batches). Out of range -> 422 send_batch_size_invalid.
-     * @param  ?int  $sendRateLimit  Send speed in emails per minute (1-60000). Null clears it.
      * @param  list<string>|null  $subscriptionCategories
-     * @param  ?bool  $trackClicks  Track link CLICKS
+     * @param  list<string>|null  $listIds  Target specific lists (max 100; must belong to this workspace)
      * @param  ?bool  $trackingEnabled  Track email OPENS
+     * @param  ?bool  $trackClicks  Track link CLICKS
+     * @param  ?int  $sendRateLimit  Send speed in emails per minute (1-60000). Null clears it.
+     * @param  ?int  $sendBatchSize  Recipients per batch (1-1000000). Null clears it (no further batches). Out of range -> 422 send_batch_size_invalid.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/update_campaign_api_v1_email_campaigns__campaign_id__patch
      */
-    public function update(string $campaignId, ?string $emailContentId = null, ?string $emailIntegrationId = null, ?string $emailProviderConfigId = null, ?string $emailTemplateId = null, ?string $fromEmail = null, ?string $fromName = null, ?array $listIds = null, ?string $name = null, ?bool $personalizationEnabled = null, ?string $previewText = null, ?string $replyToEmail = null, DateTimeInterface|string|null $scheduledAt = null, ?int $sendBatchSize = null, ?int $sendRateLimit = null, ?string $subjectLine = null, ?array $subscriptionCategories = null, ?bool $trackClicks = null, ?bool $trackingEnabled = null, ?string $idempotencyKey = null): EmailCampaign
-    {
+    public function update(
+        string $campaignId,
+        ?string $name = null,
+        ?string $subjectLine = null,
+        ?string $previewText = null,
+        ?string $fromName = null,
+        ?string $fromEmail = null,
+        ?string $replyToEmail = null,
+        ?string $emailProviderConfigId = null,
+        ?string $emailIntegrationId = null,
+        ?string $emailTemplateId = null,
+        ?string $emailContentId = null,
+        ?array $subscriptionCategories = null,
+        ?array $listIds = null,
+        ?bool $personalizationEnabled = null,
+        ?bool $trackingEnabled = null,
+        ?bool $trackClicks = null,
+        DateTimeInterface|string|null $scheduledAt = null,
+        ?int $sendRateLimit = null,
+        ?int $sendBatchSize = null,
+        ?string $idempotencyKey = null,
+    ): EmailCampaign {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-campaigns/'.Payload::segment($campaignId),
-            body: Payload::body(['email_content_id' => $emailContentId, 'email_integration_id' => $emailIntegrationId, 'email_provider_config_id' => $emailProviderConfigId, 'email_template_id' => $emailTemplateId, 'from_email' => $fromEmail, 'from_name' => $fromName, 'list_ids' => $listIds, 'name' => $name, 'personalization_enabled' => $personalizationEnabled, 'preview_text' => $previewText, 'reply_to_email' => $replyToEmail, 'scheduled_at' => $scheduledAt, 'send_batch_size' => $sendBatchSize, 'send_rate_limit' => $sendRateLimit, 'subject_line' => $subjectLine, 'subscription_categories' => $subscriptionCategories, 'track_clicks' => $trackClicks, 'tracking_enabled' => $trackingEnabled]),
+            body: Payload::body([
+                'name' => $name,
+                'subject_line' => $subjectLine,
+                'preview_text' => $previewText,
+                'from_name' => $fromName,
+                'from_email' => $fromEmail,
+                'reply_to_email' => $replyToEmail,
+                'email_provider_config_id' => $emailProviderConfigId,
+                'email_integration_id' => $emailIntegrationId,
+                'email_template_id' => $emailTemplateId,
+                'email_content_id' => $emailContentId,
+                'subscription_categories' => $subscriptionCategories,
+                'list_ids' => $listIds,
+                'personalization_enabled' => $personalizationEnabled,
+                'tracking_enabled' => $trackingEnabled,
+                'track_clicks' => $trackClicks,
+                'scheduled_at' => $scheduledAt,
+                'send_rate_limit' => $sendRateLimit,
+                'send_batch_size' => $sendBatchSize,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -498,12 +595,22 @@ final readonly class EmailCampaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/get_campaign_recipients_api_v1_email_campaigns__campaign_id__recipients_get
      */
-    public function getRecipients(string $campaignId, ?string $status = null, ?int $page = null, ?int $pageSize = null, ?string $search = null): Page
-    {
+    public function getRecipients(
+        string $campaignId,
+        ?string $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $search = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/email-campaigns/'.Payload::segment($campaignId).'/recipients',
-            query: Payload::query(['status' => $status, 'page' => $page, 'page_size' => $pageSize, 'search' => $search]),
+            query: Payload::query([
+                'status' => $status,
+                'page' => $page,
+                'page_size' => $pageSize,
+                'search' => $search,
+            ]),
         ));
 
         return Hydrate::page($response->data(), CampaignRecipientItem::fromArray(...), fn (int $page): Page => $this->getRecipients(campaignId: $campaignId, status: $status, page: $page, pageSize: $pageSize, search: $search));
@@ -587,8 +694,11 @@ final readonly class EmailCampaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/retry_email_campaign_recipient_api_v1_email_campaigns__campaign_id__recipients__recipient_id__retry_post
      */
-    public function retryRecipient(string $campaignId, string $recipientId, ?string $idempotencyKey = null): CampaignRecipientItem
-    {
+    public function retryRecipient(
+        string $campaignId,
+        string $recipientId,
+        ?string $idempotencyKey = null,
+    ): CampaignRecipientItem {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns/'.Payload::segment($campaignId).'/recipients/'.Payload::segment($recipientId).'/retry',
@@ -623,8 +733,11 @@ final readonly class EmailCampaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/unsubscribe_email_campaign_recipient_api_v1_email_campaigns__campaign_id__recipients__recipient_id__unsubscribe_post
      */
-    public function unsubscribeRecipient(string $campaignId, string $recipientId, ?string $idempotencyKey = null): RecipientUnsubscribe
-    {
+    public function unsubscribeRecipient(
+        string $campaignId,
+        string $recipientId,
+        ?string $idempotencyKey = null,
+    ): RecipientUnsubscribe {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns/'.Payload::segment($campaignId).'/recipients/'.Payload::segment($recipientId).'/unsubscribe',
@@ -686,8 +799,12 @@ final readonly class EmailCampaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/schedule_campaign_api_v1_email_campaigns__campaign_id__schedule_post
      */
-    public function schedule(string $campaignId, DateTimeInterface|string $scheduledAt, string $timezone, ?string $idempotencyKey = null): EmailCampaign
-    {
+    public function schedule(
+        string $campaignId,
+        DateTimeInterface|string $scheduledAt,
+        string $timezone,
+        ?string $idempotencyKey = null,
+    ): EmailCampaign {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns/'.Payload::segment($campaignId).'/schedule',
@@ -725,8 +842,12 @@ final readonly class EmailCampaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/send_campaign_api_v1_email_campaigns__campaign_id__send_post
      */
-    public function send(string $campaignId, ?bool $sendTest = null, ?array $testEmails = null, ?string $idempotencyKey = null): SendCampaign
-    {
+    public function send(
+        string $campaignId,
+        ?bool $sendTest = null,
+        ?array $testEmails = null,
+        ?string $idempotencyKey = null,
+    ): SendCampaign {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns/'.Payload::segment($campaignId).'/send',
@@ -764,8 +885,11 @@ final readonly class EmailCampaigns
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/send_next_email_batch_api_v1_email_campaigns__campaign_id__send_next_batch_post
      */
-    public function sendNextBatch(string $campaignId, ?array $body = null, ?string $idempotencyKey = null): EmailSendNextBatch
-    {
+    public function sendNextBatch(
+        string $campaignId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): EmailSendNextBatch {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-campaigns/'.Payload::segment($campaignId).'/send-next-batch',

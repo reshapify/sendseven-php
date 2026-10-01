@@ -19,23 +19,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AiPerformance extends Data
 {
     /**
-     * @param  float  $avgConfidenceScore  Average confidence score (0.0-1.0, multiply by 100 for %)
-     * @param  int  $botSessionsCount  Total bot conversation sessions
-     * @param  float  $escalationRate  Percentage of sessions that escalated to human agent
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
      * @param  int  $totalBotMessages  Count of messages sent by bots
      * @param  int  $totalManualMessages  Count of outbound messages NOT from bots
+     * @param  int  $botSessionsCount  Total bot conversation sessions
+     * @param  float  $avgConfidenceScore  Average confidence score (0.0-1.0, multiply by 100 for %)
+     * @param  float  $escalationRate  Percentage of sessions that escalated to human agent
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public float $avgConfidenceScore,
-        public int $botSessionsCount,
-        public float $escalationRate,
-        public string $periodEnd,
-        public string $periodStart,
         public int $totalBotMessages,
         public int $totalManualMessages,
+        public int $botSessionsCount,
+        public float $avgConfidenceScore,
+        public float $escalationRate,
+        public string $periodStart,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,13 +49,13 @@ final readonly class AiPerformance extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            avgConfidenceScore: $attributes->float('avg_confidence_score'),
-            botSessionsCount: $attributes->int('bot_sessions_count'),
-            escalationRate: $attributes->float('escalation_rate'),
-            periodEnd: $attributes->string('period_end'),
-            periodStart: $attributes->string('period_start'),
             totalBotMessages: $attributes->int('total_bot_messages'),
             totalManualMessages: $attributes->int('total_manual_messages'),
+            botSessionsCount: $attributes->int('bot_sessions_count'),
+            avgConfidenceScore: $attributes->float('avg_confidence_score'),
+            escalationRate: $attributes->float('escalation_rate'),
+            periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

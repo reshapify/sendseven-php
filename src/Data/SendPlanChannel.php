@@ -17,18 +17,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendPlanChannel extends Data
 {
     /**
+     * @param  ?int  $remaining  Recipients on this channel not sent yet; null until the campaign is prepared
      * @param  ?float  $capPerSecond  Maximum messages per second this channel can send
      * @param  ?string  $capSource  Where the channel limit comes from
-     * @param  ?int  $remaining  Recipients on this channel not sent yet; null until the campaign is prepared
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $capPerSecond,
-        public ?string $capSource,
-        public ?string $channelId,
         public ?string $channelType,
+        public ?string $channelId,
         public ?int $recipients,
         public ?int $remaining,
+        public ?float $capPerSecond,
+        public ?string $capSource,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,12 +42,12 @@ final readonly class SendPlanChannel extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            capPerSecond: $attributes->nullableFloat('cap_per_second'),
-            capSource: $attributes->nullableString('cap_source'),
-            channelId: $attributes->nullableString('channel_id'),
             channelType: $attributes->nullableString('channel_type'),
+            channelId: $attributes->nullableString('channel_id'),
             recipients: $attributes->nullableInt('recipients'),
             remaining: $attributes->nullableInt('remaining'),
+            capPerSecond: $attributes->nullableFloat('cap_per_second'),
+            capSource: $attributes->nullableString('cap_source'),
             raw: $data,
         );
     }

@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BrandColors extends Data
 {
     /**
-     * @param  ?string  $accent  Accent color (hex code)
      * @param  ?string  $primary  Primary brand color (hex code)
      * @param  ?string  $secondary  Secondary brand color (hex code)
+     * @param  ?string  $accent  Accent color (hex code)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $accent,
         public ?string $primary,
         public ?string $secondary,
+        public ?string $accent,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class BrandColors extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            accent: $attributes->nullableString('accent'),
             primary: $attributes->nullableString('primary'),
             secondary: $attributes->nullableString('secondary'),
+            accent: $attributes->nullableString('accent'),
             raw: $data,
         );
     }

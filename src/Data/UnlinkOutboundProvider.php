@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UnlinkOutboundProvider extends Data
 {
     /**
-     * @param  EmailConnection  $connection  Updated connection details
-     * @param  string  $message  Status message
      * @param  bool  $success  Whether the operation succeeded
+     * @param  string  $message  Status message
+     * @param  EmailConnection  $connection  Updated connection details
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public EmailConnection $connection,
-        public string $message,
         public bool $success,
+        public string $message,
+        public EmailConnection $connection,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class UnlinkOutboundProvider extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            connection: $attributes->object('connection', EmailConnection::fromArray(...)),
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
+            connection: $attributes->object('connection', EmailConnection::fromArray(...)),
             raw: $data,
         );
     }

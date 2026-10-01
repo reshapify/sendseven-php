@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SignaturePreview extends Data
 {
     /**
-     * @param  list<string>  $placeholdersUsed  List of placeholders found in the template
      * @param  string  $resolvedHtml  HTML with placeholders resolved
      * @param  ?string  $resolvedText  Plain text with placeholders resolved
+     * @param  list<string>  $placeholdersUsed  List of placeholders found in the template
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $placeholdersUsed,
         public string $resolvedHtml,
         public ?string $resolvedText,
+        public array $placeholdersUsed,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class SignaturePreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            placeholdersUsed: $attributes->strings('placeholders_used'),
             resolvedHtml: $attributes->string('resolved_html'),
             resolvedText: $attributes->nullableString('resolved_text'),
+            placeholdersUsed: $attributes->strings('placeholders_used'),
             raw: $data,
         );
     }

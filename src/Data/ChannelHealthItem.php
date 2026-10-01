@@ -20,14 +20,14 @@ final readonly class ChannelHealthItem extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelType,
-        public string $connectionStatus,
-        public ?string $emailAddress,
         public string $id,
+        public string $name,
+        public string $channelType,
         public ?string $integrationType,
+        public string $connectionStatus,
         public ?string $lastError,
         public ?string $lastErrorAt,
-        public string $name,
+        public ?string $emailAddress,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,14 +41,14 @@ final readonly class ChannelHealthItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelType: $attributes->string('channel_type'),
-            connectionStatus: $attributes->string('connection_status'),
-            emailAddress: $attributes->nullableString('email_address'),
             id: $attributes->string('id'),
+            name: $attributes->string('name'),
+            channelType: $attributes->string('channel_type'),
             integrationType: $attributes->nullableString('integration_type'),
+            connectionStatus: $attributes->string('connection_status'),
             lastError: $attributes->nullableString('last_error'),
             lastErrorAt: $attributes->nullableString('last_error_at'),
-            name: $attributes->string('name'),
+            emailAddress: $attributes->nullableString('email_address'),
             raw: $data,
         );
     }

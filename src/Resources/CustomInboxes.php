@@ -63,27 +63,55 @@ final readonly class CustomInboxes
      *
      * Scopes: inboxes:create,  (+ plan feature , custom_inboxes.
      *
-     * @param  AccessMode|string|null  $accessMode  'all' (any team member) or 'specific' (whitelisted users)
-     * @param  list<string>|null  $allowedUserIds  Whitelisted user IDs (only used when access_mode='specific')
-     * @param  list<string>|null  $channelIds  Non-email channel IDs that belong to this inbox. Email connections are listed separately under ``email_connections``.
-     * @param  ?string  $color  #RRGGBB hex color
-     * @param  list<array<string, mixed>>|null  $emailConnections  Email connections (EmailIntegration rows with can_receive_support=True) routed to this inbox, each with an optional alias-subset filter.
-     * @param  list<array<string, mixed>>|null  $fieldFilters  Custom-field rules (AND-combined)
      * @param  ?string  $icon  Lucide icon name
+     * @param  ?string  $color  #RRGGBB hex color
+     * @param  AccessMode|string|null  $accessMode  'all' (any team member) or 'specific' (whitelisted users)
      * @param  TagFilterMode|string|null  $tagFilterMode  How tag rules are combined: any (has at least one), all (has every), none (has none of them). Ignored when tag_ids is empty.
+     * @param  list<string>|null  $channelIds  Non-email channel IDs that belong to this inbox. Email connections are listed separately under ``email_connections``.
+     * @param  list<array<string, mixed>>|null  $emailConnections  Email connections (EmailIntegration rows with can_receive_support=True) routed to this inbox, each with an optional alias-subset filter.
      * @param  list<string>|null  $tagIds  Tag IDs used by the tag rule (interpreted via tag_filter_mode)
+     * @param  list<array<string, mixed>>|null  $fieldFilters  Custom-field rules (AND-combined)
+     * @param  list<string>|null  $allowedUserIds  Whitelisted user IDs (only used when access_mode='specific')
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Custom%20Inboxes/create_inbox_api_v1_inboxes_post
      */
-    public function createInbox(string $name, AccessMode|string|null $accessMode = null, ?array $allowedUserIds = null, ?array $channelIds = null, ?string $color = null, ?string $description = null, ?array $emailConnections = null, ?array $fieldFilters = null, ?string $icon = null, ?bool $isActive = null, ?int $sortOrder = null, TagFilterMode|string|null $tagFilterMode = null, ?array $tagIds = null, ?string $idempotencyKey = null): InboxOut
-    {
+    public function createInbox(
+        string $name,
+        ?string $description = null,
+        ?string $icon = null,
+        ?string $color = null,
+        AccessMode|string|null $accessMode = null,
+        TagFilterMode|string|null $tagFilterMode = null,
+        ?array $channelIds = null,
+        ?array $emailConnections = null,
+        ?array $tagIds = null,
+        ?array $fieldFilters = null,
+        ?array $allowedUserIds = null,
+        ?bool $isActive = null,
+        ?int $sortOrder = null,
+        ?string $idempotencyKey = null,
+    ): InboxOut {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/inboxes',
-            body: Payload::body(['name' => $name, 'access_mode' => $accessMode, 'allowed_user_ids' => $allowedUserIds, 'channel_ids' => $channelIds, 'color' => $color, 'description' => $description, 'email_connections' => $emailConnections, 'field_filters' => $fieldFilters, 'icon' => $icon, 'is_active' => $isActive, 'sort_order' => $sortOrder, 'tag_filter_mode' => $tagFilterMode, 'tag_ids' => $tagIds]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'icon' => $icon,
+                'color' => $color,
+                'access_mode' => $accessMode,
+                'tag_filter_mode' => $tagFilterMode,
+                'channel_ids' => $channelIds,
+                'email_connections' => $emailConnections,
+                'tag_ids' => $tagIds,
+                'field_filters' => $fieldFilters,
+                'allowed_user_ids' => $allowedUserIds,
+                'is_active' => $isActive,
+                'sort_order' => $sortOrder,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -143,23 +171,52 @@ final readonly class CustomInboxes
      *
      * Scopes: inboxes:update,  (+ plan feature , custom_inboxes.
      *
-     * @param  list<string>|null  $allowedUserIds
      * @param  list<string>|null  $channelIds
      * @param  list<array<string, mixed>>|null  $emailConnections  Replace-style: full list of email connections routed to this inbox. None = leave unchanged; empty list = clear.
-     * @param  list<array<string, mixed>>|null  $fieldFilters
      * @param  list<string>|null  $tagIds
+     * @param  list<array<string, mixed>>|null  $fieldFilters
+     * @param  list<string>|null  $allowedUserIds
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Custom%20Inboxes/update_inbox_api_v1_inboxes__inbox_id__patch
      */
-    public function updateInbox(string $inboxId, AccessMode|string|null $accessMode = null, ?array $allowedUserIds = null, ?array $channelIds = null, ?string $color = null, ?string $description = null, ?array $emailConnections = null, ?array $fieldFilters = null, ?string $icon = null, ?bool $isActive = null, ?string $name = null, ?int $sortOrder = null, TagFilterMode|string|null $tagFilterMode = null, ?array $tagIds = null, ?string $idempotencyKey = null): InboxOut
-    {
+    public function updateInbox(
+        string $inboxId,
+        ?string $name = null,
+        ?string $description = null,
+        ?string $icon = null,
+        ?string $color = null,
+        AccessMode|string|null $accessMode = null,
+        TagFilterMode|string|null $tagFilterMode = null,
+        ?array $channelIds = null,
+        ?array $emailConnections = null,
+        ?array $tagIds = null,
+        ?array $fieldFilters = null,
+        ?array $allowedUserIds = null,
+        ?bool $isActive = null,
+        ?int $sortOrder = null,
+        ?string $idempotencyKey = null,
+    ): InboxOut {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/inboxes/'.Payload::segment($inboxId),
-            body: Payload::body(['access_mode' => $accessMode, 'allowed_user_ids' => $allowedUserIds, 'channel_ids' => $channelIds, 'color' => $color, 'description' => $description, 'email_connections' => $emailConnections, 'field_filters' => $fieldFilters, 'icon' => $icon, 'is_active' => $isActive, 'name' => $name, 'sort_order' => $sortOrder, 'tag_filter_mode' => $tagFilterMode, 'tag_ids' => $tagIds]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'icon' => $icon,
+                'color' => $color,
+                'access_mode' => $accessMode,
+                'tag_filter_mode' => $tagFilterMode,
+                'channel_ids' => $channelIds,
+                'email_connections' => $emailConnections,
+                'tag_ids' => $tagIds,
+                'field_filters' => $fieldFilters,
+                'allowed_user_ids' => $allowedUserIds,
+                'is_active' => $isActive,
+                'sort_order' => $sortOrder,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

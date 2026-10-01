@@ -20,16 +20,16 @@ final readonly class WebsiteCrawlJob extends Data
 {
     /**
      * @param  string  $jobId  Unique job ID for tracking
+     * @param  string  $status  Initial status: 'queued'
      * @param  string  $message  Human-readable status message
      * @param  string  $pollUrl  URL to poll for status updates
-     * @param  string  $status  Initial status: 'queued'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $jobId,
+        public string $status,
         public string $message,
         public string $pollUrl,
-        public string $status,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,9 +44,9 @@ final readonly class WebsiteCrawlJob extends Data
 
         return new self(
             jobId: $attributes->string('job_id'),
+            status: $attributes->string('status'),
             message: $attributes->string('message'),
             pollUrl: $attributes->string('poll_url'),
-            status: $attributes->string('status'),
             raw: $data,
         );
     }

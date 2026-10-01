@@ -23,22 +23,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RcsCapability extends Data
 {
     /**
-     * @param  ?bool  $cached  True when served from the Redis capability cache
-     * @param  string  $checkedAt  When this answer was produced
-     * @param  list<string>  $features  RBM feature strings, when Google returned any
      * @param  string  $msisdn  The probed number, normalised to E.164
+     * @param  list<string>  $features  RBM feature strings, when Google returned any
+     * @param  ?bool  $cached  True when served from the Redis capability cache
      * @param  ?string  $reason  Coarse cause when unreachable: 'not_rcs_reachable' (Google's 404 — cause unknowable) or 'probe_failed' (we could not complete the call).
+     * @param  string  $checkedAt  When this answer was produced
      * @param  ?string  $testerStatus  Allowlist status of this MSISDN after the probe, when it is one of our tester devices. A reachable probe promotes 'pending' to 'accepted' — the only acceptance signal Google gives us.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $cached,
-        public ?string $carrier,
-        public string $checkedAt,
-        public array $features,
         public string $msisdn,
         public bool $reachable,
+        public array $features,
+        public ?string $carrier,
+        public ?bool $cached,
         public ?string $reason,
+        public string $checkedAt,
         public ?string $testerStatus,
         array $raw = [],
     ) {
@@ -53,13 +53,13 @@ final readonly class RcsCapability extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            cached: $attributes->nullableBool('cached'),
-            carrier: $attributes->nullableString('carrier'),
-            checkedAt: $attributes->string('checked_at'),
-            features: $attributes->strings('features'),
             msisdn: $attributes->string('msisdn'),
             reachable: $attributes->bool('reachable'),
+            features: $attributes->strings('features'),
+            carrier: $attributes->nullableString('carrier'),
+            cached: $attributes->nullableBool('cached'),
             reason: $attributes->nullableString('reason'),
+            checkedAt: $attributes->string('checked_at'),
             testerStatus: $attributes->nullableString('tester_status'),
             raw: $data,
         );

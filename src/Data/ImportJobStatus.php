@@ -17,26 +17,26 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ImportJobStatus extends Data
 {
     /**
-     * @param  ?string  $errorMessage  Present when status == failed
-     * @param  ?int  $failedItems  Invalid/failed rows
-     * @param  ?string  $message  Human-readable status message
-     * @param  ?int  $processedItems  Rows processed so far
-     * @param  ?int  $progressPercent  0-100
      * @param  string  $status  queued | processing | completed | failed | cancelled
-     * @param  ?EmailContactImportSummary  $summary  Full import summary; present once status == completed
+     * @param  ?string  $message  Human-readable status message
+     * @param  ?int  $progressPercent  0-100
      * @param  ?int  $totalItems  Total rows detected in the CSV
+     * @param  ?int  $processedItems  Rows processed so far
+     * @param  ?int  $failedItems  Invalid/failed rows
+     * @param  ?EmailContactImportSummary  $summary  Full import summary; present once status == completed
+     * @param  ?string  $errorMessage  Present when status == failed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $errorMessage,
-        public ?int $failedItems,
         public string $jobId,
-        public ?string $message,
-        public ?int $processedItems,
-        public ?int $progressPercent,
         public string $status,
-        public ?EmailContactImportSummary $summary,
+        public ?string $message,
+        public ?int $progressPercent,
         public ?int $totalItems,
+        public ?int $processedItems,
+        public ?int $failedItems,
+        public ?EmailContactImportSummary $summary,
+        public ?string $errorMessage,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -50,15 +50,15 @@ final readonly class ImportJobStatus extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            errorMessage: $attributes->nullableString('error_message'),
-            failedItems: $attributes->nullableInt('failed_items'),
             jobId: $attributes->string('job_id'),
-            message: $attributes->nullableString('message'),
-            processedItems: $attributes->nullableInt('processed_items'),
-            progressPercent: $attributes->nullableInt('progress_percent'),
             status: $attributes->string('status'),
-            summary: $attributes->nullableObject('summary', EmailContactImportSummary::fromArray(...)),
+            message: $attributes->nullableString('message'),
+            progressPercent: $attributes->nullableInt('progress_percent'),
             totalItems: $attributes->nullableInt('total_items'),
+            processedItems: $attributes->nullableInt('processed_items'),
+            failedItems: $attributes->nullableInt('failed_items'),
+            summary: $attributes->nullableObject('summary', EmailContactImportSummary::fromArray(...)),
+            errorMessage: $attributes->nullableString('error_message'),
             raw: $data,
         );
     }

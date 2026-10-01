@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ScopeRemove extends Data
 {
     /**
-     * @param  ?string  $message  Optional success message
      * @param  ?bool  $success  Whether the operation succeeded
+     * @param  ?string  $message  Optional success message
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $message,
         public ?bool $success,
+        public ?string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class ScopeRemove extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            message: $attributes->nullableString('message'),
             success: $attributes->nullableBool('success'),
+            message: $attributes->nullableString('message'),
             raw: $data,
         );
     }

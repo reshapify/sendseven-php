@@ -21,31 +21,31 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TenantUser extends Data
 {
     /**
-     * @param  ?bool  $accountBillingReadGranted  True if this member holds a DIRECT `account:billing_read` grant (the account-wide-usage checkbox state for non-owners)
-     * @param  ?string  $avatarUrl  URL to user's avatar image
-     * @param  ?string  $chatNickname  Chat display nickname
-     * @param  ?string  $email  User email address
      * @param  string  $id  Unique identifier (UUID)
-     * @param  ?bool  $isBillingAccountOwner  True if this member is the OWNER of the billing account owning the current workspace (owner always has account-wide usage access; frontend renders the access toggle as checked+disabled)
-     * @param  DateTimeImmutable  $joinedAt  When user joined the tenant
-     * @param  ?bool  $liveChatAvailable  Available for live chat assignment
+     * @param  ?string  $email  User email address
      * @param  ?string  $name  User display name
-     * @param  list<RoleAssignmentInfo>  $rbacRoles  RBAC role assignments
+     * @param  ?string  $chatNickname  Chat display nickname
      * @param  UserRole|string  $role  Legacy role for backwards compatibility
+     * @param  ?string  $avatarUrl  URL to user's avatar image
+     * @param  ?bool  $liveChatAvailable  Available for live chat assignment
+     * @param  DateTimeImmutable  $joinedAt  When user joined the tenant
+     * @param  list<RoleAssignmentInfo>  $rbacRoles  RBAC role assignments
+     * @param  ?bool  $isBillingAccountOwner  True if this member is the OWNER of the billing account owning the current workspace (owner always has account-wide usage access; frontend renders the access toggle as checked+disabled)
+     * @param  ?bool  $accountBillingReadGranted  True if this member holds a DIRECT `account:billing_read` grant (the account-wide-usage checkbox state for non-owners)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $accountBillingReadGranted,
-        public ?string $avatarUrl,
-        public ?string $chatNickname,
-        public ?string $email,
         public string $id,
-        public ?bool $isBillingAccountOwner,
-        public DateTimeImmutable $joinedAt,
-        public ?bool $liveChatAvailable,
+        public ?string $email,
         public ?string $name,
-        public array $rbacRoles,
+        public ?string $chatNickname,
         public UserRole|string $role,
+        public ?string $avatarUrl,
+        public ?bool $liveChatAvailable,
+        public DateTimeImmutable $joinedAt,
+        public array $rbacRoles,
+        public ?bool $isBillingAccountOwner,
+        public ?bool $accountBillingReadGranted,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,17 +59,17 @@ final readonly class TenantUser extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            accountBillingReadGranted: $attributes->nullableBool('account_billing_read_granted'),
-            avatarUrl: $attributes->nullableString('avatar_url'),
-            chatNickname: $attributes->nullableString('chat_nickname'),
-            email: $attributes->nullableString('email'),
             id: $attributes->string('id'),
-            isBillingAccountOwner: $attributes->nullableBool('is_billing_account_owner'),
-            joinedAt: $attributes->dateTime('joined_at'),
-            liveChatAvailable: $attributes->nullableBool('live_chat_available'),
+            email: $attributes->nullableString('email'),
             name: $attributes->nullableString('name'),
-            rbacRoles: $attributes->list('rbac_roles', RoleAssignmentInfo::fromArray(...)),
+            chatNickname: $attributes->nullableString('chat_nickname'),
             role: $attributes->enum('role', UserRole::class),
+            avatarUrl: $attributes->nullableString('avatar_url'),
+            liveChatAvailable: $attributes->nullableBool('live_chat_available'),
+            joinedAt: $attributes->dateTime('joined_at'),
+            rbacRoles: $attributes->list('rbac_roles', RoleAssignmentInfo::fromArray(...)),
+            isBillingAccountOwner: $attributes->nullableBool('is_billing_account_owner'),
+            accountBillingReadGranted: $attributes->nullableBool('account_billing_read_granted'),
             raw: $data,
         );
     }

@@ -21,19 +21,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InteractiveContent extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $action  Action object: {buttons:[...]} or {button, sections:[...]}
+     * @param  ?string  $type  Interactive type: 'button' or 'list'
+     * @param  array<array-key, mixed>  $header  Header object (text or media), Meta format
      * @param  array<array-key, mixed>  $body  Body object: {text: ...}
      * @param  array<array-key, mixed>  $footer  Footer object: {text: ...}
-     * @param  array<array-key, mixed>  $header  Header object (text or media), Meta format
-     * @param  ?string  $type  Interactive type: 'button' or 'list'
+     * @param  array<array-key, mixed>  $action  Action object: {buttons:[...]} or {button, sections:[...]}
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $action,
+        public ?string $type,
+        public array $header,
         public array $body,
         public array $footer,
-        public array $header,
-        public ?string $type,
+        public array $action,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,11 +47,11 @@ final readonly class InteractiveContent extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            action: $attributes->array('action'),
+            type: $attributes->nullableString('type'),
+            header: $attributes->array('header'),
             body: $attributes->array('body'),
             footer: $attributes->array('footer'),
-            header: $attributes->array('header'),
-            type: $attributes->nullableString('type'),
+            action: $attributes->array('action'),
             raw: $data,
         );
     }

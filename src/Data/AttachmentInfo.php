@@ -17,22 +17,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AttachmentInfo extends Data
 {
     /**
-     * @param  ?string  $contentId  Content-ID for inline images
-     * @param  ?string  $downloadUrl  Signed GCS URL for download (alias for url)
      * @param  int  $fileSize  Size in bytes
-     * @param  ?bool  $isInline  Whether this is an inline attachment
      * @param  ?string  $url  Signed GCS URL for download (frontend uses this)
+     * @param  ?string  $downloadUrl  Signed GCS URL for download (alias for url)
+     * @param  ?string  $contentId  Content-ID for inline images
+     * @param  ?bool  $isInline  Whether this is an inline attachment
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contentId,
-        public string $contentType,
-        public ?string $downloadUrl,
-        public int $fileSize,
-        public string $filename,
         public string $id,
-        public ?bool $isInline,
+        public string $filename,
+        public string $contentType,
+        public int $fileSize,
         public ?string $url,
+        public ?string $downloadUrl,
+        public ?string $contentId,
+        public ?bool $isInline,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,14 +46,14 @@ final readonly class AttachmentInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contentId: $attributes->nullableString('content_id'),
-            contentType: $attributes->string('content_type'),
-            downloadUrl: $attributes->nullableString('download_url'),
-            fileSize: $attributes->int('file_size'),
-            filename: $attributes->string('filename'),
             id: $attributes->string('id'),
-            isInline: $attributes->nullableBool('is_inline'),
+            filename: $attributes->string('filename'),
+            contentType: $attributes->string('content_type'),
+            fileSize: $attributes->int('file_size'),
             url: $attributes->nullableString('url'),
+            downloadUrl: $attributes->nullableString('download_url'),
+            contentId: $attributes->nullableString('content_id'),
+            isInline: $attributes->nullableBool('is_inline'),
             raw: $data,
         );
     }

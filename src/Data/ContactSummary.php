@@ -22,15 +22,15 @@ final readonly class ContactSummary extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $createdAt,
-        public ?string $email,
-        public ?string $firstName,
         public string $id,
-        public ?string $lastName,
-        public array $methods,
-        public ?string $name,
-        public ?string $phone,
         public string $tenantId,
+        public ?string $name,
+        public ?string $firstName,
+        public ?string $lastName,
+        public ?string $phone,
+        public ?string $email,
+        public ?DateTimeImmutable $createdAt,
+        public array $methods,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,15 +44,15 @@ final readonly class ContactSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->nullableDateTime('created_at'),
-            email: $attributes->nullableString('email'),
-            firstName: $attributes->nullableString('first_name'),
             id: $attributes->string('id'),
-            lastName: $attributes->nullableString('last_name'),
-            methods: $attributes->list('methods', DuplicateRefMethod::fromArray(...)),
-            name: $attributes->nullableString('name'),
-            phone: $attributes->nullableString('phone'),
             tenantId: $attributes->string('tenant_id'),
+            name: $attributes->nullableString('name'),
+            firstName: $attributes->nullableString('first_name'),
+            lastName: $attributes->nullableString('last_name'),
+            phone: $attributes->nullableString('phone'),
+            email: $attributes->nullableString('email'),
+            createdAt: $attributes->nullableDateTime('created_at'),
+            methods: $attributes->list('methods', DuplicateRefMethod::fromArray(...)),
             raw: $data,
         );
     }

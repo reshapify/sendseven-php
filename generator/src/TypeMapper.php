@@ -72,7 +72,7 @@ final class TypeMapper
                 return [[...$nonNull[0], 'description' => $schema['description'] ?? ($nonNull[0]['description'] ?? '')], $nullable];
             }
 
-            return [['x-mixed' => true, 'description' => $schema['description'] ?? ''], $nullable];
+            return [['x-union' => $nonNull, 'description' => $schema['description'] ?? ''], $nullable];
         }
 
         return [$schema, ($schema['nullable'] ?? false) === true];
@@ -96,11 +96,42 @@ final class TypeMapper
     }
 
     /**
+     * A schema that says nothing about its type ({}), or a union of types.
+     *
+     * @param  array<string, mixed>  $schema
+     */
+    private function loose(array $schema): ?PhpType
+    {
+        if (isset($schema['x-union'])) {
+            $natives = [];
+
+            foreach ($schema['x-union'] as $variant) {
+                $natives[] = match (true) {
+                    ($variant['type'] ?? null) === 'string' => 'string',
+                    ($variant['type'] ?? null) === 'integer' => 'int',
+                    ($variant['type'] ?? null) === 'number' => 'float',
+                    ($variant['type'] ?? null) === 'boolean' => 'bool',
+                    ($variant['type'] ?? null) === 'array' => 'array',
+                    default => 'mixed',
+                };
+            }
+
+            $natives = array_values(array_unique($natives));
+
+            return in_array('mixed', $natives, true) ? new PhpType('mixed', 'mixed') : new PhpType(implode('|', $natives), str_replace('array', 'array<array-key, mixed>', implode('|', $natives)));
+        }
+
+        $typeless = ! isset($schema['type']) && ! isset($schema['$ref']) && ! isset($schema['properties']) && ! isset($schema['allOf']) && ! isset($schema['enum']) && ! isset($schema['additionalProperties']);
+
+        return $typeless || isset($schema['x-mixed']) ? new PhpType('mixed', 'mixed') : null;
+    }
+
+    /**
      * @param  array<string, mixed>  $schema
      */
     private function responseType(array $schema): PhpType
     {
-        if (isset($schema['x-mixed'])) {
+        if ($this->loose($schema) instanceof PhpType) {
             return new PhpType('mixed', 'mixed');
         }
 
@@ -160,8 +191,8 @@ final class TypeMapper
      */
     private function parameterType(array $schema): PhpType
     {
-        if (isset($schema['x-mixed'])) {
-            return new PhpType('mixed', 'mixed');
+        if (($loose = $this->loose($schema)) instanceof PhpType) {
+            return $loose;
         }
 
         [$name, $resolved] = $this->spec->resolve($schema);
@@ -223,7 +254,7 @@ final class TypeMapper
      */
     private function hydrateFor(array $schema, bool $nullable): string
     {
-        if (isset($schema['x-mixed'])) {
+        if ($this->loose($schema) instanceof PhpType) {
             return '$data[%s] ?? null';
         }
 

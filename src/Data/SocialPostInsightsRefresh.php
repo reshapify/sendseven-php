@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SocialPostInsightsRefresh extends Data
 {
     /**
-     * @param  SocialPostInsights  $insights  The freshly-refreshed (and re-cached) insights for the post.
      * @param  string  $postId  Our post id.
+     * @param  SocialPostInsights  $insights  The freshly-refreshed (and re-cached) insights for the post.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public SocialPostInsights $insights,
         public string $postId,
+        public SocialPostInsights $insights,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class SocialPostInsightsRefresh extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            insights: $attributes->object('insights', SocialPostInsights::fromArray(...)),
             postId: $attributes->string('post_id'),
+            insights: $attributes->object('insights', SocialPostInsights::fromArray(...)),
             raw: $data,
         );
     }

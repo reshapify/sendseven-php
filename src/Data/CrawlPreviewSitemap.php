@@ -18,18 +18,18 @@ final readonly class CrawlPreviewSitemap extends Data
 {
     /**
      * @param  ?bool  $found  Whether a sitemap was found
+     * @param  ?string  $url  Sitemap URL that was used
      * @param  ?bool  $isIndex  True if the sitemap is a sitemap index (expanded up to a cap)
      * @param  ?int  $pageCount  Number of URLs listed (null when no sitemap)
      * @param  list<string>  $sampleUrls  Up to 5 example URLs from the sitemap
-     * @param  ?string  $url  Sitemap URL that was used
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?bool $found,
+        public ?string $url,
         public ?bool $isIndex,
         public ?int $pageCount,
         public array $sampleUrls,
-        public ?string $url,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,10 +44,10 @@ final readonly class CrawlPreviewSitemap extends Data
 
         return new self(
             found: $attributes->nullableBool('found'),
+            url: $attributes->nullableString('url'),
             isIndex: $attributes->nullableBool('is_index'),
             pageCount: $attributes->nullableInt('page_count'),
             sampleUrls: $attributes->strings('sample_urls'),
-            url: $attributes->nullableString('url'),
             raw: $data,
         );
     }

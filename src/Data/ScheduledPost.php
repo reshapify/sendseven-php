@@ -17,45 +17,45 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ScheduledPost extends Data
 {
     /**
-     * @param  ?string  $caption  Post caption.
      * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $status  `draft`, `scheduled`, `publishing`, `published`, `partially_failed`, `failed` or `cancelled`.
+     * @param  string  $format  `text`, `image`, `video` or `reel`.
+     * @param  ?string  $caption  Post caption.
+     * @param  ?string  $firstComment  Self-authored first comment posted after the post publishes.
+     * @param  list<string>  $mediaAttachmentIds  Ordered attachment UUIDs used as media.
+     * @param  ?bool  $isAiGenerated  Whether the post is flagged as AI-generated (EU AI Act transparency), passed through to Meta on publish.
+     * @param  ?string  $scheduledAt  When it is queued to publish (UTC). NULL for draft/publish-now.
+     * @param  ?string  $publishedAt  When it finished publishing (roll-up).
      * @param  ?string  $createdByUserId  The author (user UUID), when resolvable.
      * @param  ?string  $errorMessage  Pre-fanout failure or a roll-up of target errors.
-     * @param  ?int  $failedCount  Targets failed (publish-now response only).
-     * @param  ?string  $firstComment  Self-authored first comment posted after the post publishes.
-     * @param  string  $format  `text`, `image`, `video` or `reel`.
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  ?bool  $isAiGenerated  Whether the post is flagged as AI-generated (EU AI Act transparency), passed through to Meta on publish.
-     * @param  list<string>  $mediaAttachmentIds  Ordered attachment UUIDs used as media.
-     * @param  ?string  $publishedAt  When it finished publishing (roll-up).
-     * @param  ?int  $publishedCount  Targets published (publish-now response only).
-     * @param  ?string  $scheduledAt  When it is queued to publish (UTC). NULL for draft/publish-now.
-     * @param  ?int  $skippedCount  Targets skipped as already-published (publish-now response only).
-     * @param  string  $status  `draft`, `scheduled`, `publishing`, `published`, `partially_failed`, `failed` or `cancelled`.
      * @param  list<ScheduledPostTarget>  $targets  One entry per channel target.
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  ?int  $publishedCount  Targets published (publish-now response only).
+     * @param  ?int  $failedCount  Targets failed (publish-now response only).
+     * @param  ?int  $skippedCount  Targets skipped as already-published (publish-now response only).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $caption,
         public string $createdAt,
+        public ?string $updatedAt,
+        public string $id,
+        public string $tenantId,
+        public string $status,
+        public string $format,
+        public ?string $caption,
+        public ?string $firstComment,
+        public array $mediaAttachmentIds,
+        public ?bool $isAiGenerated,
+        public ?string $scheduledAt,
+        public ?string $publishedAt,
         public ?string $createdByUserId,
         public ?string $errorMessage,
-        public ?int $failedCount,
-        public ?string $firstComment,
-        public string $format,
-        public string $id,
-        public ?bool $isAiGenerated,
-        public array $mediaAttachmentIds,
-        public ?string $publishedAt,
-        public ?int $publishedCount,
-        public ?string $scheduledAt,
-        public ?int $skippedCount,
-        public string $status,
         public array $targets,
-        public string $tenantId,
-        public ?string $updatedAt,
+        public ?int $publishedCount,
+        public ?int $failedCount,
+        public ?int $skippedCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -69,24 +69,24 @@ final readonly class ScheduledPost extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            caption: $attributes->nullableString('caption'),
             createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            status: $attributes->string('status'),
+            format: $attributes->string('format'),
+            caption: $attributes->nullableString('caption'),
+            firstComment: $attributes->nullableString('first_comment'),
+            mediaAttachmentIds: $attributes->strings('media_attachment_ids'),
+            isAiGenerated: $attributes->nullableBool('is_ai_generated'),
+            scheduledAt: $attributes->nullableString('scheduled_at'),
+            publishedAt: $attributes->nullableString('published_at'),
             createdByUserId: $attributes->nullableString('created_by_user_id'),
             errorMessage: $attributes->nullableString('error_message'),
-            failedCount: $attributes->nullableInt('failed_count'),
-            firstComment: $attributes->nullableString('first_comment'),
-            format: $attributes->string('format'),
-            id: $attributes->string('id'),
-            isAiGenerated: $attributes->nullableBool('is_ai_generated'),
-            mediaAttachmentIds: $attributes->strings('media_attachment_ids'),
-            publishedAt: $attributes->nullableString('published_at'),
-            publishedCount: $attributes->nullableInt('published_count'),
-            scheduledAt: $attributes->nullableString('scheduled_at'),
-            skippedCount: $attributes->nullableInt('skipped_count'),
-            status: $attributes->string('status'),
             targets: $attributes->list('targets', ScheduledPostTarget::fromArray(...)),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            publishedCount: $attributes->nullableInt('published_count'),
+            failedCount: $attributes->nullableInt('failed_count'),
+            skippedCount: $attributes->nullableInt('skipped_count'),
             raw: $data,
         );
     }

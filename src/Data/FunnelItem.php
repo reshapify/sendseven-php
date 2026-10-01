@@ -21,11 +21,11 @@ final readonly class FunnelItem extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $count,
-        public ?float $dropFromPrevious,
         public string $nodeId,
         public string $nodeName,
         public string $nodeType,
+        public int $count,
+        public ?float $dropFromPrevious,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class FunnelItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            count: $attributes->int('count'),
-            dropFromPrevious: $attributes->nullableFloat('drop_from_previous'),
             nodeId: $attributes->string('node_id'),
             nodeName: $attributes->string('node_name'),
             nodeType: $attributes->string('node_type'),
+            count: $attributes->int('count'),
+            dropFromPrevious: $attributes->nullableFloat('drop_from_previous'),
             raw: $data,
         );
     }

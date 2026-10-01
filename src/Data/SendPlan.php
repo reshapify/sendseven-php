@@ -21,25 +21,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendPlan extends Data
 {
     /**
-     * @param  list<SendPlanChannel>  $channels
      * @param  bool  $pacingAvailable  False when send speed and batches are not available for this account yet
      * @param  ?string  $pacingUnavailableReason  Why pacing_available is false: "disabled" (not available for this account yet) or "pacer_offline" (briefly unavailable, try again shortly)
+     * @param  list<SendPlanChannel>  $channels
      * @param  ?string  $rateLimitedBy  "campaign" or "channel"
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $batchSize,
-        public ?int $batches,
-        public array $channels,
-        public ?float $effectiveRatePerMinute,
-        public ?int $etaSeconds,
-        public ?int $etaSecondsPerBatch,
         public bool $pacingAvailable,
         public ?string $pacingUnavailableReason,
-        public ?string $rateLimitedBy,
-        public ?int $remaining,
-        public ?int $requestedRatePerMinute,
         public ?int $totalRecipients,
+        public ?int $remaining,
+        public array $channels,
+        public ?int $requestedRatePerMinute,
+        public ?float $effectiveRatePerMinute,
+        public ?int $batchSize,
+        public ?int $batches,
+        public ?int $etaSeconds,
+        public ?int $etaSecondsPerBatch,
+        public ?string $rateLimitedBy,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,18 +53,18 @@ final readonly class SendPlan extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            batchSize: $attributes->nullableInt('batch_size'),
-            batches: $attributes->nullableInt('batches'),
-            channels: $attributes->list('channels', SendPlanChannel::fromArray(...)),
-            effectiveRatePerMinute: $attributes->nullableFloat('effective_rate_per_minute'),
-            etaSeconds: $attributes->nullableInt('eta_seconds'),
-            etaSecondsPerBatch: $attributes->nullableInt('eta_seconds_per_batch'),
             pacingAvailable: $attributes->bool('pacing_available'),
             pacingUnavailableReason: $attributes->nullableString('pacing_unavailable_reason'),
-            rateLimitedBy: $attributes->nullableString('rate_limited_by'),
-            remaining: $attributes->nullableInt('remaining'),
-            requestedRatePerMinute: $attributes->nullableInt('requested_rate_per_minute'),
             totalRecipients: $attributes->nullableInt('total_recipients'),
+            remaining: $attributes->nullableInt('remaining'),
+            channels: $attributes->list('channels', SendPlanChannel::fromArray(...)),
+            requestedRatePerMinute: $attributes->nullableInt('requested_rate_per_minute'),
+            effectiveRatePerMinute: $attributes->nullableFloat('effective_rate_per_minute'),
+            batchSize: $attributes->nullableInt('batch_size'),
+            batches: $attributes->nullableInt('batches'),
+            etaSeconds: $attributes->nullableInt('eta_seconds'),
+            etaSecondsPerBatch: $attributes->nullableInt('eta_seconds_per_batch'),
+            rateLimitedBy: $attributes->nullableString('rate_limited_by'),
             raw: $data,
         );
     }

@@ -21,13 +21,13 @@ final readonly class CampaignBatchItem extends Data
      */
     public function __construct(
         public int $batchNumber,
-        public ?int $delivered,
-        public ?int $failed,
-        public ?int $pending,
-        public ?int $read,
-        public ?int $sent,
-        public ?int $skipped,
         public ?int $total,
+        public ?int $pending,
+        public ?int $sent,
+        public ?int $delivered,
+        public ?int $read,
+        public ?int $failed,
+        public ?int $skipped,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,13 +42,13 @@ final readonly class CampaignBatchItem extends Data
 
         return new self(
             batchNumber: $attributes->int('batch_number'),
-            delivered: $attributes->nullableInt('delivered'),
-            failed: $attributes->nullableInt('failed'),
-            pending: $attributes->nullableInt('pending'),
-            read: $attributes->nullableInt('read'),
-            sent: $attributes->nullableInt('sent'),
-            skipped: $attributes->nullableInt('skipped'),
             total: $attributes->nullableInt('total'),
+            pending: $attributes->nullableInt('pending'),
+            sent: $attributes->nullableInt('sent'),
+            delivered: $attributes->nullableInt('delivered'),
+            read: $attributes->nullableInt('read'),
+            failed: $attributes->nullableInt('failed'),
+            skipped: $attributes->nullableInt('skipped'),
             raw: $data,
         );
     }

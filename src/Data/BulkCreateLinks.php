@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BulkCreateLinks extends Data
 {
     /**
-     * @param  int  $createdCount  Number of links created
      * @param  array<array-key, mixed>  $urlMapping  Mapping of original URLs to short URLs
+     * @param  int  $createdCount  Number of links created
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $createdCount,
         public array $urlMapping,
+        public int $createdCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class BulkCreateLinks extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdCount: $attributes->int('created_count'),
             urlMapping: $attributes->array('url_mapping'),
+            createdCount: $attributes->int('created_count'),
             raw: $data,
         );
     }

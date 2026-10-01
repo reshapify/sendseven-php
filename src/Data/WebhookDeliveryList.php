@@ -21,11 +21,11 @@ final readonly class WebhookDeliveryList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public bool $hasMore,
         public array $items,
+        public int $total,
         public int $page,
         public int $pageSize,
-        public int $total,
+        public bool $hasMore,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class WebhookDeliveryList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            hasMore: $attributes->bool('has_more'),
             items: $attributes->list('items', WebhookDelivery::fromArray(...)),
+            total: $attributes->int('total'),
             page: $attributes->int('page'),
             pageSize: $attributes->int('page_size'),
-            total: $attributes->int('total'),
+            hasMore: $attributes->bool('has_more'),
             raw: $data,
         );
     }

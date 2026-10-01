@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WebhookRefresh extends Data
 {
     /**
-     * @param  string  $message  Status message
      * @param  bool  $success  Whether webhook was registered successfully
+     * @param  string  $message  Status message
      * @param  ?string  $webhookUrl  Webhook URL (only on success)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $message,
         public bool $success,
+        public string $message,
         public ?string $webhookUrl,
         array $raw = [],
     ) {
@@ -39,8 +39,8 @@ final readonly class WebhookRefresh extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
             webhookUrl: $attributes->nullableString('webhook_url'),
             raw: $data,
         );

@@ -17,24 +17,24 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SocialInsightsTarget extends Data
 {
     /**
-     * @param  ?bool  $authorized  False when the connection lacks the insights permission — the frontend should prompt a reconnect. See `error_code`.
      * @param  string  $channelId  The channel this target published to.
-     * @param  ?string  $errorCode  `insights_not_authorized` (reconnect to grant insights), `insights_unavailable` (Meta has no insights for this object), `insights_unsupported_platform`, or `insights_error`. Null on success.
-     * @param  ?string  $lastRefreshedAt  When this target's cached numbers were last refreshed from Meta. Null if this target has never been cached.
-     * @param  ?string  $message  Human-readable detail when `error_code` is set.
-     * @param  ?string  $objectId  Meta's id read (IG media id / FB `{page}_{post}`).
      * @param  string  $platform  `instagram` or `messenger`.
+     * @param  ?string  $objectId  Meta's id read (IG media id / FB `{page}_{post}`).
+     * @param  ?bool  $authorized  False when the connection lacks the insights permission — the frontend should prompt a reconnect. See `error_code`.
+     * @param  ?string  $errorCode  `insights_not_authorized` (reconnect to grant insights), `insights_unavailable` (Meta has no insights for this object), `insights_unsupported_platform`, or `insights_error`. Null on success.
+     * @param  ?string  $message  Human-readable detail when `error_code` is set.
+     * @param  ?string  $lastRefreshedAt  When this target's cached numbers were last refreshed from Meta. Null if this target has never been cached.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $authorized,
         public string $channelId,
+        public string $platform,
+        public ?string $objectId,
+        public ?bool $authorized,
         public ?string $errorCode,
-        public ?string $lastRefreshedAt,
         public ?string $message,
         public ?SocialInsightsMetrics $metrics,
-        public ?string $objectId,
-        public string $platform,
+        public ?string $lastRefreshedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,14 +48,14 @@ final readonly class SocialInsightsTarget extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            authorized: $attributes->nullableBool('authorized'),
             channelId: $attributes->string('channel_id'),
+            platform: $attributes->string('platform'),
+            objectId: $attributes->nullableString('object_id'),
+            authorized: $attributes->nullableBool('authorized'),
             errorCode: $attributes->nullableString('error_code'),
-            lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
             message: $attributes->nullableString('message'),
             metrics: $attributes->nullableObject('metrics', SocialInsightsMetrics::fromArray(...)),
-            objectId: $attributes->nullableString('object_id'),
-            platform: $attributes->string('platform'),
+            lastRefreshedAt: $attributes->nullableString('last_refreshed_at'),
             raw: $data,
         );
     }

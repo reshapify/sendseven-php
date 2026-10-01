@@ -20,8 +20,8 @@ final readonly class BulkActionSampleContact extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $displayName,
         public string $id,
+        public string $displayName,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class BulkActionSampleContact extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            displayName: $attributes->string('display_name'),
             id: $attributes->string('id'),
+            displayName: $attributes->string('display_name'),
             raw: $data,
         );
     }

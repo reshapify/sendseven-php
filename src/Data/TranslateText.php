@@ -20,8 +20,8 @@ final readonly class TranslateText extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $detectedLanguage,
         public string $translated,
+        public ?string $detectedLanguage,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class TranslateText extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            detectedLanguage: $attributes->nullableString('detected_language'),
             translated: $attributes->string('translated'),
+            detectedLanguage: $attributes->nullableString('detected_language'),
             raw: $data,
         );
     }

@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CrawlDomainSummary extends Data
 {
     /**
+     * @param  string  $id  History record ID
+     * @param  string  $domain  Domain name (e.g., docs.example.com)
      * @param  string  $baseUrl  Full base URL used for crawl
+     * @param  int  $pageCount  Number of pages in stored list
      * @param  string  $crawledAt  ISO datetime when crawl completed
      * @param  ?int  $daysSinceCrawl  Days since last crawl
-     * @param  string  $domain  Domain name (e.g., docs.example.com)
-     * @param  string  $id  History record ID
      * @param  ?bool  $isEligibleForRecrawl  Whether this domain is eligible for bulk re-crawl (must be 14+ days old)
-     * @param  int  $pageCount  Number of pages in stored list
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $domain,
         public string $baseUrl,
+        public int $pageCount,
         public string $crawledAt,
         public ?int $daysSinceCrawl,
-        public string $domain,
-        public string $id,
         public ?bool $isEligibleForRecrawl,
-        public int $pageCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class CrawlDomainSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            domain: $attributes->string('domain'),
             baseUrl: $attributes->string('base_url'),
+            pageCount: $attributes->int('page_count'),
             crawledAt: $attributes->string('crawled_at'),
             daysSinceCrawl: $attributes->nullableInt('days_since_crawl'),
-            domain: $attributes->string('domain'),
-            id: $attributes->string('id'),
             isEligibleForRecrawl: $attributes->nullableBool('is_eligible_for_recrawl'),
-            pageCount: $attributes->int('page_count'),
             raw: $data,
         );
     }

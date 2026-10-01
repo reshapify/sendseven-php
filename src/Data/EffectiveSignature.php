@@ -18,14 +18,14 @@ final readonly class EffectiveSignature extends Data
 {
     /**
      * @param  ?string  $html  Resolved HTML signature
-     * @param  string  $source  Source of the signature: 'user' or 'template' or 'none'
      * @param  ?string  $text  Resolved plain text signature
+     * @param  string  $source  Source of the signature: 'user' or 'template' or 'none'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?string $html,
-        public string $source,
         public ?string $text,
+        public string $source,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,8 +40,8 @@ final readonly class EffectiveSignature extends Data
 
         return new self(
             html: $attributes->nullableString('html'),
-            source: $attributes->string('source'),
             text: $attributes->nullableString('text'),
+            source: $attributes->string('source'),
             raw: $data,
         );
     }

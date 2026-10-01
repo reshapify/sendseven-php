@@ -17,20 +17,20 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BotKbFolder extends Data
 {
     /**
+     * @param  string  $id  Assignment ID
      * @param  string  $botId  Bot ID
      * @param  string  $folderId  Folder ID
      * @param  string  $folderName  Folder name
      * @param  string  $folderPath  Full folder path (e.g., 'Websites/docs.example.com')
-     * @param  string  $id  Assignment ID
      * @param  bool  $includeSubfolders  Whether subfolders are included
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
         public string $botId,
         public string $folderId,
         public string $folderName,
         public string $folderPath,
-        public string $id,
         public bool $includeSubfolders,
         array $raw = [],
     ) {
@@ -45,11 +45,11 @@ final readonly class BotKbFolder extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
             botId: $attributes->string('bot_id'),
             folderId: $attributes->string('folder_id'),
             folderName: $attributes->string('folder_name'),
             folderPath: $attributes->string('folder_path'),
-            id: $attributes->string('id'),
             includeSubfolders: $attributes->bool('include_subfolders'),
             raw: $data,
         );

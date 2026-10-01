@@ -22,15 +22,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactChannelTimeline extends Data
 {
     /**
-     * @param  ?bool  $hasMore  Whether older messages exist beyond this page
      * @param  list<Message>  $items  Messages from prior conversations on this channel, newest first
      * @param  ?string  $nextCursor  Opaque cursor for the next (older) page; null when no more
+     * @param  ?bool  $hasMore  Whether older messages exist beyond this page
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $hasMore,
         public array $items,
         public ?string $nextCursor,
+        public ?bool $hasMore,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,9 +44,9 @@ final readonly class ContactChannelTimeline extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            hasMore: $attributes->nullableBool('has_more'),
             items: $attributes->list('items', Message::fromArray(...)),
             nextCursor: $attributes->nullableString('next_cursor'),
+            hasMore: $attributes->nullableBool('has_more'),
             raw: $data,
         );
     }

@@ -18,26 +18,26 @@ final readonly class ContactLinkItem extends Data
 {
     /**
      * @param  ?int  $clickCount  Total clicks on this link
-     * @param  list<ClickDetail>  $clicks  Recent click details (max 10)
      * @param  ?string  $firstClickAt  Timestamp of first click
      * @param  ?string  $lastClickAt  Timestamp of most recent click
+     * @param  list<ClickDetail>  $clicks  Recent click details (max 10)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $clickCount,
-        public array $clicks,
-        public ?string $createdAt,
-        public ?string $expiresAt,
-        public ?string $featureId,
-        public ?string $featureType,
-        public ?string $firstClickAt,
-        public ?bool $isActive,
-        public ?string $label,
-        public ?string $lastClickAt,
-        public string $originalUrl,
+        public string $trackedLinkId,
         public string $shortCode,
         public string $shortUrl,
-        public string $trackedLinkId,
+        public string $originalUrl,
+        public ?string $featureType,
+        public ?string $featureId,
+        public ?string $label,
+        public ?string $createdAt,
+        public ?string $expiresAt,
+        public ?bool $isActive,
+        public ?int $clickCount,
+        public ?string $firstClickAt,
+        public ?string $lastClickAt,
+        public array $clicks,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,20 +51,20 @@ final readonly class ContactLinkItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clickCount: $attributes->nullableInt('click_count'),
-            clicks: $attributes->list('clicks', ClickDetail::fromArray(...)),
-            createdAt: $attributes->nullableString('created_at'),
-            expiresAt: $attributes->nullableString('expires_at'),
-            featureId: $attributes->nullableString('feature_id'),
-            featureType: $attributes->nullableString('feature_type'),
-            firstClickAt: $attributes->nullableString('first_click_at'),
-            isActive: $attributes->nullableBool('is_active'),
-            label: $attributes->nullableString('label'),
-            lastClickAt: $attributes->nullableString('last_click_at'),
-            originalUrl: $attributes->string('original_url'),
+            trackedLinkId: $attributes->string('tracked_link_id'),
             shortCode: $attributes->string('short_code'),
             shortUrl: $attributes->string('short_url'),
-            trackedLinkId: $attributes->string('tracked_link_id'),
+            originalUrl: $attributes->string('original_url'),
+            featureType: $attributes->nullableString('feature_type'),
+            featureId: $attributes->nullableString('feature_id'),
+            label: $attributes->nullableString('label'),
+            createdAt: $attributes->nullableString('created_at'),
+            expiresAt: $attributes->nullableString('expires_at'),
+            isActive: $attributes->nullableBool('is_active'),
+            clickCount: $attributes->nullableInt('click_count'),
+            firstClickAt: $attributes->nullableString('first_click_at'),
+            lastClickAt: $attributes->nullableString('last_click_at'),
+            clicks: $attributes->list('clicks', ClickDetail::fromArray(...)),
             raw: $data,
         );
     }

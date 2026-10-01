@@ -21,8 +21,8 @@ final readonly class ChannelHealth extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $errorCount,
         public bool $hasErrors,
+        public int $errorCount,
         public array $integrations,
         array $raw = [],
     ) {
@@ -37,8 +37,8 @@ final readonly class ChannelHealth extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            errorCount: $attributes->int('error_count'),
             hasErrors: $attributes->bool('has_errors'),
+            errorCount: $attributes->int('error_count'),
             integrations: $attributes->list('integrations', ChannelHealthItem::fromArray(...)),
             raw: $data,
         );

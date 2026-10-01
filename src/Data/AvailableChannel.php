@@ -19,22 +19,22 @@ final readonly class AvailableChannel extends Data
 {
     /**
      * @param  string  $channelId  Channel UUID
-     * @param  string  $channelName  User-friendly channel name
      * @param  string  $channelType  Channel type (whatsapp, telegram, etc.)
-     * @param  ?EmailMailboxInfo  $emailMailbox  Email mailbox info (email channels only, when using mailbox-based routing)
+     * @param  string  $channelName  User-friendly channel name
      * @param  string  $identifier  Contact's identifier on this channel
      * @param  ChannelStatus|string  $status  Channel availability status
      * @param  ?WhatsAppChannelWindowStatus  $windowStatus  WhatsApp window status (WhatsApp channels only)
+     * @param  ?EmailMailboxInfo  $emailMailbox  Email mailbox info (email channels only, when using mailbox-based routing)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $channelId,
-        public string $channelName,
         public string $channelType,
-        public ?EmailMailboxInfo $emailMailbox,
+        public string $channelName,
         public string $identifier,
         public ChannelStatus|string $status,
         public ?WhatsAppChannelWindowStatus $windowStatus,
+        public ?EmailMailboxInfo $emailMailbox,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,12 +49,12 @@ final readonly class AvailableChannel extends Data
 
         return new self(
             channelId: $attributes->string('channel_id'),
-            channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
-            emailMailbox: $attributes->nullableObject('email_mailbox', EmailMailboxInfo::fromArray(...)),
+            channelName: $attributes->string('channel_name'),
             identifier: $attributes->string('identifier'),
             status: $attributes->enum('status', ChannelStatus::class),
             windowStatus: $attributes->nullableObject('window_status', WhatsAppChannelWindowStatus::fromArray(...)),
+            emailMailbox: $attributes->nullableObject('email_mailbox', EmailMailboxInfo::fromArray(...)),
             raw: $data,
         );
     }

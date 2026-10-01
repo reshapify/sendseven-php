@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MultiFileUploadResult extends Data
 {
     /**
-     * @param  ?KnowledgeBaseDocument  $document  Created document if successful
-     * @param  ?string  $error  Error message if failed
      * @param  string  $filename  Original filename
      * @param  bool  $success  Whether upload succeeded
+     * @param  ?KnowledgeBaseDocument  $document  Created document if successful
+     * @param  ?string  $error  Error message if failed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?KnowledgeBaseDocument $document,
-        public ?string $error,
         public string $filename,
         public bool $success,
+        public ?KnowledgeBaseDocument $document,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class MultiFileUploadResult extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            document: $attributes->nullableObject('document', KnowledgeBaseDocument::fromArray(...)),
-            error: $attributes->nullableString('error'),
             filename: $attributes->string('filename'),
             success: $attributes->bool('success'),
+            document: $attributes->nullableObject('document', KnowledgeBaseDocument::fromArray(...)),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

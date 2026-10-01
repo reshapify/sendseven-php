@@ -22,19 +22,19 @@ final readonly class BotInteractionLog extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $sessionId,
         public string $botId,
+        public string $tenantId,
+        public ?string $messageId,
+        public ?string $userInput,
         public ?string $botResponse,
         public ?float $confidenceScore,
-        public DateTimeImmutable $createdAt,
-        public string $id,
-        public ?int $inputTokens,
         public array $kbSourcesUsed,
-        public ?string $messageId,
-        public ?string $modelUsed,
+        public ?int $inputTokens,
         public ?int $outputTokens,
-        public string $sessionId,
-        public string $tenantId,
-        public ?string $userInput,
+        public ?string $modelUsed,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,19 +48,19 @@ final readonly class BotInteractionLog extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            sessionId: $attributes->string('session_id'),
             botId: $attributes->string('bot_id'),
+            tenantId: $attributes->string('tenant_id'),
+            messageId: $attributes->nullableString('message_id'),
+            userInput: $attributes->nullableString('user_input'),
             botResponse: $attributes->nullableString('bot_response'),
             confidenceScore: $attributes->nullableFloat('confidence_score'),
-            createdAt: $attributes->dateTime('created_at'),
-            id: $attributes->string('id'),
-            inputTokens: $attributes->nullableInt('input_tokens'),
             kbSourcesUsed: array_values($attributes->array('kb_sources_used')),
-            messageId: $attributes->nullableString('message_id'),
-            modelUsed: $attributes->nullableString('model_used'),
+            inputTokens: $attributes->nullableInt('input_tokens'),
             outputTokens: $attributes->nullableInt('output_tokens'),
-            sessionId: $attributes->string('session_id'),
-            tenantId: $attributes->string('tenant_id'),
-            userInput: $attributes->nullableString('user_input'),
+            modelUsed: $attributes->nullableString('model_used'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

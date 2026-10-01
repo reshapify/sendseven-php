@@ -22,11 +22,11 @@ final readonly class DnsRecord extends Data
      */
     public function __construct(
         public string $id,
+        public string $recordType,
+        public string $recordName,
+        public string $recordValue,
         public bool $isVerified,
         public ?DateTimeImmutable $lastCheckAt,
-        public string $recordName,
-        public string $recordType,
-        public string $recordValue,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,11 +41,11 @@ final readonly class DnsRecord extends Data
 
         return new self(
             id: $attributes->string('id'),
+            recordType: $attributes->string('record_type'),
+            recordName: $attributes->string('record_name'),
+            recordValue: $attributes->string('record_value'),
             isVerified: $attributes->bool('is_verified'),
             lastCheckAt: $attributes->nullableDateTime('last_check_at'),
-            recordName: $attributes->string('record_name'),
-            recordType: $attributes->string('record_type'),
-            recordValue: $attributes->string('record_value'),
             raw: $data,
         );
     }

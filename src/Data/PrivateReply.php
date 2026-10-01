@@ -18,33 +18,33 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PrivateReply extends Data
 {
     /**
-     * @param  string  $channelId  Channel the reply was sent from.
      * @param  string  $commentId  Meta's comment id this reply answered.
-     * @param  ?string  $contactId  The commenter, as a contact in your workspace.
-     * @param  ?string  $conversationId  Conversation the reply was filed into.
-     * @param  ?string  $externalId  Meta's message id for the delivered reply.
-     * @param  ?string  $messageId  Id of the `messages` row created for this reply. Null in the rare case where Meta accepted the reply but the commenter could not be resolved to a contact; the reply was still delivered.
+     * @param  string  $channelId  Channel the reply was sent from.
      * @param  string  $platform  `instagram` or `messenger`.
+     * @param  ?string  $status  Always `sent` — this endpoint sends synchronously.
+     * @param  ?string  $messageId  Id of the `messages` row created for this reply. Null in the rare case where Meta accepted the reply but the commenter could not be resolved to a contact; the reply was still delivered.
+     * @param  ?string  $conversationId  Conversation the reply was filed into.
+     * @param  ?string  $contactId  The commenter, as a contact in your workspace.
+     * @param  ?string  $externalId  Meta's message id for the delivered reply.
      * @param  ?string  $recipientId  The commenter's platform-scoped id (IGSID / PSID), as returned by Meta. For a comment you had not stored, this is the first time it becomes known.
-     * @param  ?DateTimeImmutable  $sentAt  When the reply was sent.
      * @param  ?string  $socialCommentId  Id of the stored comment record, when the comment was persisted in your workspace.
      * @param  ?string  $state  The stored comment's new reply state (`replied`), when persisted.
-     * @param  ?string  $status  Always `sent` — this endpoint sends synchronously.
+     * @param  ?DateTimeImmutable  $sentAt  When the reply was sent.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelId,
         public string $commentId,
-        public ?string $contactId,
-        public ?string $conversationId,
-        public ?string $externalId,
-        public ?string $messageId,
+        public string $channelId,
         public string $platform,
+        public ?string $status,
+        public ?string $messageId,
+        public ?string $conversationId,
+        public ?string $contactId,
+        public ?string $externalId,
         public ?string $recipientId,
-        public ?DateTimeImmutable $sentAt,
         public ?string $socialCommentId,
         public ?string $state,
-        public ?string $status,
+        public ?DateTimeImmutable $sentAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,18 +58,18 @@ final readonly class PrivateReply extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->string('channel_id'),
             commentId: $attributes->string('comment_id'),
-            contactId: $attributes->nullableString('contact_id'),
-            conversationId: $attributes->nullableString('conversation_id'),
-            externalId: $attributes->nullableString('external_id'),
-            messageId: $attributes->nullableString('message_id'),
+            channelId: $attributes->string('channel_id'),
             platform: $attributes->string('platform'),
+            status: $attributes->nullableString('status'),
+            messageId: $attributes->nullableString('message_id'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            contactId: $attributes->nullableString('contact_id'),
+            externalId: $attributes->nullableString('external_id'),
             recipientId: $attributes->nullableString('recipient_id'),
-            sentAt: $attributes->nullableDateTime('sent_at'),
             socialCommentId: $attributes->nullableString('social_comment_id'),
             state: $attributes->nullableString('state'),
-            status: $attributes->nullableString('status'),
+            sentAt: $attributes->nullableDateTime('sent_at'),
             raw: $data,
         );
     }

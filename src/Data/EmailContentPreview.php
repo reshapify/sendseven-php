@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailContentPreview extends Data
 {
     /**
-     * @param  ?string  $contentType  Content type of the previewed content
      * @param  ?string  $htmlContent  Compiled and rendered HTML (html type)
-     * @param  string  $subjectLine  Rendered subject line
      * @param  ?string  $textContent  Rendered plain text (plain_text type)
+     * @param  string  $subjectLine  Rendered subject line
      * @param  list<string>  $variablesUsed  Variables found in content
+     * @param  ?string  $contentType  Content type of the previewed content
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contentType,
         public ?string $htmlContent,
-        public string $subjectLine,
         public ?string $textContent,
+        public string $subjectLine,
         public array $variablesUsed,
+        public ?string $contentType,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class EmailContentPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contentType: $attributes->nullableString('content_type'),
             htmlContent: $attributes->nullableString('html_content'),
-            subjectLine: $attributes->string('subject_line'),
             textContent: $attributes->nullableString('text_content'),
+            subjectLine: $attributes->string('subject_line'),
             variablesUsed: $attributes->strings('variables_used'),
+            contentType: $attributes->nullableString('content_type'),
             raw: $data,
         );
     }

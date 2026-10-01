@@ -17,34 +17,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class IntegrationCatalogEntry extends Data
 {
     /**
-     * @param  ?string  $actionUrl  External link for external_link cards
-     * @param  string  $authType  'api_token' | 'external_link' | 'oauth' (oauth reserved)
-     * @param  string  $category  'automation' | 'resources'
-     * @param  bool  $connected  Whether this tenant has set up the integration
-     * @param  string  $description  Short marketing description
-     * @param  ?string  $docsUrl  External documentation link
-     * @param  bool  $external  Whether this card links off-platform
      * @param  string  $key  Stable machine key, e.g. 'zapier'
+     * @param  string  $name  Display name
+     * @param  string  $description  Short marketing description
+     * @param  string  $category  'automation' | 'resources'
      * @param  string  $logo  Asset key or URL for the logo (light-mode/default variant)
      * @param  ?string  $logoDark  Asset key or URL for the logo shown in dark mode
-     * @param  string  $name  Display name
+     * @param  string  $authType  'api_token' | 'external_link' | 'oauth' (oauth reserved)
+     * @param  ?string  $docsUrl  External documentation link
+     * @param  ?string  $actionUrl  External link for external_link cards
      * @param  ?string  $setupRoute  Internal frontend route for setup, if any
+     * @param  bool  $external  Whether this card links off-platform
+     * @param  bool  $connected  Whether this tenant has set up the integration
      * @param  string  $status  'available' | 'connected' | 'coming_soon' | 'early_access'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $actionUrl,
-        public string $authType,
-        public string $category,
-        public bool $connected,
-        public string $description,
-        public ?string $docsUrl,
-        public bool $external,
         public string $key,
+        public string $name,
+        public string $description,
+        public string $category,
         public string $logo,
         public ?string $logoDark,
-        public string $name,
+        public string $authType,
+        public ?string $docsUrl,
+        public ?string $actionUrl,
         public ?string $setupRoute,
+        public bool $external,
+        public bool $connected,
         public string $status,
         array $raw = [],
     ) {
@@ -59,18 +59,18 @@ final readonly class IntegrationCatalogEntry extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            actionUrl: $attributes->nullableString('action_url'),
-            authType: $attributes->string('auth_type'),
-            category: $attributes->string('category'),
-            connected: $attributes->bool('connected'),
-            description: $attributes->string('description'),
-            docsUrl: $attributes->nullableString('docs_url'),
-            external: $attributes->bool('external'),
             key: $attributes->string('key'),
+            name: $attributes->string('name'),
+            description: $attributes->string('description'),
+            category: $attributes->string('category'),
             logo: $attributes->string('logo'),
             logoDark: $attributes->nullableString('logo_dark'),
-            name: $attributes->string('name'),
+            authType: $attributes->string('auth_type'),
+            docsUrl: $attributes->nullableString('docs_url'),
+            actionUrl: $attributes->nullableString('action_url'),
             setupRoute: $attributes->nullableString('setup_route'),
+            external: $attributes->bool('external'),
+            connected: $attributes->bool('connected'),
             status: $attributes->string('status'),
             raw: $data,
         );

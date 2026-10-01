@@ -49,12 +49,27 @@ final readonly class MediaGallery
      *
      * @see https://api.sendseven.com/api/v1/docs#/Media%20Gallery/list_media_assets_api_v1_media_gallery_get
      */
-    public function listAssets(?string $query = null, ?array $tag = null, ?string $mediaType = null, ?bool $favoritesOnly = null, MediaArchivedFilter|string|null $archived = null, ?int $page = null, ?int $pageSize = null): void
-    {
+    public function listAssets(
+        ?string $query = null,
+        ?array $tag = null,
+        ?string $mediaType = null,
+        ?bool $favoritesOnly = null,
+        MediaArchivedFilter|string|null $archived = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Get,
             '/media-gallery',
-            query: Payload::query(['query' => $query, 'tag' => $tag, 'media_type' => $mediaType, 'favorites_only' => $favoritesOnly, 'archived' => $archived, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'query' => $query,
+                'tag' => $tag,
+                'media_type' => $mediaType,
+                'favorites_only' => $favoritesOnly,
+                'archived' => $archived,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
     }
 
@@ -77,12 +92,22 @@ final readonly class MediaGallery
      *
      * @see https://api.sendseven.com/api/v1/docs#/Media%20Gallery/create_media_asset_api_v1_media_gallery_post
      */
-    public function createAsset(string $attachmentId, string $displayName, ?string $description = null, ?array $tags = null, ?string $idempotencyKey = null): MediaGalleryAsset
-    {
+    public function createAsset(
+        string $attachmentId,
+        string $displayName,
+        ?string $description = null,
+        ?array $tags = null,
+        ?string $idempotencyKey = null,
+    ): MediaGalleryAsset {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/media-gallery',
-            body: Payload::body(['attachment_id' => $attachmentId, 'display_name' => $displayName, 'description' => $description, 'tags' => $tags]),
+            body: Payload::body([
+                'attachment_id' => $attachmentId,
+                'display_name' => $displayName,
+                'description' => $description,
+                'tags' => $tags,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -118,21 +143,34 @@ final readonly class MediaGallery
      *
      * Scopes: media_gallery:update.
      *
+     * @param  list<string>|null  $tags  Full replacement tag set (normalized on save)
      * @param  ?bool  $isArchived  Soft-archive toggle; archived assets drop out of the default list
      * @param  ?bool  $isFavorite  Favorite toggle; surface with the ?favorites_only=true list filter
-     * @param  list<string>|null  $tags  Full replacement tag set (normalized on save)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Media%20Gallery/update_media_asset_api_v1_media_gallery__asset_id__patch
      */
-    public function updateAsset(string $assetId, ?string $description = null, ?string $displayName = null, ?bool $isArchived = null, ?bool $isFavorite = null, ?array $tags = null, ?string $idempotencyKey = null): MediaGalleryAsset
-    {
+    public function updateAsset(
+        string $assetId,
+        ?string $displayName = null,
+        ?string $description = null,
+        ?array $tags = null,
+        ?bool $isArchived = null,
+        ?bool $isFavorite = null,
+        ?string $idempotencyKey = null,
+    ): MediaGalleryAsset {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/media-gallery/'.Payload::segment($assetId),
-            body: Payload::body(['description' => $description, 'display_name' => $displayName, 'is_archived' => $isArchived, 'is_favorite' => $isFavorite, 'tags' => $tags]),
+            body: Payload::body([
+                'display_name' => $displayName,
+                'description' => $description,
+                'tags' => $tags,
+                'is_archived' => $isArchived,
+                'is_favorite' => $isFavorite,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

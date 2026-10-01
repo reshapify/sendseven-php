@@ -19,25 +19,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PublicReply extends Data
 {
     /**
-     * @param  string  $channelId  Channel the reply was posted from.
      * @param  string  $commentId  Meta's comment id this reply answered.
+     * @param  string  $channelId  Channel the reply was posted from.
      * @param  string  $platform  `instagram` or `messenger`.
-     * @param  ?DateTimeImmutable  $publicRepliedAt  When the public reply was posted.
-     * @param  ?string  $publicReplyId  Meta's id for the reply comment we created, when Meta returned it.
-     * @param  ?string  $publicReplyText  The text that was posted.
-     * @param  ?string  $socialCommentId  Id of the stored comment record, when the comment was persisted in your workspace.
      * @param  ?string  $status  Always `sent` — this endpoint posts synchronously.
+     * @param  ?string  $publicReplyId  Meta's id for the reply comment we created, when Meta returned it.
+     * @param  ?string  $socialCommentId  Id of the stored comment record, when the comment was persisted in your workspace.
+     * @param  ?string  $publicReplyText  The text that was posted.
+     * @param  ?DateTimeImmutable  $publicRepliedAt  When the public reply was posted.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelId,
         public string $commentId,
+        public string $channelId,
         public string $platform,
-        public ?DateTimeImmutable $publicRepliedAt,
-        public ?string $publicReplyId,
-        public ?string $publicReplyText,
-        public ?string $socialCommentId,
         public ?string $status,
+        public ?string $publicReplyId,
+        public ?string $socialCommentId,
+        public ?string $publicReplyText,
+        public ?DateTimeImmutable $publicRepliedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,14 +51,14 @@ final readonly class PublicReply extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->string('channel_id'),
             commentId: $attributes->string('comment_id'),
+            channelId: $attributes->string('channel_id'),
             platform: $attributes->string('platform'),
-            publicRepliedAt: $attributes->nullableDateTime('public_replied_at'),
-            publicReplyId: $attributes->nullableString('public_reply_id'),
-            publicReplyText: $attributes->nullableString('public_reply_text'),
-            socialCommentId: $attributes->nullableString('social_comment_id'),
             status: $attributes->nullableString('status'),
+            publicReplyId: $attributes->nullableString('public_reply_id'),
+            socialCommentId: $attributes->nullableString('social_comment_id'),
+            publicReplyText: $attributes->nullableString('public_reply_text'),
+            publicRepliedAt: $attributes->nullableDateTime('public_replied_at'),
             raw: $data,
         );
     }

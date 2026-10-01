@@ -22,9 +22,9 @@ final readonly class EmailContactList extends Data
      */
     public function __construct(
         public array $contacts,
+        public int $total,
         public int $limit,
         public int $offset,
-        public int $total,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class EmailContactList extends Data
 
         return new self(
             contacts: $attributes->list('contacts', EmailContact::fromArray(...)),
+            total: $attributes->int('total'),
             limit: $attributes->int('limit'),
             offset: $attributes->int('offset'),
-            total: $attributes->int('total'),
             raw: $data,
         );
     }

@@ -25,16 +25,16 @@ final readonly class HubSpotSegment extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contactCount,
-        public ?DateTimeImmutable $createdAt,
+        public string $id,
+        public string $tenantId,
+        public string $name,
         public ?string $description,
+        public string $listType,
         public ?string $hubSpotConnectionId,
         public ?string $hubSpotListId,
         public array $hubSpotSegmentConfig,
-        public string $id,
-        public string $listType,
-        public string $name,
-        public string $tenantId,
+        public ?string $contactCount,
+        public ?DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
@@ -49,16 +49,16 @@ final readonly class HubSpotSegment extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contactCount: $attributes->nullableString('contact_count'),
-            createdAt: $attributes->nullableDateTime('created_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
             description: $attributes->nullableString('description'),
+            listType: $attributes->string('list_type'),
             hubSpotConnectionId: $attributes->nullableString('hubspot_connection_id'),
             hubSpotListId: $attributes->nullableString('hubspot_list_id'),
             hubSpotSegmentConfig: $attributes->array('hubspot_segment_config'),
-            id: $attributes->string('id'),
-            listType: $attributes->string('list_type'),
-            name: $attributes->string('name'),
-            tenantId: $attributes->string('tenant_id'),
+            contactCount: $attributes->nullableString('contact_count'),
+            createdAt: $attributes->nullableDateTime('created_at'),
             updatedAt: $attributes->nullableDateTime('updated_at'),
             raw: $data,
         );

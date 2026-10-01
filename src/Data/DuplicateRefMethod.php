@@ -20,10 +20,10 @@ final readonly class DuplicateRefMethod extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $channelId,
-        public ?bool $isPrimary,
         public string $methodType,
         public string $value,
+        public ?string $channelId,
+        public ?bool $isPrimary,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class DuplicateRefMethod extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelId: $attributes->nullableString('channel_id'),
-            isPrimary: $attributes->nullableBool('is_primary'),
             methodType: $attributes->string('method_type'),
             value: $attributes->string('value'),
+            channelId: $attributes->nullableString('channel_id'),
+            isPrimary: $attributes->nullableBool('is_primary'),
             raw: $data,
         );
     }

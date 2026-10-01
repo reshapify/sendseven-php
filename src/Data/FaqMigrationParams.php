@@ -21,10 +21,10 @@ final readonly class FaqMigrationParams extends Data
      */
     public function __construct(
         public ?bool $dryRun,
-        public ?bool $includeSingletons,
         public ?int $limit,
         public ?int $maxClusters,
         public ?int $minClusterSize,
+        public ?bool $includeSingletons,
         public ?bool $retireFolderWhenDone,
         array $raw = [],
     ) {
@@ -40,10 +40,10 @@ final readonly class FaqMigrationParams extends Data
 
         return new self(
             dryRun: $attributes->nullableBool('dry_run'),
-            includeSingletons: $attributes->nullableBool('include_singletons'),
             limit: $attributes->nullableInt('limit'),
             maxClusters: $attributes->nullableInt('max_clusters'),
             minClusterSize: $attributes->nullableInt('min_cluster_size'),
+            includeSingletons: $attributes->nullableBool('include_singletons'),
             retireFolderWhenDone: $attributes->nullableBool('retire_folder_when_done'),
             raw: $data,
         );

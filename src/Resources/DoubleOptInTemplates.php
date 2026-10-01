@@ -67,24 +67,40 @@ final readonly class DoubleOptInTemplates
      * Scopes: email:read.
      *
      * @param  string  $name  Template name
-     * @param  ?string  $buttonText  CTA button text
-     * @param  ?bool  $copyFromSystem  If true, copy from system template
      * @param  ?string  $description  Template description
-     * @param  ?string  $emailContentId  ID of the EmailContent to use (required if not copying from system)
-     * @param  ?bool  $isActive  Whether template is active
+     * @param  ?string  $buttonText  CTA button text
      * @param  ?string  $subjectLine  Email subject line
+     * @param  ?bool  $isActive  Whether template is active
+     * @param  ?string  $emailContentId  ID of the EmailContent to use (required if not copying from system)
+     * @param  ?bool  $copyFromSystem  If true, copy from system template
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Double%20Opt-In%20Templates/create_template_api_v1_double_opt_in_templates_post
      */
-    public function create(string $name, ?string $buttonText = null, ?bool $copyFromSystem = null, ?string $description = null, ?string $emailContentId = null, ?bool $isActive = null, ?string $subjectLine = null, ?string $idempotencyKey = null): DoubleOptInTemplate
-    {
+    public function create(
+        string $name,
+        ?string $description = null,
+        ?string $buttonText = null,
+        ?string $subjectLine = null,
+        ?bool $isActive = null,
+        ?string $emailContentId = null,
+        ?bool $copyFromSystem = null,
+        ?string $idempotencyKey = null,
+    ): DoubleOptInTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/double-opt-in/templates',
-            body: Payload::body(['name' => $name, 'button_text' => $buttonText, 'copy_from_system' => $copyFromSystem, 'description' => $description, 'email_content_id' => $emailContentId, 'is_active' => $isActive, 'subject_line' => $subjectLine]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'button_text' => $buttonText,
+                'subject_line' => $subjectLine,
+                'is_active' => $isActive,
+                'email_content_id' => $emailContentId,
+                'copy_from_system' => $copyFromSystem,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -155,12 +171,27 @@ final readonly class DoubleOptInTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/Double%20Opt-In%20Templates/update_template_api_v1_double_opt_in_templates__template_id__patch
      */
-    public function update(string $templateId, ?string $buttonText = null, ?string $description = null, ?string $emailContentId = null, ?bool $isActive = null, ?string $name = null, ?string $subjectLine = null, ?string $idempotencyKey = null): DoubleOptInTemplate
-    {
+    public function update(
+        string $templateId,
+        ?string $name = null,
+        ?string $description = null,
+        ?string $buttonText = null,
+        ?string $subjectLine = null,
+        ?string $emailContentId = null,
+        ?bool $isActive = null,
+        ?string $idempotencyKey = null,
+    ): DoubleOptInTemplate {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/double-opt-in/templates/'.Payload::segment($templateId),
-            body: Payload::body(['button_text' => $buttonText, 'description' => $description, 'email_content_id' => $emailContentId, 'is_active' => $isActive, 'name' => $name, 'subject_line' => $subjectLine]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'button_text' => $buttonText,
+                'subject_line' => $subjectLine,
+                'email_content_id' => $emailContentId,
+                'is_active' => $isActive,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -181,9 +212,9 @@ final readonly class DoubleOptInTemplates
      *
      * Scopes: email:create.
      *
-     * @param  ?string  $buttonText  Override button text
-     * @param  ?string  $description  Override description
      * @param  ?string  $name  Override template name
+     * @param  ?string  $description  Override description
+     * @param  ?string  $buttonText  Override button text
      * @param  ?string  $subjectLine  Override subject line
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -191,12 +222,23 @@ final readonly class DoubleOptInTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/Double%20Opt-In%20Templates/copy_system_template_api_v1_double_opt_in_templates__template_id__copy_post
      */
-    public function copySystem(string $templateId, ?string $buttonText = null, ?string $description = null, ?string $name = null, ?string $subjectLine = null, ?string $idempotencyKey = null): DoubleOptInTemplate
-    {
+    public function copySystem(
+        string $templateId,
+        ?string $name = null,
+        ?string $description = null,
+        ?string $buttonText = null,
+        ?string $subjectLine = null,
+        ?string $idempotencyKey = null,
+    ): DoubleOptInTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/double-opt-in/templates/'.Payload::segment($templateId).'/copy',
-            body: Payload::body(['button_text' => $buttonText, 'description' => $description, 'name' => $name, 'subject_line' => $subjectLine]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'button_text' => $buttonText,
+                'subject_line' => $subjectLine,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

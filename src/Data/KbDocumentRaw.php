@@ -22,15 +22,15 @@ final readonly class KbDocumentRaw extends Data
 {
     /**
      * @param  string  $content  Raw text content from GCS
-     * @param  ?bool  $editable  Always true on 200 response. Non-editable docs return 400.
      * @param  string  $mimeType  Resolved MIME type of the stored blob
+     * @param  ?bool  $editable  Always true on 200 response. Non-editable docs return 400.
      * @param  ?string  $reason  Populated only if editable is false (reserved for future preview flows).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $content,
-        public ?bool $editable,
         public string $mimeType,
+        public ?bool $editable,
         public ?string $reason,
         array $raw = [],
     ) {
@@ -46,8 +46,8 @@ final readonly class KbDocumentRaw extends Data
 
         return new self(
             content: $attributes->string('content'),
-            editable: $attributes->nullableBool('editable'),
             mimeType: $attributes->string('mime_type'),
+            editable: $attributes->nullableBool('editable'),
             reason: $attributes->nullableString('reason'),
             raw: $data,
         );

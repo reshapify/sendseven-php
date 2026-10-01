@@ -18,15 +18,15 @@ final readonly class WhatsAppChannelWindowStatus extends Data
 {
     /**
      * @param  bool  $inWindow  Whether within 24h messaging window
-     * @param  ?string  $lastCustomerMessageAt  Last message from customer on this channel
      * @param  bool  $requiresTemplate  Whether template is required to message
+     * @param  ?string  $lastCustomerMessageAt  Last message from customer on this channel
      * @param  ?string  $windowEndAt  When the 24h window ends (if in_window=True)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public bool $inWindow,
-        public ?string $lastCustomerMessageAt,
         public bool $requiresTemplate,
+        public ?string $lastCustomerMessageAt,
         public ?string $windowEndAt,
         array $raw = [],
     ) {
@@ -42,8 +42,8 @@ final readonly class WhatsAppChannelWindowStatus extends Data
 
         return new self(
             inWindow: $attributes->bool('in_window'),
-            lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
             requiresTemplate: $attributes->bool('requires_template'),
+            lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
             windowEndAt: $attributes->nullableString('window_end_at'),
             raw: $data,
         );

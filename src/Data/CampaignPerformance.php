@@ -19,53 +19,53 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CampaignPerformance extends Data
 {
     /**
-     * @param  list<ChannelCampaignStats>  $byChannel  Campaign stats by channel type
+     * @param  ?int  $totalCampaigns  Total campaigns in the period
      * @param  ?int  $completedCampaigns  Completed campaigns in the period
+     * @param  ?int  $totalSent  Total messages sent across all campaigns
+     * @param  ?int  $totalDelivered  Total messages delivered
+     * @param  ?int  $totalRead  Total messages read
+     * @param  ?int  $totalFailed  Total messages failed
      * @param  ?float  $deliveryRate  Delivery rate percentage (delivered/sent)
-     * @param  ?EmailBreakdown  $email  Email volume split by single/transactional vs campaign, each aligned to invoiced usage
-     * @param  ?float  $emailBounceRate  Email bounce rate percentage (bounced/sent)
-     * @param  ?int  $emailBounced  Total email bounces
-     * @param  ?float  $emailClickRate  Email click rate percentage (clicked/opened)
+     * @param  ?float  $readRate  Read rate percentage (read/delivered)
+     * @param  ?int  $emailSent  Total email campaign messages sent
+     * @param  ?int  $emailOpened  Total email opens
      * @param  ?int  $emailClicked  Total email clicks
+     * @param  ?int  $emailBounced  Total email bounces
      * @param  ?int  $emailComplained  Total email spam complaints
      * @param  ?float  $emailOpenRate  Email open rate percentage (opened/sent)
-     * @param  ?int  $emailOpened  Total email opens
-     * @param  ?int  $emailSent  Total email campaign messages sent
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
-     * @param  ?float  $readRate  Read rate percentage (read/delivered)
-     * @param  list<RecentCampaign>  $recentCampaigns  Last 5 completed campaigns
+     * @param  ?float  $emailClickRate  Email click rate percentage (clicked/opened)
+     * @param  ?float  $emailBounceRate  Email bounce rate percentage (bounced/sent)
+     * @param  ?EmailBreakdown  $email  Email volume split by single/transactional vs campaign, each aligned to invoiced usage
      * @param  ?SupportBreakdown  $support  Customer-support volume: bot vs human (rollup-sourced) + single/transactional emails
-     * @param  ?int  $totalCampaigns  Total campaigns in the period
-     * @param  ?int  $totalDelivered  Total messages delivered
-     * @param  ?int  $totalFailed  Total messages failed
-     * @param  ?int  $totalRead  Total messages read
-     * @param  ?int  $totalSent  Total messages sent across all campaigns
+     * @param  list<ChannelCampaignStats>  $byChannel  Campaign stats by channel type
+     * @param  list<RecentCampaign>  $recentCampaigns  Last 5 completed campaigns
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $byChannel,
+        public ?int $totalCampaigns,
         public ?int $completedCampaigns,
+        public ?int $totalSent,
+        public ?int $totalDelivered,
+        public ?int $totalRead,
+        public ?int $totalFailed,
         public ?float $deliveryRate,
-        public ?EmailBreakdown $email,
-        public ?float $emailBounceRate,
-        public ?int $emailBounced,
-        public ?float $emailClickRate,
+        public ?float $readRate,
+        public ?int $emailSent,
+        public ?int $emailOpened,
         public ?int $emailClicked,
+        public ?int $emailBounced,
         public ?int $emailComplained,
         public ?float $emailOpenRate,
-        public ?int $emailOpened,
-        public ?int $emailSent,
-        public string $periodEnd,
-        public string $periodStart,
-        public ?float $readRate,
-        public array $recentCampaigns,
+        public ?float $emailClickRate,
+        public ?float $emailBounceRate,
+        public ?EmailBreakdown $email,
         public ?SupportBreakdown $support,
-        public ?int $totalCampaigns,
-        public ?int $totalDelivered,
-        public ?int $totalFailed,
-        public ?int $totalRead,
-        public ?int $totalSent,
+        public array $byChannel,
+        public array $recentCampaigns,
+        public string $periodStart,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -79,28 +79,28 @@ final readonly class CampaignPerformance extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            byChannel: $attributes->list('by_channel', ChannelCampaignStats::fromArray(...)),
+            totalCampaigns: $attributes->nullableInt('total_campaigns'),
             completedCampaigns: $attributes->nullableInt('completed_campaigns'),
+            totalSent: $attributes->nullableInt('total_sent'),
+            totalDelivered: $attributes->nullableInt('total_delivered'),
+            totalRead: $attributes->nullableInt('total_read'),
+            totalFailed: $attributes->nullableInt('total_failed'),
             deliveryRate: $attributes->nullableFloat('delivery_rate'),
-            email: $attributes->nullableObject('email', EmailBreakdown::fromArray(...)),
-            emailBounceRate: $attributes->nullableFloat('email_bounce_rate'),
-            emailBounced: $attributes->nullableInt('email_bounced'),
-            emailClickRate: $attributes->nullableFloat('email_click_rate'),
+            readRate: $attributes->nullableFloat('read_rate'),
+            emailSent: $attributes->nullableInt('email_sent'),
+            emailOpened: $attributes->nullableInt('email_opened'),
             emailClicked: $attributes->nullableInt('email_clicked'),
+            emailBounced: $attributes->nullableInt('email_bounced'),
             emailComplained: $attributes->nullableInt('email_complained'),
             emailOpenRate: $attributes->nullableFloat('email_open_rate'),
-            emailOpened: $attributes->nullableInt('email_opened'),
-            emailSent: $attributes->nullableInt('email_sent'),
-            periodEnd: $attributes->string('period_end'),
-            periodStart: $attributes->string('period_start'),
-            readRate: $attributes->nullableFloat('read_rate'),
-            recentCampaigns: $attributes->list('recent_campaigns', RecentCampaign::fromArray(...)),
+            emailClickRate: $attributes->nullableFloat('email_click_rate'),
+            emailBounceRate: $attributes->nullableFloat('email_bounce_rate'),
+            email: $attributes->nullableObject('email', EmailBreakdown::fromArray(...)),
             support: $attributes->nullableObject('support', SupportBreakdown::fromArray(...)),
-            totalCampaigns: $attributes->nullableInt('total_campaigns'),
-            totalDelivered: $attributes->nullableInt('total_delivered'),
-            totalFailed: $attributes->nullableInt('total_failed'),
-            totalRead: $attributes->nullableInt('total_read'),
-            totalSent: $attributes->nullableInt('total_sent'),
+            byChannel: $attributes->list('by_channel', ChannelCampaignStats::fromArray(...)),
+            recentCampaigns: $attributes->list('recent_campaigns', RecentCampaign::fromArray(...)),
+            periodStart: $attributes->string('period_start'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

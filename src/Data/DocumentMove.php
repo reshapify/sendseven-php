@@ -19,34 +19,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DocumentMove extends Data
 {
     /**
-     * @param  ?bool  $corpusMoved  Whether the Vertex AI corpus was updated. If false, AI search may not work correctly.
-     * @param  string  $createdAt  ISO datetime when created
+     * @param  string  $id  Document ID
+     * @param  string  $tenantId  Tenant ID
      * @param  string  $documentType  Document type
+     * @param  string  $title  Document title
+     * @param  ?string  $sourceUrl  Source URL if applicable
      * @param  ?string  $folderId  New folder ID
      * @param  ?string  $geminiFileName  RAG file reference
      * @param  ?string  $geminiStoreName  Vertex AI RAG Corpus name
-     * @param  string  $id  Document ID
-     * @param  ?string  $sourceUrl  Source URL if applicable
-     * @param  string  $tenantId  Tenant ID
-     * @param  string  $title  Document title
-     * @param  string  $updatedAt  ISO datetime when last updated
      * @param  ?string  $uploadedByUserId  User who uploaded
+     * @param  string  $createdAt  ISO datetime when created
+     * @param  string  $updatedAt  ISO datetime when last updated
+     * @param  ?bool  $corpusMoved  Whether the Vertex AI corpus was updated. If false, AI search may not work correctly.
      * @param  ?string  $warning  Warning message if corpus move had issues
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $corpusMoved,
-        public string $createdAt,
+        public string $id,
+        public string $tenantId,
         public string $documentType,
+        public string $title,
+        public ?string $sourceUrl,
         public ?string $folderId,
         public ?string $geminiFileName,
         public ?string $geminiStoreName,
-        public string $id,
-        public ?string $sourceUrl,
-        public string $tenantId,
-        public string $title,
-        public string $updatedAt,
         public ?string $uploadedByUserId,
+        public string $createdAt,
+        public string $updatedAt,
+        public ?bool $corpusMoved,
         public ?string $warning,
         array $raw = [],
     ) {
@@ -61,18 +61,18 @@ final readonly class DocumentMove extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            corpusMoved: $attributes->nullableBool('corpus_moved'),
-            createdAt: $attributes->string('created_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
             documentType: $attributes->string('document_type'),
+            title: $attributes->string('title'),
+            sourceUrl: $attributes->nullableString('source_url'),
             folderId: $attributes->nullableString('folder_id'),
             geminiFileName: $attributes->nullableString('gemini_file_name'),
             geminiStoreName: $attributes->nullableString('gemini_store_name'),
-            id: $attributes->string('id'),
-            sourceUrl: $attributes->nullableString('source_url'),
-            tenantId: $attributes->string('tenant_id'),
-            title: $attributes->string('title'),
-            updatedAt: $attributes->string('updated_at'),
             uploadedByUserId: $attributes->nullableString('uploaded_by_user_id'),
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->string('updated_at'),
+            corpusMoved: $attributes->nullableBool('corpus_moved'),
             warning: $attributes->nullableString('warning'),
             raw: $data,
         );

@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SubscriptionActivityItem extends Data
 {
     /**
-     * @param  ?LastMessageInList  $lastMessageInList  Populated only for unsubscribed events; null for subscribed events
      * @param  string  $occurredAt  ISO 8601 (Z)
      * @param  ?string  $unsubscribeMethod  link/keyword/manual/bounce/complaint/api; null for subscribed events
+     * @param  ?LastMessageInList  $lastMessageInList  Populated only for unsubscribed events; null for subscribed events
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $channelType,
         public string $contactId,
         public ?string $contactName,
+        public string $channelType,
         public string $event,
-        public ?LastMessageInList $lastMessageInList,
         public string $occurredAt,
         public ?string $unsubscribeMethod,
+        public ?LastMessageInList $lastMessageInList,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,13 +43,13 @@ final readonly class SubscriptionActivityItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelType: $attributes->string('channel_type'),
             contactId: $attributes->string('contact_id'),
             contactName: $attributes->nullableString('contact_name'),
+            channelType: $attributes->string('channel_type'),
             event: $attributes->string('event'),
-            lastMessageInList: $attributes->nullableObject('last_message_in_list', LastMessageInList::fromArray(...)),
             occurredAt: $attributes->string('occurred_at'),
             unsubscribeMethod: $attributes->nullableString('unsubscribe_method'),
+            lastMessageInList: $attributes->nullableObject('last_message_in_list', LastMessageInList::fromArray(...)),
             raw: $data,
         );
     }

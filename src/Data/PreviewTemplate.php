@@ -22,10 +22,10 @@ final readonly class PreviewTemplate extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $body,
-        public array $buttons,
-        public ?string $footer,
         public ?string $header,
+        public string $body,
+        public ?string $footer,
+        public array $buttons,
         public array $variablesUsed,
         array $raw = [],
     ) {
@@ -40,10 +40,10 @@ final readonly class PreviewTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            body: $attributes->string('body'),
-            buttons: $attributes->list('buttons', TemplateButton::fromArray(...)),
-            footer: $attributes->nullableString('footer'),
             header: $attributes->nullableString('header'),
+            body: $attributes->string('body'),
+            footer: $attributes->nullableString('footer'),
+            buttons: $attributes->list('buttons', TemplateButton::fromArray(...)),
             variablesUsed: $attributes->array('variables_used'),
             raw: $data,
         );

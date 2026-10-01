@@ -24,11 +24,11 @@ final readonly class AvailableNumber extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $country,
-        public array $features,
-        public ?string $monthlyPriceEur,
         public string $number,
+        public ?string $country,
+        public ?string $monthlyPriceEur,
         public ?string $yearlyPriceEur,
+        public array $features,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,11 +42,11 @@ final readonly class AvailableNumber extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            country: $attributes->nullableString('country'),
-            features: $attributes->strings('features'),
-            monthlyPriceEur: $attributes->nullableString('monthly_price_eur'),
             number: $attributes->string('number'),
+            country: $attributes->nullableString('country'),
+            monthlyPriceEur: $attributes->nullableString('monthly_price_eur'),
             yearlyPriceEur: $attributes->nullableString('yearly_price_eur'),
+            features: $attributes->strings('features'),
             raw: $data,
         );
     }

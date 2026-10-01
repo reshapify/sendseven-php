@@ -18,24 +18,24 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DoubleOptInTemplate extends Data
 {
     /**
-     * @param  ?string  $buttonText  CTA button text
-     * @param  ?string  $description  Template description
-     * @param  ?bool  $isActive  Whether template is active
      * @param  string  $name  Template name
+     * @param  ?string  $description  Template description
+     * @param  ?string  $buttonText  CTA button text
      * @param  ?string  $subjectLine  Email subject line
+     * @param  ?bool  $isActive  Whether template is active
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $buttonText,
-        public DateTimeImmutable $createdAt,
-        public ?string $description,
-        public string $emailContentId,
-        public string $id,
-        public ?bool $isActive,
-        public bool $isSystemTemplate,
         public string $name,
+        public ?string $description,
+        public ?string $buttonText,
         public ?string $subjectLine,
+        public ?bool $isActive,
+        public string $id,
         public ?string $tenantId,
+        public string $emailContentId,
+        public bool $isSystemTemplate,
+        public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
@@ -50,16 +50,16 @@ final readonly class DoubleOptInTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            buttonText: $attributes->nullableString('button_text'),
-            createdAt: $attributes->dateTime('created_at'),
-            description: $attributes->nullableString('description'),
-            emailContentId: $attributes->string('email_content_id'),
-            id: $attributes->string('id'),
-            isActive: $attributes->nullableBool('is_active'),
-            isSystemTemplate: $attributes->bool('is_system_template'),
             name: $attributes->string('name'),
+            description: $attributes->nullableString('description'),
+            buttonText: $attributes->nullableString('button_text'),
             subjectLine: $attributes->nullableString('subject_line'),
+            isActive: $attributes->nullableBool('is_active'),
+            id: $attributes->string('id'),
             tenantId: $attributes->nullableString('tenant_id'),
+            emailContentId: $attributes->string('email_content_id'),
+            isSystemTemplate: $attributes->bool('is_system_template'),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );

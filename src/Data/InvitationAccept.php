@@ -21,9 +21,9 @@ final readonly class InvitationAccept extends Data
      */
     public function __construct(
         public string $message,
-        public string $role,
         public string $tenantId,
         public string $tenantName,
+        public string $role,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,9 +38,9 @@ final readonly class InvitationAccept extends Data
 
         return new self(
             message: $attributes->string('message'),
-            role: $attributes->string('role'),
             tenantId: $attributes->string('tenant_id'),
             tenantName: $attributes->string('tenant_name'),
+            role: $attributes->string('role'),
             raw: $data,
         );
     }

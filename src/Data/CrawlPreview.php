@@ -24,17 +24,17 @@ final readonly class CrawlPreview extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $valid,
         public ?string $errorCode,
         public ?string $errorMessage,
-        public ?int $estimatedPages,
-        public ?string $finalUrl,
         public string $inputUrl,
         public ?string $normalizedUrl,
-        public ?bool $reachable,
-        public ?CrawlPreviewSitemap $sitemap,
+        public ?string $finalUrl,
         public ?int $statusCode,
+        public ?bool $reachable,
         public ?string $title,
-        public bool $valid,
+        public ?CrawlPreviewSitemap $sitemap,
+        public ?int $estimatedPages,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,17 +48,17 @@ final readonly class CrawlPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            valid: $attributes->bool('valid'),
             errorCode: $attributes->nullableString('error_code'),
             errorMessage: $attributes->nullableString('error_message'),
-            estimatedPages: $attributes->nullableInt('estimated_pages'),
-            finalUrl: $attributes->nullableString('final_url'),
             inputUrl: $attributes->string('input_url'),
             normalizedUrl: $attributes->nullableString('normalized_url'),
-            reachable: $attributes->nullableBool('reachable'),
-            sitemap: $attributes->nullableObject('sitemap', CrawlPreviewSitemap::fromArray(...)),
+            finalUrl: $attributes->nullableString('final_url'),
             statusCode: $attributes->nullableInt('status_code'),
+            reachable: $attributes->nullableBool('reachable'),
             title: $attributes->nullableString('title'),
-            valid: $attributes->bool('valid'),
+            sitemap: $attributes->nullableObject('sitemap', CrawlPreviewSitemap::fromArray(...)),
+            estimatedPages: $attributes->nullableInt('estimated_pages'),
             raw: $data,
         );
     }

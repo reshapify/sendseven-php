@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RoleAssignment extends Data
 {
     /**
-     * @param  string  $assignmentId  ID of the created role assignment
      * @param  string  $message  Success message
+     * @param  string  $assignmentId  ID of the created role assignment
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $assignmentId,
         public string $message,
+        public string $assignmentId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class RoleAssignment extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            assignmentId: $attributes->string('assignment_id'),
             message: $attributes->string('message'),
+            assignmentId: $attributes->string('assignment_id'),
             raw: $data,
         );
     }

@@ -258,30 +258,58 @@ final readonly class WhatsApp
      * Scopes: messages:create.
      *
      * @param  string  $channelId  Channel ID to send from
-     * @param  string  $flowCta  Button text to trigger flow (max 20 chars)
      * @param  string  $flowId  WhatsApp Flow ID
-     * @param  ?string  $body  Message body text
+     * @param  string  $flowCta  Button text to trigger flow (max 20 chars)
      * @param  ?string  $contactId  Contact ID to send to
-     * @param  ?string  $conversationId  Link to existing conversation (creates new if not provided)
-     * @param  array<string, mixed>|null  $data  Data to pre-populate flow fields
-     * @param  ?string  $flowToken  Optional tracking token (auto-generated if not provided)
-     * @param  ?string  $footer  Optional footer text
-     * @param  ?string  $header  Optional header text
-     * @param  FlowMode|string|null  $mode  Flow mode: draft or published
      * @param  ?string  $recipient  Recipient phone number (alternative to contact_id)
+     * @param  ?string  $body  Message body text
+     * @param  ?string  $header  Optional header text
+     * @param  ?string  $footer  Optional footer text
      * @param  ?string  $screen  Initial screen to navigate to
+     * @param  array<string, mixed>|null  $data  Data to pre-populate flow fields
+     * @param  FlowMode|string|null  $mode  Flow mode: draft or published
+     * @param  ?string  $conversationId  Link to existing conversation (creates new if not provided)
+     * @param  ?string  $flowToken  Optional tracking token (auto-generated if not provided)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/send_whatsapp_flow_api_v1_whatsapp_flows_send_post
      */
-    public function sendFlow(string $channelId, string $flowCta, string $flowId, ?string $body = null, ?string $contactId = null, ?string $conversationId = null, ?array $data = null, ?string $flowToken = null, ?string $footer = null, ?string $header = null, FlowMode|string|null $mode = null, ?string $recipient = null, ?string $screen = null, ?string $idempotencyKey = null): SendFlow
-    {
+    public function sendFlow(
+        string $channelId,
+        string $flowId,
+        string $flowCta,
+        ?string $contactId = null,
+        ?string $recipient = null,
+        ?string $body = null,
+        ?string $header = null,
+        ?string $footer = null,
+        ?string $screen = null,
+        ?array $data = null,
+        FlowMode|string|null $mode = null,
+        ?string $conversationId = null,
+        ?string $flowToken = null,
+        ?string $idempotencyKey = null,
+    ): SendFlow {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp/flows/send',
-            body: Payload::body(['channel_id' => $channelId, 'flow_cta' => $flowCta, 'flow_id' => $flowId, 'body' => $body, 'contact_id' => $contactId, 'conversation_id' => $conversationId, 'data' => $data, 'flow_token' => $flowToken, 'footer' => $footer, 'header' => $header, 'mode' => $mode, 'recipient' => $recipient, 'screen' => $screen]),
+            body: Payload::body([
+                'channel_id' => $channelId,
+                'flow_id' => $flowId,
+                'flow_cta' => $flowCta,
+                'contact_id' => $contactId,
+                'recipient' => $recipient,
+                'body' => $body,
+                'header' => $header,
+                'footer' => $footer,
+                'screen' => $screen,
+                'data' => $data,
+                'mode' => $mode,
+                'conversation_id' => $conversationId,
+                'flow_token' => $flowToken,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

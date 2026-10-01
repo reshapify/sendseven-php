@@ -53,8 +53,12 @@ final readonly class Scheduler
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/list_scheduled_sends_for_contact_api_v1_contacts__contact_id__scheduled_sends_get
      */
-    public function listScheduledSendsForContact(string $contactId, ScheduledSendStatus|string|null $status = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listScheduledSendsForContact(
+        string $contactId,
+        ScheduledSendStatus|string|null $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/contacts/'.Payload::segment($contactId).'/scheduled-sends',
@@ -81,12 +85,21 @@ final readonly class Scheduler
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/list_scheduled_rules_api_v1_scheduler_rules_get
      */
-    public function listScheduledRules(ScheduledRuleStatus|string|null $status = null, ScheduledRuleKind|string|null $kind = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listScheduledRules(
+        ScheduledRuleStatus|string|null $status = null,
+        ScheduledRuleKind|string|null $kind = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/scheduler/rules',
-            query: Payload::query(['status' => $status, 'kind' => $kind, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'status' => $status,
+                'kind' => $kind,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), ScheduledRule::fromArray(...), fn (int $page): Page => $this->listScheduledRules(status: $status, kind: $kind, page: $page, pageSize: $pageSize));
@@ -111,23 +124,49 @@ final readonly class Scheduler
      * @param  array<string, mixed>  $payload  Free-form JSON payload. Same per-channel rules as ``scheduled_sends.payload``: WhatsApp REQUIRES ``{template_id, variables}``; email accepts EITHER free-text (``{subject, text|html}``) OR templated (``{template_id, variables?}``) — mutually exclusive; SMS/Telegram/Messenger/Instagram/RCS must NOT carry ``template_id`` but MAY carry ``attachments`` (a list of ≤20 attachment UUIDs owned by your workspace). Hard-capped at 64 KB.
      * @param  ?string  $channelId  Pinned channel UUID — REQUIRED for chat-app channel types (whatsapp, telegram, sms, messenger, instagram, rcs). The channel IS the sender for these. Must be NULL for ``channel_type=email`` (use ``email_mailbox_id`` instead).
      * @param  ?string  $emailMailboxId  Pinned EmailMailbox UUID — REQUIRED for ``channel_type=email``. The mailbox is the sender (controls the From: address). Must be NULL for chat-app channel types.
-     * @param  DateTimeInterface|string|null  $nextEvaluationAt  For `segment_blast`: the dispatch time. For other kinds the evaluator manages this cursor — leaving it NULL is fine.
-     * @param  ?string  $recurrenceRule  iCalendar RRULE string. Required for `recurring_cron`; must be NULL for `birthday` and `segment_blast`.
-     * @param  array<string, mixed>|null  $segmentFilter  Audience selector. Two accepted shapes: * NEW: ``{"match_op": "any"|"all", "rules": [{"kind": "tag"|"list"|"language", "op": ..., "values": [...]}]}`` * LEGACY: ``{"tags": [...], "tags_op": "any"|"all"}`` (normalized by the engine). NULL for `birthday` (audience is implicit).
      * @param  ?string  $timeOfDayLocal  Local clock time as "HH:MM" or "HH:MM:SS". Required for `birthday` rules. Optional for `recurring_cron` (the RRULE controls timing). Ignored for `segment_blast`.
      * @param  ?string  $timezone  IANA tz name (e.g. ``Europe/Berlin``). NULL semantics: birthday → contact-local TZ, recurring_cron/segment_blast → UTC.
+     * @param  ?string  $recurrenceRule  iCalendar RRULE string. Required for `recurring_cron`; must be NULL for `birthday` and `segment_blast`.
+     * @param  array<string, mixed>|null  $segmentFilter  Audience selector. Two accepted shapes: * NEW: ``{"match_op": "any"|"all", "rules": [{"kind": "tag"|"list"|"language", "op": ..., "values": [...]}]}`` * LEGACY: ``{"tags": [...], "tags_op": "any"|"all"}`` (normalized by the engine). NULL for `birthday` (audience is implicit).
+     * @param  DateTimeInterface|string|null  $nextEvaluationAt  For `segment_blast`: the dispatch time. For other kinds the evaluator manages this cursor — leaving it NULL is fine.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/create_scheduled_rule_api_v1_scheduler_rules_post
      */
-    public function createScheduledRule(ChannelType|string $channelType, ScheduledRuleKind|string $kind, string $name, array $payload, ?string $channelId = null, ?string $description = null, ?string $emailMailboxId = null, DateTimeInterface|string|null $nextEvaluationAt = null, ?string $recurrenceRule = null, ?array $segmentFilter = null, ?string $timeOfDayLocal = null, ?string $timezone = null, ?string $idempotencyKey = null): ScheduledRule
-    {
+    public function createScheduledRule(
+        string $name,
+        ScheduledRuleKind|string $kind,
+        ChannelType|string $channelType,
+        array $payload,
+        ?string $description = null,
+        ?string $channelId = null,
+        ?string $emailMailboxId = null,
+        ?string $timeOfDayLocal = null,
+        ?string $timezone = null,
+        ?string $recurrenceRule = null,
+        ?array $segmentFilter = null,
+        DateTimeInterface|string|null $nextEvaluationAt = null,
+        ?string $idempotencyKey = null,
+    ): ScheduledRule {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/scheduler/rules',
-            body: Payload::body(['channel_type' => $channelType, 'kind' => $kind, 'name' => $name, 'payload' => $payload, 'channel_id' => $channelId, 'description' => $description, 'email_mailbox_id' => $emailMailboxId, 'next_evaluation_at' => $nextEvaluationAt, 'recurrence_rule' => $recurrenceRule, 'segment_filter' => $segmentFilter, 'time_of_day_local' => $timeOfDayLocal, 'timezone' => $timezone]),
+            body: Payload::body([
+                'name' => $name,
+                'kind' => $kind,
+                'channel_type' => $channelType,
+                'payload' => $payload,
+                'description' => $description,
+                'channel_id' => $channelId,
+                'email_mailbox_id' => $emailMailboxId,
+                'time_of_day_local' => $timeOfDayLocal,
+                'timezone' => $timezone,
+                'recurrence_rule' => $recurrenceRule,
+                'segment_filter' => $segmentFilter,
+                'next_evaluation_at' => $nextEvaluationAt,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -202,12 +241,39 @@ final readonly class Scheduler
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/update_scheduled_rule_api_v1_scheduler_rules__rule_id__patch
      */
-    public function updateScheduledRule(string $ruleId, ?string $channelId = null, ChannelType|string|null $channelType = null, ?string $description = null, ?string $emailMailboxId = null, ?string $name = null, DateTimeInterface|string|null $nextEvaluationAt = null, ?array $payload = null, ?string $recurrenceRule = null, ?array $segmentFilter = null, ScheduledRuleStatus|string|null $status = null, ?string $timeOfDayLocal = null, ?string $timezone = null, ?string $idempotencyKey = null): ScheduledRule
-    {
+    public function updateScheduledRule(
+        string $ruleId,
+        ?string $name = null,
+        ?string $description = null,
+        ChannelType|string|null $channelType = null,
+        ?string $channelId = null,
+        ?string $emailMailboxId = null,
+        ?array $payload = null,
+        ?string $timeOfDayLocal = null,
+        ?string $timezone = null,
+        ?string $recurrenceRule = null,
+        ?array $segmentFilter = null,
+        DateTimeInterface|string|null $nextEvaluationAt = null,
+        ScheduledRuleStatus|string|null $status = null,
+        ?string $idempotencyKey = null,
+    ): ScheduledRule {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/scheduler/rules/'.Payload::segment($ruleId),
-            body: Payload::body(['channel_id' => $channelId, 'channel_type' => $channelType, 'description' => $description, 'email_mailbox_id' => $emailMailboxId, 'name' => $name, 'next_evaluation_at' => $nextEvaluationAt, 'payload' => $payload, 'recurrence_rule' => $recurrenceRule, 'segment_filter' => $segmentFilter, 'status' => $status, 'time_of_day_local' => $timeOfDayLocal, 'timezone' => $timezone]),
+            body: Payload::body([
+                'name' => $name,
+                'description' => $description,
+                'channel_type' => $channelType,
+                'channel_id' => $channelId,
+                'email_mailbox_id' => $emailMailboxId,
+                'payload' => $payload,
+                'time_of_day_local' => $timeOfDayLocal,
+                'timezone' => $timezone,
+                'recurrence_rule' => $recurrenceRule,
+                'segment_filter' => $segmentFilter,
+                'next_evaluation_at' => $nextEvaluationAt,
+                'status' => $status,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -310,12 +376,23 @@ final readonly class Scheduler
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/list_scheduled_sends_api_v1_scheduler_sends_get
      */
-    public function listScheduledSends(ScheduledSendStatus|string|null $status = null, ChannelType|string|null $channelType = null, ?string $contactId = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listScheduledSends(
+        ScheduledSendStatus|string|null $status = null,
+        ChannelType|string|null $channelType = null,
+        ?string $contactId = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/scheduler/sends',
-            query: Payload::query(['status' => $status, 'channel_type' => $channelType, 'contact_id' => $contactId, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'status' => $status,
+                'channel_type' => $channelType,
+                'contact_id' => $contactId,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), ScheduledSend::fromArray(...), fn (int $page): Page => $this->listScheduledSends(status: $status, channelType: $channelType, contactId: $contactId, page: $page, pageSize: $pageSize));
@@ -331,8 +408,8 @@ final readonly class Scheduler
      *
      * Scopes: scheduler:write.
      *
-     * @param  ChannelType|string  $channelType  Canonical ChannelType (whatsapp, telegram, sms, email, ...)
      * @param  string  $contactId  Contact UUID on the tenant's shard
+     * @param  ChannelType|string  $channelType  Canonical ChannelType (whatsapp, telegram, sms, email, ...)
      * @param  array<string, mixed>  $payload  Free-form JSON payload. Per-channel rules: - WhatsApp: REQUIRES ``{template_id, variables}`` — free text is rejected because the 24h messaging window cannot be guaranteed at schedule time. - Email: EITHER ``{subject, text|html, include_signature?}`` (free-text) OR ``{template_id, variables?}`` (references an EmailContent template). Mutually exclusive. - SMS / Telegram / Messenger / Instagram / RCS: rendered text payload (e.g. ``{"text": "..."}``), optionally with ``attachments`` — a list of attachment UUIDs (uploaded via ``POST /attachments/upload``) fanned out as one message per attachment at fire time. Max 20. Every id must belong to your workspace. Hard-capped at 64 KB JSON-encoded.
      * @param  DateTimeInterface|string  $sendAt  First-fire timestamp (timezone-aware UTC). Must be at least 1 minute in the future.
      * @param  ?string  $channelId  Pinned channel UUID — REQUIRED for chat-app channel types (whatsapp, telegram, sms, messenger, instagram, rcs). Each chat-app channel IS the sender (for RCS: the RBM agent). Leave NULL only for ``channel_type=email`` (use ``email_mailbox_id`` instead).
@@ -345,12 +422,30 @@ final readonly class Scheduler
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/create_scheduled_send_api_v1_scheduler_sends_post
      */
-    public function createScheduledSend(ChannelType|string $channelType, string $contactId, array $payload, DateTimeInterface|string $sendAt, ?string $channelId = null, ?string $emailMailboxId = null, ?string $recurrenceRule = null, ?string $timezone = null, ?string $idempotencyKey = null): ScheduledSend
-    {
+    public function createScheduledSend(
+        string $contactId,
+        ChannelType|string $channelType,
+        array $payload,
+        DateTimeInterface|string $sendAt,
+        ?string $channelId = null,
+        ?string $emailMailboxId = null,
+        ?string $recurrenceRule = null,
+        ?string $timezone = null,
+        ?string $idempotencyKey = null,
+    ): ScheduledSend {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/scheduler/sends',
-            body: Payload::body(['channel_type' => $channelType, 'contact_id' => $contactId, 'payload' => $payload, 'send_at' => $sendAt, 'channel_id' => $channelId, 'email_mailbox_id' => $emailMailboxId, 'recurrence_rule' => $recurrenceRule, 'timezone' => $timezone]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'channel_type' => $channelType,
+                'payload' => $payload,
+                'send_at' => $sendAt,
+                'channel_id' => $channelId,
+                'email_mailbox_id' => $emailMailboxId,
+                'recurrence_rule' => $recurrenceRule,
+                'timezone' => $timezone,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -416,22 +511,33 @@ final readonly class Scheduler
      *
      * Scopes: scheduler:write.
      *
-     * @param  ?string  $emailMailboxId  New pinned EmailMailbox UUID. Only valid when the underlying scheduled send has channel_type=email. Pass an empty string to clear.
      * @param  array<string, mixed>|null  $payload  Replaces the entire payload dict. Hard-capped at 64 KB JSON-encoded. Per-channel rules are re-checked against the existing row's channel_type: WhatsApp must carry {template_id, variables}; SMS/Telegram/Messenger/Instagram/RCS must NOT carry template_id (but may carry `attachments` — ≤20 attachment UUIDs owned by your workspace); email must carry a valid subject + body or template_id.
-     * @param  ?string  $recurrenceRule  New iCalendar RRULE. Pass an empty string to clear the rule (turn a recurring send into a one-off). Capped at 255 chars.
+     * @param  ?string  $emailMailboxId  New pinned EmailMailbox UUID. Only valid when the underlying scheduled send has channel_type=email. Pass an empty string to clear.
      * @param  DateTimeInterface|string|null  $sendAt  New first-fire timestamp. ``next_run_at`` is updated to match.
+     * @param  ?string  $recurrenceRule  New iCalendar RRULE. Pass an empty string to clear the rule (turn a recurring send into a one-off). Capped at 255 chars.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Scheduler/update_scheduled_send_api_v1_scheduler_sends__send_id__patch
      */
-    public function updateScheduledSend(string $sendId, ?string $emailMailboxId = null, ?array $payload = null, ?string $recurrenceRule = null, DateTimeInterface|string|null $sendAt = null, ?string $idempotencyKey = null): ScheduledSend
-    {
+    public function updateScheduledSend(
+        string $sendId,
+        ?array $payload = null,
+        ?string $emailMailboxId = null,
+        DateTimeInterface|string|null $sendAt = null,
+        ?string $recurrenceRule = null,
+        ?string $idempotencyKey = null,
+    ): ScheduledSend {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/scheduler/sends/'.Payload::segment($sendId),
-            body: Payload::body(['email_mailbox_id' => $emailMailboxId, 'payload' => $payload, 'recurrence_rule' => $recurrenceRule, 'send_at' => $sendAt]),
+            body: Payload::body([
+                'payload' => $payload,
+                'email_mailbox_id' => $emailMailboxId,
+                'send_at' => $sendAt,
+                'recurrence_rule' => $recurrenceRule,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

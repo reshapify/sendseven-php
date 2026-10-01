@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ListSubscriptionStats extends Data
 {
     /**
-     * @param  list<ListSubscriptionStatsItem>  $items
      * @param  int  $windowDays  Size of the rolling window in days
+     * @param  list<ListSubscriptionStatsItem>  $items
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $items,
         public int $windowDays,
+        public array $items,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class ListSubscriptionStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            items: $attributes->list('items', ListSubscriptionStatsItem::fromArray(...)),
             windowDays: $attributes->int('window_days'),
+            items: $attributes->list('items', ListSubscriptionStatsItem::fromArray(...)),
             raw: $data,
         );
     }

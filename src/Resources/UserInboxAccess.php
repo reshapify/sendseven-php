@@ -81,12 +81,20 @@ final readonly class UserInboxAccess
      *
      * @see https://api.sendseven.com/api/v1/docs#/User%20Inbox%20Access/update_user_inbox_access_api_v1_users__user_id__inbox_access_put
      */
-    public function update(string $userId, string $mode, ?string $contactHistoryVisibility = null, ?array $inboxIds = null): UserInboxAccessResponse
-    {
+    public function update(
+        string $userId,
+        string $mode,
+        ?array $inboxIds = null,
+        ?string $contactHistoryVisibility = null,
+    ): UserInboxAccessResponse {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/users/'.Payload::segment($userId).'/inbox-access',
-            body: Payload::body(['mode' => $mode, 'contact_history_visibility' => $contactHistoryVisibility, 'inbox_ids' => $inboxIds]),
+            body: Payload::body([
+                'mode' => $mode,
+                'inbox_ids' => $inboxIds,
+                'contact_history_visibility' => $contactHistoryVisibility,
+            ]),
         ));
 
         return UserInboxAccessResponse::fromArray($response->data());

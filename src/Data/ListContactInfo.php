@@ -20,10 +20,10 @@ final readonly class ListContactInfo extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $email,
         public string $id,
         public ?string $name,
         public ?string $phone,
+        public ?string $email,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class ListContactInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            email: $attributes->nullableString('email'),
             id: $attributes->string('id'),
             name: $attributes->nullableString('name'),
             phone: $attributes->nullableString('phone'),
+            email: $attributes->nullableString('email'),
             raw: $data,
         );
     }

@@ -20,61 +20,61 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CurrentUser extends Data
 {
     /**
-     * @param  ?DateTimeImmutable  $aupAcceptedAt  When the user accepted the Acceptable Use Policy
-     * @param  ?string  $aupVersion  Version of the Acceptable Use Policy the user accepted
-     * @param  ?bool  $autoTranslateEnabled  Whether automatic translation of incoming messages is enabled
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $email  User email address
+     * @param  string  $name  Auth0 synced name
+     * @param  ?string  $displayName  User-editable display name
      * @param  ?string  $avatarUrl  URL to user's avatar image
      * @param  ?string  $chatNickname  Chat display nickname
-     * @param  DateTimeImmutable  $createdAt  When the user was created
-     * @param  ?string  $darkTheme  Dark mode theme
-     * @param  ?string  $displayName  User-editable display name
-     * @param  string  $email  User email address
-     * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting the signature into the composer (per-tenant)
-     * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert the signature when opening a new-email composer (per-tenant)
-     * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert the signature when opening a reply composer (per-tenant)
-     * @param  string  $id  Unique identifier (UUID)
-     * @param  ?string  $lightTheme  Light mode theme
      * @param  ?bool  $liveChatAvailable  Available for live chat assignment
-     * @param  string  $name  Auth0 synced name
      * @param  ?string  $personalPhone  Personal phone for receiving notifications (user-global)
-     * @param  ?string  $phone  Agent's phone number for email signatures (per-tenant)
+     * @param  ?string  $lightTheme  Light mode theme
+     * @param  ?string  $darkTheme  Dark mode theme
      * @param  ?string  $preferredLanguage  Preferred UI language code (e.g., en, de, fr)
      * @param  ?string  $preferredTranslationLanguage  Preferred language for chat translations
-     * @param  ?string  $role  DEPRECATED: Use RBAC system. Field removed from API responses.
+     * @param  ?bool  $autoTranslateEnabled  Whether automatic translation of incoming messages is enabled
      * @param  ?bool  $shoutboxHidden  Whether the team-chat Shoutbox widget is hidden/deactivated (user-global)
      * @param  ?string  $spokenLanguages  Comma-separated ISO 639-1 codes the user speaks (e.g., 'de,en')
+     * @param  ?DateTimeImmutable  $aupAcceptedAt  When the user accepted the Acceptable Use Policy
+     * @param  ?string  $aupVersion  Version of the Acceptable Use Policy the user accepted
+     * @param  DateTimeImmutable  $createdAt  When the user was created
      * @param  ?string  $tenantId  Current tenant context
+     * @param  ?string  $role  DEPRECATED: Use RBAC system. Field removed from API responses.
      * @param  ?bool  $tenantMultiAgentMode  Whether tenant uses multi-agent mode
+     * @param  ?string  $phone  Agent's phone number for email signatures (per-tenant)
      * @param  ?string  $title  Agent's job title for email signatures (per-tenant)
+     * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting the signature into the composer (per-tenant)
+     * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert the signature when opening a reply composer (per-tenant)
+     * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert the signature when opening a new-email composer (per-tenant)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $aupAcceptedAt,
-        public ?string $aupVersion,
-        public ?bool $autoTranslateEnabled,
+        public string $id,
+        public string $email,
+        public string $name,
+        public ?string $displayName,
         public ?string $avatarUrl,
         public ?string $chatNickname,
-        public DateTimeImmutable $createdAt,
-        public ?string $darkTheme,
-        public ?string $displayName,
-        public string $email,
-        public ?bool $emailAutoSignatureEnabled,
-        public ?bool $emailAutoSignatureOnNew,
-        public ?bool $emailAutoSignatureOnReplies,
-        public string $id,
-        public ?string $lightTheme,
         public ?bool $liveChatAvailable,
-        public string $name,
         public ?string $personalPhone,
-        public ?string $phone,
+        public ?string $lightTheme,
+        public ?string $darkTheme,
         public ?string $preferredLanguage,
         public ?string $preferredTranslationLanguage,
-        public ?string $role,
+        public ?bool $autoTranslateEnabled,
         public ?bool $shoutboxHidden,
         public ?string $spokenLanguages,
+        public ?DateTimeImmutable $aupAcceptedAt,
+        public ?string $aupVersion,
+        public DateTimeImmutable $createdAt,
         public ?string $tenantId,
+        public ?string $role,
         public ?bool $tenantMultiAgentMode,
+        public ?string $phone,
         public ?string $title,
+        public ?bool $emailAutoSignatureEnabled,
+        public ?bool $emailAutoSignatureOnReplies,
+        public ?bool $emailAutoSignatureOnNew,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -88,32 +88,32 @@ final readonly class CurrentUser extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aupAcceptedAt: $attributes->nullableDateTime('aup_accepted_at'),
-            aupVersion: $attributes->nullableString('aup_version'),
-            autoTranslateEnabled: $attributes->nullableBool('auto_translate_enabled'),
+            id: $attributes->string('id'),
+            email: $attributes->string('email'),
+            name: $attributes->string('name'),
+            displayName: $attributes->nullableString('display_name'),
             avatarUrl: $attributes->nullableString('avatar_url'),
             chatNickname: $attributes->nullableString('chat_nickname'),
-            createdAt: $attributes->dateTime('created_at'),
-            darkTheme: $attributes->nullableString('dark_theme'),
-            displayName: $attributes->nullableString('display_name'),
-            email: $attributes->string('email'),
-            emailAutoSignatureEnabled: $attributes->nullableBool('email_auto_signature_enabled'),
-            emailAutoSignatureOnNew: $attributes->nullableBool('email_auto_signature_on_new'),
-            emailAutoSignatureOnReplies: $attributes->nullableBool('email_auto_signature_on_replies'),
-            id: $attributes->string('id'),
-            lightTheme: $attributes->nullableString('light_theme'),
             liveChatAvailable: $attributes->nullableBool('live_chat_available'),
-            name: $attributes->string('name'),
             personalPhone: $attributes->nullableString('personal_phone'),
-            phone: $attributes->nullableString('phone'),
+            lightTheme: $attributes->nullableString('light_theme'),
+            darkTheme: $attributes->nullableString('dark_theme'),
             preferredLanguage: $attributes->nullableString('preferred_language'),
             preferredTranslationLanguage: $attributes->nullableString('preferred_translation_language'),
-            role: $attributes->nullableString('role'),
+            autoTranslateEnabled: $attributes->nullableBool('auto_translate_enabled'),
             shoutboxHidden: $attributes->nullableBool('shoutbox_hidden'),
             spokenLanguages: $attributes->nullableString('spoken_languages'),
+            aupAcceptedAt: $attributes->nullableDateTime('aup_accepted_at'),
+            aupVersion: $attributes->nullableString('aup_version'),
+            createdAt: $attributes->dateTime('created_at'),
             tenantId: $attributes->nullableString('tenant_id'),
+            role: $attributes->nullableString('role'),
             tenantMultiAgentMode: $attributes->nullableBool('tenant_multi_agent_mode'),
+            phone: $attributes->nullableString('phone'),
             title: $attributes->nullableString('title'),
+            emailAutoSignatureEnabled: $attributes->nullableBool('email_auto_signature_enabled'),
+            emailAutoSignatureOnReplies: $attributes->nullableBool('email_auto_signature_on_replies'),
+            emailAutoSignatureOnNew: $attributes->nullableBool('email_auto_signature_on_new'),
             raw: $data,
         );
     }

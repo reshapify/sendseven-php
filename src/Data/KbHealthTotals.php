@@ -21,15 +21,15 @@ final readonly class KbHealthTotals extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $archived,
-        public ?float $averageQualityScore,
+        public ?int $totalEntries,
+        public ?int $published,
         public ?int $draft,
         public ?int $needsReview,
+        public ?int $archived,
         public ?int $openCorrections,
-        public ?int $published,
         public ?int $scoredEntries,
-        public ?int $totalEntries,
         public ?int $unscoredEntries,
+        public ?float $averageQualityScore,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,15 +43,15 @@ final readonly class KbHealthTotals extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            archived: $attributes->nullableInt('archived'),
-            averageQualityScore: $attributes->nullableFloat('average_quality_score'),
+            totalEntries: $attributes->nullableInt('total_entries'),
+            published: $attributes->nullableInt('published'),
             draft: $attributes->nullableInt('draft'),
             needsReview: $attributes->nullableInt('needs_review'),
+            archived: $attributes->nullableInt('archived'),
             openCorrections: $attributes->nullableInt('open_corrections'),
-            published: $attributes->nullableInt('published'),
             scoredEntries: $attributes->nullableInt('scored_entries'),
-            totalEntries: $attributes->nullableInt('total_entries'),
             unscoredEntries: $attributes->nullableInt('unscored_entries'),
+            averageQualityScore: $attributes->nullableFloat('average_quality_score'),
             raw: $data,
         );
     }

@@ -17,31 +17,31 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ActiveCrawlJobSummary extends Data
 {
     /**
-     * @param  ?string  $baseUrl  Base URL being crawled
-     * @param  ?string  $createdAt  ISO datetime when job was created
-     * @param  ?int  $discoveredCount  Unique pages discovered so far
-     * @param  ?int  $documentsCreated  Documents created so far
      * @param  string  $jobId  Unique job ID
-     * @param  string  $message  Human-readable status message
-     * @param  ?int  $pagesCrawled  Pages successfully crawled so far
-     * @param  ?int  $progressPercent  Progress percentage (0-100)
-     * @param  ?string  $startedAt  ISO datetime when job started
      * @param  string  $status  Current status
+     * @param  string  $message  Human-readable status message
+     * @param  ?string  $baseUrl  Base URL being crawled
+     * @param  ?int  $discoveredCount  Unique pages discovered so far
+     * @param  ?int  $pagesCrawled  Pages successfully crawled so far
      * @param  ?int  $totalPages  Total unique pages to crawl
+     * @param  ?int  $documentsCreated  Documents created so far
+     * @param  ?int  $progressPercent  Progress percentage (0-100)
+     * @param  ?string  $createdAt  ISO datetime when job was created
+     * @param  ?string  $startedAt  ISO datetime when job started
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $baseUrl,
-        public ?string $createdAt,
-        public ?int $discoveredCount,
-        public ?int $documentsCreated,
         public string $jobId,
-        public string $message,
-        public ?int $pagesCrawled,
-        public ?int $progressPercent,
-        public ?string $startedAt,
         public string $status,
+        public string $message,
+        public ?string $baseUrl,
+        public ?int $discoveredCount,
+        public ?int $pagesCrawled,
         public ?int $totalPages,
+        public ?int $documentsCreated,
+        public ?int $progressPercent,
+        public ?string $createdAt,
+        public ?string $startedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,17 +55,17 @@ final readonly class ActiveCrawlJobSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            baseUrl: $attributes->nullableString('base_url'),
-            createdAt: $attributes->nullableString('created_at'),
-            discoveredCount: $attributes->nullableInt('discovered_count'),
-            documentsCreated: $attributes->nullableInt('documents_created'),
             jobId: $attributes->string('job_id'),
-            message: $attributes->string('message'),
-            pagesCrawled: $attributes->nullableInt('pages_crawled'),
-            progressPercent: $attributes->nullableInt('progress_percent'),
-            startedAt: $attributes->nullableString('started_at'),
             status: $attributes->string('status'),
+            message: $attributes->string('message'),
+            baseUrl: $attributes->nullableString('base_url'),
+            discoveredCount: $attributes->nullableInt('discovered_count'),
+            pagesCrawled: $attributes->nullableInt('pages_crawled'),
             totalPages: $attributes->nullableInt('total_pages'),
+            documentsCreated: $attributes->nullableInt('documents_created'),
+            progressPercent: $attributes->nullableInt('progress_percent'),
+            createdAt: $attributes->nullableString('created_at'),
+            startedAt: $attributes->nullableString('started_at'),
             raw: $data,
         );
     }

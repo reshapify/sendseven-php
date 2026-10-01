@@ -63,12 +63,25 @@ final readonly class KnowledgeBase
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/list_documents_api_v1_knowledge_base_documents_get
      */
-    public function listDocuments(?string $documentType = null, ?string $search = null, ?string $folderId = null, ?string $status = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listDocuments(
+        ?string $documentType = null,
+        ?string $search = null,
+        ?string $folderId = null,
+        ?string $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/knowledge-base/documents',
-            query: Payload::query(['document_type' => $documentType, 'search' => $search, 'folder_id' => $folderId, 'status' => $status, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'document_type' => $documentType,
+                'search' => $search,
+                'folder_id' => $folderId,
+                'status' => $status,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), KnowledgeBaseDocument::fromArray(...), fn (int $page): Page => $this->listDocuments(documentType: $documentType, search: $search, folderId: $folderId, status: $status, page: $page, pageSize: $pageSize));
@@ -87,23 +100,35 @@ final readonly class KnowledgeBase
      *
      * Scopes: knowledge_base:create.
      *
-     * @param  string  $documentType  Document type: 'faq' or 'manual'
      * @param  string  $title  Document title
+     * @param  string  $documentType  Document type: 'faq' or 'manual'
+     * @param  ?string  $sourceUrl  Optional source URL reference
      * @param  ?string  $content  Text content for FAQs/manuals
      * @param  ?string  $folderId  Target folder ID. If not provided, document goes to General folder.
-     * @param  ?string  $sourceUrl  Optional source URL reference
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/create_document_api_v1_knowledge_base_documents_post
      */
-    public function createDocument(string $documentType, string $title, ?string $content = null, ?string $folderId = null, ?string $sourceUrl = null, ?string $idempotencyKey = null): KnowledgeBaseDocument
-    {
+    public function createDocument(
+        string $title,
+        string $documentType,
+        ?string $sourceUrl = null,
+        ?string $content = null,
+        ?string $folderId = null,
+        ?string $idempotencyKey = null,
+    ): KnowledgeBaseDocument {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/documents',
-            body: Payload::body(['document_type' => $documentType, 'title' => $title, 'content' => $content, 'folder_id' => $folderId, 'source_url' => $sourceUrl]),
+            body: Payload::body([
+                'title' => $title,
+                'document_type' => $documentType,
+                'source_url' => $sourceUrl,
+                'content' => $content,
+                'folder_id' => $folderId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -154,23 +179,39 @@ final readonly class KnowledgeBase
      *
      * @param  string  $url  URL to crawl
      * @param  ?bool  $followLinks  If true, follow links and crawl multiple pages. If false, only crawl the single URL provided.
-     * @param  ?int  $maxDepth  Maximum crawl depth when follow_links=True (default from settings)
+     * @param  ?string  $titlePrefix  Optional prefix for document titles
      * @param  ?int  $pageLimit  Maximum pages to crawl when follow_links=True (1-2000, default 200). Smart safeguards prevent duplicate content pages.
+     * @param  ?int  $maxDepth  Maximum crawl depth when follow_links=True (default from settings)
      * @param  float|int|null  $rateLimit  Seconds between requests (default from settings)
      * @param  ?bool  $refresh  If true, delete existing documents from this domain before crawling
-     * @param  ?string  $titlePrefix  Optional prefix for document titles
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/crawl_website_api_v1_knowledge_base_documents_crawl_post
      */
-    public function crawlWebsite(string $url, ?bool $followLinks = null, ?int $maxDepth = null, ?int $pageLimit = null, float|int|null $rateLimit = null, ?bool $refresh = null, ?string $titlePrefix = null, ?string $idempotencyKey = null): WebsiteCrawlJob
-    {
+    public function crawlWebsite(
+        string $url,
+        ?bool $followLinks = null,
+        ?string $titlePrefix = null,
+        ?int $pageLimit = null,
+        ?int $maxDepth = null,
+        float|int|null $rateLimit = null,
+        ?bool $refresh = null,
+        ?string $idempotencyKey = null,
+    ): WebsiteCrawlJob {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/documents/crawl',
-            body: Payload::body(['url' => $url, 'follow_links' => $followLinks, 'max_depth' => $maxDepth, 'page_limit' => $pageLimit, 'rate_limit' => $rateLimit, 'refresh' => $refresh, 'title_prefix' => $titlePrefix]),
+            body: Payload::body([
+                'url' => $url,
+                'follow_links' => $followLinks,
+                'title_prefix' => $titlePrefix,
+                'page_limit' => $pageLimit,
+                'max_depth' => $maxDepth,
+                'rate_limit' => $rateLimit,
+                'refresh' => $refresh,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -330,22 +371,34 @@ final readonly class KnowledgeBase
      * Scopes: knowledge_base:create.
      *
      * @param  string  $historyId  ID of the crawl history record to use for re-crawling
-     * @param  ?bool  $clearExisting  Hard reset. When True, the existing documents for this domain (and their RAG corpus files) are deleted BEFORE the re-crawl runs, then pages are re-discovered and re-imported from scratch. When False (default), the re-crawl is non-destructive: existing documents are updated in-place and orphaned documents are cleaned up only after a successful crawl (crawl-then-reconcile).
      * @param  ?string  $mode  Recrawl mode. Defaults to 'full_rescan', which re-discovers pages from scratch via sitemap/BFS and picks up newly added pages. 'existing_pages' re-crawls only the URLs stored from the previous crawl.
-     * @param  ?int  $pageLimit  Maximum pages to crawl (1-2000). If omitted, the coordinator falls back to its default page limit.
      * @param  ?string  $titlePrefix  Optional prefix for document titles
+     * @param  ?int  $pageLimit  Maximum pages to crawl (1-2000). If omitted, the coordinator falls back to its default page limit.
+     * @param  ?bool  $clearExisting  Hard reset. When True, the existing documents for this domain (and their RAG corpus files) are deleted BEFORE the re-crawl runs, then pages are re-discovered and re-imported from scratch. When False (default), the re-crawl is non-destructive: existing documents are updated in-place and orphaned documents are cleaned up only after a successful crawl (crawl-then-reconcile).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/recrawl_domain_api_v1_knowledge_base_documents_recrawl_post
      */
-    public function recrawlDomain(string $historyId, ?bool $clearExisting = null, ?string $mode = null, ?int $pageLimit = null, ?string $titlePrefix = null, ?string $idempotencyKey = null): WebsiteCrawlJob
-    {
+    public function recrawlDomain(
+        string $historyId,
+        ?string $mode = null,
+        ?string $titlePrefix = null,
+        ?int $pageLimit = null,
+        ?bool $clearExisting = null,
+        ?string $idempotencyKey = null,
+    ): WebsiteCrawlJob {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/documents/recrawl',
-            body: Payload::body(['history_id' => $historyId, 'clear_existing' => $clearExisting, 'mode' => $mode, 'page_limit' => $pageLimit, 'title_prefix' => $titlePrefix]),
+            body: Payload::body([
+                'history_id' => $historyId,
+                'mode' => $mode,
+                'title_prefix' => $titlePrefix,
+                'page_limit' => $pageLimit,
+                'clear_existing' => $clearExisting,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -373,13 +426,23 @@ final readonly class KnowledgeBase
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/upload_document_file_api_v1_knowledge_base_documents_upload_post
      */
-    public function uploadDocumentFile(FilePart $file, string $title, ?string $documentType = null, ?string $folderId = null, ?string $idempotencyKey = null): KnowledgeBaseDocument
-    {
+    public function uploadDocumentFile(
+        FilePart $file,
+        string $title,
+        ?string $documentType = null,
+        ?string $folderId = null,
+        ?string $idempotencyKey = null,
+    ): KnowledgeBaseDocument {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/documents/upload',
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-            multipart: Payload::multipart(['file' => $file, 'title' => $title, 'document_type' => $documentType, 'folder_id' => $folderId]),
+            multipart: Payload::multipart([
+                'file' => $file,
+                'title' => $title,
+                'document_type' => $documentType,
+                'folder_id' => $folderId,
+            ]),
         ));
 
         return KnowledgeBaseDocument::fromArray($response->data());
@@ -406,8 +469,12 @@ final readonly class KnowledgeBase
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/upload_multiple_documents_api_v1_knowledge_base_documents_upload_multiple_post
      */
-    public function uploadMultipleDocuments(array $files, ?string $documentType = null, ?string $folderId = null, ?string $idempotencyKey = null): MultiFileUpload
-    {
+    public function uploadMultipleDocuments(
+        array $files,
+        ?string $documentType = null,
+        ?string $folderId = null,
+        ?string $idempotencyKey = null,
+    ): MultiFileUpload {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/documents/upload-multiple',
@@ -678,12 +745,22 @@ final readonly class KnowledgeBase
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/search_knowledge_base_api_v1_knowledge_base_search_post
      */
-    public function search(string $query, ?array $documentTypes = null, ?string $folderId = null, ?int $limit = null, ?string $idempotencyKey = null): SearchKnowledge
-    {
+    public function search(
+        string $query,
+        ?array $documentTypes = null,
+        ?string $folderId = null,
+        ?int $limit = null,
+        ?string $idempotencyKey = null,
+    ): SearchKnowledge {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/search',
-            body: Payload::body(['query' => $query, 'document_types' => $documentTypes, 'folder_id' => $folderId, 'limit' => $limit]),
+            body: Payload::body([
+                'query' => $query,
+                'document_types' => $documentTypes,
+                'folder_id' => $folderId,
+                'limit' => $limit,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

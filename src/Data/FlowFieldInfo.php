@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FlowFieldInfo extends Data
 {
     /**
-     * @param  ?string  $label  Display label
-     * @param  string  $name  Field name/ID
-     * @param  ?bool  $required  Whether field is required
      * @param  string  $type  Component type (TextInput, Dropdown, etc.)
+     * @param  string  $name  Field name/ID
+     * @param  ?string  $label  Display label
+     * @param  ?bool  $required  Whether field is required
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $label,
-        public string $name,
-        public ?bool $required,
         public string $type,
+        public string $name,
+        public ?string $label,
+        public ?bool $required,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class FlowFieldInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            label: $attributes->nullableString('label'),
-            name: $attributes->string('name'),
-            required: $attributes->nullableBool('required'),
             type: $attributes->string('type'),
+            name: $attributes->string('name'),
+            label: $attributes->nullableString('label'),
+            required: $attributes->nullableBool('required'),
             raw: $data,
         );
     }

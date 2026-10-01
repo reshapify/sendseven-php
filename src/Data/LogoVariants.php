@@ -17,18 +17,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LogoVariants extends Data
 {
     /**
+     * @param  ?string  $favicon  Favicon path (16x16 or 32x32)
+     * @param  ?string  $n64  Small logo (64x64)
      * @param  ?string  $n128  Medium logo (128x128)
      * @param  ?string  $n256  Large logo (256x256)
-     * @param  ?string  $n64  Small logo (64x64)
-     * @param  ?string  $favicon  Favicon path (16x16 or 32x32)
      * @param  ?string  $original  Original uploaded file
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?string $favicon,
+        public ?string $n64,
         public ?string $n128,
         public ?string $n256,
-        public ?string $n64,
-        public ?string $favicon,
         public ?string $original,
         array $raw = [],
     ) {
@@ -43,10 +43,10 @@ final readonly class LogoVariants extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            favicon: $attributes->nullableString('favicon'),
+            n64: $attributes->nullableString('64'),
             n128: $attributes->nullableString('128'),
             n256: $attributes->nullableString('256'),
-            n64: $attributes->nullableString('64'),
-            favicon: $attributes->nullableString('favicon'),
             original: $attributes->nullableString('original'),
             raw: $data,
         );

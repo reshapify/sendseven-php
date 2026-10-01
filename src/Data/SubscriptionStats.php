@@ -21,10 +21,10 @@ final readonly class SubscriptionStats extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $channels,
         public string $listId,
         public string $listName,
         public int $totalSubscriptions,
+        public array $channels,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,10 +38,10 @@ final readonly class SubscriptionStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channels: $attributes->list('channels', ChannelStats::fromArray(...)),
             listId: $attributes->string('list_id'),
             listName: $attributes->string('list_name'),
             totalSubscriptions: $attributes->int('total_subscriptions'),
+            channels: $attributes->list('channels', ChannelStats::fromArray(...)),
             raw: $data,
         );
     }

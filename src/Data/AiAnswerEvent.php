@@ -18,34 +18,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AiAnswerEvent extends Data
 {
     /**
-     * @param  list<string>  $correctionIds  Corrections raised from this answer
-     * @param  ?AiAnswerRatingSummary  $myRating  The requesting user's own verdict, if they rated it
-     * @param  ?string  $outcome  shown | accepted | sent | discarded
-     * @param  array<array-key, mixed>  $ratingCounts  e.g. {"up": 3, "down": 1, "wrong": 0}
-     * @param  list<AiAnswerSource>  $sources
      * @param  string  $surface  suggest | bot | flow | team_chat | auto_reply
+     * @param  ?string  $outcome  shown | accepted | sent | discarded
+     * @param  list<AiAnswerSource>  $sources
+     * @param  ?AiAnswerRatingSummary  $myRating  The requesting user's own verdict, if they rated it
+     * @param  array<array-key, mixed>  $ratingCounts  e.g. {"up": 3, "down": 1, "wrong": 0}
+     * @param  list<string>  $correctionIds  Corrections raised from this answer
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $answerText,
-        public ?string $botId,
-        public ?float $confidence,
-        public ?string $conversationId,
-        public array $correctionIds,
-        public DateTimeImmutable $createdAt,
-        public ?bool $flagged,
         public string $id,
-        public ?string $messageId,
-        public ?string $model,
-        public ?AiAnswerRatingSummary $myRating,
-        public ?string $outcome,
-        public ?string $queryText,
-        public array $ratingCounts,
-        public ?string $retrievalQuery,
-        public array $sources,
-        public string $surface,
         public string $tenantId,
+        public ?string $conversationId,
+        public ?string $messageId,
+        public ?string $botId,
+        public string $surface,
         public ?string $userId,
+        public ?string $queryText,
+        public ?string $retrievalQuery,
+        public ?string $answerText,
+        public ?string $model,
+        public ?float $confidence,
+        public ?string $outcome,
+        public ?bool $flagged,
+        public DateTimeImmutable $createdAt,
+        public array $sources,
+        public ?AiAnswerRatingSummary $myRating,
+        public array $ratingCounts,
+        public array $correctionIds,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,25 +59,25 @@ final readonly class AiAnswerEvent extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            answerText: $attributes->nullableString('answer_text'),
-            botId: $attributes->nullableString('bot_id'),
-            confidence: $attributes->nullableFloat('confidence'),
-            conversationId: $attributes->nullableString('conversation_id'),
-            correctionIds: $attributes->strings('correction_ids'),
-            createdAt: $attributes->dateTime('created_at'),
-            flagged: $attributes->nullableBool('flagged'),
             id: $attributes->string('id'),
-            messageId: $attributes->nullableString('message_id'),
-            model: $attributes->nullableString('model'),
-            myRating: $attributes->nullableObject('my_rating', AiAnswerRatingSummary::fromArray(...)),
-            outcome: $attributes->nullableString('outcome'),
-            queryText: $attributes->nullableString('query_text'),
-            ratingCounts: $attributes->array('rating_counts'),
-            retrievalQuery: $attributes->nullableString('retrieval_query'),
-            sources: $attributes->list('sources', AiAnswerSource::fromArray(...)),
-            surface: $attributes->string('surface'),
             tenantId: $attributes->string('tenant_id'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            messageId: $attributes->nullableString('message_id'),
+            botId: $attributes->nullableString('bot_id'),
+            surface: $attributes->string('surface'),
             userId: $attributes->nullableString('user_id'),
+            queryText: $attributes->nullableString('query_text'),
+            retrievalQuery: $attributes->nullableString('retrieval_query'),
+            answerText: $attributes->nullableString('answer_text'),
+            model: $attributes->nullableString('model'),
+            confidence: $attributes->nullableFloat('confidence'),
+            outcome: $attributes->nullableString('outcome'),
+            flagged: $attributes->nullableBool('flagged'),
+            createdAt: $attributes->dateTime('created_at'),
+            sources: $attributes->list('sources', AiAnswerSource::fromArray(...)),
+            myRating: $attributes->nullableObject('my_rating', AiAnswerRatingSummary::fromArray(...)),
+            ratingCounts: $attributes->array('rating_counts'),
+            correctionIds: $attributes->strings('correction_ids'),
             raw: $data,
         );
     }

@@ -20,65 +20,65 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SocialComment extends Data
 {
     /**
-     * @param  ?string  $attachmentType  Kind of `attachment_url`: `image` (photos and stickers) or `video`. Null when the comment has no media.
-     * @param  ?string  $attachmentUrl  URL of the comment's media, for a photo/sticker/video comment (these carry no text). A Facebook feature — Instagram comments cannot contain media. May be a signed CDN URL that expires.
+     * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $socialPostId  Our id for the post it was left on.
+     * @param  string  $channelId  Channel the post belongs to.
+     * @param  string  $externalCommentId  Meta's comment id. **This is the value to pass to `POST /comments/{comment_id}/private-reply`**, and the value that appears on the reply message as `meta.comment_id`.
+     * @param  ?string  $parentExternalCommentId  Meta's id of the comment this one replies to. Null for a top-level comment.
+     * @param  ?bool  $isReply  True when this comment is a threaded reply to another comment (`parent_external_comment_id` is set).
      * @param  string  $authorExternalId  The commenter's platform-scoped id (Instagram IGSID / Facebook PSID).
      * @param  ?string  $authorUsername  The commenter's username/handle, when Meta supplied one.
-     * @param  string  $channelId  Channel the post belongs to.
-     * @param  string  $commentedAt  Meta's timestamp for the comment — the business time.
-     * @param  ?string  $contactId  The commenter as a contact in your workspace. Null until they are resolved — which happens the first time we message them.
-     * @param  string  $createdAt  When the resource was created (UTC)
-     * @param  string  $externalCommentId  Meta's comment id. **This is the value to pass to `POST /comments/{comment_id}/private-reply`**, and the value that appears on the reply message as `meta.comment_id`.
-     * @param  ?string  $handledAt  When the comment was marked handled or ignored.
-     * @param  string  $id  Unique identifier (UUID)
      * @param  ?bool  $isFromOwner  True when the comment is from the connected account itself — most often our own public reply, which Meta echoes back as an ordinary comment. Such comments never count as unanswered and are hidden from listings unless `include_owner=true`.
-     * @param  ?bool  $isReply  True when this comment is a threaded reply to another comment (`parent_external_comment_id` is set).
-     * @param  ?string  $parentExternalCommentId  Meta's id of the comment this one replies to. Null for a top-level comment.
-     * @param  ?SocialPostRef  $post  The post this comment was left on. Included where the caller has no post context (the cross-post inbox, and a single comment); omitted from the per-post thread, where it would repeat.
-     * @param  ?PrivateReplyMessageRef  $privateReply  The reply message itself, hydrated for rendering. Omitted when `include_reply=false`, and null when the message row is gone — message retention can outrun comment retention, and the comment must keep saying it WAS answered.
-     * @param  ?bool  $privateReplyAvailable  Whether a private reply can still be sent right now. **False is the normal end state of most comments**, not an error — see `private_reply_unavailable_reason` for which one applies.
-     * @param  ?string  $privateReplyMessageId  `messages.id` of the private reply that answered this comment — the link from a comment to its reply. Set for a reply we sent ourselves; null for a flow hand-off, where the flow's Send node owns the outbound message.
-     * @param  ?string  $privateReplyUnavailableReason  Why `private_reply_available` is false, so the UI can say it rather than just grey out a button: * `already_replied` — a private reply was already sent. Meta permits exactly one per comment, **forever**. Permanent. * `window_expired` — the 7-day window closed. Permanent. * `window_unknown` — Meta gave no reliable comment timestamp, so we cannot prove the window is open; we fail closed rather than offer a reply that Meta would reject. * `marked_handled` — an agent cleared it without replying. Reversible: reopen it with `PATCH /comments/{comment_id}`. * `ignored` — our own comment, or dismissed by a rule. Also reversible. Null when a private reply IS available.
-     * @param  ?string  $privateReplyWindowExpiresAt  End of Meta's 7-day private-reply window, measured from `commented_at`. Null when Meta gave no reliable comment timestamp.
-     * @param  ?string  $publicReplyId  Meta's comment id of our public reply, when one was posted. Reserved: public replies are not part of the current release.
+     * @param  ?string  $contactId  The commenter as a contact in your workspace. Null until they are resolved — which happens the first time we message them.
+     * @param  ?string  $text  The comment text. Null for a media-only comment.
+     * @param  ?string  $attachmentUrl  URL of the comment's media, for a photo/sticker/video comment (these carry no text). A Facebook feature — Instagram comments cannot contain media. May be a signed CDN URL that expires.
+     * @param  ?string  $attachmentType  Kind of `attachment_url`: `image` (photos and stickers) or `video`. Null when the comment has no media.
+     * @param  string  $state  `pending` (unanswered) · `auto_replied` (a rule or flow answered it) · `replied` (an agent answered it) · `handled` (cleared without a private reply) · `ignored` (our own comment, or dismissed).
+     * @param  string  $commentedAt  Meta's timestamp for the comment — the business time.
      * @param  ?string  $repliedAt  When the private reply was sent.
      * @param  ?string  $repliedByUserId  The agent who replied, or who marked the comment handled. Null for an automated reply and for API-token callers.
-     * @param  string  $socialPostId  Our id for the post it was left on.
-     * @param  string  $state  `pending` (unanswered) · `auto_replied` (a rule or flow answered it) · `replied` (an agent answered it) · `handled` (cleared without a private reply) · `ignored` (our own comment, or dismissed).
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $text  The comment text. Null for a media-only comment.
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  ?string  $handledAt  When the comment was marked handled or ignored.
+     * @param  ?string  $privateReplyWindowExpiresAt  End of Meta's 7-day private-reply window, measured from `commented_at`. Null when Meta gave no reliable comment timestamp.
+     * @param  ?bool  $privateReplyAvailable  Whether a private reply can still be sent right now. **False is the normal end state of most comments**, not an error — see `private_reply_unavailable_reason` for which one applies.
+     * @param  ?string  $privateReplyUnavailableReason  Why `private_reply_available` is false, so the UI can say it rather than just grey out a button: * `already_replied` — a private reply was already sent. Meta permits exactly one per comment, **forever**. Permanent. * `window_expired` — the 7-day window closed. Permanent. * `window_unknown` — Meta gave no reliable comment timestamp, so we cannot prove the window is open; we fail closed rather than offer a reply that Meta would reject. * `marked_handled` — an agent cleared it without replying. Reversible: reopen it with `PATCH /comments/{comment_id}`. * `ignored` — our own comment, or dismissed by a rule. Also reversible. Null when a private reply IS available.
+     * @param  ?string  $privateReplyMessageId  `messages.id` of the private reply that answered this comment — the link from a comment to its reply. Set for a reply we sent ourselves; null for a flow hand-off, where the flow's Send node owns the outbound message.
+     * @param  ?PrivateReplyMessageRef  $privateReply  The reply message itself, hydrated for rendering. Omitted when `include_reply=false`, and null when the message row is gone — message retention can outrun comment retention, and the comment must keep saying it WAS answered.
+     * @param  ?string  $publicReplyId  Meta's comment id of our public reply, when one was posted. Reserved: public replies are not part of the current release.
+     * @param  ?SocialPostRef  $post  The post this comment was left on. Included where the caller has no post context (the cross-post inbox, and a single comment); omitted from the per-post thread, where it would repeat.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $attachmentType,
-        public ?string $attachmentUrl,
+        public string $createdAt,
+        public ?string $updatedAt,
+        public string $id,
+        public string $tenantId,
+        public string $socialPostId,
+        public string $channelId,
+        public string $externalCommentId,
+        public ?string $parentExternalCommentId,
+        public ?bool $isReply,
         public string $authorExternalId,
         public ?string $authorUsername,
-        public string $channelId,
-        public string $commentedAt,
-        public ?string $contactId,
-        public string $createdAt,
-        public string $externalCommentId,
-        public ?string $handledAt,
-        public string $id,
         public ?bool $isFromOwner,
-        public ?bool $isReply,
-        public ?string $parentExternalCommentId,
-        public ?SocialPostRef $post,
-        public ?PrivateReplyMessageRef $privateReply,
-        public ?bool $privateReplyAvailable,
-        public ?string $privateReplyMessageId,
-        public ?string $privateReplyUnavailableReason,
-        public ?string $privateReplyWindowExpiresAt,
-        public ?string $publicReplyId,
+        public ?string $contactId,
+        public ?string $text,
+        public ?string $attachmentUrl,
+        public ?string $attachmentType,
+        public string $state,
+        public string $commentedAt,
         public ?string $repliedAt,
         public ?string $repliedByUserId,
-        public string $socialPostId,
-        public string $state,
-        public string $tenantId,
-        public ?string $text,
-        public ?string $updatedAt,
+        public ?string $handledAt,
+        public ?string $privateReplyWindowExpiresAt,
+        public ?bool $privateReplyAvailable,
+        public ?string $privateReplyUnavailableReason,
+        public ?string $privateReplyMessageId,
+        public ?PrivateReplyMessageRef $privateReply,
+        public ?string $publicReplyId,
+        public ?SocialPostRef $post,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -92,34 +92,34 @@ final readonly class SocialComment extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachmentType: $attributes->nullableString('attachment_type'),
-            attachmentUrl: $attributes->nullableString('attachment_url'),
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            socialPostId: $attributes->string('social_post_id'),
+            channelId: $attributes->string('channel_id'),
+            externalCommentId: $attributes->string('external_comment_id'),
+            parentExternalCommentId: $attributes->nullableString('parent_external_comment_id'),
+            isReply: $attributes->nullableBool('is_reply'),
             authorExternalId: $attributes->string('author_external_id'),
             authorUsername: $attributes->nullableString('author_username'),
-            channelId: $attributes->string('channel_id'),
-            commentedAt: $attributes->string('commented_at'),
-            contactId: $attributes->nullableString('contact_id'),
-            createdAt: $attributes->string('created_at'),
-            externalCommentId: $attributes->string('external_comment_id'),
-            handledAt: $attributes->nullableString('handled_at'),
-            id: $attributes->string('id'),
             isFromOwner: $attributes->nullableBool('is_from_owner'),
-            isReply: $attributes->nullableBool('is_reply'),
-            parentExternalCommentId: $attributes->nullableString('parent_external_comment_id'),
-            post: $attributes->nullableObject('post', SocialPostRef::fromArray(...)),
-            privateReply: $attributes->nullableObject('private_reply', PrivateReplyMessageRef::fromArray(...)),
-            privateReplyAvailable: $attributes->nullableBool('private_reply_available'),
-            privateReplyMessageId: $attributes->nullableString('private_reply_message_id'),
-            privateReplyUnavailableReason: $attributes->nullableString('private_reply_unavailable_reason'),
-            privateReplyWindowExpiresAt: $attributes->nullableString('private_reply_window_expires_at'),
-            publicReplyId: $attributes->nullableString('public_reply_id'),
+            contactId: $attributes->nullableString('contact_id'),
+            text: $attributes->nullableString('text'),
+            attachmentUrl: $attributes->nullableString('attachment_url'),
+            attachmentType: $attributes->nullableString('attachment_type'),
+            state: $attributes->string('state'),
+            commentedAt: $attributes->string('commented_at'),
             repliedAt: $attributes->nullableString('replied_at'),
             repliedByUserId: $attributes->nullableString('replied_by_user_id'),
-            socialPostId: $attributes->string('social_post_id'),
-            state: $attributes->string('state'),
-            tenantId: $attributes->string('tenant_id'),
-            text: $attributes->nullableString('text'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            handledAt: $attributes->nullableString('handled_at'),
+            privateReplyWindowExpiresAt: $attributes->nullableString('private_reply_window_expires_at'),
+            privateReplyAvailable: $attributes->nullableBool('private_reply_available'),
+            privateReplyUnavailableReason: $attributes->nullableString('private_reply_unavailable_reason'),
+            privateReplyMessageId: $attributes->nullableString('private_reply_message_id'),
+            privateReply: $attributes->nullableObject('private_reply', PrivateReplyMessageRef::fromArray(...)),
+            publicReplyId: $attributes->nullableString('public_reply_id'),
+            post: $attributes->nullableObject('post', SocialPostRef::fromArray(...)),
             raw: $data,
         );
     }

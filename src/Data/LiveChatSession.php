@@ -23,16 +23,16 @@ final readonly class LiveChatSession extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $agentId,
-        public ?DateTimeImmutable $agentJoinedAt,
-        public string $contactId,
-        public ?string $conversationId,
-        public ?DateTimeImmutable $endedAt,
         public string $id,
-        public array $sessionData,
-        public DateTimeImmutable $startedAt,
-        public LiveChatSessionStatus|string $status,
         public string $widgetId,
+        public string $contactId,
+        public ?string $agentId,
+        public ?string $conversationId,
+        public LiveChatSessionStatus|string $status,
+        public DateTimeImmutable $startedAt,
+        public ?DateTimeImmutable $agentJoinedAt,
+        public ?DateTimeImmutable $endedAt,
+        public array $sessionData,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,16 +46,16 @@ final readonly class LiveChatSession extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            agentId: $attributes->nullableString('agent_id'),
-            agentJoinedAt: $attributes->nullableDateTime('agent_joined_at'),
-            contactId: $attributes->string('contact_id'),
-            conversationId: $attributes->nullableString('conversation_id'),
-            endedAt: $attributes->nullableDateTime('ended_at'),
             id: $attributes->string('id'),
-            sessionData: $attributes->array('session_data'),
-            startedAt: $attributes->dateTime('started_at'),
-            status: $attributes->enum('status', LiveChatSessionStatus::class),
             widgetId: $attributes->string('widget_id'),
+            contactId: $attributes->string('contact_id'),
+            agentId: $attributes->nullableString('agent_id'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            status: $attributes->enum('status', LiveChatSessionStatus::class),
+            startedAt: $attributes->dateTime('started_at'),
+            agentJoinedAt: $attributes->nullableDateTime('agent_joined_at'),
+            endedAt: $attributes->nullableDateTime('ended_at'),
+            sessionData: $attributes->array('session_data'),
             raw: $data,
         );
     }

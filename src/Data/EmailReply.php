@@ -17,22 +17,22 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailReply extends Data
 {
     /**
-     * @param  list<string>  $bccEmails
-     * @param  list<string>  $ccEmails
      * @param  string  $emailMessageId  ID of the created email message
      * @param  ?string  $messageId  RFC 5322 Message-ID
      * @param  string  $status  Message status (queued, sent, etc.)
      * @param  list<string>  $toEmails
+     * @param  list<string>  $ccEmails
+     * @param  list<string>  $bccEmails
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $bccEmails,
-        public array $ccEmails,
         public string $emailMessageId,
         public ?string $messageId,
-        public ?string $sentAt,
         public string $status,
+        public ?string $sentAt,
         public array $toEmails,
+        public array $ccEmails,
+        public array $bccEmails,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,13 +46,13 @@ final readonly class EmailReply extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bccEmails: $attributes->strings('bcc_emails'),
-            ccEmails: $attributes->strings('cc_emails'),
             emailMessageId: $attributes->string('email_message_id'),
             messageId: $attributes->nullableString('message_id'),
-            sentAt: $attributes->nullableString('sent_at'),
             status: $attributes->string('status'),
+            sentAt: $attributes->nullableString('sent_at'),
             toEmails: $attributes->strings('to_emails'),
+            ccEmails: $attributes->strings('cc_emails'),
+            bccEmails: $attributes->strings('bcc_emails'),
             raw: $data,
         );
     }

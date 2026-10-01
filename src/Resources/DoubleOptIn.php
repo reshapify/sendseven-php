@@ -97,9 +97,9 @@ final readonly class DoubleOptIn
      * Scopes: email:update.
      *
      * @param  string  $email  Email address to confirm
+     * @param  ?string  $listId  Optional list ID to subscribe to
      * @param  ?string  $category  Subscription category (newsletter, promotions, updates)
      * @param  ?string  $ipAddress  IP address of requester for audit trail
-     * @param  ?string  $listId  Optional list ID to subscribe to
      * @param  ?string  $userAgent  User agent for audit trail
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -107,12 +107,24 @@ final readonly class DoubleOptIn
      *
      * @see https://api.sendseven.com/api/v1/docs#/Double%20Opt-In/send_confirmation_email_api_v1_double_opt_in_send_post
      */
-    public function sendConfirmationEmail(string $email, ?string $category = null, ?string $ipAddress = null, ?string $listId = null, ?string $userAgent = null, ?string $idempotencyKey = null): DoubleOptInSend
-    {
+    public function sendConfirmationEmail(
+        string $email,
+        ?string $listId = null,
+        ?string $category = null,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+        ?string $idempotencyKey = null,
+    ): DoubleOptInSend {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/double-opt-in/send',
-            body: Payload::body(['email' => $email, 'category' => $category, 'ip_address' => $ipAddress, 'list_id' => $listId, 'user_agent' => $userAgent]),
+            body: Payload::body([
+                'email' => $email,
+                'list_id' => $listId,
+                'category' => $category,
+                'ip_address' => $ipAddress,
+                'user_agent' => $userAgent,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InvoiceLineItem extends Data
 {
     /**
-     * @param  ?string  $connectionIdentifier  Connection identifier (e.g., '@BotName', '+49171231231')
-     * @param  string  $costType  Cost type identifier (e.g., 'message_whatsapp')
      * @param  string  $description  Human-readable description (e.g., 'WhatsApp Messages +49171231231')
      * @param  int  $quantity  Number of units
-     * @param  int  $totalCents  Total in cents for backward compatibility
-     * @param  string  $totalEuros  Total amount in EUR (quantity x unit_price)
-     * @param  int  $unitPriceCents  Unit price in cents for backward compatibility
      * @param  string  $unitPriceEuros  Price per unit in EUR
+     * @param  string  $totalEuros  Total amount in EUR (quantity x unit_price)
+     * @param  string  $costType  Cost type identifier (e.g., 'message_whatsapp')
+     * @param  ?string  $connectionIdentifier  Connection identifier (e.g., '@BotName', '+49171231231')
+     * @param  int  $unitPriceCents  Unit price in cents for backward compatibility
+     * @param  int  $totalCents  Total in cents for backward compatibility
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $connectionIdentifier,
-        public string $costType,
         public string $description,
         public int $quantity,
-        public int $totalCents,
-        public string $totalEuros,
-        public int $unitPriceCents,
         public string $unitPriceEuros,
+        public string $totalEuros,
+        public string $costType,
+        public ?string $connectionIdentifier,
+        public int $unitPriceCents,
+        public int $totalCents,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class InvoiceLineItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            connectionIdentifier: $attributes->nullableString('connection_identifier'),
-            costType: $attributes->string('cost_type'),
             description: $attributes->string('description'),
             quantity: $attributes->int('quantity'),
-            totalCents: $attributes->int('total_cents'),
-            totalEuros: $attributes->string('total_euros'),
-            unitPriceCents: $attributes->int('unit_price_cents'),
             unitPriceEuros: $attributes->string('unit_price_euros'),
+            totalEuros: $attributes->string('total_euros'),
+            costType: $attributes->string('cost_type'),
+            connectionIdentifier: $attributes->nullableString('connection_identifier'),
+            unitPriceCents: $attributes->int('unit_price_cents'),
+            totalCents: $attributes->int('total_cents'),
             raw: $data,
         );
     }

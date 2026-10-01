@@ -17,18 +17,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AppSchemasWhatsAppFlowFlow extends Data
 {
     /**
-     * @param  list<string>  $categories  Flow categories
      * @param  string  $id  Flow ID from WhatsApp
      * @param  string  $name  Flow name
      * @param  string  $status  Flow status: DRAFT, PUBLISHED, etc.
+     * @param  list<string>  $categories  Flow categories
      * @param  list<mixed>  $validationErrors  Validation errors if any
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $categories,
         public string $id,
         public string $name,
         public string $status,
+        public array $categories,
         public array $validationErrors,
         array $raw = [],
     ) {
@@ -43,10 +43,10 @@ final readonly class AppSchemasWhatsAppFlowFlow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            categories: $attributes->strings('categories'),
             id: $attributes->string('id'),
             name: $attributes->string('name'),
             status: $attributes->string('status'),
+            categories: $attributes->strings('categories'),
             validationErrors: array_values($attributes->array('validation_errors')),
             raw: $data,
         );

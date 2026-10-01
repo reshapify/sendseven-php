@@ -24,16 +24,16 @@ final readonly class ReplayEvent extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $body,
-        public ?string $channel,
-        public ?string $messageId,
+        public string $type,
+        public ?string $ts,
         public ?string $nodeId,
         public ?string $nodeName,
         public ?string $nodeType,
-        public ?string $status,
         public ?string $summary,
-        public ?string $ts,
-        public string $type,
+        public ?string $status,
+        public ?string $channel,
+        public ?string $body,
+        public ?string $messageId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,16 +47,16 @@ final readonly class ReplayEvent extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            body: $attributes->nullableString('body'),
-            channel: $attributes->nullableString('channel'),
-            messageId: $attributes->nullableString('message_id'),
+            type: $attributes->string('type'),
+            ts: $attributes->nullableString('ts'),
             nodeId: $attributes->nullableString('node_id'),
             nodeName: $attributes->nullableString('node_name'),
             nodeType: $attributes->nullableString('node_type'),
-            status: $attributes->nullableString('status'),
             summary: $attributes->nullableString('summary'),
-            ts: $attributes->nullableString('ts'),
-            type: $attributes->string('type'),
+            status: $attributes->nullableString('status'),
+            channel: $attributes->nullableString('channel'),
+            body: $attributes->nullableString('body'),
+            messageId: $attributes->nullableString('message_id'),
             raw: $data,
         );
     }

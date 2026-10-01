@@ -23,15 +23,15 @@ final readonly class BotConversationSessionList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $conversationId,
         public string $botId,
         public ?string $botName,
-        public string $conversationId,
-        public ?DateTimeImmutable $endedAt,
-        public EscalationReasonEnum|string|null $escalationReason,
-        public string $id,
-        public int $messageCount,
-        public DateTimeImmutable $startedAt,
         public SessionStatusEnum|string $status,
+        public int $messageCount,
+        public EscalationReasonEnum|string|null $escalationReason,
+        public DateTimeImmutable $startedAt,
+        public ?DateTimeImmutable $endedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,15 +45,15 @@ final readonly class BotConversationSessionList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            conversationId: $attributes->string('conversation_id'),
             botId: $attributes->string('bot_id'),
             botName: $attributes->nullableString('bot_name'),
-            conversationId: $attributes->string('conversation_id'),
-            endedAt: $attributes->nullableDateTime('ended_at'),
-            escalationReason: $attributes->nullableEnum('escalation_reason', EscalationReasonEnum::class),
-            id: $attributes->string('id'),
-            messageCount: $attributes->int('message_count'),
-            startedAt: $attributes->dateTime('started_at'),
             status: $attributes->enum('status', SessionStatusEnum::class),
+            messageCount: $attributes->int('message_count'),
+            escalationReason: $attributes->nullableEnum('escalation_reason', EscalationReasonEnum::class),
+            startedAt: $attributes->dateTime('started_at'),
+            endedAt: $attributes->nullableDateTime('ended_at'),
             raw: $data,
         );
     }

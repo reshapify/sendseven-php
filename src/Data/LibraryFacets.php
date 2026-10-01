@@ -20,17 +20,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LibraryFacets extends Data
 {
     /**
-     * @param  list<string>  $industries
      * @param  list<string>  $languages
      * @param  list<string>  $topics
      * @param  list<string>  $usecases
+     * @param  list<string>  $industries
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $industries,
         public array $languages,
         public array $topics,
         public array $usecases,
+        public array $industries,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,10 +44,10 @@ final readonly class LibraryFacets extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            industries: $attributes->strings('industries'),
             languages: $attributes->strings('languages'),
             topics: $attributes->strings('topics'),
             usecases: $attributes->strings('usecases'),
+            industries: $attributes->strings('industries'),
             raw: $data,
         );
     }

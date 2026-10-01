@@ -21,11 +21,11 @@ final readonly class DuplicateRef extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $email,
         public string $id,
-        public array $methods,
         public ?string $name,
         public ?string $phone,
+        public ?string $email,
+        public array $methods,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class DuplicateRef extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            email: $attributes->nullableString('email'),
             id: $attributes->string('id'),
-            methods: $attributes->list('methods', DuplicateRefMethod::fromArray(...)),
             name: $attributes->nullableString('name'),
             phone: $attributes->nullableString('phone'),
+            email: $attributes->nullableString('email'),
+            methods: $attributes->list('methods', DuplicateRefMethod::fromArray(...)),
             raw: $data,
         );
     }

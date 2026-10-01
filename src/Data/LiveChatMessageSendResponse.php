@@ -18,15 +18,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LiveChatMessageSendResponse extends Data
 {
     /**
-     * @param  DateTimeImmutable  $createdAt  When the message was created
-     * @param  string  $messageId  ID of the sent message
      * @param  bool  $success  Whether message was sent successfully
+     * @param  string  $messageId  ID of the sent message
+     * @param  DateTimeImmutable  $createdAt  When the message was created
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $createdAt,
-        public string $messageId,
         public bool $success,
+        public string $messageId,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,9 +40,9 @@ final readonly class LiveChatMessageSendResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->dateTime('created_at'),
-            messageId: $attributes->string('message_id'),
             success: $attributes->bool('success'),
+            messageId: $attributes->string('message_id'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

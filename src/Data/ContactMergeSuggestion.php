@@ -17,37 +17,37 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactMergeSuggestion extends Data
 {
     /**
-     * @param  ?string  $conversationId  Conversation the suggestion was raised in (the visitor's). Null when you cannot open that conversation.
-     * @param  string  $createdAt  When the suggestion was created (UTC)
      * @param  string  $id  Suggestion ID
+     * @param  string  $status  `pending`, `merged`, `dismissed` or `obsolete`
+     * @param  string  $origin  Why the suggestion exists: `live_chat_claim`, `whatsapp_phone_reveal` or `channel_switch`
      * @param  ?string  $matchedMethodType  Which identifier matched, e.g. `email`, `phone` or `contact_id`
      * @param  ?string  $matchedValue  The value that matched. Entered by the visitor and NOT verified until an agent confirms.
-     * @param  string  $origin  Why the suggestion exists: `live_chat_claim`, `whatsapp_phone_reveal` or `channel_switch`
-     * @param  ?string  $perspective  Which side of the suggestion the listed conversation's contact is on: `source` (the visitor who entered the details) or `target` (the existing contact whose details were entered). Set on list items; null on the confirm and dismiss responses, which have no conversation context.
+     * @param  ?string  $conversationId  Conversation the suggestion was raised in (the visitor's). Null when you cannot open that conversation.
+     * @param  string  $createdAt  When the suggestion was created (UTC)
      * @param  ?string  $resolvedAt  When it was confirmed or dismissed (UTC)
      * @param  ?string  $resolvedByUserId  User who confirmed or dismissed it
-     * @param  ?ContactMergeSuggestionContactRef  $sourceContact  The unverified contact that is absorbed on confirm. Null on the matched contact's side when you cannot open the visitor's conversation.
-     * @param  string  $status  `pending`, `merged`, `dismissed` or `obsolete`
-     * @param  ?string  $survivorContactId  Set once merged: the surviving contact (the target)
-     * @param  ?ContactMergeSuggestionContactRef  $targetContact  The existing matched contact, which survives a confirmed merge
      * @param  ?bool  $verified  True only after an agent confirmed the merge (`status` is `merged`)
+     * @param  ?ContactMergeSuggestionContactRef  $sourceContact  The unverified contact that is absorbed on confirm. Null on the matched contact's side when you cannot open the visitor's conversation.
+     * @param  ?ContactMergeSuggestionContactRef  $targetContact  The existing matched contact, which survives a confirmed merge
+     * @param  ?string  $survivorContactId  Set once merged: the surviving contact (the target)
+     * @param  ?string  $perspective  Which side of the suggestion the listed conversation's contact is on: `source` (the visitor who entered the details) or `target` (the existing contact whose details were entered). Set on list items; null on the confirm and dismiss responses, which have no conversation context.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $conversationId,
-        public string $createdAt,
         public string $id,
+        public string $status,
+        public string $origin,
         public ?string $matchedMethodType,
         public ?string $matchedValue,
-        public string $origin,
-        public ?string $perspective,
+        public ?string $conversationId,
+        public string $createdAt,
         public ?string $resolvedAt,
         public ?string $resolvedByUserId,
-        public ?ContactMergeSuggestionContactRef $sourceContact,
-        public string $status,
-        public ?string $survivorContactId,
-        public ?ContactMergeSuggestionContactRef $targetContact,
         public ?bool $verified,
+        public ?ContactMergeSuggestionContactRef $sourceContact,
+        public ?ContactMergeSuggestionContactRef $targetContact,
+        public ?string $survivorContactId,
+        public ?string $perspective,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -61,20 +61,20 @@ final readonly class ContactMergeSuggestion extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            conversationId: $attributes->nullableString('conversation_id'),
-            createdAt: $attributes->string('created_at'),
             id: $attributes->string('id'),
+            status: $attributes->string('status'),
+            origin: $attributes->string('origin'),
             matchedMethodType: $attributes->nullableString('matched_method_type'),
             matchedValue: $attributes->nullableString('matched_value'),
-            origin: $attributes->string('origin'),
-            perspective: $attributes->nullableString('perspective'),
+            conversationId: $attributes->nullableString('conversation_id'),
+            createdAt: $attributes->string('created_at'),
             resolvedAt: $attributes->nullableString('resolved_at'),
             resolvedByUserId: $attributes->nullableString('resolved_by_user_id'),
-            sourceContact: $attributes->nullableObject('source_contact', ContactMergeSuggestionContactRef::fromArray(...)),
-            status: $attributes->string('status'),
-            survivorContactId: $attributes->nullableString('survivor_contact_id'),
-            targetContact: $attributes->nullableObject('target_contact', ContactMergeSuggestionContactRef::fromArray(...)),
             verified: $attributes->nullableBool('verified'),
+            sourceContact: $attributes->nullableObject('source_contact', ContactMergeSuggestionContactRef::fromArray(...)),
+            targetContact: $attributes->nullableObject('target_contact', ContactMergeSuggestionContactRef::fromArray(...)),
+            survivorContactId: $attributes->nullableString('survivor_contact_id'),
+            perspective: $attributes->nullableString('perspective'),
             raw: $data,
         );
     }

@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SyncPosts extends Data
 {
     /**
-     * @param  ?int  $created  Of the synced posts, how many did not exist before this call.
      * @param  ?int  $synced  Posts read from Meta and upserted (created OR refreshed), summed across every channel touched.
+     * @param  ?int  $created  Of the synced posts, how many did not exist before this call.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $created,
         public ?int $synced,
+        public ?int $created,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class SyncPosts extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            created: $attributes->nullableInt('created'),
             synced: $attributes->nullableInt('synced'),
+            created: $attributes->nullableInt('created'),
             raw: $data,
         );
     }

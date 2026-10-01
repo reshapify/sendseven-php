@@ -18,16 +18,16 @@ final readonly class BulkActionPreview extends Data
 {
     /**
      * @param  int  $affectedCount  Contacts currently matching the selection
+     * @param  list<BulkActionSampleContact>  $sample  Up to 5 matching contacts for the confirmation dialog
      * @param  string  $confirmationToken  Pass back verbatim to /execute together with the SAME selection+actions
      * @param  int  $expiresInSeconds  Token TTL (seconds)
-     * @param  list<BulkActionSampleContact>  $sample  Up to 5 matching contacts for the confirmation dialog
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public int $affectedCount,
+        public array $sample,
         public string $confirmationToken,
         public int $expiresInSeconds,
-        public array $sample,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,9 +42,9 @@ final readonly class BulkActionPreview extends Data
 
         return new self(
             affectedCount: $attributes->int('affected_count'),
+            sample: $attributes->list('sample', BulkActionSampleContact::fromArray(...)),
             confirmationToken: $attributes->string('confirmation_token'),
             expiresInSeconds: $attributes->int('expires_in_seconds'),
-            sample: $attributes->list('sample', BulkActionSampleContact::fromArray(...)),
             raw: $data,
         );
     }

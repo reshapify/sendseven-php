@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BotReorder extends Data
 {
     /**
-     * @param  list<AutomationBotList>  $bots  Updated bots in new priority order
      * @param  int  $updatedCount  Number of bots updated
+     * @param  list<AutomationBotList>  $bots  Updated bots in new priority order
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $bots,
         public ?bool $success,
         public int $updatedCount,
+        public array $bots,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,9 +38,9 @@ final readonly class BotReorder extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bots: $attributes->list('bots', AutomationBotList::fromArray(...)),
             success: $attributes->nullableBool('success'),
             updatedCount: $attributes->int('updated_count'),
+            bots: $attributes->list('bots', AutomationBotList::fromArray(...)),
             raw: $data,
         );
     }

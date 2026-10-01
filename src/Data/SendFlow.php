@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendFlow extends Data
 {
     /**
-     * @param  string  $conversationId  Conversation ID (new or existing)
-     * @param  ?string  $externalId  WhatsApp message ID
-     * @param  ?string  $flowToken  Flow token for tracking
      * @param  ?string  $messageId  Internal message ID
+     * @param  ?string  $externalId  WhatsApp message ID
+     * @param  string  $conversationId  Conversation ID (new or existing)
+     * @param  ?string  $flowToken  Flow token for tracking
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $conversationId,
-        public ?string $error,
-        public ?string $externalId,
-        public ?string $flowToken,
-        public ?string $messageId,
         public bool $success,
+        public ?string $messageId,
+        public ?string $externalId,
+        public string $conversationId,
+        public ?string $flowToken,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,12 +43,12 @@ final readonly class SendFlow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            conversationId: $attributes->string('conversation_id'),
-            error: $attributes->nullableString('error'),
-            externalId: $attributes->nullableString('external_id'),
-            flowToken: $attributes->nullableString('flow_token'),
-            messageId: $attributes->nullableString('message_id'),
             success: $attributes->bool('success'),
+            messageId: $attributes->nullableString('message_id'),
+            externalId: $attributes->nullableString('external_id'),
+            conversationId: $attributes->string('conversation_id'),
+            flowToken: $attributes->nullableString('flow_token'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

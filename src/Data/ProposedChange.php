@@ -23,11 +23,11 @@ final readonly class ProposedChange extends Data
      */
     public function __construct(
         public string $action,
+        public ?string $targetType,
+        public ?string $targetId,
         public ?string $currentText,
         public ?string $proposedText,
         public ?string $rationale,
-        public ?string $targetId,
-        public ?string $targetType,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,11 +42,11 @@ final readonly class ProposedChange extends Data
 
         return new self(
             action: $attributes->string('action'),
+            targetType: $attributes->nullableString('target_type'),
+            targetId: $attributes->nullableString('target_id'),
             currentText: $attributes->nullableString('current_text'),
             proposedText: $attributes->nullableString('proposed_text'),
             rationale: $attributes->nullableString('rationale'),
-            targetId: $attributes->nullableString('target_id'),
-            targetType: $attributes->nullableString('target_type'),
             raw: $data,
         );
     }

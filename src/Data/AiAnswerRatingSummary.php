@@ -22,15 +22,15 @@ final readonly class AiAnswerRatingSummary extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $betterAnswer,
-        public ?string $comment,
-        public DateTimeImmutable $createdAt,
         public string $id,
-        public string $ratedByUserId,
-        public ?string $reasonCategory,
-        public array $sourceAttribution,
-        public DateTimeImmutable $updatedAt,
         public string $verdict,
+        public ?string $reasonCategory,
+        public ?string $comment,
+        public ?string $betterAnswer,
+        public string $ratedByUserId,
+        public array $sourceAttribution,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,15 +44,15 @@ final readonly class AiAnswerRatingSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            betterAnswer: $attributes->nullableString('better_answer'),
-            comment: $attributes->nullableString('comment'),
-            createdAt: $attributes->dateTime('created_at'),
             id: $attributes->string('id'),
-            ratedByUserId: $attributes->string('rated_by_user_id'),
-            reasonCategory: $attributes->nullableString('reason_category'),
-            sourceAttribution: array_values($attributes->array('source_attribution')),
-            updatedAt: $attributes->dateTime('updated_at'),
             verdict: $attributes->string('verdict'),
+            reasonCategory: $attributes->nullableString('reason_category'),
+            comment: $attributes->nullableString('comment'),
+            betterAnswer: $attributes->nullableString('better_answer'),
+            ratedByUserId: $attributes->string('rated_by_user_id'),
+            sourceAttribution: array_values($attributes->array('source_attribution')),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,
         );
     }

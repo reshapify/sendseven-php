@@ -20,12 +20,12 @@ final readonly class ReplayRun extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $completedAt,
-        public ?string $currentNodeId,
-        public string $flowId,
         public string $id,
+        public string $flowId,
         public ?string $startedAt,
+        public ?string $completedAt,
         public string $status,
+        public ?string $currentNodeId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,12 +39,12 @@ final readonly class ReplayRun extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            completedAt: $attributes->nullableString('completed_at'),
-            currentNodeId: $attributes->nullableString('current_node_id'),
-            flowId: $attributes->string('flow_id'),
             id: $attributes->string('id'),
+            flowId: $attributes->string('flow_id'),
             startedAt: $attributes->nullableString('started_at'),
+            completedAt: $attributes->nullableString('completed_at'),
             status: $attributes->string('status'),
+            currentNodeId: $attributes->nullableString('current_node_id'),
             raw: $data,
         );
     }

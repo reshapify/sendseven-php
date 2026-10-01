@@ -76,24 +76,40 @@ final readonly class FaqMigration
      * Scopes: knowledge_base:manage.
      *
      * @param  ?bool  $dryRun  Preview only. Runs INLINE (no job is enqueued, no LLM call, no row written) and returns the clustering it would have processed
-     * @param  ?bool  $force  Start even though a migration appears to be in flight, overriding the 409. Only for a run known to be dead — two live chains double-bill the tenant and race on the same summaries
-     * @param  ?bool  $includeSingletons  Process one-off cases too. Set false for the cheap high-value pass: singletons dominate the cluster count and the cost, and are refused almost every time
      * @param  ?int  $limit  Cap on summaries read in one pass (default: all, max 20000)
      * @param  ?int  $maxClusters  Clusters processed per worker message (default 40). Higher values risk the 600s worker message timeout; the job re-enqueues itself either way, so raising this buys nothing but risk
      * @param  ?int  $minClusterSize  Override the tenant's `faq_min_cluster_size` for this run — the floor at which a cluster counts as recurring rather than one-off
+     * @param  ?bool  $includeSingletons  Process one-off cases too. Set false for the cheap high-value pass: singletons dominate the cluster count and the cost, and are refused almost every time
      * @param  ?bool  $retireFolderWhenDone  Hide the legacy 'Ticket Summaries' KB folder once nothing is left to migrate. A visible change to the tenant's KB tree, so opt-in. Ignored for `dry_run`
+     * @param  ?bool  $force  Start even though a migration appears to be in flight, overriding the 409. Only for a run known to be dead — two live chains double-bill the tenant and race on the same summaries
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Migration/start_faq_migration_api_v1_knowledge_base_faq_migration_start_post
      */
-    public function start(?bool $dryRun = null, ?bool $force = null, ?bool $includeSingletons = null, ?int $limit = null, ?int $maxClusters = null, ?int $minClusterSize = null, ?bool $retireFolderWhenDone = null, ?string $idempotencyKey = null): FaqMigrationStart
-    {
+    public function start(
+        ?bool $dryRun = null,
+        ?int $limit = null,
+        ?int $maxClusters = null,
+        ?int $minClusterSize = null,
+        ?bool $includeSingletons = null,
+        ?bool $retireFolderWhenDone = null,
+        ?bool $force = null,
+        ?string $idempotencyKey = null,
+    ): FaqMigrationStart {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/faq-migration/start',
-            body: Payload::body(['dry_run' => $dryRun, 'force' => $force, 'include_singletons' => $includeSingletons, 'limit' => $limit, 'max_clusters' => $maxClusters, 'min_cluster_size' => $minClusterSize, 'retire_folder_when_done' => $retireFolderWhenDone]),
+            body: Payload::body([
+                'dry_run' => $dryRun,
+                'limit' => $limit,
+                'max_clusters' => $maxClusters,
+                'min_cluster_size' => $minClusterSize,
+                'include_singletons' => $includeSingletons,
+                'retire_folder_when_done' => $retireFolderWhenDone,
+                'force' => $force,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

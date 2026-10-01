@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TopPerformingLink extends Data
 {
     /**
-     * @param  int  $clicks  Total click count
-     * @param  ?string  $firstClickAt  Timestamp of first click (ISO format)
-     * @param  ?string  $label  Link label/name
-     * @param  ?string  $lastClickAt  Timestamp of last click (ISO format)
-     * @param  string  $originalUrl  Original destination URL
      * @param  string  $shortCode  Short code for the link
+     * @param  string  $originalUrl  Original destination URL
+     * @param  int  $clicks  Total click count
+     * @param  ?string  $label  Link label/name
+     * @param  ?string  $firstClickAt  Timestamp of first click (ISO format)
+     * @param  ?string  $lastClickAt  Timestamp of last click (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $clicks,
-        public ?string $firstClickAt,
-        public ?string $label,
-        public ?string $lastClickAt,
-        public string $originalUrl,
         public string $shortCode,
+        public string $originalUrl,
+        public int $clicks,
+        public ?string $label,
+        public ?string $firstClickAt,
+        public ?string $lastClickAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,12 +45,12 @@ final readonly class TopPerformingLink extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clicks: $attributes->int('clicks'),
-            firstClickAt: $attributes->nullableString('first_click_at'),
-            label: $attributes->nullableString('label'),
-            lastClickAt: $attributes->nullableString('last_click_at'),
-            originalUrl: $attributes->string('original_url'),
             shortCode: $attributes->string('short_code'),
+            originalUrl: $attributes->string('original_url'),
+            clicks: $attributes->int('clicks'),
+            label: $attributes->nullableString('label'),
+            firstClickAt: $attributes->nullableString('first_click_at'),
+            lastClickAt: $attributes->nullableString('last_click_at'),
             raw: $data,
         );
     }

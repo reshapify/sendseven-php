@@ -100,13 +100,13 @@ final readonly class Sms
      *
      * Scopes: channels:update.
      *
-     * @param  mixed  $thresholdEur  Warning threshold in EUR (0 – 1000, max 2 decimals); null reverts to the platform default.
+     * @param  float|string|null  $thresholdEur  Warning threshold in EUR (0 – 1000, max 2 decimals); null reverts to the platform default.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/SMS/update_low_balance_threshold_api_v1_sms_low_balance_threshold_put
      */
-    public function updateLowBalanceThreshold(mixed $thresholdEur = null): Balance
+    public function updateLowBalanceThreshold(float|string|null $thresholdEur = null): Balance
     {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -141,12 +141,21 @@ final readonly class Sms
      *
      * @see https://api.sendseven.com/api/v1/docs#/SMS/message_pricing_api_v1_sms_message_pricing_get
      */
-    public function messagePricing(?string $phone = null, ?string $country = null, ?string $text = null, ?bool $appendOptOutLink = null): MessagePricing
-    {
+    public function priceMessage(
+        ?string $phone = null,
+        ?string $country = null,
+        ?string $text = null,
+        ?bool $appendOptOutLink = null,
+    ): MessagePricing {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/sms/message-pricing',
-            query: Payload::query(['phone' => $phone, 'country' => $country, 'text' => $text, 'append_opt_out_link' => $appendOptOutLink]),
+            query: Payload::query([
+                'phone' => $phone,
+                'country' => $country,
+                'text' => $text,
+                'append_opt_out_link' => $appendOptOutLink,
+            ]),
         ));
 
         return MessagePricing::fromArray($response->data());
@@ -166,7 +175,7 @@ final readonly class Sms
      *
      * @see https://api.sendseven.com/api/v1/docs#/SMS/get_sms_pricelist_api_v1_sms_pricelist_get
      */
-    public function getPricelist(): SmsPricelist
+    public function pricelist(): SmsPricelist
     {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -252,12 +261,12 @@ final readonly class Sms
      *
      * @see https://api.sendseven.com/api/v1/docs#/SMS/confirm_sender_api_v1_sms_senders_confirm_post
      */
-    public function confirmSender(string $code, string $verificationId, ?string $idempotencyKey = null): SenderConfirm
+    public function confirmSender(string $verificationId, string $code, ?string $idempotencyKey = null): SenderConfirm
     {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/sms/senders/confirm',
-            body: Payload::body(['code' => $code, 'verification_id' => $verificationId]),
+            body: Payload::body(['verification_id' => $verificationId, 'code' => $code]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -280,8 +289,11 @@ final readonly class Sms
      *
      * @see https://api.sendseven.com/api/v1/docs#/SMS/verify_sender_api_v1_sms_senders_verify_post
      */
-    public function verifySender(string $msisdn, ?string $callbackUrl = null, ?string $idempotencyKey = null): SenderVerify
-    {
+    public function verifySender(
+        string $msisdn,
+        ?string $callbackUrl = null,
+        ?string $idempotencyKey = null,
+    ): SenderVerify {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/sms/senders/verify',

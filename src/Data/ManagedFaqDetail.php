@@ -19,23 +19,23 @@ final readonly class ManagedFaqDetail extends Data
 {
     /**
      * @param  ?int  $itemCount  Number of Q&A pairs
-     * @param  list<FaqItem>  $items  All Q&A pairs in order
      * @param  ?DateTimeImmutable  $lastSynced  When the document was last synced to Gemini
-     * @param  ?string  $syncError  Error message if sync_status is 'error'
      * @param  ?string  $syncStatus  Sync status: pending, syncing, synced, error
+     * @param  ?string  $syncError  Error message if sync_status is 'error'
+     * @param  list<FaqItem>  $items  All Q&A pairs in order
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $createdAt,
         public string $id,
-        public ?int $itemCount,
-        public array $items,
-        public ?DateTimeImmutable $lastSynced,
-        public ?string $syncError,
-        public ?string $syncStatus,
         public string $tenantId,
         public string $title,
+        public ?int $itemCount,
+        public ?DateTimeImmutable $lastSynced,
+        public ?string $syncStatus,
+        public ?string $syncError,
+        public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
+        public array $items,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,16 +49,16 @@ final readonly class ManagedFaqDetail extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->dateTime('created_at'),
             id: $attributes->string('id'),
-            itemCount: $attributes->nullableInt('item_count'),
-            items: $attributes->list('items', FaqItem::fromArray(...)),
-            lastSynced: $attributes->nullableDateTime('last_synced'),
-            syncError: $attributes->nullableString('sync_error'),
-            syncStatus: $attributes->nullableString('sync_status'),
             tenantId: $attributes->string('tenant_id'),
             title: $attributes->string('title'),
+            itemCount: $attributes->nullableInt('item_count'),
+            lastSynced: $attributes->nullableDateTime('last_synced'),
+            syncStatus: $attributes->nullableString('sync_status'),
+            syncError: $attributes->nullableString('sync_error'),
+            createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
+            items: $attributes->list('items', FaqItem::fromArray(...)),
             raw: $data,
         );
     }

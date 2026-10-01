@@ -18,69 +18,69 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailContent extends Data
 {
     /**
-     * @param  ?bool  $aiGenerated  AI-generated flag
-     * @param  ?int  $aiGenerationCostCents  AI cost
-     * @param  ?string  $aiModelUsed  AI model
-     * @param  ?string  $aiPrompt  AI prompt
-     * @param  ?string  $compiledHtml  Compiled HTML content from Stripo or MJML compilation
-     * @param  ?string  $contentType  Content type: 'html' or 'plain_text'
-     * @param  DateTimeImmutable  $createdAt  Creation timestamp
-     * @param  ?string  $createdBy  Creator user ID
-     * @param  ?string  $description  Content description
-     * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml' (legacy)
-     * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
-     * @param  ?string  $fromEmail  Sender email
-     * @param  ?string  $fromName  Sender name
      * @param  string  $id  Unique identifier (UUID)
-     * @param  ?bool  $isSystem  System template flag
-     * @param  bool  $isValid  Validation status
-     * @param  ?LayoutTemplateInfo  $layoutTemplate  Layout template info
-     * @param  ?string  $mjmlSource  Full MJML content (legacy, html type only)
-     * @param  string  $name  Content name
-     * @param  ?string  $previewText  Preview text
-     * @param  ?string  $stripoDesignJson  Stripo editor design JSON for re-opening designs
-     * @param  ?string  $subjectLine  Email subject line
-     * @param  ?string  $templateId  Email template ID
      * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  string  $name  Content name
+     * @param  ?string  $description  Content description
+     * @param  ?string  $contentType  Content type: 'html' or 'plain_text'
+     * @param  ?string  $templateId  Email template ID
+     * @param  ?string  $subjectLine  Email subject line
+     * @param  ?string  $previewText  Preview text
+     * @param  ?string  $fromName  Sender name
+     * @param  ?string  $fromEmail  Sender email
+     * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml' (legacy)
+     * @param  ?string  $mjmlSource  Full MJML content (legacy, html type only)
+     * @param  ?string  $compiledHtml  Compiled HTML content from Stripo or MJML compilation
+     * @param  ?string  $stripoDesignJson  Stripo editor design JSON for re-opening designs
      * @param  ?string  $textBody  Plain text template content (plain_text type only)
-     * @param  DateTimeImmutable  $updatedAt  Last update timestamp
-     * @param  list<string>  $validationErrors  Validation errors
      * @param  array<array-key, mixed>  $variableValues  Variable values
      * @param  list<string>  $variablesUsed  Extracted variables
+     * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
+     * @param  ?bool  $aiGenerated  AI-generated flag
+     * @param  ?string  $aiPrompt  AI prompt
+     * @param  ?string  $aiModelUsed  AI model
+     * @param  ?int  $aiGenerationCostCents  AI cost
+     * @param  ?bool  $isSystem  System template flag
+     * @param  bool  $isValid  Validation status
+     * @param  list<string>  $validationErrors  Validation errors
      * @param  int  $version  Content version
+     * @param  ?string  $createdBy  Creator user ID
+     * @param  DateTimeImmutable  $createdAt  Creation timestamp
+     * @param  DateTimeImmutable  $updatedAt  Last update timestamp
+     * @param  ?LayoutTemplateInfo  $layoutTemplate  Layout template info
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $aiGenerated,
-        public ?int $aiGenerationCostCents,
-        public ?string $aiModelUsed,
-        public ?string $aiPrompt,
-        public ?string $compiledHtml,
-        public ?string $contentType,
-        public DateTimeImmutable $createdAt,
-        public ?string $createdBy,
-        public ?string $description,
-        public ?string $editorType,
-        public ?string $footerMode,
-        public ?string $fromEmail,
-        public ?string $fromName,
         public string $id,
-        public ?bool $isSystem,
-        public bool $isValid,
-        public ?LayoutTemplateInfo $layoutTemplate,
-        public ?string $mjmlSource,
-        public string $name,
-        public ?string $previewText,
-        public ?string $stripoDesignJson,
-        public ?string $subjectLine,
-        public ?string $templateId,
         public string $tenantId,
+        public string $name,
+        public ?string $description,
+        public ?string $contentType,
+        public ?string $templateId,
+        public ?string $subjectLine,
+        public ?string $previewText,
+        public ?string $fromName,
+        public ?string $fromEmail,
+        public ?string $editorType,
+        public ?string $mjmlSource,
+        public ?string $compiledHtml,
+        public ?string $stripoDesignJson,
         public ?string $textBody,
-        public DateTimeImmutable $updatedAt,
-        public array $validationErrors,
         public array $variableValues,
         public array $variablesUsed,
+        public ?string $footerMode,
+        public ?bool $aiGenerated,
+        public ?string $aiPrompt,
+        public ?string $aiModelUsed,
+        public ?int $aiGenerationCostCents,
+        public ?bool $isSystem,
+        public bool $isValid,
+        public array $validationErrors,
         public int $version,
+        public ?string $createdBy,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
+        public ?LayoutTemplateInfo $layoutTemplate,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -94,36 +94,36 @@ final readonly class EmailContent extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            aiGenerated: $attributes->nullableBool('ai_generated'),
-            aiGenerationCostCents: $attributes->nullableInt('ai_generation_cost_cents'),
-            aiModelUsed: $attributes->nullableString('ai_model_used'),
-            aiPrompt: $attributes->nullableString('ai_prompt'),
-            compiledHtml: $attributes->nullableString('compiled_html'),
-            contentType: $attributes->nullableString('content_type'),
-            createdAt: $attributes->dateTime('created_at'),
-            createdBy: $attributes->nullableString('created_by'),
-            description: $attributes->nullableString('description'),
-            editorType: $attributes->nullableString('editor_type'),
-            footerMode: $attributes->nullableString('footer_mode'),
-            fromEmail: $attributes->nullableString('from_email'),
-            fromName: $attributes->nullableString('from_name'),
             id: $attributes->string('id'),
-            isSystem: $attributes->nullableBool('is_system'),
-            isValid: $attributes->bool('is_valid'),
-            layoutTemplate: $attributes->nullableObject('layout_template', LayoutTemplateInfo::fromArray(...)),
-            mjmlSource: $attributes->nullableString('mjml_source'),
-            name: $attributes->string('name'),
-            previewText: $attributes->nullableString('preview_text'),
-            stripoDesignJson: $attributes->nullableString('stripo_design_json'),
-            subjectLine: $attributes->nullableString('subject_line'),
-            templateId: $attributes->nullableString('template_id'),
             tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            description: $attributes->nullableString('description'),
+            contentType: $attributes->nullableString('content_type'),
+            templateId: $attributes->nullableString('template_id'),
+            subjectLine: $attributes->nullableString('subject_line'),
+            previewText: $attributes->nullableString('preview_text'),
+            fromName: $attributes->nullableString('from_name'),
+            fromEmail: $attributes->nullableString('from_email'),
+            editorType: $attributes->nullableString('editor_type'),
+            mjmlSource: $attributes->nullableString('mjml_source'),
+            compiledHtml: $attributes->nullableString('compiled_html'),
+            stripoDesignJson: $attributes->nullableString('stripo_design_json'),
             textBody: $attributes->nullableString('text_body'),
-            updatedAt: $attributes->dateTime('updated_at'),
-            validationErrors: $attributes->strings('validation_errors'),
             variableValues: $attributes->array('variable_values'),
             variablesUsed: $attributes->strings('variables_used'),
+            footerMode: $attributes->nullableString('footer_mode'),
+            aiGenerated: $attributes->nullableBool('ai_generated'),
+            aiPrompt: $attributes->nullableString('ai_prompt'),
+            aiModelUsed: $attributes->nullableString('ai_model_used'),
+            aiGenerationCostCents: $attributes->nullableInt('ai_generation_cost_cents'),
+            isSystem: $attributes->nullableBool('is_system'),
+            isValid: $attributes->bool('is_valid'),
+            validationErrors: $attributes->strings('validation_errors'),
             version: $attributes->int('version'),
+            createdBy: $attributes->nullableString('created_by'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
+            layoutTemplate: $attributes->nullableObject('layout_template', LayoutTemplateInfo::fromArray(...)),
             raw: $data,
         );
     }

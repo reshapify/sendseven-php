@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelStatusBreakdown extends Data
 {
     /**
-     * @param  ?int  $bounced  Bounced subscriptions
      * @param  string  $channelType  Channel type (email, sms, whatsapp, etc.)
-     * @param  ?int  $complained  Spam-complained subscriptions
-     * @param  ?int  $pending  Pending confirmations
      * @param  ?int  $subscribed  Active subscriptions
-     * @param  ?int  $total  Total subscriptions for this channel
+     * @param  ?int  $pending  Pending confirmations
      * @param  ?int  $unsubscribed  Opted-out subscriptions
+     * @param  ?int  $bounced  Bounced subscriptions
+     * @param  ?int  $complained  Spam-complained subscriptions
+     * @param  ?int  $total  Total subscriptions for this channel
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $bounced,
         public string $channelType,
-        public ?int $complained,
-        public ?int $pending,
         public ?int $subscribed,
-        public ?int $total,
+        public ?int $pending,
         public ?int $unsubscribed,
+        public ?int $bounced,
+        public ?int $complained,
+        public ?int $total,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class ChannelStatusBreakdown extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounced: $attributes->nullableInt('bounced'),
             channelType: $attributes->string('channel_type'),
-            complained: $attributes->nullableInt('complained'),
-            pending: $attributes->nullableInt('pending'),
             subscribed: $attributes->nullableInt('subscribed'),
-            total: $attributes->nullableInt('total'),
+            pending: $attributes->nullableInt('pending'),
             unsubscribed: $attributes->nullableInt('unsubscribed'),
+            bounced: $attributes->nullableInt('bounced'),
+            complained: $attributes->nullableInt('complained'),
+            total: $attributes->nullableInt('total'),
             raw: $data,
         );
     }

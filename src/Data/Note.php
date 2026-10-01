@@ -19,27 +19,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Note extends Data
 {
     /**
-     * @param  string  $content  Note content
-     * @param  ?string  $conversationId  Associated conversation ID
      * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  string  $id  Unique identifier (UUID)
      * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
-     * @param  ?string  $userEmail  Email of user who created the note
+     * @param  ?string  $conversationId  Associated conversation ID
      * @param  ?string  $userId  ID of user who created the note (None for system-created notes)
+     * @param  string  $content  Note content
      * @param  ?string  $userName  Name of user who created the note
+     * @param  ?string  $userEmail  Email of user who created the note
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $content,
-        public ?string $conversationId,
         public string $createdAt,
+        public ?string $updatedAt,
         public string $id,
         public string $tenantId,
-        public ?string $updatedAt,
-        public ?string $userEmail,
+        public ?string $conversationId,
         public ?string $userId,
+        public string $content,
         public ?string $userName,
+        public ?string $userEmail,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,15 +53,15 @@ final readonly class Note extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            content: $attributes->string('content'),
-            conversationId: $attributes->nullableString('conversation_id'),
             createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
             id: $attributes->string('id'),
             tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
-            userEmail: $attributes->nullableString('user_email'),
+            conversationId: $attributes->nullableString('conversation_id'),
             userId: $attributes->nullableString('user_id'),
+            content: $attributes->string('content'),
             userName: $attributes->nullableString('user_name'),
+            userEmail: $attributes->nullableString('user_email'),
             raw: $data,
         );
     }

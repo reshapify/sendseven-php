@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UserSignature extends Data
 {
     /**
+     * @param  string  $id  Signature ID
+     * @param  string  $tenantId  Tenant ID
+     * @param  string  $userId  User ID who owns this signature
      * @param  string  $contentHtml  HTML content
      * @param  ?string  $contentText  Plain text version
-     * @param  string  $createdAt  When the signature was created
-     * @param  string  $id  Signature ID
      * @param  bool  $isActive  Whether this signature is active
-     * @param  string  $tenantId  Tenant ID
+     * @param  string  $createdAt  When the signature was created
      * @param  string  $updatedAt  When the signature was last updated
-     * @param  string  $userId  User ID who owns this signature
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $tenantId,
+        public string $userId,
         public string $contentHtml,
         public ?string $contentText,
-        public string $createdAt,
-        public string $id,
         public bool $isActive,
-        public string $tenantId,
+        public string $createdAt,
         public string $updatedAt,
-        public string $userId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class UserSignature extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            userId: $attributes->string('user_id'),
             contentHtml: $attributes->string('content_html'),
             contentText: $attributes->nullableString('content_text'),
-            createdAt: $attributes->string('created_at'),
-            id: $attributes->string('id'),
             isActive: $attributes->bool('is_active'),
-            tenantId: $attributes->string('tenant_id'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
-            userId: $attributes->string('user_id'),
             raw: $data,
         );
     }

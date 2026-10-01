@@ -21,11 +21,11 @@ final readonly class ListContacts extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $contacts,
         public string $listId,
         public string $listName,
         public string $listType,
         public int $totalContacts,
+        public array $contacts,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class ListContacts extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contacts: $attributes->list('contacts', ListContactInfo::fromArray(...)),
             listId: $attributes->string('list_id'),
             listName: $attributes->string('list_name'),
             listType: $attributes->string('list_type'),
             totalContacts: $attributes->int('total_contacts'),
+            contacts: $attributes->list('contacts', ListContactInfo::fromArray(...)),
             raw: $data,
         );
     }

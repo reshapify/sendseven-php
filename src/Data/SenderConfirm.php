@@ -20,10 +20,10 @@ final readonly class SenderConfirm extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $verificationId,
         public string $channelId,
         public string $msisdn,
         public string $status,
-        public string $verificationId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class SenderConfirm extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            verificationId: $attributes->string('verification_id'),
             channelId: $attributes->string('channel_id'),
             msisdn: $attributes->string('msisdn'),
             status: $attributes->string('status'),
-            verificationId: $attributes->string('verification_id'),
             raw: $data,
         );
     }

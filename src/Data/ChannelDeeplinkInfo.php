@@ -23,10 +23,10 @@ final readonly class ChannelDeeplinkInfo extends Data
         public string $channelId,
         public string $channelName,
         public string $channelType,
-        public ?string $code,
-        public ?string $instructions,
-        public ?bool $manual,
         public ?string $url,
+        public ?string $code,
+        public ?bool $manual,
+        public ?string $instructions,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,10 +43,10 @@ final readonly class ChannelDeeplinkInfo extends Data
             channelId: $attributes->string('channel_id'),
             channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
-            code: $attributes->nullableString('code'),
-            instructions: $attributes->nullableString('instructions'),
-            manual: $attributes->nullableBool('manual'),
             url: $attributes->nullableString('url'),
+            code: $attributes->nullableString('code'),
+            manual: $attributes->nullableBool('manual'),
+            instructions: $attributes->nullableString('instructions'),
             raw: $data,
         );
     }

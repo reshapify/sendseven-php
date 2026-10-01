@@ -21,15 +21,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SingleEmailStats extends Data
 {
     /**
+     * @param  ?int  $sent  Billable single/transactional emails sent (status sent|delivered)
      * @param  ?int  $delivered  Single/transactional emails confirmed delivered
      * @param  ?float  $deliveryRate  Delivery rate percentage (delivered/sent)
-     * @param  ?int  $sent  Billable single/transactional emails sent (status sent|delivered)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?int $sent,
         public ?int $delivered,
         public ?float $deliveryRate,
-        public ?int $sent,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,9 +43,9 @@ final readonly class SingleEmailStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            sent: $attributes->nullableInt('sent'),
             delivered: $attributes->nullableInt('delivered'),
             deliveryRate: $attributes->nullableFloat('delivery_rate'),
-            sent: $attributes->nullableInt('sent'),
             raw: $data,
         );
     }

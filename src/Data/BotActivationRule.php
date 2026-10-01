@@ -20,27 +20,27 @@ final readonly class BotActivationRule extends Data
     /**
      * @param  list<string>  $channelIds
      * @param  list<string>  $channelTypes
-     * @param  list<string>  $recipientEmailAddresses
-     * @param  list<mixed>  $timeRanges
      * @param  list<string>  $widgetIds
+     * @param  list<mixed>  $timeRanges
+     * @param  list<string>  $recipientEmailAddresses
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
         public string $botId,
+        public string $tenantId,
         public array $channelIds,
         public array $channelTypes,
-        public DateTimeImmutable $createdAt,
-        public string $id,
-        public bool $isActive,
-        public bool $isScheduleEnabled,
-        public int $priority,
-        public array $recipientEmailAddresses,
-        public bool $requiresNoAgentsOnline,
-        public string $tenantId,
-        public array $timeRanges,
-        public string $timezone,
-        public ?DateTimeImmutable $updatedAt,
         public array $widgetIds,
+        public bool $isScheduleEnabled,
+        public string $timezone,
+        public array $timeRanges,
+        public bool $requiresNoAgentsOnline,
+        public array $recipientEmailAddresses,
+        public int $priority,
+        public bool $isActive,
+        public DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,21 +54,21 @@ final readonly class BotActivationRule extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
             botId: $attributes->string('bot_id'),
+            tenantId: $attributes->string('tenant_id'),
             channelIds: $attributes->strings('channel_ids'),
             channelTypes: $attributes->strings('channel_types'),
-            createdAt: $attributes->dateTime('created_at'),
-            id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            isScheduleEnabled: $attributes->bool('is_schedule_enabled'),
-            priority: $attributes->int('priority'),
-            recipientEmailAddresses: $attributes->strings('recipient_email_addresses'),
-            requiresNoAgentsOnline: $attributes->bool('requires_no_agents_online'),
-            tenantId: $attributes->string('tenant_id'),
-            timeRanges: array_values($attributes->array('time_ranges')),
-            timezone: $attributes->string('timezone'),
-            updatedAt: $attributes->nullableDateTime('updated_at'),
             widgetIds: $attributes->strings('widget_ids'),
+            isScheduleEnabled: $attributes->bool('is_schedule_enabled'),
+            timezone: $attributes->string('timezone'),
+            timeRanges: array_values($attributes->array('time_ranges')),
+            requiresNoAgentsOnline: $attributes->bool('requires_no_agents_online'),
+            recipientEmailAddresses: $attributes->strings('recipient_email_addresses'),
+            priority: $attributes->int('priority'),
+            isActive: $attributes->bool('is_active'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->nullableDateTime('updated_at'),
             raw: $data,
         );
     }

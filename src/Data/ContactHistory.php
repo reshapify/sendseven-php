@@ -20,15 +20,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactHistory extends Data
 {
     /**
-     * @param  ?bool  $hasMore  Whether more rows exist after this page.
      * @param  list<mixed>  $items  Merged, time-descending timeline for this page.
      * @param  ?string  $nextCursor  Opaque cursor for the next page. ``null`` when ``has_more`` is False.
+     * @param  ?bool  $hasMore  Whether more rows exist after this page.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $hasMore,
         public array $items,
         public ?string $nextCursor,
+        public ?bool $hasMore,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,9 +42,9 @@ final readonly class ContactHistory extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            hasMore: $attributes->nullableBool('has_more'),
             items: array_values($attributes->array('items')),
             nextCursor: $attributes->nullableString('next_cursor'),
+            hasMore: $attributes->nullableBool('has_more'),
             raw: $data,
         );
     }

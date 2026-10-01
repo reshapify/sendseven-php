@@ -20,21 +20,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactIntegrationLink extends Data
 {
     /**
-     * @param  string  $externalId  The contact's id in the external system
-     * @param  ?string  $lastSyncedAt  ISO 8601 (Z) timestamp of last sync, or null
      * @param  string  $provider  Stable provider key, e.g. 'hubspot'
      * @param  string  $providerLabel  Human-readable provider name
-     * @param  ?string  $status  Link state, e.g. 'linked'. Reserved for future states.
+     * @param  string  $externalId  The contact's id in the external system
      * @param  string  $url  Deep-link to the contact's record in the provider
+     * @param  ?string  $status  Link state, e.g. 'linked'. Reserved for future states.
+     * @param  ?string  $lastSyncedAt  ISO 8601 (Z) timestamp of last sync, or null
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $externalId,
-        public ?string $lastSyncedAt,
         public string $provider,
         public string $providerLabel,
-        public ?string $status,
+        public string $externalId,
         public string $url,
+        public ?string $status,
+        public ?string $lastSyncedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,12 +48,12 @@ final readonly class ContactIntegrationLink extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            externalId: $attributes->string('external_id'),
-            lastSyncedAt: $attributes->nullableString('last_synced_at'),
             provider: $attributes->string('provider'),
             providerLabel: $attributes->string('provider_label'),
-            status: $attributes->nullableString('status'),
+            externalId: $attributes->string('external_id'),
             url: $attributes->string('url'),
+            status: $attributes->nullableString('status'),
+            lastSyncedAt: $attributes->nullableString('last_synced_at'),
             raw: $data,
         );
     }

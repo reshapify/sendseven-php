@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class HubSpotListItem extends Data
 {
     /**
-     * @param  ?bool  $alreadyLinked  True when a HUBSPOT_SEGMENT list already backs this id
-     * @param  ?string  $linkedListId  The SendSeven list id backing this HubSpot list, if any
      * @param  ?string  $processingType  HubSpot processing type: MANUAL | DYNAMIC | SNAPSHOT
      * @param  ?int  $size  Member count (best-effort)
+     * @param  ?bool  $alreadyLinked  True when a HUBSPOT_SEGMENT list already backs this id
+     * @param  ?string  $linkedListId  The SendSeven list id backing this HubSpot list, if any
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $alreadyLinked,
         public string $hubSpotListId,
-        public ?string $linkedListId,
         public string $name,
         public ?string $processingType,
         public ?int $size,
+        public ?bool $alreadyLinked,
+        public ?string $linkedListId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,12 +43,12 @@ final readonly class HubSpotListItem extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            alreadyLinked: $attributes->nullableBool('already_linked'),
             hubSpotListId: $attributes->string('hubspot_list_id'),
-            linkedListId: $attributes->nullableString('linked_list_id'),
             name: $attributes->string('name'),
             processingType: $attributes->nullableString('processing_type'),
             size: $attributes->nullableInt('size'),
+            alreadyLinked: $attributes->nullableBool('already_linked'),
+            linkedListId: $attributes->nullableString('linked_list_id'),
             raw: $data,
         );
     }

@@ -26,11 +26,11 @@ final readonly class FaqMigrationRunInfo extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?FaqMigrationParams $params,
         public string $runId,
-        public ?string $source,
         public ?string $startedAt,
         public ?string $startedByUserId,
+        public ?string $source,
+        public ?FaqMigrationParams $params,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,11 +44,11 @@ final readonly class FaqMigrationRunInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            params: $attributes->nullableObject('params', FaqMigrationParams::fromArray(...)),
             runId: $attributes->string('run_id'),
-            source: $attributes->nullableString('source'),
             startedAt: $attributes->nullableString('started_at'),
             startedByUserId: $attributes->nullableString('started_by_user_id'),
+            source: $attributes->nullableString('source'),
+            params: $attributes->nullableObject('params', FaqMigrationParams::fromArray(...)),
             raw: $data,
         );
     }

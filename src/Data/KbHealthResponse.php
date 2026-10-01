@@ -18,23 +18,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class KbHealthResponse extends Data
 {
     /**
-     * @param  list<KbHealthEntry>  $flagged
-     * @param  list<KbHealthEntry>  $lowQuality
      * @param  list<KbHealthEntry>  $mostUsed
      * @param  list<KbHealthEntry>  $neverUsed  Published >90d ago, never in a sent reply
+     * @param  list<KbHealthEntry>  $flagged
+     * @param  list<KbHealthEntry>  $lowQuality
      * @param  list<KbHealthEntry>  $possibleDuplicates
      * @param  list<KbHealthEntry>  $stale  Contains a price/date/version and not verified since
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $flagged,
-        public DateTimeImmutable $generatedAt,
-        public array $lowQuality,
+        public KbHealthTotals $totals,
         public array $mostUsed,
         public array $neverUsed,
+        public array $flagged,
+        public array $lowQuality,
         public array $possibleDuplicates,
         public array $stale,
-        public KbHealthTotals $totals,
+        public DateTimeImmutable $generatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,14 +48,14 @@ final readonly class KbHealthResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            flagged: $attributes->list('flagged', KbHealthEntry::fromArray(...)),
-            generatedAt: $attributes->dateTime('generated_at'),
-            lowQuality: $attributes->list('low_quality', KbHealthEntry::fromArray(...)),
+            totals: $attributes->object('totals', KbHealthTotals::fromArray(...)),
             mostUsed: $attributes->list('most_used', KbHealthEntry::fromArray(...)),
             neverUsed: $attributes->list('never_used', KbHealthEntry::fromArray(...)),
+            flagged: $attributes->list('flagged', KbHealthEntry::fromArray(...)),
+            lowQuality: $attributes->list('low_quality', KbHealthEntry::fromArray(...)),
             possibleDuplicates: $attributes->list('possible_duplicates', KbHealthEntry::fromArray(...)),
             stale: $attributes->list('stale', KbHealthEntry::fromArray(...)),
-            totals: $attributes->object('totals', KbHealthTotals::fromArray(...)),
+            generatedAt: $attributes->dateTime('generated_at'),
             raw: $data,
         );
     }

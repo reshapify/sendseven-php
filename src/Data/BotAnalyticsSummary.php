@@ -22,21 +22,21 @@ final readonly class BotAnalyticsSummary extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $activeBots,
-        public ?float $avgMessagesPerSession,
-        public array $botBreakdown,
-        public ?float $overallEscalationRate,
-        public ?float $overallResolutionRate,
-        public ?int $periodDays,
-        public DateTimeImmutable $periodEnd,
-        public DateTimeImmutable $periodStart,
         public string $tenantId,
-        public ?int $totalAbandonments,
+        public DateTimeImmutable $periodStart,
+        public DateTimeImmutable $periodEnd,
+        public ?int $periodDays,
         public ?int $totalBots,
+        public ?int $activeBots,
+        public ?int $totalSessions,
         public ?int $totalCompletions,
         public ?int $totalEscalations,
+        public ?int $totalAbandonments,
         public ?int $totalMessages,
-        public ?int $totalSessions,
+        public ?float $overallResolutionRate,
+        public ?float $overallEscalationRate,
+        public ?float $avgMessagesPerSession,
+        public array $botBreakdown,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -50,21 +50,21 @@ final readonly class BotAnalyticsSummary extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            activeBots: $attributes->nullableInt('active_bots'),
-            avgMessagesPerSession: $attributes->nullableFloat('avg_messages_per_session'),
-            botBreakdown: $attributes->list('bot_breakdown', BotBreakdownItem::fromArray(...)),
-            overallEscalationRate: $attributes->nullableFloat('overall_escalation_rate'),
-            overallResolutionRate: $attributes->nullableFloat('overall_resolution_rate'),
-            periodDays: $attributes->nullableInt('period_days'),
-            periodEnd: $attributes->dateTime('period_end'),
-            periodStart: $attributes->dateTime('period_start'),
             tenantId: $attributes->string('tenant_id'),
-            totalAbandonments: $attributes->nullableInt('total_abandonments'),
+            periodStart: $attributes->dateTime('period_start'),
+            periodEnd: $attributes->dateTime('period_end'),
+            periodDays: $attributes->nullableInt('period_days'),
             totalBots: $attributes->nullableInt('total_bots'),
+            activeBots: $attributes->nullableInt('active_bots'),
+            totalSessions: $attributes->nullableInt('total_sessions'),
             totalCompletions: $attributes->nullableInt('total_completions'),
             totalEscalations: $attributes->nullableInt('total_escalations'),
+            totalAbandonments: $attributes->nullableInt('total_abandonments'),
             totalMessages: $attributes->nullableInt('total_messages'),
-            totalSessions: $attributes->nullableInt('total_sessions'),
+            overallResolutionRate: $attributes->nullableFloat('overall_resolution_rate'),
+            overallEscalationRate: $attributes->nullableFloat('overall_escalation_rate'),
+            avgMessagesPerSession: $attributes->nullableFloat('avg_messages_per_session'),
+            botBreakdown: $attributes->list('bot_breakdown', BotBreakdownItem::fromArray(...)),
             raw: $data,
         );
     }

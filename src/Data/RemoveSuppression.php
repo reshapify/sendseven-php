@@ -20,8 +20,8 @@ final readonly class RemoveSuppression extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $message,
         public bool $success,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class RemoveSuppression extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

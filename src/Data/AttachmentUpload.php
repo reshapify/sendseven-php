@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AttachmentUpload extends Data
 {
     /**
-     * @param  ?string  $attachmentId  Alias of `id` — preferred name for new callers. Persist this rather than the URL so future URL-form changes are transparent.
-     * @param  string  $contentType  MIME type of the file
-     * @param  string  $downloadUrl  Authenticated proxy URL for downloading the attachment. Same-origin path (e.g. `/api/v1/attachments/{id}/download`) the browser fetches with the user's session cookie. The underlying GCS bucket is private; this is NOT a public URL. Use this for in-app render / agent UI / bot flows.
-     * @param  string  $filename  Original filename
      * @param  string  $id  Unique attachment identifier
-     * @param  ?string  $publicUrl  Absolute, **unauthenticated** public URL for the attachment (e.g. `https://api.sendseven.com/api/v1/attachments/public/{tenant_id}/{attachment_id}/{filename}`). Use this only for outbound contexts where an external service must `GET` the bytes — WhatsApp template `image.link` (Meta caches on first send), third-party webhook payloads, etc. The URL acts as a capability: anyone who has it can fetch the bytes. Don't put it in places that don't need it.
+     * @param  ?string  $attachmentId  Alias of `id` — preferred name for new callers. Persist this rather than the URL so future URL-form changes are transparent.
+     * @param  string  $filename  Original filename
+     * @param  string  $contentType  MIME type of the file
      * @param  int  $size  File size in bytes
      * @param  string  $storagePath  Internal storage path
+     * @param  string  $downloadUrl  Authenticated proxy URL for downloading the attachment. Same-origin path (e.g. `/api/v1/attachments/{id}/download`) the browser fetches with the user's session cookie. The underlying GCS bucket is private; this is NOT a public URL. Use this for in-app render / agent UI / bot flows.
+     * @param  ?string  $publicUrl  Absolute, **unauthenticated** public URL for the attachment (e.g. `https://api.sendseven.com/api/v1/attachments/public/{tenant_id}/{attachment_id}/{filename}`). Use this only for outbound contexts where an external service must `GET` the bytes — WhatsApp template `image.link` (Meta caches on first send), third-party webhook payloads, etc. The URL acts as a capability: anyone who has it can fetch the bytes. Don't put it in places that don't need it.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $attachmentId,
-        public string $contentType,
-        public string $downloadUrl,
-        public string $filename,
         public string $id,
-        public ?string $publicUrl,
+        public ?string $attachmentId,
+        public string $filename,
+        public string $contentType,
         public int $size,
         public string $storagePath,
+        public string $downloadUrl,
+        public ?string $publicUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class AttachmentUpload extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachmentId: $attributes->nullableString('attachment_id'),
-            contentType: $attributes->string('content_type'),
-            downloadUrl: $attributes->string('download_url'),
-            filename: $attributes->string('filename'),
             id: $attributes->string('id'),
-            publicUrl: $attributes->nullableString('public_url'),
+            attachmentId: $attributes->nullableString('attachment_id'),
+            filename: $attributes->string('filename'),
+            contentType: $attributes->string('content_type'),
             size: $attributes->int('size'),
             storagePath: $attributes->string('storage_path'),
+            downloadUrl: $attributes->string('download_url'),
+            publicUrl: $attributes->nullableString('public_url'),
             raw: $data,
         );
     }

@@ -19,28 +19,28 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ConversationStats extends Data
 {
     /**
-     * @param  ?float  $avgDurationHours  Average conversation duration in hours (from creation to close)
-     * @param  ?float  $avgMessagesPerConversation  Average number of messages per conversation
      * @param  ConversationStatusBreakdown  $byStatus  PERIOD view: current status of conversations CREATED in the date range. For a live workload snapshot use current_by_status.
-     * @param  ?int  $closedConversations  Number of conversations with CLOSED status
      * @param  ?CurrentWorkloadBreakdown  $currentByStatus  LIVE snapshot of conversation counts by current status, with the same visibility rules as the Conversations inbox (no date filter)
      * @param  ?int  $newConversations  Number of conversations created in the date range
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
-     * @param  string  $periodStart  Start of the reporting period (ISO format)
      * @param  ?int  $resolvedConversations  Number of conversations with RESOLVED status
+     * @param  ?int  $closedConversations  Number of conversations with CLOSED status
+     * @param  ?float  $avgDurationHours  Average conversation duration in hours (from creation to close)
+     * @param  ?float  $avgMessagesPerConversation  Average number of messages per conversation
+     * @param  string  $periodStart  Start of the reporting period (ISO format)
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ConversationStatusBreakdown $byStatus,
+        public ?CurrentWorkloadBreakdown $currentByStatus,
+        public ConversationAssignmentBreakdown $byAssignment,
+        public ?int $newConversations,
+        public ?int $resolvedConversations,
+        public ?int $closedConversations,
         public ?float $avgDurationHours,
         public ?float $avgMessagesPerConversation,
-        public ConversationAssignmentBreakdown $byAssignment,
-        public ConversationStatusBreakdown $byStatus,
-        public ?int $closedConversations,
-        public ?CurrentWorkloadBreakdown $currentByStatus,
-        public ?int $newConversations,
-        public string $periodEnd,
         public string $periodStart,
-        public ?int $resolvedConversations,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,16 +54,16 @@ final readonly class ConversationStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            byStatus: $attributes->object('by_status', ConversationStatusBreakdown::fromArray(...)),
+            currentByStatus: $attributes->nullableObject('current_by_status', CurrentWorkloadBreakdown::fromArray(...)),
+            byAssignment: $attributes->object('by_assignment', ConversationAssignmentBreakdown::fromArray(...)),
+            newConversations: $attributes->nullableInt('new_conversations'),
+            resolvedConversations: $attributes->nullableInt('resolved_conversations'),
+            closedConversations: $attributes->nullableInt('closed_conversations'),
             avgDurationHours: $attributes->nullableFloat('avg_duration_hours'),
             avgMessagesPerConversation: $attributes->nullableFloat('avg_messages_per_conversation'),
-            byAssignment: $attributes->object('by_assignment', ConversationAssignmentBreakdown::fromArray(...)),
-            byStatus: $attributes->object('by_status', ConversationStatusBreakdown::fromArray(...)),
-            closedConversations: $attributes->nullableInt('closed_conversations'),
-            currentByStatus: $attributes->nullableObject('current_by_status', CurrentWorkloadBreakdown::fromArray(...)),
-            newConversations: $attributes->nullableInt('new_conversations'),
-            periodEnd: $attributes->string('period_end'),
             periodStart: $attributes->string('period_start'),
-            resolvedConversations: $attributes->nullableInt('resolved_conversations'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

@@ -57,12 +57,21 @@ final readonly class WhatsAppTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/list_templates_api_v1_whatsapp_templates_get
      */
-    public function list(?string $channelId = null, TemplateStatus|string|null $status = null, ?int $limit = null, ?int $offset = null): WhatsAppTemplateList
-    {
+    public function list(
+        ?string $channelId = null,
+        TemplateStatus|string|null $status = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): WhatsAppTemplateList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/whatsapp-templates',
-            query: Payload::query(['channel_id' => $channelId, 'status' => $status, 'limit' => $limit, 'offset' => $offset]),
+            query: Payload::query([
+                'channel_id' => $channelId,
+                'status' => $status,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]),
         ));
 
         return WhatsAppTemplateList::fromArray($response->data());
@@ -80,29 +89,53 @@ final readonly class WhatsAppTemplates
      *
      * Scopes: channels:admin.
      *
-     * @param  TemplateCategory|string  $category  Template category
      * @param  string  $channelId  WhatsApp channel ID
-     * @param  list<array<string, mixed>>  $components  Template components
      * @param  string  $name  Template name (lowercase, numbers, underscores only)
-     * @param  ?bool  $allowCategoryChange  Allow Meta to change template category if needed
-     * @param  array<string, mixed>|null  $bodyNamedExamples  Example values for NAMED placeholders, keyed by placeholder name (e.g., `{"first_name": "John", "order_id": "ORD-123"}`). Required when `parameter_format='named'`. Ignored when `parameter_format='positional'` (use `example.body_text` on the BODY component instead).
-     * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_document_filename`. Should include the correct file extension (e.g. 'invoice.pdf'). Only meaningful for DOCUMENT header templates.
-     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_media_url`. Typically the public URL returned by `POST /upload-media`.
+     * @param  TemplateCategory|string  $category  Template category
+     * @param  list<array<string, mixed>>  $components  Template components
      * @param  ?string  $language  ISO language code (e.g., en, de, es)
-     * @param  ?int  $messageSendTtlSeconds  AUTHENTICATION templates only. Time-to-live for the delivered code message (30-900 seconds). WhatsApp stops trying to deliver the message after this window. Ignored for other categories.
+     * @param  ?bool  $allowCategoryChange  Allow Meta to change template category if needed
      * @param  ?string  $parameterFormat  Placeholder style for the template body. `positional` uses `{{1}}`, `{{2}}`, ...; `named` uses identifier placeholders like `{{first_name}}`. When `named`, supply `body_named_examples` instead of `example.body_text` on the BODY component.
+     * @param  array<string, mixed>|null  $bodyNamedExamples  Example values for NAMED placeholders, keyed by placeholder name (e.g., `{"first_name": "John", "order_id": "ORD-123"}`). Required when `parameter_format='named'`. Ignored when `parameter_format='positional'` (use `example.body_text` on the BODY component instead).
+     * @param  ?int  $messageSendTtlSeconds  AUTHENTICATION templates only. Time-to-live for the delivered code message (30-900 seconds). WhatsApp stops trying to deliver the message after this window. Ignored for other categories.
+     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_media_url`. Typically the public URL returned by `POST /upload-media`.
+     * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_document_filename`. Should include the correct file extension (e.g. 'invoice.pdf'). Only meaningful for DOCUMENT header templates.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/create_template_api_v1_whatsapp_templates_post
      */
-    public function create(TemplateCategory|string $category, string $channelId, array $components, string $name, ?bool $allowCategoryChange = null, ?array $bodyNamedExamples = null, ?string $defaultHeaderDocumentFilename = null, ?string $defaultHeaderMediaUrl = null, ?string $language = null, ?int $messageSendTtlSeconds = null, ?string $parameterFormat = null, ?string $idempotencyKey = null): CreateTemplate
-    {
+    public function create(
+        string $channelId,
+        string $name,
+        TemplateCategory|string $category,
+        array $components,
+        ?string $language = null,
+        ?bool $allowCategoryChange = null,
+        ?string $parameterFormat = null,
+        ?array $bodyNamedExamples = null,
+        ?int $messageSendTtlSeconds = null,
+        ?string $defaultHeaderMediaUrl = null,
+        ?string $defaultHeaderDocumentFilename = null,
+        ?string $idempotencyKey = null,
+    ): CreateTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates',
-            body: Payload::body(['category' => $category, 'channel_id' => $channelId, 'components' => $components, 'name' => $name, 'allow_category_change' => $allowCategoryChange, 'body_named_examples' => $bodyNamedExamples, 'default_header_document_filename' => $defaultHeaderDocumentFilename, 'default_header_media_url' => $defaultHeaderMediaUrl, 'language' => $language, 'message_send_ttl_seconds' => $messageSendTtlSeconds, 'parameter_format' => $parameterFormat]),
+            body: Payload::body([
+                'channel_id' => $channelId,
+                'name' => $name,
+                'category' => $category,
+                'components' => $components,
+                'language' => $language,
+                'allow_category_change' => $allowCategoryChange,
+                'parameter_format' => $parameterFormat,
+                'body_named_examples' => $bodyNamedExamples,
+                'message_send_ttl_seconds' => $messageSendTtlSeconds,
+                'default_header_media_url' => $defaultHeaderMediaUrl,
+                'default_header_document_filename' => $defaultHeaderDocumentFilename,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -160,12 +193,29 @@ final readonly class WhatsAppTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/list_template_library_api_v1_whatsapp_templates_library_get
      */
-    public function listLibrary(string $channelId, ?string $language = null, ?string $search = null, ?string $topic = null, ?string $usecase = null, ?string $industry = null, ?string $name = null, ?int $limit = null): LibraryTemplateList
-    {
+    public function listLibrary(
+        string $channelId,
+        ?string $language = null,
+        ?string $search = null,
+        ?string $topic = null,
+        ?string $usecase = null,
+        ?string $industry = null,
+        ?string $name = null,
+        ?int $limit = null,
+    ): LibraryTemplateList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/whatsapp-templates/library',
-            query: Payload::query(['channel_id' => $channelId, 'language' => $language, 'search' => $search, 'topic' => $topic, 'usecase' => $usecase, 'industry' => $industry, 'name' => $name, 'limit' => $limit]),
+            query: Payload::query([
+                'channel_id' => $channelId,
+                'language' => $language,
+                'search' => $search,
+                'topic' => $topic,
+                'usecase' => $usecase,
+                'industry' => $industry,
+                'name' => $name,
+                'limit' => $limit,
+            ]),
         ));
 
         return LibraryTemplateList::fromArray($response->data());
@@ -192,10 +242,10 @@ final readonly class WhatsAppTemplates
      *
      * @param  string  $channelId  WhatsApp channel whose WABA receives the template
      * @param  string  $libraryTemplateName  ``name`` of the library entry (e.g. ``delivery_update_1``)
-     * @param  list<array<string, mixed>>|null  $buttonInputs  Customer-specific button values. Omit to accept the library entry's own example values — this is what the one-click flow in /conversations does.
-     * @param  ?string  $category  Defaults to the library entry's category (UTILITY / AUTHENTICATION)
      * @param  ?string  $language  Meta language code to create it in
+     * @param  ?string  $category  Defaults to the library entry's category (UTILITY / AUTHENTICATION)
      * @param  ?string  $name  Name for the created template. Defaults to the library template name. Normalised to lowercase/underscores.
+     * @param  list<array<string, mixed>>|null  $buttonInputs  Customer-specific button values. Omit to accept the library entry's own example values — this is what the one-click flow in /conversations does.
      * @param  array<string, mixed>|null  $snapshot  The library entry exactly as the client displayed it. Used as the content source when Meta rate-limits the confirmation lookup, so a 429 never blocks the customer's first send.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -203,12 +253,28 @@ final readonly class WhatsAppTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/adopt_library_template_api_v1_whatsapp_templates_library_adopt_post
      */
-    public function adoptLibrary(string $channelId, string $libraryTemplateName, ?array $buttonInputs = null, ?string $category = null, ?string $language = null, ?string $name = null, ?array $snapshot = null, ?string $idempotencyKey = null): AdoptLibraryTemplate
-    {
+    public function adoptLibrary(
+        string $channelId,
+        string $libraryTemplateName,
+        ?string $language = null,
+        ?string $category = null,
+        ?string $name = null,
+        ?array $buttonInputs = null,
+        ?array $snapshot = null,
+        ?string $idempotencyKey = null,
+    ): AdoptLibraryTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates/library/adopt',
-            body: Payload::body(['channel_id' => $channelId, 'library_template_name' => $libraryTemplateName, 'button_inputs' => $buttonInputs, 'category' => $category, 'language' => $language, 'name' => $name, 'snapshot' => $snapshot]),
+            body: Payload::body([
+                'channel_id' => $channelId,
+                'library_template_name' => $libraryTemplateName,
+                'language' => $language,
+                'category' => $category,
+                'name' => $name,
+                'button_inputs' => $buttonInputs,
+                'snapshot' => $snapshot,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -295,12 +361,26 @@ final readonly class WhatsAppTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/translate_whatsapp_template_api_v1_whatsapp_templates_translate_post
      */
-    public function translate(string $bodyText, string $targetLanguage, ?string $sourceLanguage = null, ?string $headerText = null, ?string $footerText = null, ?array $buttonTexts = null, ?string $idempotencyKey = null): array
-    {
+    public function translate(
+        string $bodyText,
+        string $targetLanguage,
+        ?string $sourceLanguage = null,
+        ?string $headerText = null,
+        ?string $footerText = null,
+        ?array $buttonTexts = null,
+        ?string $idempotencyKey = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates/translate',
-            body: Payload::body(['body_text' => $bodyText, 'target_language' => $targetLanguage, 'source_language' => $sourceLanguage, 'header_text' => $headerText, 'footer_text' => $footerText, 'button_texts' => $buttonTexts]),
+            body: Payload::body([
+                'body_text' => $bodyText,
+                'target_language' => $targetLanguage,
+                'source_language' => $sourceLanguage,
+                'header_text' => $headerText,
+                'footer_text' => $footerText,
+                'button_texts' => $buttonTexts,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -326,13 +406,17 @@ final readonly class WhatsAppTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/upload_template_media_api_v1_whatsapp_templates_upload_media_post
      */
-    public function uploadMedia(string $channelId, FilePart $file, string $mediaType, ?string $idempotencyKey = null): MediaUpload
-    {
+    public function uploadMedia(
+        string $channelId,
+        string $mediaType,
+        FilePart $file,
+        ?string $idempotencyKey = null,
+    ): MediaUpload {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates/upload-media',
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-            multipart: Payload::multipart(['channel_id' => $channelId, 'file' => $file, 'media_type' => $mediaType]),
+            multipart: Payload::multipart(['channel_id' => $channelId, 'media_type' => $mediaType, 'file' => $file]),
         ));
 
         return MediaUpload::fromArray($response->data());
@@ -350,28 +434,51 @@ final readonly class WhatsAppTemplates
      *
      * Scopes: messages:create.
      *
-     * @param  list<array<string, mixed>>|null  $cards  Per-card parameters for a CAROUSEL template, supplied POSITIONALLY — entry 0 fills the first card, entry 1 the second, etc. Provide one entry per card you want to personalize. When ABSENT the non-carousel send path is unchanged. Each entry carries its own `variable_values` (same positional/named rules as the top-level field) and `header_media_url`. Only meaningful for CAROUSEL templates; ignored otherwise.
-     * @param  ?string  $channelId  OPTIONAL. A WhatsApp channel id (UUID) owned by the tenant. Always allowed alongside any recipient selector. Used to (a) disambiguate a template referenced by NAME that exists on multiple channels, and (b) select the sending channel when sending by `whatsapp_id` with no contact/conversation. If it conflicts with the resolved template's own channel, the request returns 400.
      * @param  ?string  $contactId  Contact to send the message to. OPTIONAL — supply ANY ONE of `contact_id`, `contact_method_id`, `conversation_id`, or `whatsapp_id` to identify the recipient. If `contact_method_id` is also provided it WINS and this `contact_id` is ignored. When combined with `whatsapp_id`, this contact is used (and a matching WhatsApp contact method is auto-created on it if missing).
      * @param  ?string  $contactMethodId  OPTIONAL. A `contact_methods.id` (UUID) of type `whatsapp_id` or `whatsapp_bsuid` owned by the tenant. When provided it determines BOTH the recipient WhatsApp id (the method's value) AND the contact (the method's owning contact). Highest-priority recipient selector — if both `contact_id` and `contact_method_id` are given, `contact_method_id` WINS and `contact_id` is ignored. A method of any other type returns 422.
-     * @param  ?string  $conversationId  Link to existing conversation (creates new if not provided)
-     * @param  ?string  $headerDocumentFilename  Optional filename override for DOCUMENT-type template headers. Must include the correct file extension matching the document (e.g. 'invoice.pdf' for a PDF). Ignored for non-DOCUMENT headers.
-     * @param  ?string  $headerMediaUrl  Header media reference for IMAGE/VIDEO/DOCUMENT templates. Accepts ANY of: - a bare `attachment_id` (UUID) returned by `POST /attachments` or `POST /whatsapp-templates/upload-media` - the proxy URL `/api/v1/attachments/{id}/download` (relative or absolute) - the permanent public URL `/api/v1/attachments/public/{tenant_id}/{id}` - a legacy `https://storage.googleapis.com/...` GCS URL - any absolute external `https://` URL (customer CDN, etc.) The server resolves the input to a Meta-deliverable URL via `WhatsAppHeaderMediaService`. Field name is kept for backwards compatibility — it has not been URL-only since May 2026.
-     * @param  ?string  $language  OPTIONAL. Template language to send when the template is referenced BY NAME and that name exists in multiple languages. Use the exact code stored in `whatsapp_templates.language` — the Meta language/locale code (e.g. `en`, `de`, `en_US`, `pt_BR`). Resolution when a name maps to multiple language rows (after the channel filter): if only one language remains it is used; if several remain, an explicit `language` selects that variant (400 if no such variant), else the recipient contact's stored `language` is matched (exact, then base-language family e.g. `de_DE`↔`de`), else 400 asking for `language`. When the template is referenced by DB ID the language is fixed by that row; passing a conflicting `language` returns 400.
-     * @param  mixed  $variableValues  Override auto-mapped values. Pass a list (positional only) or a dict (positional with numeric keys, or named with identifier keys). Shape must match the template's parameter_format. Reserved dict keys (coexist with body variable keys): - `url_suffix` — replaces `{{1}}` inside a dynamic URL button. Value is ONLY the suffix portion that fills `{{1}}`, not the full URL (e.g. for template URL `https://example.com/orders/{{1}}`, pass `"url_suffix": "track/INV-2026-001"`). - `otp_code` — the code copied by the user for authentication / OTP COPY_CODE buttons.
      * @param  ?string  $whatsAppId  OPTIONAL. A WhatsApp recipient id sent directly — a phone number WITHOUT a leading `+` (a leading `+` is stripped; spaces/dashes/parens are tolerated for phone-shaped values), an alphanumeric WhatsApp id (Meta now permits alphanumeric ids — digits are NOT required), OR a Business-scoped user ID such as `US.13491208655302741918` (kept verbatim, periods included, and sent in Meta's `recipient` field instead of `to`). The value is normalized with the same canonical contact-method normalization used elsewhere so dedup is consistent. If `contact_id` is also supplied, that contact gains a `whatsapp_id` (or `whatsapp_bsuid`) method with this value (created if missing); otherwise an existing contact is matched by this identifier, or a new contact + method is created. Note that AUTHENTICATION templates cannot be sent to a Business-scoped user ID (Meta error 131062). When sent without a `conversation_id`, the new conversation's channel is the template's channel (optionally selected via `channel_id`).
+     * @param  ?string  $channelId  OPTIONAL. A WhatsApp channel id (UUID) owned by the tenant. Always allowed alongside any recipient selector. Used to (a) disambiguate a template referenced by NAME that exists on multiple channels, and (b) select the sending channel when sending by `whatsapp_id` with no contact/conversation. If it conflicts with the resolved template's own channel, the request returns 400.
+     * @param  mixed  $variableValues  Override auto-mapped values. Pass a list (positional only) or a dict (positional with numeric keys, or named with identifier keys). Shape must match the template's parameter_format. Reserved dict keys (coexist with body variable keys): - `url_suffix` — replaces `{{1}}` inside a dynamic URL button. Value is ONLY the suffix portion that fills `{{1}}`, not the full URL (e.g. for template URL `https://example.com/orders/{{1}}`, pass `"url_suffix": "track/INV-2026-001"`). - `otp_code` — the code copied by the user for authentication / OTP COPY_CODE buttons.
+     * @param  ?string  $language  OPTIONAL. Template language to send when the template is referenced BY NAME and that name exists in multiple languages. Use the exact code stored in `whatsapp_templates.language` — the Meta language/locale code (e.g. `en`, `de`, `en_US`, `pt_BR`). Resolution when a name maps to multiple language rows (after the channel filter): if only one language remains it is used; if several remain, an explicit `language` selects that variant (400 if no such variant), else the recipient contact's stored `language` is matched (exact, then base-language family e.g. `de_DE`↔`de`), else 400 asking for `language`. When the template is referenced by DB ID the language is fixed by that row; passing a conflicting `language` returns 400.
+     * @param  ?string  $conversationId  Link to existing conversation (creates new if not provided)
+     * @param  ?string  $headerMediaUrl  Header media reference for IMAGE/VIDEO/DOCUMENT templates. Accepts ANY of: - a bare `attachment_id` (UUID) returned by `POST /attachments` or `POST /whatsapp-templates/upload-media` - the proxy URL `/api/v1/attachments/{id}/download` (relative or absolute) - the permanent public URL `/api/v1/attachments/public/{tenant_id}/{id}` - a legacy `https://storage.googleapis.com/...` GCS URL - any absolute external `https://` URL (customer CDN, etc.) The server resolves the input to a Meta-deliverable URL via `WhatsAppHeaderMediaService`. Field name is kept for backwards compatibility — it has not been URL-only since May 2026.
+     * @param  ?string  $headerDocumentFilename  Optional filename override for DOCUMENT-type template headers. Must include the correct file extension matching the document (e.g. 'invoice.pdf' for a PDF). Ignored for non-DOCUMENT headers.
+     * @param  list<array<string, mixed>>|null  $cards  Per-card parameters for a CAROUSEL template, supplied POSITIONALLY — entry 0 fills the first card, entry 1 the second, etc. Provide one entry per card you want to personalize. When ABSENT the non-carousel send path is unchanged. Each entry carries its own `variable_values` (same positional/named rules as the top-level field) and `header_media_url`. Only meaningful for CAROUSEL templates; ignored otherwise.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/send_template_api_v1_whatsapp_templates__template_id_or_name__send_post
      */
-    public function send(string $templateIdOrName, ?array $cards = null, ?string $channelId = null, ?string $contactId = null, ?string $contactMethodId = null, ?string $conversationId = null, ?string $headerDocumentFilename = null, ?string $headerMediaUrl = null, ?string $language = null, mixed $variableValues = null, ?string $whatsAppId = null, ?string $idempotencyKey = null): SendTemplate
-    {
+    public function send(
+        string $templateIdOrName,
+        ?string $contactId = null,
+        ?string $contactMethodId = null,
+        ?string $whatsAppId = null,
+        ?string $channelId = null,
+        mixed $variableValues = null,
+        ?string $language = null,
+        ?string $conversationId = null,
+        ?string $headerMediaUrl = null,
+        ?string $headerDocumentFilename = null,
+        ?array $cards = null,
+        ?string $idempotencyKey = null,
+    ): SendTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates/'.Payload::segment($templateIdOrName).'/send',
-            body: Payload::body(['cards' => $cards, 'channel_id' => $channelId, 'contact_id' => $contactId, 'contact_method_id' => $contactMethodId, 'conversation_id' => $conversationId, 'header_document_filename' => $headerDocumentFilename, 'header_media_url' => $headerMediaUrl, 'language' => $language, 'variable_values' => $variableValues, 'whatsapp_id' => $whatsAppId]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'contact_method_id' => $contactMethodId,
+                'whatsapp_id' => $whatsAppId,
+                'channel_id' => $channelId,
+                'variable_values' => $variableValues,
+                'language' => $language,
+                'conversation_id' => $conversationId,
+                'header_media_url' => $headerMediaUrl,
+                'header_document_filename' => $headerDocumentFilename,
+                'cards' => $cards,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -437,20 +544,29 @@ final readonly class WhatsAppTemplates
      * Scopes: channels:admin.
      *
      * @param  list<array<string, mixed>>|null  $components  Updated template components
-     * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Used as fallback when callers do not pass `header_document_filename` on send. Pass an empty string to clear; omit the field to leave it unchanged. Only meaningful for DOCUMENT header templates.
      * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as fallback when callers do not pass `header_media_url` on send. Pass an empty string to clear.
+     * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Used as fallback when callers do not pass `header_document_filename` on send. Pass an empty string to clear; omit the field to leave it unchanged. Only meaningful for DOCUMENT header templates.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/update_template_api_v1_whatsapp_templates__template_id__patch
      */
-    public function update(string $templateId, ?array $components = null, ?string $defaultHeaderDocumentFilename = null, ?string $defaultHeaderMediaUrl = null, ?string $idempotencyKey = null): WhatsAppTemplate
-    {
+    public function update(
+        string $templateId,
+        ?array $components = null,
+        ?string $defaultHeaderMediaUrl = null,
+        ?string $defaultHeaderDocumentFilename = null,
+        ?string $idempotencyKey = null,
+    ): WhatsAppTemplate {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/whatsapp-templates/'.Payload::segment($templateId),
-            body: Payload::body(['components' => $components, 'default_header_document_filename' => $defaultHeaderDocumentFilename, 'default_header_media_url' => $defaultHeaderMediaUrl]),
+            body: Payload::body([
+                'components' => $components,
+                'default_header_media_url' => $defaultHeaderMediaUrl,
+                'default_header_document_filename' => $defaultHeaderDocumentFilename,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -477,8 +593,12 @@ final readonly class WhatsAppTemplates
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/preview_template_api_v1_whatsapp_templates__template_id__preview_post
      */
-    public function preview(string $templateId, ?string $contactId = null, ?array $variableValues = null, ?string $idempotencyKey = null): PreviewTemplate
-    {
+    public function preview(
+        string $templateId,
+        ?string $contactId = null,
+        ?array $variableValues = null,
+        ?string $idempotencyKey = null,
+    ): PreviewTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates/'.Payload::segment($templateId).'/preview',

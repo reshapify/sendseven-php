@@ -43,8 +43,11 @@ final readonly class ChatTranslation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_email_message_api_v1_email_messages__email_message_id__translate_post
      */
-    public function translateEmailMessage(string $emailMessageId, string $targetLanguage, ?string $idempotencyKey = null): TranslateMessage
-    {
+    public function translateEmailMessage(
+        string $emailMessageId,
+        string $targetLanguage,
+        ?string $idempotencyKey = null,
+    ): TranslateMessage {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-messages/'.Payload::segment($emailMessageId).'/translate',
@@ -72,8 +75,11 @@ final readonly class ChatTranslation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_message_api_v1_messages__message_id__translate_post
      */
-    public function translateMessage(string $messageId, string $targetLanguage, ?string $idempotencyKey = null): TranslateMessage
-    {
+    public function translateMessage(
+        string $messageId,
+        string $targetLanguage,
+        ?string $idempotencyKey = null,
+    ): TranslateMessage {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/messages/'.Payload::segment($messageId).'/translate',
@@ -94,8 +100,8 @@ final readonly class ChatTranslation
      *
      * Scopes: messages:create.
      *
-     * @param  string  $targetLanguage  ISO 639-1 code or 'auto'
      * @param  string  $text  Text to translate
+     * @param  string  $targetLanguage  ISO 639-1 code or 'auto'
      * @param  ?string  $conversationId  Conversation ID to fetch recent inbound messages for auto-detect
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -103,12 +109,20 @@ final readonly class ChatTranslation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_text_api_v1_translate_post
      */
-    public function translateText(string $targetLanguage, string $text, ?string $conversationId = null, ?string $idempotencyKey = null): TranslateText
-    {
+    public function translateText(
+        string $text,
+        string $targetLanguage,
+        ?string $conversationId = null,
+        ?string $idempotencyKey = null,
+    ): TranslateText {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/translate',
-            body: Payload::body(['target_language' => $targetLanguage, 'text' => $text, 'conversation_id' => $conversationId]),
+            body: Payload::body([
+                'text' => $text,
+                'target_language' => $targetLanguage,
+                'conversation_id' => $conversationId,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

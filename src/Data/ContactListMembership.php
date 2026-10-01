@@ -20,15 +20,15 @@ final readonly class ContactListMembership extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $channelType,
-        public ?string $listDescription,
         public string $listId,
         public string $listName,
-        public ?string $listSlug,
         public string $listType,
-        public ?string $membershipId,
-        public ?string $subscribedAt,
+        public ?string $listSlug,
+        public ?string $listDescription,
+        public ?string $channelType,
         public ?string $subscriptionStatus,
+        public ?string $subscribedAt,
+        public ?string $membershipId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,15 +42,15 @@ final readonly class ContactListMembership extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            channelType: $attributes->nullableString('channel_type'),
-            listDescription: $attributes->nullableString('list_description'),
             listId: $attributes->string('list_id'),
             listName: $attributes->string('list_name'),
-            listSlug: $attributes->nullableString('list_slug'),
             listType: $attributes->string('list_type'),
-            membershipId: $attributes->nullableString('membership_id'),
-            subscribedAt: $attributes->nullableString('subscribed_at'),
+            listSlug: $attributes->nullableString('list_slug'),
+            listDescription: $attributes->nullableString('list_description'),
+            channelType: $attributes->nullableString('channel_type'),
             subscriptionStatus: $attributes->nullableString('subscription_status'),
+            subscribedAt: $attributes->nullableString('subscribed_at'),
+            membershipId: $attributes->nullableString('membership_id'),
             raw: $data,
         );
     }

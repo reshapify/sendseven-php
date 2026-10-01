@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WidgetAnalytics extends Data
 {
     /**
+     * @param  string  $widgetId  Widget ID
      * @param  bool  $analyticsEnabled  Whether analytics is enabled
-     * @param  list<WidgetAnalyticsDailyItem>  $daily  Daily breakdown
-     * @param  ?string  $endDate  Period end date (ISO format)
      * @param  ?string  $message  Message if analytics disabled
      * @param  ?int  $periodDays  Number of days in period
      * @param  ?string  $startDate  Period start date (ISO format)
+     * @param  ?string  $endDate  Period end date (ISO format)
      * @param  ?WidgetAnalyticsTotals  $totals  Aggregated totals
-     * @param  string  $widgetId  Widget ID
+     * @param  list<WidgetAnalyticsDailyItem>  $daily  Daily breakdown
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $widgetId,
         public bool $analyticsEnabled,
-        public array $daily,
-        public ?string $endDate,
         public ?string $message,
         public ?int $periodDays,
         public ?string $startDate,
+        public ?string $endDate,
         public ?WidgetAnalyticsTotals $totals,
-        public string $widgetId,
+        public array $daily,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class WidgetAnalytics extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            widgetId: $attributes->string('widget_id'),
             analyticsEnabled: $attributes->bool('analytics_enabled'),
-            daily: $attributes->list('daily', WidgetAnalyticsDailyItem::fromArray(...)),
-            endDate: $attributes->nullableString('end_date'),
             message: $attributes->nullableString('message'),
             periodDays: $attributes->nullableInt('period_days'),
             startDate: $attributes->nullableString('start_date'),
+            endDate: $attributes->nullableString('end_date'),
             totals: $attributes->nullableObject('totals', WidgetAnalyticsTotals::fromArray(...)),
-            widgetId: $attributes->string('widget_id'),
+            daily: $attributes->list('daily', WidgetAnalyticsDailyItem::fromArray(...)),
             raw: $data,
         );
     }

@@ -20,18 +20,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CurrentWorkloadBreakdown extends Data
 {
     /**
-     * @param  ?int  $assigned  Conversations currently ASSIGNED (not snoozed)
-     * @param  ?int  $closed  Conversations currently CLOSED
      * @param  ?int  $open  Conversations currently OPEN (not snoozed)
+     * @param  ?int  $assigned  Conversations currently ASSIGNED (not snoozed)
      * @param  ?int  $resolved  Conversations currently RESOLVED
+     * @param  ?int  $closed  Conversations currently CLOSED
      * @param  ?int  $snoozed  Open/assigned conversations currently snoozed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $assigned,
-        public ?int $closed,
         public ?int $open,
+        public ?int $assigned,
         public ?int $resolved,
+        public ?int $closed,
         public ?int $snoozed,
         array $raw = [],
     ) {
@@ -46,10 +46,10 @@ final readonly class CurrentWorkloadBreakdown extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            assigned: $attributes->nullableInt('assigned'),
-            closed: $attributes->nullableInt('closed'),
             open: $attributes->nullableInt('open'),
+            assigned: $attributes->nullableInt('assigned'),
             resolved: $attributes->nullableInt('resolved'),
+            closed: $attributes->nullableInt('closed'),
             snoozed: $attributes->nullableInt('snoozed'),
             raw: $data,
         );

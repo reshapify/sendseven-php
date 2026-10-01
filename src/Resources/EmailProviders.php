@@ -62,9 +62,9 @@ final readonly class EmailProviders
      * - Encrypts API key before storage - If set as default, removes default flag from other providers
      * - Validates provider configuration
      *
-     * @param  string  $apiKey  API key for provider
-     * @param  string  $name  User-friendly name
      * @param  ProviderType|string  $providerType  Provider type (sendgrid, mailgun)
+     * @param  string  $name  User-friendly name
+     * @param  string  $apiKey  API key for provider
      * @param  array<string, mixed>|null  $config  Provider-specific settings
      * @param  ?bool  $isActive  Whether provider is active
      * @param  ?bool  $isDefault  Set as default provider for tenant
@@ -74,12 +74,26 @@ final readonly class EmailProviders
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Providers/create_provider_api_v1_email_providers_post
      */
-    public function create(string $apiKey, string $name, ProviderType|string $providerType, ?array $config = null, ?bool $isActive = null, ?bool $isDefault = null, ?string $idempotencyKey = null): EmailProviderConfig
-    {
+    public function create(
+        ProviderType|string $providerType,
+        string $name,
+        string $apiKey,
+        ?array $config = null,
+        ?bool $isActive = null,
+        ?bool $isDefault = null,
+        ?string $idempotencyKey = null,
+    ): EmailProviderConfig {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-providers',
-            body: Payload::body(['api_key' => $apiKey, 'name' => $name, 'provider_type' => $providerType, 'config' => $config, 'is_active' => $isActive, 'is_default' => $isDefault]),
+            body: Payload::body([
+                'provider_type' => $providerType,
+                'name' => $name,
+                'api_key' => $apiKey,
+                'config' => $config,
+                'is_active' => $isActive,
+                'is_default' => $isDefault,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -176,12 +190,25 @@ final readonly class EmailProviders
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Providers/update_provider_api_v1_email_providers__provider_id__patch
      */
-    public function update(string $providerId, ?string $apiKey = null, ?array $config = null, ?bool $isActive = null, ?bool $isDefault = null, ?string $name = null, ?string $idempotencyKey = null): EmailProviderConfig
-    {
+    public function update(
+        string $providerId,
+        ?string $name = null,
+        ?string $apiKey = null,
+        ?array $config = null,
+        ?bool $isActive = null,
+        ?bool $isDefault = null,
+        ?string $idempotencyKey = null,
+    ): EmailProviderConfig {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-providers/'.Payload::segment($providerId),
-            body: Payload::body(['api_key' => $apiKey, 'config' => $config, 'is_active' => $isActive, 'is_default' => $isDefault, 'name' => $name]),
+            body: Payload::body([
+                'name' => $name,
+                'api_key' => $apiKey,
+                'config' => $config,
+                'is_active' => $isActive,
+                'is_default' => $isDefault,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -277,20 +304,25 @@ final readonly class EmailProviders
      * provider message ID
      *
      * @param  string  $toEmail  Email address to send test email to
-     * @param  ?string  $body  Email body
      * @param  ?string  $subject  Email subject
+     * @param  ?string  $body  Email body
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Providers/test_provider_api_v1_email_providers__provider_id__test_post
      */
-    public function test(string $providerId, string $toEmail, ?string $body = null, ?string $subject = null, ?string $idempotencyKey = null): TestEmail
-    {
+    public function test(
+        string $providerId,
+        string $toEmail,
+        ?string $subject = null,
+        ?string $body = null,
+        ?string $idempotencyKey = null,
+    ): TestEmail {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-providers/'.Payload::segment($providerId).'/test',
-            body: Payload::body(['to_email' => $toEmail, 'body' => $body, 'subject' => $subject]),
+            body: Payload::body(['to_email' => $toEmail, 'subject' => $subject, 'body' => $body]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

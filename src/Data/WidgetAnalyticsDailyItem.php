@@ -18,14 +18,14 @@ final readonly class WidgetAnalyticsDailyItem extends Data
 {
     /**
      * @param  string  $date  Date (YYYY-MM-DD)
-     * @param  ?int  $interactions  Interactions on this day
      * @param  ?int  $views  Views on this day
+     * @param  ?int  $interactions  Interactions on this day
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $date,
-        public ?int $interactions,
         public ?int $views,
+        public ?int $interactions,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,8 +40,8 @@ final readonly class WidgetAnalyticsDailyItem extends Data
 
         return new self(
             date: $attributes->string('date'),
-            interactions: $attributes->nullableInt('interactions'),
             views: $attributes->nullableInt('views'),
+            interactions: $attributes->nullableInt('interactions'),
             raw: $data,
         );
     }

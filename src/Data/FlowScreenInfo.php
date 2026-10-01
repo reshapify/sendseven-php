@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FlowScreenInfo extends Data
 {
     /**
-     * @param  list<FlowFieldInfo>  $fields  Input fields on this screen
      * @param  string  $id  Screen ID
      * @param  ?string  $title  Screen title
+     * @param  list<FlowFieldInfo>  $fields  Input fields on this screen
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $fields,
         public string $id,
         public ?string $title,
+        public array $fields,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class FlowScreenInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            fields: $attributes->list('fields', FlowFieldInfo::fromArray(...)),
             id: $attributes->string('id'),
             title: $attributes->nullableString('title'),
+            fields: $attributes->list('fields', FlowFieldInfo::fromArray(...)),
             raw: $data,
         );
     }

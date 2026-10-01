@@ -20,13 +20,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SocialPostInsightsBulkRefresh extends Data
 {
     /**
-     * @param  list<SocialPostInsightsRefresh>  $items  One entry per refreshed post, most recent first.
      * @param  int  $refreshed  How many posts were refreshed.
+     * @param  list<SocialPostInsightsRefresh>  $items  One entry per refreshed post, most recent first.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $items,
         public int $refreshed,
+        public array $items,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,8 +40,8 @@ final readonly class SocialPostInsightsBulkRefresh extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            items: $attributes->list('items', SocialPostInsightsRefresh::fromArray(...)),
             refreshed: $attributes->int('refreshed'),
+            items: $attributes->list('items', SocialPostInsightsRefresh::fromArray(...)),
             raw: $data,
         );
     }

@@ -176,8 +176,11 @@ final readonly class EmailConnections
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Connections/link_outbound_provider_api_v1_email_connections__connection_id__link_outbound_patch
      */
-    public function linkOutboundProvider(string $connectionId, string $outboundProviderId, ?string $idempotencyKey = null): LinkOutboundProvider
-    {
+    public function linkOutboundProvider(
+        string $connectionId,
+        string $outboundProviderId,
+        ?string $idempotencyKey = null,
+    ): LinkOutboundProvider {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-connections/'.Payload::segment($connectionId).'/link-outbound',

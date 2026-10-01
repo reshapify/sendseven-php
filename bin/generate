@@ -26,7 +26,8 @@ if (in_array('--fetch', $argv, true)) {
     }
 
     $decoded = json_decode($live, true, 512, JSON_THROW_ON_ERROR);
-    file_put_contents($root.'/openapi/sendseven.json', json_encode(ksortRecursive($decoded), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
+    // Kept in SendSeven's order: property order decides parameter order.
+    file_put_contents($root.'/openapi/sendseven.json', json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
     echo "Fetched spec version {$decoded['info']['version']}.\n";
 }
 
@@ -44,20 +45,3 @@ if ($pintExit !== 0) {
 echo "Generated {$result['methods']} methods in {$result['resources']} resources, {$result['data']} response objects and {$result['enums']} enums";
 echo $result['removed'] > 0 ? "; removed {$result['removed']} stale files.\n" : ".\n";
 echo "Now run: composer lint && composer test\n";
-
-/**
- * @param  mixed  $value
- * @return mixed
- */
-function ksortRecursive($value)
-{
-    if (! is_array($value)) {
-        return $value;
-    }
-
-    if (! array_is_list($value)) {
-        ksort($value);
-    }
-
-    return array_map('ksortRecursive', $value);
-}

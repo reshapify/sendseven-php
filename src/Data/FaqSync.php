@@ -21,10 +21,10 @@ final readonly class FaqSync extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?bool $success,
+        public string $message,
         public string $documentId,
         public int $itemCount,
-        public string $message,
-        public ?bool $success,
         public DateTimeImmutable $syncedAt,
         array $raw = [],
     ) {
@@ -39,10 +39,10 @@ final readonly class FaqSync extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->nullableBool('success'),
+            message: $attributes->string('message'),
             documentId: $attributes->string('document_id'),
             itemCount: $attributes->int('item_count'),
-            message: $attributes->string('message'),
-            success: $attributes->nullableBool('success'),
             syncedAt: $attributes->dateTime('synced_at'),
             raw: $data,
         );

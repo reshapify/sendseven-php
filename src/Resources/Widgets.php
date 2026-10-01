@@ -62,25 +62,41 @@ final readonly class Widgets
      *
      * Scopes: widgets:create.
      *
-     * @param  array<string, mixed>  $config  Widget configuration
      * @param  string  $name  Internal name for the widget
-     * @param  ?bool  $isActive  Widget active status
-     * @param  ?bool  $isAnalyticsEnabled  Enable analytics tracking
-     * @param  ?string  $privacyUrl  Customer's privacy policy URL
-     * @param  WidgetUseCase|string|null  $useCase  Widget use case
+     * @param  array<string, mixed>  $config  Widget configuration
      * @param  WidgetType|string|null  $widgetType  Widget display type
+     * @param  WidgetUseCase|string|null  $useCase  Widget use case
+     * @param  ?string  $privacyUrl  Customer's privacy policy URL
+     * @param  ?bool  $isAnalyticsEnabled  Enable analytics tracking
+     * @param  ?bool  $isActive  Widget active status
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Widgets/create_widget_api_v1_widgets_post
      */
-    public function create(array $config, string $name, ?bool $isActive = null, ?bool $isAnalyticsEnabled = null, ?string $privacyUrl = null, WidgetUseCase|string|null $useCase = null, WidgetType|string|null $widgetType = null, ?string $idempotencyKey = null): Widget
-    {
+    public function create(
+        string $name,
+        array $config,
+        WidgetType|string|null $widgetType = null,
+        WidgetUseCase|string|null $useCase = null,
+        ?string $privacyUrl = null,
+        ?bool $isAnalyticsEnabled = null,
+        ?bool $isActive = null,
+        ?string $idempotencyKey = null,
+    ): Widget {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/widgets',
-            body: Payload::body(['config' => $config, 'name' => $name, 'is_active' => $isActive, 'is_analytics_enabled' => $isAnalyticsEnabled, 'privacy_url' => $privacyUrl, 'use_case' => $useCase, 'widget_type' => $widgetType]),
+            body: Payload::body([
+                'name' => $name,
+                'config' => $config,
+                'widget_type' => $widgetType,
+                'use_case' => $useCase,
+                'privacy_url' => $privacyUrl,
+                'is_analytics_enabled' => $isAnalyticsEnabled,
+                'is_active' => $isActive,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -140,12 +156,24 @@ final readonly class Widgets
      *
      * @see https://api.sendseven.com/api/v1/docs#/Widgets/update_widget_api_v1_widgets__widget_id__put
      */
-    public function update(string $widgetId, ?array $config = null, ?bool $isActive = null, ?bool $isAnalyticsEnabled = null, ?string $name = null, ?string $privacyUrl = null): Widget
-    {
+    public function update(
+        string $widgetId,
+        ?string $name = null,
+        ?array $config = null,
+        ?string $privacyUrl = null,
+        ?bool $isAnalyticsEnabled = null,
+        ?bool $isActive = null,
+    ): Widget {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/widgets/'.Payload::segment($widgetId),
-            body: Payload::body(['config' => $config, 'is_active' => $isActive, 'is_analytics_enabled' => $isAnalyticsEnabled, 'name' => $name, 'privacy_url' => $privacyUrl]),
+            body: Payload::body([
+                'name' => $name,
+                'config' => $config,
+                'privacy_url' => $privacyUrl,
+                'is_analytics_enabled' => $isAnalyticsEnabled,
+                'is_active' => $isActive,
+            ]),
         ));
 
         return Widget::fromArray($response->data());
@@ -231,13 +259,13 @@ final readonly class Widgets
      *
      * Scopes: widgets:update.
      *
-     * @param  array<string, mixed>|null  $enabled  `true` to enable verification, `false` to disable it
+     * @param  mixed  $enabled  `true` to enable verification, `false` to disable it
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Widgets/update_identity_verification_api_v1_widgets__widget_id__identity_verification_put
      */
-    public function updateIdentityVerification(string $widgetId, ?array $enabled = null): WidgetIdentityVerification
+    public function updateIdentityVerification(string $widgetId, mixed $enabled = null): WidgetIdentityVerification
     {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -267,8 +295,10 @@ final readonly class Widgets
      *
      * @see https://api.sendseven.com/api/v1/docs#/Widgets/reveal_identity_verification_secret_api_v1_widgets__widget_id__identity_verification_reveal_post
      */
-    public function revealIdentityVerificationSecret(string $widgetId, ?string $idempotencyKey = null): WidgetIdentitySecretReveal
-    {
+    public function revealIdentityVerificationSecret(
+        string $widgetId,
+        ?string $idempotencyKey = null,
+    ): WidgetIdentitySecretReveal {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/widgets/'.Payload::segment($widgetId).'/identity-verification/reveal',
@@ -299,8 +329,10 @@ final readonly class Widgets
      *
      * @see https://api.sendseven.com/api/v1/docs#/Widgets/rotate_identity_verification_secret_api_v1_widgets__widget_id__identity_verification_rotate_post
      */
-    public function rotateIdentityVerificationSecret(string $widgetId, ?string $idempotencyKey = null): WidgetIdentitySecretRotate
-    {
+    public function rotateIdentityVerificationSecret(
+        string $widgetId,
+        ?string $idempotencyKey = null,
+    ): WidgetIdentitySecretRotate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/widgets/'.Payload::segment($widgetId).'/identity-verification/rotate',

@@ -21,43 +21,43 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ListResponse extends Data
 {
     /**
-     * @param  ?string  $contactCount  Number of contacts in the list (computed for dynamic lists)
-     * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  string  $name  List name
      * @param  ?string  $description  List description
-     * @param  array<array-key, mixed>  $hubSpotOptinFieldConfig  Stored per-channel HubSpot opt-in/opt-out field mapping, or null.
+     * @param  string  $createdAt  When the resource was created (UTC)
+     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  ListType|string  $listType  Type of list
+     * @param  array<array-key, mixed>  $segmentConditions  Segment conditions for dynamic lists
+     * @param  ?string  $contactCount  Number of contacts in the list (computed for dynamic lists)
+     * @param  ?string  $slug  URL-safe slug for newsletter lists
+     * @param  ?string  $newsletterConfig  Newsletter configuration JSON (messages, keywords and the `welcome_buttons` / `goodbye_buttons` lists — see ListCreate)
+     * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center. null = created before this setting existed and is treated as visible.
      * @param  ?bool  $isDefault  Whether this is the default list for global 'start'/'stop' keywords
      * @param  ?DateTimeImmutable  $lastEvaluatedAt  When dynamic list was last evaluated
-     * @param  ListType|string  $listType  Type of list
-     * @param  string  $name  List name
-     * @param  ?string  $newsletterConfig  Newsletter configuration JSON (messages, keywords and the `welcome_buttons` / `goodbye_buttons` lists — see ListCreate)
      * @param  array<array-key, mixed>  $optInAction  Stored per-channel opt-in action config, or null (legacy welcome message applies).
      * @param  array<array-key, mixed>  $optOutAction  Stored per-channel opt-out action config, or null (legacy goodbye message applies).
-     * @param  array<array-key, mixed>  $segmentConditions  Segment conditions for dynamic lists
-     * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center. null = created before this setting existed and is treated as visible.
-     * @param  ?string  $slug  URL-safe slug for newsletter lists
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  ?string  $updatedAt  When the resource was last updated (UTC)
+     * @param  array<array-key, mixed>  $hubSpotOptinFieldConfig  Stored per-channel HubSpot opt-in/opt-out field mapping, or null.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $contactCount,
-        public string $createdAt,
+        public string $name,
         public ?string $description,
-        public array $hubSpotOptinFieldConfig,
+        public string $createdAt,
+        public ?string $updatedAt,
         public string $id,
+        public string $tenantId,
+        public ListType|string $listType,
+        public array $segmentConditions,
+        public ?string $contactCount,
+        public ?string $slug,
+        public ?string $newsletterConfig,
+        public ?bool $showInPreferenceCenter,
         public ?bool $isDefault,
         public ?DateTimeImmutable $lastEvaluatedAt,
-        public ListType|string $listType,
-        public string $name,
-        public ?string $newsletterConfig,
         public array $optInAction,
         public array $optOutAction,
-        public array $segmentConditions,
-        public ?bool $showInPreferenceCenter,
-        public ?string $slug,
-        public string $tenantId,
-        public ?string $updatedAt,
+        public array $hubSpotOptinFieldConfig,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -71,23 +71,23 @@ final readonly class ListResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contactCount: $attributes->nullableString('contact_count'),
-            createdAt: $attributes->string('created_at'),
+            name: $attributes->string('name'),
             description: $attributes->nullableString('description'),
-            hubSpotOptinFieldConfig: $attributes->array('hubspot_optin_field_config'),
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->nullableString('updated_at'),
             id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            listType: $attributes->enum('list_type', ListType::class),
+            segmentConditions: $attributes->array('segment_conditions'),
+            contactCount: $attributes->nullableString('contact_count'),
+            slug: $attributes->nullableString('slug'),
+            newsletterConfig: $attributes->nullableString('newsletter_config'),
+            showInPreferenceCenter: $attributes->nullableBool('show_in_preference_center'),
             isDefault: $attributes->nullableBool('is_default'),
             lastEvaluatedAt: $attributes->nullableDateTime('last_evaluated_at'),
-            listType: $attributes->enum('list_type', ListType::class),
-            name: $attributes->string('name'),
-            newsletterConfig: $attributes->nullableString('newsletter_config'),
             optInAction: $attributes->array('opt_in_action'),
             optOutAction: $attributes->array('opt_out_action'),
-            segmentConditions: $attributes->array('segment_conditions'),
-            showInPreferenceCenter: $attributes->nullableBool('show_in_preference_center'),
-            slug: $attributes->nullableString('slug'),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->nullableString('updated_at'),
+            hubSpotOptinFieldConfig: $attributes->array('hubspot_optin_field_config'),
             raw: $data,
         );
     }

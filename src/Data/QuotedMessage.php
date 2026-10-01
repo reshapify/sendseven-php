@@ -20,21 +20,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class QuotedMessage extends Data
 {
     /**
-     * @param  ?string  $createdAt  When the quoted message was sent
-     * @param  ?string  $direction  Direction of the quoted message
      * @param  string  $id  Message UUID of the quoted message
-     * @param  ?string  $messageType  Type of the quoted message (text, image, etc.)
-     * @param  ?string  $senderName  Name of the person who sent the quoted message
      * @param  ?string  $text  Text preview (truncated to 150 chars)
+     * @param  ?string  $messageType  Type of the quoted message (text, image, etc.)
+     * @param  ?string  $direction  Direction of the quoted message
+     * @param  ?string  $senderName  Name of the person who sent the quoted message
+     * @param  ?string  $createdAt  When the quoted message was sent
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $createdAt,
-        public ?string $direction,
         public string $id,
-        public ?string $messageType,
-        public ?string $senderName,
         public ?string $text,
+        public ?string $messageType,
+        public ?string $direction,
+        public ?string $senderName,
+        public ?string $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,12 +48,12 @@ final readonly class QuotedMessage extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->nullableString('created_at'),
-            direction: $attributes->nullableString('direction'),
             id: $attributes->string('id'),
-            messageType: $attributes->nullableString('message_type'),
-            senderName: $attributes->nullableString('sender_name'),
             text: $attributes->nullableString('text'),
+            messageType: $attributes->nullableString('message_type'),
+            direction: $attributes->nullableString('direction'),
+            senderName: $attributes->nullableString('sender_name'),
+            createdAt: $attributes->nullableString('created_at'),
             raw: $data,
         );
     }

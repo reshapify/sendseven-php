@@ -106,10 +106,14 @@ final readonly class ResourceEmitter
             $doc[] = '@deprecated SendSeven marks this endpoint as deprecated.';
         }
 
-        $signature = implode(', ', array_map(static fn (Parameter $parameter): string => $parameter->signature(), $method->parameters));
+        $signatures = array_map(static fn (Parameter $parameter): string => $parameter->signature(), $method->parameters);
+        $oneLine = "    public function {$method->name}(".implode(', ', $signatures)."): {$method->returnNative()}";
+        $declaration = strlen($oneLine) <= 120
+            ? $oneLine
+            : "    public function {$method->name}(\n        ".implode(",\n        ", $signatures).",\n    ): {$method->returnNative()}";
 
         return Code::docblock($doc, '    ')
-            ."    public function {$method->name}({$signature}): {$method->returnNative()}\n    {\n"
+            .$declaration."\n    {\n"
             .$this->body($method, $imports)
             ."    }\n";
     }
@@ -213,6 +217,9 @@ final readonly class ResourceEmitter
      */
     private function fields(array $parameters): string
     {
-        return '['.implode(', ', array_map(static fn (Parameter $parameter): string => Code::string($parameter->wire).' => $'.$parameter->name, $parameters)).']';
+        $pairs = array_map(static fn (Parameter $parameter): string => Code::string($parameter->wire).' => $'.$parameter->name, $parameters);
+        $oneLine = '['.implode(', ', $pairs).']';
+
+        return strlen($oneLine) <= 80 ? $oneLine : "[\n                ".implode(",\n                ", $pairs).",\n            ]";
     }
 }

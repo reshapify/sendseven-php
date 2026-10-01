@@ -91,19 +91,32 @@ final readonly class HubSpotIntegration
      *
      * Scopes: settings:update.
      *
-     * @param  array<string, mixed>|null  $list
      * @param  array<string, mixed>|null  $properties
+     * @param  array<string, mixed>|null  $list
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/HubSpot%20Integration/hubspot_put_contact_sync_filter_api_v1_integrations_hubspot_contact_sync_filter_put
      */
-    public function putContactSyncFilter(string $mode, ?array $list = null, ?array $properties = null, ?string $updatedAt = null, ?string $updatedByUserId = null, ?int $version = null): HubSpotContactSyncFilterModel
-    {
+    public function putContactSyncFilter(
+        string $mode,
+        ?int $version = null,
+        ?array $properties = null,
+        ?array $list = null,
+        ?string $updatedAt = null,
+        ?string $updatedByUserId = null,
+    ): HubSpotContactSyncFilterModel {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/integrations/hubspot/contact-sync-filter',
-            body: Payload::body(['mode' => $mode, 'list' => $list, 'properties' => $properties, 'updated_at' => $updatedAt, 'updated_by_user_id' => $updatedByUserId, 'version' => $version]),
+            body: Payload::body([
+                'mode' => $mode,
+                'version' => $version,
+                'properties' => $properties,
+                'list' => $list,
+                'updated_at' => $updatedAt,
+                'updated_by_user_id' => $updatedByUserId,
+            ]),
         ));
 
         return HubSpotContactSyncFilterModel::fromArray($response->data());
@@ -128,8 +141,11 @@ final readonly class HubSpotIntegration
      *
      * @see https://api.sendseven.com/api/v1/docs#/HubSpot%20Integration/hubspot_contact_count_api_v1_integrations_hubspot_contacts_count_get
      */
-    public function contactCount(?string $filter = null, ?string $listId = null, ?bool $refresh = null): HubSpotContactCount
-    {
+    public function contactCount(
+        ?string $filter = null,
+        ?string $listId = null,
+        ?bool $refresh = null,
+    ): HubSpotContactCount {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/integrations/hubspot/contacts/count',
@@ -230,23 +246,35 @@ final readonly class HubSpotIntegration
      *
      * Scopes: settings:update.
      *
-     * @param  string  $label  Human-readable label
      * @param  string  $name  Internal property name (no spaces)
+     * @param  string  $label  Human-readable label
+     * @param  ?string  $type  HubSpot data type, e.g. string/number/enumeration
      * @param  ?string  $fieldType  HubSpot field widget type, e.g. text/select
      * @param  ?string  $groupName  HubSpot property group the new property belongs to
-     * @param  ?string  $type  HubSpot data type, e.g. string/number/enumeration
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/HubSpot%20Integration/hubspot_create_property_api_v1_integrations_hubspot_properties_post
      */
-    public function createProperty(string $label, string $name, ?string $fieldType = null, ?string $groupName = null, ?string $type = null, ?string $idempotencyKey = null): void
-    {
+    public function createProperty(
+        string $name,
+        string $label,
+        ?string $type = null,
+        ?string $fieldType = null,
+        ?string $groupName = null,
+        ?string $idempotencyKey = null,
+    ): void {
         $this->connector->send(new Request(
             Method::Post,
             '/integrations/hubspot/properties',
-            body: Payload::body(['label' => $label, 'name' => $name, 'fieldType' => $fieldType, 'groupName' => $groupName, 'type' => $type]),
+            body: Payload::body([
+                'name' => $name,
+                'label' => $label,
+                'type' => $type,
+                'fieldType' => $fieldType,
+                'groupName' => $groupName,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }
@@ -261,20 +289,34 @@ final readonly class HubSpotIntegration
      * Scopes: lists:create.
      *
      * @param  string  $hubSpotListId  HubSpot ILS list id to back the segment
-     * @param  ?int  $intervalMinutes  Cached mode: refresh cadence in minutes (ignored for send_time)
      * @param  ?string  $name  Name for the SendSeven list (default: HubSpot list name)
+     * @param  ?int  $intervalMinutes  Cached mode: refresh cadence in minutes (ignored for send_time)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/HubSpot%20Integration/hubspot_create_segment_api_v1_integrations_hubspot_segments_post
      */
-    public function createSegment(string $hubSpotListId, ?int $intervalMinutes = null, HubSpotSegmentMethodScope|string|null $methodScope = null, ?string $name = null, HubSpotSegmentRefreshMode|string|null $refreshMode = null, HubSpotSegmentUnresolvedPolicy|string|null $unresolvedPolicy = null, ?string $idempotencyKey = null): HubSpotSegment
-    {
+    public function createSegment(
+        string $hubSpotListId,
+        ?string $name = null,
+        HubSpotSegmentRefreshMode|string|null $refreshMode = null,
+        ?int $intervalMinutes = null,
+        HubSpotSegmentUnresolvedPolicy|string|null $unresolvedPolicy = null,
+        HubSpotSegmentMethodScope|string|null $methodScope = null,
+        ?string $idempotencyKey = null,
+    ): HubSpotSegment {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/integrations/hubspot/segments',
-            body: Payload::body(['hubspot_list_id' => $hubSpotListId, 'interval_minutes' => $intervalMinutes, 'method_scope' => $methodScope, 'name' => $name, 'refresh_mode' => $refreshMode, 'unresolved_policy' => $unresolvedPolicy]),
+            body: Payload::body([
+                'hubspot_list_id' => $hubSpotListId,
+                'name' => $name,
+                'refresh_mode' => $refreshMode,
+                'interval_minutes' => $intervalMinutes,
+                'unresolved_policy' => $unresolvedPolicy,
+                'method_scope' => $methodScope,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -295,12 +337,25 @@ final readonly class HubSpotIntegration
      *
      * @see https://api.sendseven.com/api/v1/docs#/HubSpot%20Integration/hubspot_update_segment_api_v1_integrations_hubspot_segments__list_id__patch
      */
-    public function updateSegment(string $listId, ?int $intervalMinutes = null, HubSpotSegmentMethodScope|string|null $methodScope = null, ?string $name = null, HubSpotSegmentRefreshMode|string|null $refreshMode = null, HubSpotSegmentUnresolvedPolicy|string|null $unresolvedPolicy = null, ?string $idempotencyKey = null): HubSpotSegment
-    {
+    public function updateSegment(
+        string $listId,
+        ?string $name = null,
+        HubSpotSegmentRefreshMode|string|null $refreshMode = null,
+        ?int $intervalMinutes = null,
+        HubSpotSegmentUnresolvedPolicy|string|null $unresolvedPolicy = null,
+        HubSpotSegmentMethodScope|string|null $methodScope = null,
+        ?string $idempotencyKey = null,
+    ): HubSpotSegment {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/integrations/hubspot/segments/'.Payload::segment($listId),
-            body: Payload::body(['interval_minutes' => $intervalMinutes, 'method_scope' => $methodScope, 'name' => $name, 'refresh_mode' => $refreshMode, 'unresolved_policy' => $unresolvedPolicy]),
+            body: Payload::body([
+                'name' => $name,
+                'refresh_mode' => $refreshMode,
+                'interval_minutes' => $intervalMinutes,
+                'unresolved_policy' => $unresolvedPolicy,
+                'method_scope' => $methodScope,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -344,11 +399,11 @@ final readonly class HubSpotIntegration
      *
      * Scopes: settings:update.
      *
-     * @param  array<string, mixed>|null  $contactMethodMapping  Category-based mapping for the 'Contact methods' (Email/WhatsApp/Phone primary) and 'Social media profiles' (LinkedIn/Instagram Profile/Facebook Profile/Website/Other) settings sections: {"contact_methods": {hubspot_property: [target, ...]}, "social_profiles": {hubspot_property: [target, ...]}}. See GET /status's field of the same name for the full shape + targets.
-     * @param  array<string, mixed>|null  $fieldMapping  {"hubspot_property": "sendseven_field"} overrides. A first-class contact field (first_name/last_name/name/birthday — NOT email/phone, see contact_method_mapping) OR a custom field referenced as "custom:<field_key>". A legacy override that still targets email/phone keeps working unchanged. "birthday" is ONE-WAY (HubSpot -> SendSeven only) — mapping it never projects contact.birthday back to HubSpot.
-     * @param  array<string, mixed>|null  $fieldMappingConfig  Legacy alias for field_mapping: {"hubspot_property": "sendseven_field"} overrides.
-     * @param  ?string  $syncDirection  "bidirectional" | "hubspot_to_ss" | "ss_to_hubspot" | "off"
      * @param  array<string, mixed>|null  $syncDirectionConfig  Legacy wholesale config, e.g. {"contacts": "bidirectional" | "hubspot_to_ss" | "ss_to_hubspot" | "off", "transcripts": true}. Prefer the flat sync_direction / sync_transcripts fields.
+     * @param  array<string, mixed>|null  $fieldMappingConfig  Legacy alias for field_mapping: {"hubspot_property": "sendseven_field"} overrides.
+     * @param  array<string, mixed>|null  $fieldMapping  {"hubspot_property": "sendseven_field"} overrides. A first-class contact field (first_name/last_name/name/birthday — NOT email/phone, see contact_method_mapping) OR a custom field referenced as "custom:<field_key>". A legacy override that still targets email/phone keeps working unchanged. "birthday" is ONE-WAY (HubSpot -> SendSeven only) — mapping it never projects contact.birthday back to HubSpot.
+     * @param  array<string, mixed>|null  $contactMethodMapping  Category-based mapping for the 'Contact methods' (Email/WhatsApp/Phone primary) and 'Social media profiles' (LinkedIn/Instagram Profile/Facebook Profile/Website/Other) settings sections: {"contact_methods": {hubspot_property: [target, ...]}, "social_profiles": {hubspot_property: [target, ...]}}. See GET /status's field of the same name for the full shape + targets.
+     * @param  ?string  $syncDirection  "bidirectional" | "hubspot_to_ss" | "ss_to_hubspot" | "off"
      * @param  ?bool  $syncTranscripts  Attach conversation transcripts to HubSpot on close
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -356,12 +411,26 @@ final readonly class HubSpotIntegration
      *
      * @see https://api.sendseven.com/api/v1/docs#/HubSpot%20Integration/hubspot_update_settings_api_v1_integrations_hubspot_settings_patch
      */
-    public function updateSettings(?array $contactMethodMapping = null, ?array $fieldMapping = null, ?array $fieldMappingConfig = null, ?string $syncDirection = null, ?array $syncDirectionConfig = null, ?bool $syncTranscripts = null, ?string $idempotencyKey = null): HubSpotStatus
-    {
+    public function updateSettings(
+        ?array $syncDirectionConfig = null,
+        ?array $fieldMappingConfig = null,
+        ?array $fieldMapping = null,
+        ?array $contactMethodMapping = null,
+        ?string $syncDirection = null,
+        ?bool $syncTranscripts = null,
+        ?string $idempotencyKey = null,
+    ): HubSpotStatus {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/integrations/hubspot/settings',
-            body: Payload::body(['contact_method_mapping' => $contactMethodMapping, 'field_mapping' => $fieldMapping, 'field_mapping_config' => $fieldMappingConfig, 'sync_direction' => $syncDirection, 'sync_direction_config' => $syncDirectionConfig, 'sync_transcripts' => $syncTranscripts]),
+            body: Payload::body([
+                'sync_direction_config' => $syncDirectionConfig,
+                'field_mapping_config' => $fieldMappingConfig,
+                'field_mapping' => $fieldMapping,
+                'contact_method_mapping' => $contactMethodMapping,
+                'sync_direction' => $syncDirection,
+                'sync_transcripts' => $syncTranscripts,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

@@ -59,12 +59,23 @@ final readonly class LinkTracking
      *
      * @see https://api.sendseven.com/api/v1/docs#/Link%20Tracking/list_tracked_links_api_v1_tracked_links_get
      */
-    public function listTracked(?int $page = null, ?int $pageSize = null, ?string $search = null, FeatureType|string|null $featureType = null, ?array $tags = null): TrackedLinkList
-    {
+    public function listTracked(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $search = null,
+        FeatureType|string|null $featureType = null,
+        ?array $tags = null,
+    ): TrackedLinkList {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/tracked-links',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'search' => $search, 'feature_type' => $featureType, 'tags' => $tags]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'search' => $search,
+                'feature_type' => $featureType,
+                'tags' => $tags,
+            ]),
         ));
 
         return TrackedLinkList::fromArray($response->data());
@@ -82,12 +93,12 @@ final readonly class LinkTracking
      * Scopes: campaigns:update.
      *
      * @param  string  $originalUrl  Full destination URL
-     * @param  ?string  $contactId  Intended recipient (optional)
-     * @param  ?int  $expiresInDays  Days until expiration (default: 365)
-     * @param  ?string  $featureId  ID of campaign/conversation/etc.
      * @param  FeatureType|string|null  $featureType  Feature using this tracked link (defaults to OTHER)
-     * @param  ?string  $label  User-friendly label for the link
+     * @param  ?string  $featureId  ID of campaign/conversation/etc.
+     * @param  ?string  $contactId  Intended recipient (optional)
      * @param  array<string, mixed>|null  $metadata  Additional context
+     * @param  ?int  $expiresInDays  Days until expiration (default: 365)
+     * @param  ?string  $label  User-friendly label for the link
      * @param  TrackingMode|string|null  $trackingMode  Tracking granularity. 'shared' (default) = one link for all recipients. 'per_recipient' = template link cloned per recipient at send time; requires feature_type=REACH or EMAIL_CAMPAIGN and feature_id.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -95,12 +106,30 @@ final readonly class LinkTracking
      *
      * @see https://api.sendseven.com/api/v1/docs#/Link%20Tracking/create_tracked_link_api_v1_tracked_links_post
      */
-    public function createTracked(string $originalUrl, ?string $contactId = null, ?int $expiresInDays = null, ?string $featureId = null, FeatureType|string|null $featureType = null, ?string $label = null, ?array $metadata = null, TrackingMode|string|null $trackingMode = null, ?string $idempotencyKey = null): TrackedLink
-    {
+    public function createTracked(
+        string $originalUrl,
+        FeatureType|string|null $featureType = null,
+        ?string $featureId = null,
+        ?string $contactId = null,
+        ?array $metadata = null,
+        ?int $expiresInDays = null,
+        ?string $label = null,
+        TrackingMode|string|null $trackingMode = null,
+        ?string $idempotencyKey = null,
+    ): TrackedLink {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/tracked-links',
-            body: Payload::body(['original_url' => $originalUrl, 'contact_id' => $contactId, 'expires_in_days' => $expiresInDays, 'feature_id' => $featureId, 'feature_type' => $featureType, 'label' => $label, 'metadata' => $metadata, 'tracking_mode' => $trackingMode]),
+            body: Payload::body([
+                'original_url' => $originalUrl,
+                'feature_type' => $featureType,
+                'feature_id' => $featureId,
+                'contact_id' => $contactId,
+                'metadata' => $metadata,
+                'expires_in_days' => $expiresInDays,
+                'label' => $label,
+                'tracking_mode' => $trackingMode,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -118,22 +147,32 @@ final readonly class LinkTracking
      *
      * Scopes: campaigns:update.
      *
-     * @param  FeatureType|string  $featureType  Feature using these tracked links
      * @param  list<string>  $urls  List of original URLs
-     * @param  ?int  $expiresInDays  Days until expiration (default: 365)
+     * @param  FeatureType|string  $featureType  Feature using these tracked links
      * @param  ?string  $featureId  ID of campaign/conversation/etc.
+     * @param  ?int  $expiresInDays  Days until expiration (default: 365)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Link%20Tracking/bulk_create_tracked_links_api_v1_tracked_links_bulk_post
      */
-    public function bulkCreateTracked(FeatureType|string $featureType, array $urls, ?int $expiresInDays = null, ?string $featureId = null, ?string $idempotencyKey = null): BulkCreateLinks
-    {
+    public function bulkCreateTracked(
+        array $urls,
+        FeatureType|string $featureType,
+        ?string $featureId = null,
+        ?int $expiresInDays = null,
+        ?string $idempotencyKey = null,
+    ): BulkCreateLinks {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/tracked-links/bulk',
-            body: Payload::body(['feature_type' => $featureType, 'urls' => $urls, 'expires_in_days' => $expiresInDays, 'feature_id' => $featureId]),
+            body: Payload::body([
+                'urls' => $urls,
+                'feature_type' => $featureType,
+                'feature_id' => $featureId,
+                'expires_in_days' => $expiresInDays,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -239,11 +278,11 @@ final readonly class LinkTracking
      * Scopes: link_tracking:create.
      *
      * @param  string  $originalUrl  Full destination URL to shorten
-     * @param  ?string  $contactId  Contact UUID for personalized link tracking (optional)
      * @param  ?string  $customAlias  Custom short code/alias (e.g., 'summer-sale'). Must be unique. Only lowercase letters (a-z), digits (0-9), and hyphens (-) allowed.
-     * @param  ?int  $expiresInDays  Days until expiration (default: 365)
+     * @param  ?string  $contactId  Contact UUID for personalized link tracking (optional)
      * @param  ?string  $label  User-friendly label for the link
      * @param  list<string>|null  $tags  Tags for categorization (e.g., ['marketing', 'social'])
+     * @param  ?int  $expiresInDays  Days until expiration (default: 365)
      * @param  ?string  $trackingDomain  Tracking domain to use for this link. If not provided, uses the tenant's default from settings.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -251,12 +290,28 @@ final readonly class LinkTracking
      *
      * @see https://api.sendseven.com/api/v1/docs#/Link%20Tracking/create_manual_tracked_link_api_v1_tracked_links_manual_post
      */
-    public function createManualTracked(string $originalUrl, ?string $contactId = null, ?string $customAlias = null, ?int $expiresInDays = null, ?string $label = null, ?array $tags = null, ?string $trackingDomain = null, ?string $idempotencyKey = null): TrackedLinkDetail
-    {
+    public function createManualTracked(
+        string $originalUrl,
+        ?string $customAlias = null,
+        ?string $contactId = null,
+        ?string $label = null,
+        ?array $tags = null,
+        ?int $expiresInDays = null,
+        ?string $trackingDomain = null,
+        ?string $idempotencyKey = null,
+    ): TrackedLinkDetail {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/tracked-links/manual',
-            body: Payload::body(['original_url' => $originalUrl, 'contact_id' => $contactId, 'custom_alias' => $customAlias, 'expires_in_days' => $expiresInDays, 'label' => $label, 'tags' => $tags, 'tracking_domain' => $trackingDomain]),
+            body: Payload::body([
+                'original_url' => $originalUrl,
+                'custom_alias' => $customAlias,
+                'contact_id' => $contactId,
+                'label' => $label,
+                'tags' => $tags,
+                'expires_in_days' => $expiresInDays,
+                'tracking_domain' => $trackingDomain,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -334,21 +389,31 @@ final readonly class LinkTracking
      *
      * Scopes: link_tracking:create.
      *
-     * @param  ?string  $customAlias  Custom short code/alias. Must be unique. Only lowercase letters (a-z), digits (0-9), and hyphens (-) allowed.
-     * @param  ?bool  $isActive  Whether the link is active
      * @param  ?string  $label  User-friendly label for the link
      * @param  list<string>|null  $tags  Tags for categorization
+     * @param  ?string  $customAlias  Custom short code/alias. Must be unique. Only lowercase letters (a-z), digits (0-9), and hyphens (-) allowed.
+     * @param  ?bool  $isActive  Whether the link is active
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Link%20Tracking/update_tracked_link_api_v1_tracked_links__link_id__put
      */
-    public function updateTracked(string $linkId, ?string $customAlias = null, ?bool $isActive = null, ?string $label = null, ?array $tags = null): TrackedLinkDetail
-    {
+    public function updateTracked(
+        string $linkId,
+        ?string $label = null,
+        ?array $tags = null,
+        ?string $customAlias = null,
+        ?bool $isActive = null,
+    ): TrackedLinkDetail {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/tracked-links/'.Payload::segment($linkId),
-            body: Payload::body(['custom_alias' => $customAlias, 'is_active' => $isActive, 'label' => $label, 'tags' => $tags]),
+            body: Payload::body([
+                'label' => $label,
+                'tags' => $tags,
+                'custom_alias' => $customAlias,
+                'is_active' => $isActive,
+            ]),
         ));
 
         return TrackedLinkDetail::fromArray($response->data());

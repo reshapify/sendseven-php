@@ -27,16 +27,16 @@ final readonly class SocialPostInsightsWindow extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $clicks,
-        public ?int $comments,
-        public ?int $engagement,
-        public ?int $impressions,
-        public ?int $likes,
-        public ?int $postCount,
         public ?int $reach,
-        public ?int $saves,
+        public ?int $impressions,
+        public ?int $engagement,
+        public ?int $likes,
+        public ?int $comments,
         public ?int $shares,
+        public ?int $saves,
         public ?int $videoViews,
+        public ?int $clicks,
+        public ?int $postCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -50,16 +50,16 @@ final readonly class SocialPostInsightsWindow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clicks: $attributes->nullableInt('clicks'),
-            comments: $attributes->nullableInt('comments'),
-            engagement: $attributes->nullableInt('engagement'),
-            impressions: $attributes->nullableInt('impressions'),
-            likes: $attributes->nullableInt('likes'),
-            postCount: $attributes->nullableInt('post_count'),
             reach: $attributes->nullableInt('reach'),
-            saves: $attributes->nullableInt('saves'),
+            impressions: $attributes->nullableInt('impressions'),
+            engagement: $attributes->nullableInt('engagement'),
+            likes: $attributes->nullableInt('likes'),
+            comments: $attributes->nullableInt('comments'),
             shares: $attributes->nullableInt('shares'),
+            saves: $attributes->nullableInt('saves'),
             videoViews: $attributes->nullableInt('video_views'),
+            clicks: $attributes->nullableInt('clicks'),
+            postCount: $attributes->nullableInt('post_count'),
             raw: $data,
         );
     }

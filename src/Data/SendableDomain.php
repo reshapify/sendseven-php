@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendableDomain extends Data
 {
     /**
-     * @param  ?string  $address  Full email address (only for fixed_address type)
-     * @param  bool  $campaignCapable  Whether this source can be used for email campaigns
      * @param  string  $domain  Domain name (e.g., example.com)
+     * @param  string  $type  Domain type: 'full_domain' or 'fixed_address'
+     * @param  ?string  $address  Full email address (only for fixed_address type)
      * @param  string  $source  Integration source (sendgrid_byok, sendgrid_managed, mailgun_byok, ses_managed, gmail, smtp_imap)
      * @param  string  $sourceId  ID of the source integration or provider config
-     * @param  string  $type  Domain type: 'full_domain' or 'fixed_address'
+     * @param  bool  $campaignCapable  Whether this source can be used for email campaigns
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $address,
-        public bool $campaignCapable,
         public string $domain,
+        public string $type,
+        public ?string $address,
         public string $source,
         public string $sourceId,
-        public string $type,
+        public bool $campaignCapable,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,12 +45,12 @@ final readonly class SendableDomain extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            address: $attributes->nullableString('address'),
-            campaignCapable: $attributes->bool('campaign_capable'),
             domain: $attributes->string('domain'),
+            type: $attributes->string('type'),
+            address: $attributes->nullableString('address'),
             source: $attributes->string('source'),
             sourceId: $attributes->string('source_id'),
-            type: $attributes->string('type'),
+            campaignCapable: $attributes->bool('campaign_capable'),
             raw: $data,
         );
     }

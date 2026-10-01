@@ -20,27 +20,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailCampaignCostQuote extends Data
 {
     /**
-     * @param  string  $costCategory  'email_campaign_managed' or 'email_campaign_byok'
-     * @param  float  $costPerEmail  Price per email in EUR cents
-     * @param  int  $planIncludedMessages  Monthly included messages of the plan (shared pool)
      * @param  int  $recipientCount  Emails priced
+     * @param  string  $costCategory  'email_campaign_managed' or 'email_campaign_byok'
      * @param  string  $sendingType  'managed' (SendSeven-managed sending) or 'byok' (own provider / SES integration)
+     * @param  string  $unitPriceEur  Price per email in EUR, 6 decimals (e.g. '0.008000')
+     * @param  float  $costPerEmail  Price per email in EUR cents
      * @param  int  $totalCost  Total in EUR cents, rounded up
      * @param  string  $totalCostEur  Total in EUR, 2 decimals
      * @param  string  $totalCostEurPrecise  Total in EUR, 6 decimals (for '< EUR 0.01' display)
-     * @param  string  $unitPriceEur  Price per email in EUR, 6 decimals (e.g. '0.008000')
+     * @param  int  $planIncludedMessages  Monthly included messages of the plan (shared pool)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $costCategory,
-        public float $costPerEmail,
-        public int $planIncludedMessages,
         public int $recipientCount,
+        public string $costCategory,
         public string $sendingType,
+        public string $unitPriceEur,
+        public float $costPerEmail,
         public int $totalCost,
         public string $totalCostEur,
         public string $totalCostEurPrecise,
-        public string $unitPriceEur,
+        public int $planIncludedMessages,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,15 +54,15 @@ final readonly class EmailCampaignCostQuote extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            costCategory: $attributes->string('cost_category'),
-            costPerEmail: $attributes->float('cost_per_email'),
-            planIncludedMessages: $attributes->int('plan_included_messages'),
             recipientCount: $attributes->int('recipient_count'),
+            costCategory: $attributes->string('cost_category'),
             sendingType: $attributes->string('sending_type'),
+            unitPriceEur: $attributes->string('unit_price_eur'),
+            costPerEmail: $attributes->float('cost_per_email'),
             totalCost: $attributes->int('total_cost'),
             totalCostEur: $attributes->string('total_cost_eur'),
             totalCostEurPrecise: $attributes->string('total_cost_eur_precise'),
-            unitPriceEur: $attributes->string('unit_price_eur'),
+            planIncludedMessages: $attributes->int('plan_included_messages'),
             raw: $data,
         );
     }

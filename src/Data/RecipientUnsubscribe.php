@@ -23,14 +23,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class RecipientUnsubscribe extends Data
 {
     /**
-     * @param  ?bool  $alreadyUnsubscribed  True when the contact was already opted out of all of the campaign's lists
      * @param  list<UnsubscribedListItem>  $unsubscribedLists  Lists the contact was opted out of by this action (deduped by list_id)
+     * @param  ?bool  $alreadyUnsubscribed  True when the contact was already opted out of all of the campaign's lists
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $alreadyUnsubscribed,
         public ?bool $success,
         public array $unsubscribedLists,
+        public ?bool $alreadyUnsubscribed,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,9 +44,9 @@ final readonly class RecipientUnsubscribe extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            alreadyUnsubscribed: $attributes->nullableBool('already_unsubscribed'),
             success: $attributes->nullableBool('success'),
             unsubscribedLists: $attributes->list('unsubscribed_lists', UnsubscribedListItem::fromArray(...)),
+            alreadyUnsubscribed: $attributes->nullableBool('already_unsubscribed'),
             raw: $data,
         );
     }

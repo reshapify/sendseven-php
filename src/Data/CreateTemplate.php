@@ -17,35 +17,35 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CreateTemplate extends Data
 {
     /**
-     * @param  ?string  $errorCategory  Catalog category for the Meta error
-     * @param  ?int  $errorCode  Meta error.code
-     * @param  ?bool  $errorIsRetryable  True when Meta reported a transient fault on their side (retry may succeed), False when the template was rejected and must be changed, None when unknown. Drives the endpoint's 503-vs-422 status.
-     * @param  ?int  $errorSubcode  Meta error.error_subcode (if present)
-     * @param  ?string  $fbtraceId  Meta trace id (for Meta Direct Support)
      * @param  ?string  $id  Local template ID
-     * @param  ?string  $metaDetails  Meta error.error_data.details, verbatim
-     * @param  ?string  $metaMessage  Meta error.message, verbatim
-     * @param  ?string  $metaUserMessage  Meta error.error_user_msg, verbatim
-     * @param  ?string  $metaUserTitle  Meta error.error_user_title, verbatim
-     * @param  ?string  $status  Template status (usually PENDING)
      * @param  ?string  $templateId  Meta's template ID
+     * @param  ?string  $status  Template status (usually PENDING)
+     * @param  ?int  $errorCode  Meta error.code
+     * @param  ?int  $errorSubcode  Meta error.error_subcode (if present)
+     * @param  ?string  $errorCategory  Catalog category for the Meta error
+     * @param  ?bool  $errorIsRetryable  True when Meta reported a transient fault on their side (retry may succeed), False when the template was rejected and must be changed, None when unknown. Drives the endpoint's 503-vs-422 status.
+     * @param  ?string  $fbtraceId  Meta trace id (for Meta Direct Support)
+     * @param  ?string  $metaMessage  Meta error.message, verbatim
+     * @param  ?string  $metaDetails  Meta error.error_data.details, verbatim
+     * @param  ?string  $metaUserTitle  Meta error.error_user_title, verbatim
+     * @param  ?string  $metaUserMessage  Meta error.error_user_msg, verbatim
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $error,
-        public ?string $errorCategory,
-        public ?int $errorCode,
-        public ?bool $errorIsRetryable,
-        public ?int $errorSubcode,
-        public ?string $fbtraceId,
-        public ?string $id,
-        public ?string $metaDetails,
-        public ?string $metaMessage,
-        public ?string $metaUserMessage,
-        public ?string $metaUserTitle,
-        public ?string $status,
         public bool $success,
+        public ?string $id,
         public ?string $templateId,
+        public ?string $status,
+        public ?string $error,
+        public ?int $errorCode,
+        public ?int $errorSubcode,
+        public ?string $errorCategory,
+        public ?bool $errorIsRetryable,
+        public ?string $fbtraceId,
+        public ?string $metaMessage,
+        public ?string $metaDetails,
+        public ?string $metaUserTitle,
+        public ?string $metaUserMessage,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,20 +59,20 @@ final readonly class CreateTemplate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            error: $attributes->nullableString('error'),
-            errorCategory: $attributes->nullableString('error_category'),
-            errorCode: $attributes->nullableInt('error_code'),
-            errorIsRetryable: $attributes->nullableBool('error_is_retryable'),
-            errorSubcode: $attributes->nullableInt('error_subcode'),
-            fbtraceId: $attributes->nullableString('fbtrace_id'),
-            id: $attributes->nullableString('id'),
-            metaDetails: $attributes->nullableString('meta_details'),
-            metaMessage: $attributes->nullableString('meta_message'),
-            metaUserMessage: $attributes->nullableString('meta_user_message'),
-            metaUserTitle: $attributes->nullableString('meta_user_title'),
-            status: $attributes->nullableString('status'),
             success: $attributes->bool('success'),
+            id: $attributes->nullableString('id'),
             templateId: $attributes->nullableString('template_id'),
+            status: $attributes->nullableString('status'),
+            error: $attributes->nullableString('error'),
+            errorCode: $attributes->nullableInt('error_code'),
+            errorSubcode: $attributes->nullableInt('error_subcode'),
+            errorCategory: $attributes->nullableString('error_category'),
+            errorIsRetryable: $attributes->nullableBool('error_is_retryable'),
+            fbtraceId: $attributes->nullableString('fbtrace_id'),
+            metaMessage: $attributes->nullableString('meta_message'),
+            metaDetails: $attributes->nullableString('meta_details'),
+            metaUserTitle: $attributes->nullableString('meta_user_title'),
+            metaUserMessage: $attributes->nullableString('meta_user_message'),
             raw: $data,
         );
     }

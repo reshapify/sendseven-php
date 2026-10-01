@@ -23,10 +23,10 @@ final readonly class BotBreakdownItem extends Data
         public string $botId,
         public string $botName,
         public ?string $botType,
-        public ?int $escalations,
         public ?bool $isActive,
-        public ?float $resolutionRate,
         public ?int $sessions,
+        public ?int $escalations,
+        public ?float $resolutionRate,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,10 +43,10 @@ final readonly class BotBreakdownItem extends Data
             botId: $attributes->string('bot_id'),
             botName: $attributes->string('bot_name'),
             botType: $attributes->nullableString('bot_type'),
-            escalations: $attributes->nullableInt('escalations'),
             isActive: $attributes->nullableBool('is_active'),
-            resolutionRate: $attributes->nullableFloat('resolution_rate'),
             sessions: $attributes->nullableInt('sessions'),
+            escalations: $attributes->nullableInt('escalations'),
+            resolutionRate: $attributes->nullableFloat('resolution_rate'),
             raw: $data,
         );
     }

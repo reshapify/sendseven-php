@@ -20,8 +20,8 @@ final readonly class HubSpotDisconnect extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $id,
         public bool $success,
+        public string $id,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class HubSpotDisconnect extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            id: $attributes->string('id'),
             success: $attributes->bool('success'),
+            id: $attributes->string('id'),
             raw: $data,
         );
     }

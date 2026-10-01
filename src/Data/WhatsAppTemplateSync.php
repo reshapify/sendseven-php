@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class WhatsAppTemplateSync extends Data
 {
     /**
-     * @param  int  $added  New templates added
-     * @param  list<string>  $errors  Any errors during sync
-     * @param  int  $removed  Templates removed (no longer in WhatsApp)
      * @param  int  $synced  Total templates processed
+     * @param  int  $added  New templates added
      * @param  int  $updated  Existing templates updated
+     * @param  int  $removed  Templates removed (no longer in WhatsApp)
+     * @param  list<string>  $errors  Any errors during sync
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $added,
-        public array $errors,
-        public int $removed,
         public int $synced,
+        public int $added,
         public int $updated,
+        public int $removed,
+        public array $errors,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class WhatsAppTemplateSync extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            added: $attributes->int('added'),
-            errors: $attributes->strings('errors'),
-            removed: $attributes->int('removed'),
             synced: $attributes->int('synced'),
+            added: $attributes->int('added'),
             updated: $attributes->int('updated'),
+            removed: $attributes->int('removed'),
+            errors: $attributes->strings('errors'),
             raw: $data,
         );
     }

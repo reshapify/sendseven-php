@@ -24,13 +24,13 @@ final readonly class FieldFilterRule extends Data
     /**
      * @param  string  $customFieldId  ID of the contact custom-field definition this rule applies to
      * @param  FieldFilterOperator|string  $operator  Comparison operator
-     * @param  array<array-key, mixed>  $value  Operator-dependent value. Scalar for eq/ne, list for in, {'min':..., 'max':...} for between, omitted for is_set/is_not_set.
+     * @param  mixed  $value  Operator-dependent value. Scalar for eq/ne, list for in, {'min':..., 'max':...} for between, omitted for is_set/is_not_set.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $customFieldId,
         public FieldFilterOperator|string $operator,
-        public array $value,
+        public mixed $value,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,7 +46,7 @@ final readonly class FieldFilterRule extends Data
         return new self(
             customFieldId: $attributes->string('custom_field_id'),
             operator: $attributes->enum('operator', FieldFilterOperator::class),
-            value: $attributes->array('value'),
+            value: $data['value'] ?? null,
             raw: $data,
         );
     }

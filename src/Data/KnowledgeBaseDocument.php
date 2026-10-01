@@ -20,37 +20,37 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class KnowledgeBaseDocument extends Data
 {
     /**
-     * @param  string  $createdAt  ISO datetime when created
+     * @param  string  $id  Unique identifier (UUID)
+     * @param  string  $tenantId  Tenant this resource belongs to
      * @param  string  $documentType  Document type: faq, manual, uploaded_doc, website_doc
+     * @param  string  $title  Document title
+     * @param  ?string  $sourceUrl  Source URL if applicable
      * @param  ?string  $folderId  Folder ID containing this document
      * @param  ?string  $geminiFileName  RAG file reference in corpus
      * @param  ?string  $geminiStoreName  Vertex AI RAG Corpus name
-     * @param  string  $id  Unique identifier (UUID)
+     * @param  ?string  $uploadedByUserId  Auth0 user ID who uploaded
+     * @param  KbDocumentStatus|string|null  $status  Async lifecycle status. Clients should treat a document as usable only when ``status == 'ready'``.
      * @param  ?string  $jobId  ID of the currently in-flight async job (ingestion/deletion), if any.
      * @param  ?string  $lastError  Last error message if a previous async job failed (status='failed').
-     * @param  ?string  $sourceUrl  Source URL if applicable
-     * @param  KbDocumentStatus|string|null  $status  Async lifecycle status. Clients should treat a document as usable only when ``status == 'ready'``.
-     * @param  string  $tenantId  Tenant this resource belongs to
-     * @param  string  $title  Document title
+     * @param  string  $createdAt  ISO datetime when created
      * @param  string  $updatedAt  ISO datetime when last updated
-     * @param  ?string  $uploadedByUserId  Auth0 user ID who uploaded
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $createdAt,
+        public string $id,
+        public string $tenantId,
         public string $documentType,
+        public string $title,
+        public ?string $sourceUrl,
         public ?string $folderId,
         public ?string $geminiFileName,
         public ?string $geminiStoreName,
-        public string $id,
+        public ?string $uploadedByUserId,
+        public KbDocumentStatus|string|null $status,
         public ?string $jobId,
         public ?string $lastError,
-        public ?string $sourceUrl,
-        public KbDocumentStatus|string|null $status,
-        public string $tenantId,
-        public string $title,
+        public string $createdAt,
         public string $updatedAt,
-        public ?string $uploadedByUserId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -64,20 +64,20 @@ final readonly class KnowledgeBaseDocument extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->string('created_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
             documentType: $attributes->string('document_type'),
+            title: $attributes->string('title'),
+            sourceUrl: $attributes->nullableString('source_url'),
             folderId: $attributes->nullableString('folder_id'),
             geminiFileName: $attributes->nullableString('gemini_file_name'),
             geminiStoreName: $attributes->nullableString('gemini_store_name'),
-            id: $attributes->string('id'),
+            uploadedByUserId: $attributes->nullableString('uploaded_by_user_id'),
+            status: $attributes->nullableEnum('status', KbDocumentStatus::class),
             jobId: $attributes->nullableString('job_id'),
             lastError: $attributes->nullableString('last_error'),
-            sourceUrl: $attributes->nullableString('source_url'),
-            status: $attributes->nullableEnum('status', KbDocumentStatus::class),
-            tenantId: $attributes->string('tenant_id'),
-            title: $attributes->string('title'),
+            createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
-            uploadedByUserId: $attributes->nullableString('uploaded_by_user_id'),
             raw: $data,
         );
     }

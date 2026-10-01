@@ -20,8 +20,8 @@ final readonly class InvitationResend extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public Invitation $invitation,
         public string $message,
+        public Invitation $invitation,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -35,8 +35,8 @@ final readonly class InvitationResend extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            invitation: $attributes->object('invitation', Invitation::fromArray(...)),
             message: $attributes->string('message'),
+            invitation: $attributes->object('invitation', Invitation::fromArray(...)),
             raw: $data,
         );
     }

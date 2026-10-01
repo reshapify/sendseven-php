@@ -18,17 +18,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class DoubleOptInSend extends Data
 {
     /**
-     * @param  string  $email  Email address confirmation was sent to
-     * @param  DateTimeImmutable  $expiresAt  When the token expires
-     * @param  string  $message  Success message
      * @param  string  $tokenId  Unique token ID
+     * @param  string  $message  Success message
+     * @param  DateTimeImmutable  $expiresAt  When the token expires
+     * @param  string  $email  Email address confirmation was sent to
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $email,
-        public DateTimeImmutable $expiresAt,
-        public string $message,
         public string $tokenId,
+        public string $message,
+        public DateTimeImmutable $expiresAt,
+        public string $email,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,10 +42,10 @@ final readonly class DoubleOptInSend extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            email: $attributes->string('email'),
-            expiresAt: $attributes->dateTime('expires_at'),
-            message: $attributes->string('message'),
             tokenId: $attributes->string('token_id'),
+            message: $attributes->string('message'),
+            expiresAt: $attributes->dateTime('expires_at'),
+            email: $attributes->string('email'),
             raw: $data,
         );
     }

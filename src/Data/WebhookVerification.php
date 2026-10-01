@@ -21,11 +21,11 @@ final readonly class WebhookVerification extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public bool $isVerified,
-        public string $message,
-        public ?string $verificationExpiresAt,
-        public bool $verificationPending,
         public string $webhookId,
+        public bool $isVerified,
+        public bool $verificationPending,
+        public ?string $verificationExpiresAt,
+        public string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class WebhookVerification extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            isVerified: $attributes->bool('is_verified'),
-            message: $attributes->string('message'),
-            verificationExpiresAt: $attributes->nullableString('verification_expires_at'),
-            verificationPending: $attributes->bool('verification_pending'),
             webhookId: $attributes->string('webhook_id'),
+            isVerified: $attributes->bool('is_verified'),
+            verificationPending: $attributes->bool('verification_pending'),
+            verificationExpiresAt: $attributes->nullableString('verification_expires_at'),
+            message: $attributes->string('message'),
             raw: $data,
         );
     }

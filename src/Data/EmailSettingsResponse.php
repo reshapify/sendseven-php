@@ -22,15 +22,15 @@ final readonly class EmailSettingsResponse extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $complianceFooterHtml,
-        public ?string $defaultDoubleOptInTemplateId,
-        public ?string $defaultFromEmail,
         public ?string $defaultFromName,
+        public ?string $defaultFromEmail,
         public ?string $defaultReplyTo,
         public ?bool $doubleOptInEnabled,
+        public ?string $defaultDoubleOptInTemplateId,
+        public ?string $complianceFooterHtml,
         public ?string $footerMode,
-        public ?bool $hasEmailProvider,
         public ?string $unsubscribeLinkFormat,
+        public ?bool $hasEmailProvider,
         public array $verifiedDomains,
         array $raw = [],
     ) {
@@ -45,15 +45,15 @@ final readonly class EmailSettingsResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            complianceFooterHtml: $attributes->nullableString('compliance_footer_html'),
-            defaultDoubleOptInTemplateId: $attributes->nullableString('default_double_opt_in_template_id'),
-            defaultFromEmail: $attributes->nullableString('default_from_email'),
             defaultFromName: $attributes->nullableString('default_from_name'),
+            defaultFromEmail: $attributes->nullableString('default_from_email'),
             defaultReplyTo: $attributes->nullableString('default_reply_to'),
             doubleOptInEnabled: $attributes->nullableBool('double_opt_in_enabled'),
+            defaultDoubleOptInTemplateId: $attributes->nullableString('default_double_opt_in_template_id'),
+            complianceFooterHtml: $attributes->nullableString('compliance_footer_html'),
             footerMode: $attributes->nullableString('footer_mode'),
-            hasEmailProvider: $attributes->nullableBool('has_email_provider'),
             unsubscribeLinkFormat: $attributes->nullableString('unsubscribe_link_format'),
+            hasEmailProvider: $attributes->nullableBool('has_email_provider'),
             verifiedDomains: $attributes->strings('verified_domains'),
             raw: $data,
         );

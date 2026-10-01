@@ -18,15 +18,15 @@ final readonly class MessageTimePoint extends Data
 {
     /**
      * @param  string  $date  Date in YYYY-MM-DD format
-     * @param  ?int  $inbound  Number of inbound messages on this date
      * @param  int  $messageCount  Number of messages on this date
+     * @param  ?int  $inbound  Number of inbound messages on this date
      * @param  ?int  $outbound  Number of outbound messages on this date
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $date,
-        public ?int $inbound,
         public int $messageCount,
+        public ?int $inbound,
         public ?int $outbound,
         array $raw = [],
     ) {
@@ -42,8 +42,8 @@ final readonly class MessageTimePoint extends Data
 
         return new self(
             date: $attributes->string('date'),
-            inbound: $attributes->nullableInt('inbound'),
             messageCount: $attributes->int('message_count'),
+            inbound: $attributes->nullableInt('inbound'),
             outbound: $attributes->nullableInt('outbound'),
             raw: $data,
         );

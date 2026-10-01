@@ -52,12 +52,23 @@ final readonly class EmailMailboxes
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Mailboxes/list_email_mailboxes_api_v1_email_mailboxes_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?bool $activeOnly = null, ?string $purpose = null, ?string $forUserId = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?bool $activeOnly = null,
+        ?string $purpose = null,
+        ?string $forUserId = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/email-mailboxes',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'active_only' => $activeOnly, 'purpose' => $purpose, 'for_user_id' => $forUserId]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'active_only' => $activeOnly,
+                'purpose' => $purpose,
+                'for_user_id' => $forUserId,
+            ]),
         ));
 
         return Hydrate::page($response->data(), EmailMailbox::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, activeOnly: $activeOnly, purpose: $purpose, forUserId: $forUserId));
@@ -73,29 +84,53 @@ final readonly class EmailMailboxes
      *
      * Scopes: channels:create.
      *
-     * @param  string  $emailAddress  Email address for this mailbox
      * @param  string  $name  Display name for the mailbox (e.g. 'Support', 'Sales')
-     * @param  ?string  $accessMode  Who can use this mailbox: 'all' (any team member) or 'specific' (only designated users)
-     * @param  list<string>|null  $allowedUserIds  User IDs allowed to use this mailbox (only when access_mode='specific')
-     * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
-     * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
+     * @param  string  $emailAddress  Email address for this mailbox
      * @param  ?string  $displayName  From name shown to email recipients. When set, overrides 'name' for sending. When null, 'name' is used.
      * @param  ?string  $emailIntegrationId  Link to an email integration (Gmail, SMTP, SES, Proxy)
      * @param  ?string  $emailProviderConfigId  Link to an email provider config (SendGrid, Mailgun)
-     * @param  ?bool  $includeThreadHistory  Default for outbound replies from this mailbox: when True, the quoted prior-thread history block is appended beneath the reply. Can be overridden per-send.
      * @param  ?bool  $isDefault  Whether this is the default mailbox for the tenant
+     * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
+     * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
+     * @param  ?bool  $includeThreadHistory  Default for outbound replies from this mailbox: when True, the quoted prior-thread history block is appended beneath the reply. Can be overridden per-send.
+     * @param  ?string  $accessMode  Who can use this mailbox: 'all' (any team member) or 'specific' (only designated users)
+     * @param  list<string>|null  $allowedUserIds  User IDs allowed to use this mailbox (only when access_mode='specific')
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Mailboxes/create_email_mailbox_api_v1_email_mailboxes_post
      */
-    public function createMailbox(string $emailAddress, string $name, ?string $accessMode = null, ?array $allowedUserIds = null, ?bool $canSendCampaigns = null, ?bool $canSendSupport = null, ?string $displayName = null, ?string $emailIntegrationId = null, ?string $emailProviderConfigId = null, ?bool $includeThreadHistory = null, ?bool $isDefault = null, ?string $idempotencyKey = null): EmailMailbox
-    {
+    public function createMailbox(
+        string $name,
+        string $emailAddress,
+        ?string $displayName = null,
+        ?string $emailIntegrationId = null,
+        ?string $emailProviderConfigId = null,
+        ?bool $isDefault = null,
+        ?bool $canSendCampaigns = null,
+        ?bool $canSendSupport = null,
+        ?bool $includeThreadHistory = null,
+        ?string $accessMode = null,
+        ?array $allowedUserIds = null,
+        ?string $idempotencyKey = null,
+    ): EmailMailbox {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-mailboxes',
-            body: Payload::body(['email_address' => $emailAddress, 'name' => $name, 'access_mode' => $accessMode, 'allowed_user_ids' => $allowedUserIds, 'can_send_campaigns' => $canSendCampaigns, 'can_send_support' => $canSendSupport, 'display_name' => $displayName, 'email_integration_id' => $emailIntegrationId, 'email_provider_config_id' => $emailProviderConfigId, 'include_thread_history' => $includeThreadHistory, 'is_default' => $isDefault]),
+            body: Payload::body([
+                'name' => $name,
+                'email_address' => $emailAddress,
+                'display_name' => $displayName,
+                'email_integration_id' => $emailIntegrationId,
+                'email_provider_config_id' => $emailProviderConfigId,
+                'is_default' => $isDefault,
+                'can_send_campaigns' => $canSendCampaigns,
+                'can_send_support' => $canSendSupport,
+                'include_thread_history' => $includeThreadHistory,
+                'access_mode' => $accessMode,
+                'allowed_user_ids' => $allowedUserIds,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -156,27 +191,49 @@ final readonly class EmailMailboxes
      *
      * Scopes: channels:update.
      *
-     * @param  ?string  $accessMode  Who can use this mailbox: 'all' or 'specific'
-     * @param  list<string>|null  $allowedUserIds  User IDs allowed to use this mailbox (only when access_mode='specific')
-     * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
-     * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
+     * @param  ?string  $name  Display name for the mailbox
      * @param  ?string  $displayName  From name shown to email recipients. When set, overrides 'name' for sending. Set to empty string to clear.
      * @param  ?string  $emailAddress  Email address for this mailbox
-     * @param  ?bool  $includeThreadHistory  Default for outbound replies from this mailbox: when True, the quoted prior-thread history block is appended beneath the reply.
      * @param  ?bool  $isActive  Whether the mailbox is active
      * @param  ?bool  $isDefault  Whether this is the default mailbox
-     * @param  ?string  $name  Display name for the mailbox
+     * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
+     * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
+     * @param  ?bool  $includeThreadHistory  Default for outbound replies from this mailbox: when True, the quoted prior-thread history block is appended beneath the reply.
+     * @param  ?string  $accessMode  Who can use this mailbox: 'all' or 'specific'
+     * @param  list<string>|null  $allowedUserIds  User IDs allowed to use this mailbox (only when access_mode='specific')
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Mailboxes/update_email_mailbox_api_v1_email_mailboxes__mailbox_id__put
      */
-    public function updateMailbox(string $mailboxId, ?string $accessMode = null, ?array $allowedUserIds = null, ?bool $canSendCampaigns = null, ?bool $canSendSupport = null, ?string $displayName = null, ?string $emailAddress = null, ?bool $includeThreadHistory = null, ?bool $isActive = null, ?bool $isDefault = null, ?string $name = null): EmailMailbox
-    {
+    public function updateMailbox(
+        string $mailboxId,
+        ?string $name = null,
+        ?string $displayName = null,
+        ?string $emailAddress = null,
+        ?bool $isActive = null,
+        ?bool $isDefault = null,
+        ?bool $canSendCampaigns = null,
+        ?bool $canSendSupport = null,
+        ?bool $includeThreadHistory = null,
+        ?string $accessMode = null,
+        ?array $allowedUserIds = null,
+    ): EmailMailbox {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/email-mailboxes/'.Payload::segment($mailboxId),
-            body: Payload::body(['access_mode' => $accessMode, 'allowed_user_ids' => $allowedUserIds, 'can_send_campaigns' => $canSendCampaigns, 'can_send_support' => $canSendSupport, 'display_name' => $displayName, 'email_address' => $emailAddress, 'include_thread_history' => $includeThreadHistory, 'is_active' => $isActive, 'is_default' => $isDefault, 'name' => $name]),
+            body: Payload::body([
+                'name' => $name,
+                'display_name' => $displayName,
+                'email_address' => $emailAddress,
+                'is_active' => $isActive,
+                'is_default' => $isDefault,
+                'can_send_campaigns' => $canSendCampaigns,
+                'can_send_support' => $canSendSupport,
+                'include_thread_history' => $includeThreadHistory,
+                'access_mode' => $accessMode,
+                'allowed_user_ids' => $allowedUserIds,
+            ]),
         ));
 
         return EmailMailbox::fromArray($response->data());

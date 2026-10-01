@@ -97,12 +97,22 @@ final readonly class Channels
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channels/create_channel_api_v1_channels_post
      */
-    public function create(ChannelType|string $channelType, string $identifier, string $name, ?array $config = null, ?string $idempotencyKey = null): Channel
-    {
+    public function create(
+        ChannelType|string $channelType,
+        string $name,
+        string $identifier,
+        ?array $config = null,
+        ?string $idempotencyKey = null,
+    ): Channel {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/channels',
-            body: Payload::body(['channel_type' => $channelType, 'identifier' => $identifier, 'name' => $name, 'config' => $config]),
+            body: Payload::body([
+                'channel_type' => $channelType,
+                'name' => $name,
+                'identifier' => $identifier,
+                'config' => $config,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -262,12 +272,22 @@ final readonly class Channels
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channels/update_channel_api_v1_channels__channel_id__put
      */
-    public function update(string $channelId, ?array $config = null, ?string $identifier = null, ?bool $isActive = null, ?string $name = null): Channel
-    {
+    public function update(
+        string $channelId,
+        ?string $name = null,
+        ?string $identifier = null,
+        ?array $config = null,
+        ?bool $isActive = null,
+    ): Channel {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/channels/'.Payload::segment($channelId),
-            body: Payload::body(['config' => $config, 'identifier' => $identifier, 'is_active' => $isActive, 'name' => $name]),
+            body: Payload::body([
+                'name' => $name,
+                'identifier' => $identifier,
+                'config' => $config,
+                'is_active' => $isActive,
+            ]),
         ));
 
         return Channel::fromArray($response->data());
@@ -465,24 +485,44 @@ final readonly class Channels
      *
      * @param  ?string  $about  [WhatsApp] Short description shown in profile
      * @param  ?string  $address  [WhatsApp] Business address
-     * @param  list<array<string, mixed>>|null  $commands  [Telegram] List of bot commands
-     * @param  ?string  $description  Full description (max 512 chars)
      * @param  ?string  $email  [WhatsApp] Business contact email
+     * @param  list<string>|null  $websites  [WhatsApp] List of website URLs (max 2)
+     * @param  WhatsAppVertical|string|null  $vertical  [WhatsApp] Business category
+     * @param  ?string  $description  Full description (max 512 chars)
      * @param  ?string  $name  [Telegram] Bot display name
      * @param  ?string  $shortDescription  [Telegram] Short description shown in chat list
-     * @param  WhatsAppVertical|string|null  $vertical  [WhatsApp] Business category
-     * @param  list<string>|null  $websites  [WhatsApp] List of website URLs (max 2)
+     * @param  list<array<string, mixed>>|null  $commands  [Telegram] List of bot commands
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channels/update_channel_profile_api_v1_channels__channel_id__profile_put
      */
-    public function updateProfile(string $channelId, ?string $about = null, ?string $address = null, ?array $commands = null, ?string $description = null, ?string $email = null, ?string $name = null, ?string $shortDescription = null, WhatsAppVertical|string|null $vertical = null, ?array $websites = null): ChannelProfileUpdate
-    {
+    public function updateProfile(
+        string $channelId,
+        ?string $about = null,
+        ?string $address = null,
+        ?string $email = null,
+        ?array $websites = null,
+        WhatsAppVertical|string|null $vertical = null,
+        ?string $description = null,
+        ?string $name = null,
+        ?string $shortDescription = null,
+        ?array $commands = null,
+    ): ChannelProfileUpdate {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/channels/'.Payload::segment($channelId).'/profile',
-            body: Payload::body(['about' => $about, 'address' => $address, 'commands' => $commands, 'description' => $description, 'email' => $email, 'name' => $name, 'short_description' => $shortDescription, 'vertical' => $vertical, 'websites' => $websites]),
+            body: Payload::body([
+                'about' => $about,
+                'address' => $address,
+                'email' => $email,
+                'websites' => $websites,
+                'vertical' => $vertical,
+                'description' => $description,
+                'name' => $name,
+                'short_description' => $shortDescription,
+                'commands' => $commands,
+            ]),
         ));
 
         return ChannelProfileUpdate::fromArray($response->data());
@@ -506,8 +546,11 @@ final readonly class Channels
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channels/upload_channel_profile_photo_api_v1_channels__channel_id__profile_photo_post
      */
-    public function uploadProfilePhoto(string $channelId, FilePart $file, ?string $idempotencyKey = null): ProfilePhotoUpload
-    {
+    public function uploadProfilePhoto(
+        string $channelId,
+        FilePart $file,
+        ?string $idempotencyKey = null,
+    ): ProfilePhotoUpload {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/channels/'.Payload::segment($channelId).'/profile/photo',
@@ -658,8 +701,12 @@ final readonly class Channels
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channels/set_whatsapp_username_api_v1_channels__channel_id__whatsapp_username_post
      */
-    public function setWhatsAppUsername(string $channelId, string $username, ?bool $forceTransfer = null, ?string $idempotencyKey = null): WhatsAppUsernameUpdate
-    {
+    public function setWhatsAppUsername(
+        string $channelId,
+        string $username,
+        ?bool $forceTransfer = null,
+        ?string $idempotencyKey = null,
+    ): WhatsAppUsernameUpdate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/channels/'.Payload::segment($channelId).'/whatsapp/username',

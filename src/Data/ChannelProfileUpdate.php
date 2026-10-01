@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelProfileUpdate extends Data
 {
     /**
-     * @param  list<string>  $errors
      * @param  list<string>  $updatedFields
+     * @param  list<string>  $errors
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $errors,
-        public string $message,
         public bool $success,
+        public string $message,
         public array $updatedFields,
+        public array $errors,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class ChannelProfileUpdate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            errors: $attributes->strings('errors'),
-            message: $attributes->string('message'),
             success: $attributes->bool('success'),
+            message: $attributes->string('message'),
             updatedFields: $attributes->strings('updated_fields'),
+            errors: $attributes->strings('errors'),
             raw: $data,
         );
     }

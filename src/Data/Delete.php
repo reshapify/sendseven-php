@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Delete extends Data
 {
     /**
-     * @param  string  $id  ID of deleted resource
      * @param  ?bool  $success  Whether deletion succeeded
+     * @param  string  $id  ID of deleted resource
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?bool $success,
         public string $id,
         public ?string $message,
-        public ?bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,9 +38,9 @@ final readonly class Delete extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->nullableBool('success'),
             id: $attributes->string('id'),
             message: $attributes->nullableString('message'),
-            success: $attributes->nullableBool('success'),
             raw: $data,
         );
     }

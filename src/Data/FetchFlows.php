@@ -22,10 +22,10 @@ final readonly class FetchFlows extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $error,
-        public array $flows,
         public bool $success,
+        public array $flows,
         public ?int $total,
+        public ?string $error,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,10 +39,10 @@ final readonly class FetchFlows extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            error: $attributes->nullableString('error'),
-            flows: $attributes->list('flows', AppSchemasWhatsAppFlowFlow::fromArray(...)),
             success: $attributes->bool('success'),
+            flows: $attributes->list('flows', AppSchemasWhatsAppFlowFlow::fromArray(...)),
             total: $attributes->nullableInt('total'),
+            error: $attributes->nullableString('error'),
             raw: $data,
         );
     }

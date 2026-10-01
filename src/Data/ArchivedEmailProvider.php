@@ -19,27 +19,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ArchivedEmailProvider extends Data
 {
     /**
-     * @param  ?DateTimeImmutable  $archivedAt  When the provider was archived
-     * @param  ?string  $archivedByUserId  User who archived the provider
      * @param  array<array-key, mixed>  $config  Non-sensitive config (secrets cleared)
      * @param  list<string>  $verifiedDomains  List of verified domains from provider
      * @param  ?bool  $webhookConfigured  Whether webhooks were configured
+     * @param  ?DateTimeImmutable  $archivedAt  When the provider was archived
+     * @param  ?string  $archivedByUserId  User who archived the provider
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?DateTimeImmutable $archivedAt,
-        public ?string $archivedByUserId,
-        public array $config,
-        public DateTimeImmutable $createdAt,
         public string $id,
+        public string $tenantId,
+        public ProviderType|string $providerType,
+        public string $name,
+        public array $config,
+        public array $verifiedDomains,
         public bool $isActive,
         public bool $isDefault,
-        public string $name,
-        public ProviderType|string $providerType,
-        public string $tenantId,
-        public DateTimeImmutable $updatedAt,
-        public array $verifiedDomains,
         public ?bool $webhookConfigured,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
+        public ?DateTimeImmutable $archivedAt,
+        public ?string $archivedByUserId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,19 +53,19 @@ final readonly class ArchivedEmailProvider extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            archivedAt: $attributes->nullableDateTime('archived_at'),
-            archivedByUserId: $attributes->nullableString('archived_by_user_id'),
-            config: $attributes->array('config'),
-            createdAt: $attributes->dateTime('created_at'),
             id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            providerType: $attributes->enum('provider_type', ProviderType::class),
+            name: $attributes->string('name'),
+            config: $attributes->array('config'),
+            verifiedDomains: $attributes->strings('verified_domains'),
             isActive: $attributes->bool('is_active'),
             isDefault: $attributes->bool('is_default'),
-            name: $attributes->string('name'),
-            providerType: $attributes->enum('provider_type', ProviderType::class),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->dateTime('updated_at'),
-            verifiedDomains: $attributes->strings('verified_domains'),
             webhookConfigured: $attributes->nullableBool('webhook_configured'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
+            archivedAt: $attributes->nullableDateTime('archived_at'),
+            archivedByUserId: $attributes->nullableString('archived_by_user_id'),
             raw: $data,
         );
     }

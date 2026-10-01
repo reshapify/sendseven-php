@@ -53,7 +53,11 @@ final readonly class ApiTokens
         $response = $this->connector->send(new Request(
             Method::Get,
             '/api-tokens',
-            query: Payload::query(['include_inactive' => $includeInactive, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'include_inactive' => $includeInactive,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return Hydrate::page($response->data(), ApiToken::fromArray(...), fn (int $page): Page => $this->list(includeInactive: $includeInactive, page: $page, pageSize: $pageSize));
@@ -80,8 +84,12 @@ final readonly class ApiTokens
      *
      * @see https://api.sendseven.com/api/v1/docs#/API%20Tokens/create_api_token_api_v1_api_tokens_post
      */
-    public function create(string $name, array $scopes, ?int $expiresInDays = null, ?string $idempotencyKey = null): ApiTokenCreated
-    {
+    public function create(
+        string $name,
+        array $scopes,
+        ?int $expiresInDays = null,
+        ?string $idempotencyKey = null,
+    ): ApiTokenCreated {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/api-tokens',
@@ -110,7 +118,7 @@ final readonly class ApiTokens
      *
      * @see https://api.sendseven.com/api/v1/docs#/API%20Tokens/get_available_scopes_for_token_api_v1_api_tokens_available_scopes_get
      */
-    public function getAvailableScopesFor(): AvailableTokenScopes
+    public function availableScopes(): AvailableTokenScopes
     {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -179,20 +187,24 @@ final readonly class ApiTokens
      *
      * Scopes: api:create.
      *
-     * @param  ?bool  $isActive  Set to false to revoke token, true to reactivate
      * @param  ?string  $name  Human-readable name for this token
+     * @param  ?bool  $isActive  Set to false to revoke token, true to reactivate
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/API%20Tokens/update_api_token_api_v1_api_tokens__token_id__patch
      */
-    public function update(string $tokenId, ?bool $isActive = null, ?string $name = null, ?string $idempotencyKey = null): ApiToken
-    {
+    public function update(
+        string $tokenId,
+        ?string $name = null,
+        ?bool $isActive = null,
+        ?string $idempotencyKey = null,
+    ): ApiToken {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/api-tokens/'.Payload::segment($tokenId),
-            body: Payload::body(['is_active' => $isActive, 'name' => $name]),
+            body: Payload::body(['name' => $name, 'is_active' => $isActive]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

@@ -21,16 +21,16 @@ final readonly class AppSchemasEmailCampaignSchemaCampaignUnsubscribeItem extend
      * @param  ?string  $contactId  Contact ID, if known
      * @param  ?string  $contactName  Display name, if resolvable
      * @param  ?string  $email  Email address that unsubscribed
-     * @param  ?string  $method  Opt-out source. Only 'link' exists today.
      * @param  DateTimeImmutable  $unsubscribedAt  When the opt-out occurred (ISO 8601)
+     * @param  ?string  $method  Opt-out source. Only 'link' exists today.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?string $contactId,
         public ?string $contactName,
         public ?string $email,
-        public ?string $method,
         public DateTimeImmutable $unsubscribedAt,
+        public ?string $method,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,8 +47,8 @@ final readonly class AppSchemasEmailCampaignSchemaCampaignUnsubscribeItem extend
             contactId: $attributes->nullableString('contact_id'),
             contactName: $attributes->nullableString('contact_name'),
             email: $attributes->nullableString('email'),
-            method: $attributes->nullableString('method'),
             unsubscribedAt: $attributes->dateTime('unsubscribed_at'),
+            method: $attributes->nullableString('method'),
             raw: $data,
         );
     }

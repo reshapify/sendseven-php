@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AgentPerformance extends Data
 {
     /**
-     * @param  int  $conversationCount  Number of conversations handled
-     * @param  int  $messageCount  Number of outbound messages sent
-     * @param  ?string  $userEmail  Agent email
      * @param  string  $userId  Agent user ID
      * @param  string  $userName  Agent display name
+     * @param  ?string  $userEmail  Agent email
+     * @param  int  $conversationCount  Number of conversations handled
+     * @param  int  $messageCount  Number of outbound messages sent
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $conversationCount,
-        public int $messageCount,
-        public ?string $userEmail,
         public string $userId,
         public string $userName,
+        public ?string $userEmail,
+        public int $conversationCount,
+        public int $messageCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class AgentPerformance extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            conversationCount: $attributes->int('conversation_count'),
-            messageCount: $attributes->int('message_count'),
-            userEmail: $attributes->nullableString('user_email'),
             userId: $attributes->string('user_id'),
             userName: $attributes->string('user_name'),
+            userEmail: $attributes->nullableString('user_email'),
+            conversationCount: $attributes->int('conversation_count'),
+            messageCount: $attributes->int('message_count'),
             raw: $data,
         );
     }

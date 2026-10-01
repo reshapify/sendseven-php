@@ -17,24 +17,24 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FaqMigrationStart extends Data
 {
     /**
+     * @param  string  $status  'queued' — a job was published; 'preview' — dry run, nothing enqueued
+     * @param  ?string  $runId  Null for a preview (a preview is not a run)
      * @param  ?bool  $forced  True when the in-flight guard was explicitly overridden
      * @param  ?bool  $leaseHeld  Whether the in-flight marker was actually stored. False means Redis was unavailable and duplicate-start protection falls back to the database activity check alone
      * @param  ?FaqMigrationPreview  $preview  Populated only for `dry_run`
-     * @param  ?string  $runId  Null for a preview (a preview is not a run)
-     * @param  string  $status  'queued' — a job was published; 'preview' — dry run, nothing enqueued
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
+        public string $status,
         public bool $dryRun,
+        public ?string $runId,
+        public ?string $startedAt,
+        public FaqMigrationParams $params,
         public ?bool $forced,
         public ?bool $leaseHeld,
         public string $message,
-        public FaqMigrationParams $params,
         public ?FaqMigrationPreview $preview,
-        public ?string $runId,
-        public ?string $startedAt,
-        public string $status,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,16 +48,16 @@ final readonly class FaqMigrationStart extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
+            status: $attributes->string('status'),
             dryRun: $attributes->bool('dry_run'),
+            runId: $attributes->nullableString('run_id'),
+            startedAt: $attributes->nullableString('started_at'),
+            params: $attributes->object('params', FaqMigrationParams::fromArray(...)),
             forced: $attributes->nullableBool('forced'),
             leaseHeld: $attributes->nullableBool('lease_held'),
             message: $attributes->string('message'),
-            params: $attributes->object('params', FaqMigrationParams::fromArray(...)),
             preview: $attributes->nullableObject('preview', FaqMigrationPreview::fromArray(...)),
-            runId: $attributes->nullableString('run_id'),
-            startedAt: $attributes->nullableString('started_at'),
-            status: $attributes->string('status'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

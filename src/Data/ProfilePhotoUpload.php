@@ -20,9 +20,9 @@ final readonly class ProfilePhotoUpload extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public bool $success,
         public string $message,
         public ?string $profilePictureUrl,
-        public bool $success,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -36,9 +36,9 @@ final readonly class ProfilePhotoUpload extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->bool('success'),
             message: $attributes->string('message'),
             profilePictureUrl: $attributes->nullableString('profile_picture_url'),
-            success: $attributes->bool('success'),
             raw: $data,
         );
     }

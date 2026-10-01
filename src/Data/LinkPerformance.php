@@ -17,25 +17,25 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class LinkPerformance extends Data
 {
     /**
-     * @param  ?float  $clickThroughRate  CTR percentage
+     * @param  ?string  $url  Original URL
+     * @param  ?string  $shortUrl  Short tracking URL
      * @param  ?int  $clicks  Total click count
+     * @param  ?float  $clickThroughRate  CTR percentage
+     * @param  ?int  $uniqueRecipients  Count of distinct recipients that clicked. Only populated for per-recipient tracking mode; null for shared mode (can't be attributed).
+     * @param  ?string  $trackingMode  'shared' or 'per_recipient' for the template link
      * @param  ?string  $firstClickAt  First click timestamp (ISO format)
      * @param  ?string  $lastClickAt  Last click timestamp (ISO format)
-     * @param  ?string  $shortUrl  Short tracking URL
-     * @param  ?string  $trackingMode  'shared' or 'per_recipient' for the template link
-     * @param  ?int  $uniqueRecipients  Count of distinct recipients that clicked. Only populated for per-recipient tracking mode; null for shared mode (can't be attributed).
-     * @param  ?string  $url  Original URL
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $clickThroughRate,
+        public ?string $url,
+        public ?string $shortUrl,
         public ?int $clicks,
+        public ?float $clickThroughRate,
+        public ?int $uniqueRecipients,
+        public ?string $trackingMode,
         public ?string $firstClickAt,
         public ?string $lastClickAt,
-        public ?string $shortUrl,
-        public ?string $trackingMode,
-        public ?int $uniqueRecipients,
-        public ?string $url,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,14 +49,14 @@ final readonly class LinkPerformance extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clickThroughRate: $attributes->nullableFloat('click_through_rate'),
+            url: $attributes->nullableString('url'),
+            shortUrl: $attributes->nullableString('short_url'),
             clicks: $attributes->nullableInt('clicks'),
+            clickThroughRate: $attributes->nullableFloat('click_through_rate'),
+            uniqueRecipients: $attributes->nullableInt('unique_recipients'),
+            trackingMode: $attributes->nullableString('tracking_mode'),
             firstClickAt: $attributes->nullableString('first_click_at'),
             lastClickAt: $attributes->nullableString('last_click_at'),
-            shortUrl: $attributes->nullableString('short_url'),
-            trackingMode: $attributes->nullableString('tracking_mode'),
-            uniqueRecipients: $attributes->nullableInt('unique_recipients'),
-            url: $attributes->nullableString('url'),
             raw: $data,
         );
     }

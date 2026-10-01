@@ -21,29 +21,29 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UserTenant extends Data
 {
     /**
+     * @param  string  $id  Tenant ID
+     * @param  string  $name  Tenant name
+     * @param  ?string  $slug  Tenant URL slug
+     * @param  UserRole|string  $role  User's role in this tenant
+     * @param  DateTimeImmutable  $joinedAt  When user joined this tenant
+     * @param  ?bool  $isTrial  Whether tenant is on trial
+     * @param  ?DateTimeImmutable  $trialEndsAt  When trial ends
      * @param  ?string  $billingAccountId  Associated billing account ID
      * @param  ?string  $defaultCountry  Tenant default country (ISO-3166-1 alpha-2) or null
      * @param  ?string  $defaultTimezone  Tenant default IANA timezone (e.g. 'Europe/Berlin')
-     * @param  string  $id  Tenant ID
-     * @param  ?bool  $isTrial  Whether tenant is on trial
-     * @param  DateTimeImmutable  $joinedAt  When user joined this tenant
-     * @param  string  $name  Tenant name
-     * @param  UserRole|string  $role  User's role in this tenant
-     * @param  ?string  $slug  Tenant URL slug
-     * @param  ?DateTimeImmutable  $trialEndsAt  When trial ends
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public string $id,
+        public string $name,
+        public ?string $slug,
+        public UserRole|string $role,
+        public DateTimeImmutable $joinedAt,
+        public ?bool $isTrial,
+        public ?DateTimeImmutable $trialEndsAt,
         public ?string $billingAccountId,
         public ?string $defaultCountry,
         public ?string $defaultTimezone,
-        public string $id,
-        public ?bool $isTrial,
-        public DateTimeImmutable $joinedAt,
-        public string $name,
-        public UserRole|string $role,
-        public ?string $slug,
-        public ?DateTimeImmutable $trialEndsAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -57,16 +57,16 @@ final readonly class UserTenant extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            id: $attributes->string('id'),
+            name: $attributes->string('name'),
+            slug: $attributes->nullableString('slug'),
+            role: $attributes->enum('role', UserRole::class),
+            joinedAt: $attributes->dateTime('joined_at'),
+            isTrial: $attributes->nullableBool('is_trial'),
+            trialEndsAt: $attributes->nullableDateTime('trial_ends_at'),
             billingAccountId: $attributes->nullableString('billing_account_id'),
             defaultCountry: $attributes->nullableString('default_country'),
             defaultTimezone: $attributes->nullableString('default_timezone'),
-            id: $attributes->string('id'),
-            isTrial: $attributes->nullableBool('is_trial'),
-            joinedAt: $attributes->dateTime('joined_at'),
-            name: $attributes->string('name'),
-            role: $attributes->enum('role', UserRole::class),
-            slug: $attributes->nullableString('slug'),
-            trialEndsAt: $attributes->nullableDateTime('trial_ends_at'),
             raw: $data,
         );
     }

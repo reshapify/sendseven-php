@@ -20,10 +20,10 @@ final readonly class Sync extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $emailsFound,
         public string $integrationId,
-        public string $message,
         public string $status,
+        public string $message,
+        public ?int $emailsFound,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,10 +37,10 @@ final readonly class Sync extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            emailsFound: $attributes->nullableInt('emails_found'),
             integrationId: $attributes->string('integration_id'),
-            message: $attributes->string('message'),
             status: $attributes->string('status'),
+            message: $attributes->string('message'),
+            emailsFound: $attributes->nullableInt('emails_found'),
             raw: $data,
         );
     }

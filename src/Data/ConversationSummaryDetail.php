@@ -25,18 +25,18 @@ final readonly class ConversationSummaryDetail extends Data
 {
     /**
      * @param  string  $conversationId  Conversation the summary belongs to (echoes the path param).
+     * @param  ?string  $userIntent  What the customer wanted — ``Conversation.user_intent``. NULL if not yet summarized.
+     * @param  ?string  $summary  Summary body — ``Conversation.ai_summary``. NULL if not yet summarized.
      * @param  ?string  $resolution  How it was resolved — ``Conversation.resolution_summary``. NULL if not yet summarized.
      * @param  ?string  $summarizedAt  When the summary was generated (``Conversation.summarized_at``). NULL if never summarized.
-     * @param  ?string  $summary  Summary body — ``Conversation.ai_summary``. NULL if not yet summarized.
-     * @param  ?string  $userIntent  What the customer wanted — ``Conversation.user_intent``. NULL if not yet summarized.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $conversationId,
+        public ?string $userIntent,
+        public ?string $summary,
         public ?string $resolution,
         public ?string $summarizedAt,
-        public ?string $summary,
-        public ?string $userIntent,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,10 +51,10 @@ final readonly class ConversationSummaryDetail extends Data
 
         return new self(
             conversationId: $attributes->string('conversation_id'),
+            userIntent: $attributes->nullableString('user_intent'),
+            summary: $attributes->nullableString('summary'),
             resolution: $attributes->nullableString('resolution'),
             summarizedAt: $attributes->nullableString('summarized_at'),
-            summary: $attributes->nullableString('summary'),
-            userIntent: $attributes->nullableString('user_intent'),
             raw: $data,
         );
     }

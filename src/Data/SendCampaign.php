@@ -17,23 +17,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SendCampaign extends Data
 {
     /**
+     * @param  ?bool  $success  Whether the operation succeeded
+     * @param  ?string  $message  Optional success message
      * @param  string  $campaignId  Base campaign ID
      * @param  int  $estimatedRecipients  Number of recipients
-     * @param  ?string  $message  Optional success message
-     * @param  array<array-key, mixed>  $pacing  Only set when the campaign is sent at a send speed or in batches: {paced, batch_number, armed, remaining} -- recipients in the first batch and recipients waiting for later batches.
      * @param  string  $status  Current campaign status
-     * @param  ?bool  $success  Whether the operation succeeded
      * @param  list<string>  $warnings  Non-blocking warnings surfaced during validation/send (e.g. small-campaign moderation relaxation). Empty when none.
+     * @param  array<array-key, mixed>  $pacing  Only set when the campaign is sent at a send speed or in batches: {paced, batch_number, armed, remaining} -- recipients in the first batch and recipients waiting for later batches.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public ?bool $success,
+        public ?string $message,
         public string $campaignId,
         public int $estimatedRecipients,
-        public ?string $message,
-        public array $pacing,
         public string $status,
-        public ?bool $success,
         public array $warnings,
+        public array $pacing,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,13 +47,13 @@ final readonly class SendCampaign extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            success: $attributes->nullableBool('success'),
+            message: $attributes->nullableString('message'),
             campaignId: $attributes->string('campaign_id'),
             estimatedRecipients: $attributes->int('estimated_recipients'),
-            message: $attributes->nullableString('message'),
-            pacing: $attributes->array('pacing'),
             status: $attributes->string('status'),
-            success: $attributes->nullableBool('success'),
             warnings: $attributes->strings('warnings'),
+            pacing: $attributes->array('pacing'),
             raw: $data,
         );
     }

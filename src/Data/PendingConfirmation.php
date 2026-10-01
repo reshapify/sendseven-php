@@ -18,23 +18,23 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PendingConfirmation extends Data
 {
     /**
-     * @param  ?string  $category  Subscription category
-     * @param  string  $email  Email address awaiting confirmation
-     * @param  DateTimeImmutable  $expiresAt  When token expires
-     * @param  bool  $isExpired  Whether token has expired
-     * @param  ?string  $listName  List name if subscribing to specific list
-     * @param  DateTimeImmutable  $sentAt  When confirmation email was sent
      * @param  string  $tokenId  Token ID
+     * @param  string  $email  Email address awaiting confirmation
+     * @param  DateTimeImmutable  $sentAt  When confirmation email was sent
+     * @param  DateTimeImmutable  $expiresAt  When token expires
+     * @param  ?string  $listName  List name if subscribing to specific list
+     * @param  ?string  $category  Subscription category
+     * @param  bool  $isExpired  Whether token has expired
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $category,
-        public string $email,
-        public DateTimeImmutable $expiresAt,
-        public bool $isExpired,
-        public ?string $listName,
-        public DateTimeImmutable $sentAt,
         public string $tokenId,
+        public string $email,
+        public DateTimeImmutable $sentAt,
+        public DateTimeImmutable $expiresAt,
+        public ?string $listName,
+        public ?string $category,
+        public bool $isExpired,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,13 +48,13 @@ final readonly class PendingConfirmation extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            category: $attributes->nullableString('category'),
-            email: $attributes->string('email'),
-            expiresAt: $attributes->dateTime('expires_at'),
-            isExpired: $attributes->bool('is_expired'),
-            listName: $attributes->nullableString('list_name'),
-            sentAt: $attributes->dateTime('sent_at'),
             tokenId: $attributes->string('token_id'),
+            email: $attributes->string('email'),
+            sentAt: $attributes->dateTime('sent_at'),
+            expiresAt: $attributes->dateTime('expires_at'),
+            listName: $attributes->nullableString('list_name'),
+            category: $attributes->nullableString('category'),
+            isExpired: $attributes->bool('is_expired'),
             raw: $data,
         );
     }

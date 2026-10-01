@@ -19,29 +19,29 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SubscriberTrends extends Data
 {
     /**
+     * @param  list<DailyOptInPoint>  $dailyOptIns  Daily opt-in counts by channel
+     * @param  list<DailyOptOutPoint>  $dailyOptOuts  Daily opt-out counts by channel
+     * @param  ?int  $totalOptIns  Total opt-ins in the period
+     * @param  ?int  $totalOptOuts  Total opt-outs in the period
+     * @param  ?int  $netGrowth  Net subscriber growth (opt-ins minus opt-outs)
      * @param  ?float  $avgDailyOptIns  Average daily opt-ins
      * @param  ?float  $avgDailyOptOuts  Average daily opt-outs
      * @param  list<OptInMethodCount>  $byOptInMethod  Breakdown by opt-in method
-     * @param  list<DailyOptInPoint>  $dailyOptIns  Daily opt-in counts by channel
-     * @param  list<DailyOptOutPoint>  $dailyOptOuts  Daily opt-out counts by channel
-     * @param  ?int  $netGrowth  Net subscriber growth (opt-ins minus opt-outs)
-     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  string  $periodStart  Start of the reporting period (ISO format)
-     * @param  ?int  $totalOptIns  Total opt-ins in the period
-     * @param  ?int  $totalOptOuts  Total opt-outs in the period
+     * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
+        public array $dailyOptIns,
+        public array $dailyOptOuts,
+        public ?int $totalOptIns,
+        public ?int $totalOptOuts,
+        public ?int $netGrowth,
         public ?float $avgDailyOptIns,
         public ?float $avgDailyOptOuts,
         public array $byOptInMethod,
-        public array $dailyOptIns,
-        public array $dailyOptOuts,
-        public ?int $netGrowth,
-        public string $periodEnd,
         public string $periodStart,
-        public ?int $totalOptIns,
-        public ?int $totalOptOuts,
+        public string $periodEnd,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,16 +55,16 @@ final readonly class SubscriberTrends extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
+            dailyOptIns: $attributes->list('daily_opt_ins', DailyOptInPoint::fromArray(...)),
+            dailyOptOuts: $attributes->list('daily_opt_outs', DailyOptOutPoint::fromArray(...)),
+            totalOptIns: $attributes->nullableInt('total_opt_ins'),
+            totalOptOuts: $attributes->nullableInt('total_opt_outs'),
+            netGrowth: $attributes->nullableInt('net_growth'),
             avgDailyOptIns: $attributes->nullableFloat('avg_daily_opt_ins'),
             avgDailyOptOuts: $attributes->nullableFloat('avg_daily_opt_outs'),
             byOptInMethod: $attributes->list('by_opt_in_method', OptInMethodCount::fromArray(...)),
-            dailyOptIns: $attributes->list('daily_opt_ins', DailyOptInPoint::fromArray(...)),
-            dailyOptOuts: $attributes->list('daily_opt_outs', DailyOptOutPoint::fromArray(...)),
-            netGrowth: $attributes->nullableInt('net_growth'),
-            periodEnd: $attributes->string('period_end'),
             periodStart: $attributes->string('period_start'),
-            totalOptIns: $attributes->nullableInt('total_opt_ins'),
-            totalOptOuts: $attributes->nullableInt('total_opt_outs'),
+            periodEnd: $attributes->string('period_end'),
             raw: $data,
         );
     }

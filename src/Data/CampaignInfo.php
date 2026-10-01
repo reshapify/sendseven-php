@@ -21,14 +21,14 @@ final readonly class CampaignInfo extends Data
 {
     /**
      * @param  string  $campaignId  Campaign UUID
-     * @param  ?string  $campaignMessageId  CampaignMessage UUID for tracking
      * @param  string  $campaignName  Campaign display name
+     * @param  ?string  $campaignMessageId  CampaignMessage UUID for tracking
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $campaignId,
-        public ?string $campaignMessageId,
         public string $campaignName,
+        public ?string $campaignMessageId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,8 +43,8 @@ final readonly class CampaignInfo extends Data
 
         return new self(
             campaignId: $attributes->string('campaign_id'),
-            campaignMessageId: $attributes->nullableString('campaign_message_id'),
             campaignName: $attributes->string('campaign_name'),
+            campaignMessageId: $attributes->nullableString('campaign_message_id'),
             raw: $data,
         );
     }

@@ -20,13 +20,13 @@ final readonly class SmsPricelistRow extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?bool $isSupported,
         public string $iso,
         public string $name,
-        public string $platformFeeEur,
         public string $prefix,
+        public string $platformFeeEur,
         public string $sendsevenFeeEur,
         public string $totalPerSegmentEur,
+        public ?bool $isSupported,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -40,13 +40,13 @@ final readonly class SmsPricelistRow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            isSupported: $attributes->nullableBool('is_supported'),
             iso: $attributes->string('iso'),
             name: $attributes->string('name'),
-            platformFeeEur: $attributes->string('platform_fee_eur'),
             prefix: $attributes->string('prefix'),
+            platformFeeEur: $attributes->string('platform_fee_eur'),
             sendsevenFeeEur: $attributes->string('sendseven_fee_eur'),
             totalPerSegmentEur: $attributes->string('total_per_segment_eur'),
+            isSupported: $attributes->nullableBool('is_supported'),
             raw: $data,
         );
     }

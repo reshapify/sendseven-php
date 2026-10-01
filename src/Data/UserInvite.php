@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class UserInvite extends Data
 {
     /**
-     * @param  string  $email  Email address invited
-     * @param  ?string  $message  Optional success message
-     * @param  ?string  $note  Additional information
      * @param  ?bool  $success  Whether the operation succeeded
+     * @param  ?string  $message  Optional success message
+     * @param  string  $email  Email address invited
+     * @param  ?string  $note  Additional information
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $email,
-        public ?string $message,
-        public ?string $note,
         public ?bool $success,
+        public ?string $message,
+        public string $email,
+        public ?string $note,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class UserInvite extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            email: $attributes->string('email'),
-            message: $attributes->nullableString('message'),
-            note: $attributes->nullableString('note'),
             success: $attributes->nullableBool('success'),
+            message: $attributes->nullableString('message'),
+            email: $attributes->string('email'),
+            note: $attributes->nullableString('note'),
             raw: $data,
         );
     }

@@ -22,22 +22,22 @@ final readonly class EmailIntegrationCreateResponse extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $connectionStatus,
-        public DateTimeImmutable $createdAt,
-        public array $dnsRecords,
-        public ?string $dnsVerificationStatus,
-        public ?string $emailAddress,
         public string $id,
+        public string $tenantId,
+        public string $name,
+        public ?string $emailAddress,
+        public ?string $oAuthEmail,
         public string $integrationType,
         public bool $isActive,
-        public string $name,
-        public ?string $oAuthEmail,
+        public string $connectionStatus,
+        public ?string $sesTenantName,
         public ?string $sesConfigurationSet,
         public ?string $sesDomain,
         public ?string $sesReputationPolicy,
-        public ?string $sesTenantName,
+        public ?string $dnsVerificationStatus,
+        public array $dnsRecords,
         public ?string $setupMessage,
-        public string $tenantId,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,22 +51,22 @@ final readonly class EmailIntegrationCreateResponse extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            connectionStatus: $attributes->string('connection_status'),
-            createdAt: $attributes->dateTime('created_at'),
-            dnsRecords: $attributes->list('dns_records', SesSetupDnsRecord::fromArray(...)),
-            dnsVerificationStatus: $attributes->nullableString('dns_verification_status'),
-            emailAddress: $attributes->nullableString('email_address'),
             id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            emailAddress: $attributes->nullableString('email_address'),
+            oAuthEmail: $attributes->nullableString('oauth_email'),
             integrationType: $attributes->string('integration_type'),
             isActive: $attributes->bool('is_active'),
-            name: $attributes->string('name'),
-            oAuthEmail: $attributes->nullableString('oauth_email'),
+            connectionStatus: $attributes->string('connection_status'),
+            sesTenantName: $attributes->nullableString('ses_tenant_name'),
             sesConfigurationSet: $attributes->nullableString('ses_configuration_set'),
             sesDomain: $attributes->nullableString('ses_domain'),
             sesReputationPolicy: $attributes->nullableString('ses_reputation_policy'),
-            sesTenantName: $attributes->nullableString('ses_tenant_name'),
+            dnsVerificationStatus: $attributes->nullableString('dns_verification_status'),
+            dnsRecords: $attributes->list('dns_records', SesSetupDnsRecord::fromArray(...)),
             setupMessage: $attributes->nullableString('setup_message'),
-            tenantId: $attributes->string('tenant_id'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

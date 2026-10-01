@@ -21,39 +21,39 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class CustomFieldDefinition extends Data
 {
     /**
-     * @param  bool  $agentEditable  Editable by agents
-     * @param  bool  $agentVisible  Visible to agents
-     * @param  DateTimeImmutable  $createdAt  Creation timestamp
-     * @param  ?string  $defaultValue  Default value
-     * @param  ?string  $description  Help text
-     * @param  int  $displayOrder  Display order
-     * @param  FieldType|string  $fieldType  Data type for the field
      * @param  string  $id  Unique identifier (UUID)
-     * @param  bool  $isActive  Whether field is active
-     * @param  string  $key  Internal key (snake_case)
+     * @param  string  $tenantId  Tenant this resource belongs to
      * @param  string  $name  Display name for the field
+     * @param  string  $key  Internal key (snake_case)
+     * @param  FieldType|string  $fieldType  Data type for the field
+     * @param  ?string  $description  Help text
      * @param  list<string>  $options  Options for select types
      * @param  bool  $required  Whether field is required
-     * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  ?string  $defaultValue  Default value
+     * @param  bool  $agentVisible  Visible to agents
+     * @param  bool  $agentEditable  Editable by agents
      * @param  bool  $userEditable  Editable by contacts
+     * @param  int  $displayOrder  Display order
+     * @param  bool  $isActive  Whether field is active
+     * @param  DateTimeImmutable  $createdAt  Creation timestamp
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public bool $agentEditable,
-        public bool $agentVisible,
-        public DateTimeImmutable $createdAt,
-        public ?string $defaultValue,
-        public ?string $description,
-        public int $displayOrder,
-        public FieldType|string $fieldType,
         public string $id,
-        public bool $isActive,
-        public string $key,
+        public string $tenantId,
         public string $name,
+        public string $key,
+        public FieldType|string $fieldType,
+        public ?string $description,
         public array $options,
         public bool $required,
-        public string $tenantId,
+        public ?string $defaultValue,
+        public bool $agentVisible,
+        public bool $agentEditable,
         public bool $userEditable,
+        public int $displayOrder,
+        public bool $isActive,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -67,21 +67,21 @@ final readonly class CustomFieldDefinition extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            agentEditable: $attributes->bool('agent_editable'),
-            agentVisible: $attributes->bool('agent_visible'),
-            createdAt: $attributes->dateTime('created_at'),
-            defaultValue: $attributes->nullableString('default_value'),
-            description: $attributes->nullableString('description'),
-            displayOrder: $attributes->int('display_order'),
-            fieldType: $attributes->enum('field_type', FieldType::class),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            key: $attributes->string('key'),
+            tenantId: $attributes->string('tenant_id'),
             name: $attributes->string('name'),
+            key: $attributes->string('key'),
+            fieldType: $attributes->enum('field_type', FieldType::class),
+            description: $attributes->nullableString('description'),
             options: $attributes->strings('options'),
             required: $attributes->bool('required'),
-            tenantId: $attributes->string('tenant_id'),
+            defaultValue: $attributes->nullableString('default_value'),
+            agentVisible: $attributes->bool('agent_visible'),
+            agentEditable: $attributes->bool('agent_editable'),
             userEditable: $attributes->bool('user_editable'),
+            displayOrder: $attributes->int('display_order'),
+            isActive: $attributes->bool('is_active'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

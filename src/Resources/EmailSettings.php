@@ -86,12 +86,12 @@ final readonly class EmailSettings
      *
      * Scopes: settings:update.
      *
-     * @param  ?string  $complianceFooterHtml  HTML footer for compliance (GDPR/CAN-SPAM)
-     * @param  ?string  $defaultDoubleOptInTemplateId  UUID of default confirmation email template
-     * @param  ?string  $defaultFromEmail  Default sender email address
      * @param  ?string  $defaultFromName  Default sender name for emails
+     * @param  ?string  $defaultFromEmail  Default sender email address
      * @param  ?string  $defaultReplyTo  Default reply-to email address
      * @param  ?bool  $doubleOptInEnabled  Require double opt-in for new subscriptions
+     * @param  ?string  $defaultDoubleOptInTemplateId  UUID of default confirmation email template
+     * @param  ?string  $complianceFooterHtml  HTML footer for compliance (GDPR/CAN-SPAM)
      * @param  ?string  $footerMode  Which compliance links emails carry by default: `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer — transactional senders only; RFC 8058 List-Unsubscribe headers are still sent). Individual emails can override this via the email content's `footer_mode`. `unsubscribe_only` and `none` also disable the hosted preference center for this account.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -99,12 +99,28 @@ final readonly class EmailSettings
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Settings/update_email_settings_api_v1_email_settings_patch
      */
-    public function update(?string $complianceFooterHtml = null, ?string $defaultDoubleOptInTemplateId = null, ?string $defaultFromEmail = null, ?string $defaultFromName = null, ?string $defaultReplyTo = null, ?bool $doubleOptInEnabled = null, ?string $footerMode = null, ?string $idempotencyKey = null): EmailSettingsResponse
-    {
+    public function update(
+        ?string $defaultFromName = null,
+        ?string $defaultFromEmail = null,
+        ?string $defaultReplyTo = null,
+        ?bool $doubleOptInEnabled = null,
+        ?string $defaultDoubleOptInTemplateId = null,
+        ?string $complianceFooterHtml = null,
+        ?string $footerMode = null,
+        ?string $idempotencyKey = null,
+    ): EmailSettingsResponse {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/email-settings',
-            body: Payload::body(['compliance_footer_html' => $complianceFooterHtml, 'default_double_opt_in_template_id' => $defaultDoubleOptInTemplateId, 'default_from_email' => $defaultFromEmail, 'default_from_name' => $defaultFromName, 'default_reply_to' => $defaultReplyTo, 'double_opt_in_enabled' => $doubleOptInEnabled, 'footer_mode' => $footerMode]),
+            body: Payload::body([
+                'default_from_name' => $defaultFromName,
+                'default_from_email' => $defaultFromEmail,
+                'default_reply_to' => $defaultReplyTo,
+                'double_opt_in_enabled' => $doubleOptInEnabled,
+                'default_double_opt_in_template_id' => $defaultDoubleOptInTemplateId,
+                'compliance_footer_html' => $complianceFooterHtml,
+                'footer_mode' => $footerMode,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

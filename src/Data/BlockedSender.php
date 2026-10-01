@@ -21,11 +21,11 @@ final readonly class BlockedSender extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $blockedByUserId,
-        public DateTimeImmutable $createdAt,
-        public string $emailAddress,
         public string $id,
+        public string $emailAddress,
+        public ?string $blockedByUserId,
         public ?string $reason,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,11 +39,11 @@ final readonly class BlockedSender extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            blockedByUserId: $attributes->nullableString('blocked_by_user_id'),
-            createdAt: $attributes->dateTime('created_at'),
-            emailAddress: $attributes->string('email_address'),
             id: $attributes->string('id'),
+            emailAddress: $attributes->string('email_address'),
+            blockedByUserId: $attributes->nullableString('blocked_by_user_id'),
             reason: $attributes->nullableString('reason'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

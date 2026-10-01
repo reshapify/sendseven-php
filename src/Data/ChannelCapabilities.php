@@ -23,8 +23,8 @@ final readonly class ChannelCapabilities extends Data
      */
     public function __construct(
         public string $channelId,
-        public string $channelName,
         public string $channelType,
+        public string $channelName,
         public ChannelFeatures $features,
         public array $reactions,
         public array $reply,
@@ -42,8 +42,8 @@ final readonly class ChannelCapabilities extends Data
 
         return new self(
             channelId: $attributes->string('channel_id'),
-            channelName: $attributes->string('channel_name'),
             channelType: $attributes->string('channel_type'),
+            channelName: $attributes->string('channel_name'),
             features: $attributes->object('features', ChannelFeatures::fromArray(...)),
             reactions: $attributes->array('reactions'),
             reply: $attributes->array('reply'),

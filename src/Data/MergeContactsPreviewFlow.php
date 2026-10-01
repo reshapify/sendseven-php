@@ -21,9 +21,9 @@ final readonly class MergeContactsPreviewFlow extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $count,
         public string $flowId,
         public ?string $flowName,
+        public int $count,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,9 +37,9 @@ final readonly class MergeContactsPreviewFlow extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            count: $attributes->int('count'),
             flowId: $attributes->string('flow_id'),
             flowName: $attributes->nullableString('flow_name'),
+            count: $attributes->int('count'),
             raw: $data,
         );
     }

@@ -20,33 +20,33 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FaqMigrationEstimate extends Data
 {
     /**
-     * @param  int  $clusters  Clusters the pending summaries group into (one entry each)
-     * @param  int  $clustersAtOrAboveMinSize  Clusters with at least `min_cluster_size` members — the half that reliably produces FAQ entries
-     * @param  float  $estimatedCostEur  Cost of processing every cluster, including singletons
-     * @param  float  $estimatedCostEurWithoutSingletons  Cost with `include_singletons=false`
-     * @param  int  $estimatedLlmCalls  One generation call per cluster processed
-     * @param  int  $estimatedRuns  Worker messages the job will take (it re-enqueues itself; 40 clusters per message by default)
-     * @param  int  $minClusterSize  Effective floor (tenant setting `faq_min_cluster_size`)
-     * @param  int  $singletonClusters  Clusters below `min_cluster_size`. They still cost one LLM call each and the model refuses nearly all of them; `include_singletons=false` skips them
+     * @param  string  $tenantId  Tenant the estimate was computed for
+     * @param  int  $summariesTotal  Ticket summaries readable by the migration right now
      * @param  int  $summariesAlreadyMigrated  Of those, how many a previous run already consumed
      * @param  int  $summariesPending  Summaries a run would still have to process
-     * @param  int  $summariesTotal  Ticket summaries readable by the migration right now
-     * @param  string  $tenantId  Tenant the estimate was computed for
+     * @param  int  $clusters  Clusters the pending summaries group into (one entry each)
+     * @param  int  $clustersAtOrAboveMinSize  Clusters with at least `min_cluster_size` members — the half that reliably produces FAQ entries
+     * @param  int  $singletonClusters  Clusters below `min_cluster_size`. They still cost one LLM call each and the model refuses nearly all of them; `include_singletons=false` skips them
+     * @param  int  $minClusterSize  Effective floor (tenant setting `faq_min_cluster_size`)
+     * @param  int  $estimatedLlmCalls  One generation call per cluster processed
+     * @param  float  $estimatedCostEur  Cost of processing every cluster, including singletons
+     * @param  float  $estimatedCostEurWithoutSingletons  Cost with `include_singletons=false`
+     * @param  int  $estimatedRuns  Worker messages the job will take (it re-enqueues itself; 40 clusters per message by default)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $clusters,
-        public int $clustersAtOrAboveMinSize,
-        public float $estimatedCostEur,
-        public float $estimatedCostEurWithoutSingletons,
-        public int $estimatedLlmCalls,
-        public int $estimatedRuns,
-        public int $minClusterSize,
-        public int $singletonClusters,
+        public string $tenantId,
+        public int $summariesTotal,
         public int $summariesAlreadyMigrated,
         public int $summariesPending,
-        public int $summariesTotal,
-        public string $tenantId,
+        public int $clusters,
+        public int $clustersAtOrAboveMinSize,
+        public int $singletonClusters,
+        public int $minClusterSize,
+        public int $estimatedLlmCalls,
+        public float $estimatedCostEur,
+        public float $estimatedCostEurWithoutSingletons,
+        public int $estimatedRuns,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -60,18 +60,18 @@ final readonly class FaqMigrationEstimate extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clusters: $attributes->int('clusters'),
-            clustersAtOrAboveMinSize: $attributes->int('clusters_at_or_above_min_size'),
-            estimatedCostEur: $attributes->float('estimated_cost_eur'),
-            estimatedCostEurWithoutSingletons: $attributes->float('estimated_cost_eur_without_singletons'),
-            estimatedLlmCalls: $attributes->int('estimated_llm_calls'),
-            estimatedRuns: $attributes->int('estimated_runs'),
-            minClusterSize: $attributes->int('min_cluster_size'),
-            singletonClusters: $attributes->int('singleton_clusters'),
+            tenantId: $attributes->string('tenant_id'),
+            summariesTotal: $attributes->int('summaries_total'),
             summariesAlreadyMigrated: $attributes->int('summaries_already_migrated'),
             summariesPending: $attributes->int('summaries_pending'),
-            summariesTotal: $attributes->int('summaries_total'),
-            tenantId: $attributes->string('tenant_id'),
+            clusters: $attributes->int('clusters'),
+            clustersAtOrAboveMinSize: $attributes->int('clusters_at_or_above_min_size'),
+            singletonClusters: $attributes->int('singleton_clusters'),
+            minClusterSize: $attributes->int('min_cluster_size'),
+            estimatedLlmCalls: $attributes->int('estimated_llm_calls'),
+            estimatedCostEur: $attributes->float('estimated_cost_eur'),
+            estimatedCostEurWithoutSingletons: $attributes->float('estimated_cost_eur_without_singletons'),
+            estimatedRuns: $attributes->int('estimated_runs'),
             raw: $data,
         );
     }

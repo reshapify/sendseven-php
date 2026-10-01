@@ -20,12 +20,12 @@ final readonly class AppSchemasMessageAttachment extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $contentType,
-        public string $createdAt,
-        public int $fileSize,
-        public string $filename,
         public string $id,
+        public string $filename,
+        public string $contentType,
+        public int $fileSize,
         public string $storagePath,
+        public string $createdAt,
         public ?string $url,
         array $raw = [],
     ) {
@@ -40,12 +40,12 @@ final readonly class AppSchemasMessageAttachment extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            contentType: $attributes->string('content_type'),
-            createdAt: $attributes->string('created_at'),
-            fileSize: $attributes->int('file_size'),
-            filename: $attributes->string('filename'),
             id: $attributes->string('id'),
+            filename: $attributes->string('filename'),
+            contentType: $attributes->string('content_type'),
+            fileSize: $attributes->int('file_size'),
             storagePath: $attributes->string('storage_path'),
+            createdAt: $attributes->string('created_at'),
             url: $attributes->nullableString('url'),
             raw: $data,
         );

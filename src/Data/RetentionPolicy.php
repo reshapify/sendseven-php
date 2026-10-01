@@ -25,14 +25,14 @@ final readonly class RetentionPolicy extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $allowedOptions,
-        public ?int $ceiling,
-        public ?int $effectiveDays,
+        public string $tenantId,
+        public int $messageRetentionDays,
         public int $floor,
+        public ?int $ceiling,
         public bool $isApiOnly,
         public bool $isConfigurable,
-        public int $messageRetentionDays,
-        public string $tenantId,
+        public array $allowedOptions,
+        public ?int $effectiveDays,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,14 +46,14 @@ final readonly class RetentionPolicy extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            allowedOptions: $attributes->ints('allowed_options'),
-            ceiling: $attributes->nullableInt('ceiling'),
-            effectiveDays: $attributes->nullableInt('effective_days'),
+            tenantId: $attributes->string('tenant_id'),
+            messageRetentionDays: $attributes->int('message_retention_days'),
             floor: $attributes->int('floor'),
+            ceiling: $attributes->nullableInt('ceiling'),
             isApiOnly: $attributes->bool('is_api_only'),
             isConfigurable: $attributes->bool('is_configurable'),
-            messageRetentionDays: $attributes->int('message_retention_days'),
-            tenantId: $attributes->string('tenant_id'),
+            allowedOptions: $attributes->ints('allowed_options'),
+            effectiveDays: $attributes->nullableInt('effective_days'),
             raw: $data,
         );
     }

@@ -17,15 +17,15 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelResponseTime extends Data
 {
     /**
-     * @param  ?float  $avgResponseMinutes  Average response time in minutes
      * @param  string  $channelType  Channel type
      * @param  int  $conversationCount  Number of conversations with responses
+     * @param  ?float  $avgResponseMinutes  Average response time in minutes
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $avgResponseMinutes,
         public string $channelType,
         public int $conversationCount,
+        public ?float $avgResponseMinutes,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,9 +39,9 @@ final readonly class ChannelResponseTime extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            avgResponseMinutes: $attributes->nullableFloat('avg_response_minutes'),
             channelType: $attributes->string('channel_type'),
             conversationCount: $attributes->int('conversation_count'),
+            avgResponseMinutes: $attributes->nullableFloat('avg_response_minutes'),
             raw: $data,
         );
     }

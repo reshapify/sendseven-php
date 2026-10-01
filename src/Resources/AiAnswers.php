@@ -86,8 +86,8 @@ final readonly class AiAnswers
      * Scopes: conversations:write.
      *
      * @param  string  $verdict  up | down | wrong
-     * @param  ?string  $betterAnswer  What the answer should have said
      * @param  ?string  $reasonCategory  Required for down/wrong: factually_wrong | outdated | incomplete | off_topic | wrong_tone | policy_violation | hallucinated
+     * @param  ?string  $betterAnswer  What the answer should have said
      * @param  list<string>|null  $sourceAttribution  faq_items.id values the rater explicitly blames. Takes full weight with no sharing (ignored for 'up' verdicts).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -95,12 +95,25 @@ final readonly class AiAnswers
      *
      * @see https://api.sendseven.com/api/v1/docs#/AI%20Answers/rate_ai_answer_api_v1_ai_answers__event_id__rate_post
      */
-    public function rate(string $eventId, string $verdict, ?string $betterAnswer = null, ?string $comment = null, ?string $reasonCategory = null, ?array $sourceAttribution = null, ?string $idempotencyKey = null): AiAnswerRate
-    {
+    public function rate(
+        string $eventId,
+        string $verdict,
+        ?string $reasonCategory = null,
+        ?string $comment = null,
+        ?string $betterAnswer = null,
+        ?array $sourceAttribution = null,
+        ?string $idempotencyKey = null,
+    ): AiAnswerRate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/ai-answers/'.Payload::segment($eventId).'/rate',
-            body: Payload::body(['verdict' => $verdict, 'better_answer' => $betterAnswer, 'comment' => $comment, 'reason_category' => $reasonCategory, 'source_attribution' => $sourceAttribution]),
+            body: Payload::body([
+                'verdict' => $verdict,
+                'reason_category' => $reasonCategory,
+                'comment' => $comment,
+                'better_answer' => $betterAnswer,
+                'source_attribution' => $sourceAttribution,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -124,8 +137,12 @@ final readonly class AiAnswers
      *
      * @see https://api.sendseven.com/api/v1/docs#/AI%20Answers/list_conversation_ai_answers_api_v1_conversations__conversation_id__ai_answers_get
      */
-    public function listConversation(string $conversationId, ?string $messageId = null, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listConversation(
+        string $conversationId,
+        ?string $messageId = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/conversations/'.Payload::segment($conversationId).'/ai-answers',

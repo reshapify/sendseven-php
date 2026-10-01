@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class InteractiveListSection extends Data
 {
     /**
-     * @param  list<InteractiveListRow>  $rows  Rows in this section (1-10)
      * @param  string  $title  Section title
+     * @param  list<InteractiveListRow>  $rows  Rows in this section (1-10)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $rows,
         public string $title,
+        public array $rows,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class InteractiveListSection extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            rows: $attributes->list('rows', InteractiveListRow::fromArray(...)),
             title: $attributes->string('title'),
+            rows: $attributes->list('rows', InteractiveListRow::fromArray(...)),
             raw: $data,
         );
     }

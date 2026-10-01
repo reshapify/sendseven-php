@@ -21,27 +21,27 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ApiToken extends Data
 {
     /**
-     * @param  DateTimeImmutable  $createdAt  When the token was created
-     * @param  ?DateTimeImmutable  $expiresAt  When the token expires
      * @param  string  $id  Unique identifier (UUID)
-     * @param  bool  $isActive  Whether the token is active
-     * @param  ?DateTimeImmutable  $lastUsedAt  When the token was last used
-     * @param  string  $name  Human-readable name for this token
-     * @param  list<string>  $scopes  Scopes granted to this token
      * @param  string  $tenantId  Tenant this token belongs to
      * @param  string  $userId  User who created this token
+     * @param  string  $name  Human-readable name for this token
+     * @param  list<string>  $scopes  Scopes granted to this token
+     * @param  ?DateTimeImmutable  $lastUsedAt  When the token was last used
+     * @param  DateTimeImmutable  $createdAt  When the token was created
+     * @param  ?DateTimeImmutable  $expiresAt  When the token expires
+     * @param  bool  $isActive  Whether the token is active
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public DateTimeImmutable $createdAt,
-        public ?DateTimeImmutable $expiresAt,
         public string $id,
-        public bool $isActive,
-        public ?DateTimeImmutable $lastUsedAt,
-        public string $name,
-        public array $scopes,
         public string $tenantId,
         public string $userId,
+        public string $name,
+        public array $scopes,
+        public ?DateTimeImmutable $lastUsedAt,
+        public DateTimeImmutable $createdAt,
+        public ?DateTimeImmutable $expiresAt,
+        public bool $isActive,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,15 +55,15 @@ final readonly class ApiToken extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            createdAt: $attributes->dateTime('created_at'),
-            expiresAt: $attributes->nullableDateTime('expires_at'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            lastUsedAt: $attributes->nullableDateTime('last_used_at'),
-            name: $attributes->string('name'),
-            scopes: $attributes->strings('scopes'),
             tenantId: $attributes->string('tenant_id'),
             userId: $attributes->string('user_id'),
+            name: $attributes->string('name'),
+            scopes: $attributes->strings('scopes'),
+            lastUsedAt: $attributes->nullableDateTime('last_used_at'),
+            createdAt: $attributes->dateTime('created_at'),
+            expiresAt: $attributes->nullableDateTime('expires_at'),
+            isActive: $attributes->bool('is_active'),
             raw: $data,
         );
     }

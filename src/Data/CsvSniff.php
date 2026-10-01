@@ -21,15 +21,15 @@ final readonly class CsvSniff extends Data
 {
     /**
      * @param  string  $delimiter  Detected delimiter, e.g. ',' ';' '\t' '|'
-     * @param  list<string>  $headers  Parsed header column names (in order)
      * @param  string  $quotechar  Detected quote character, e.g. '"'
+     * @param  list<string>  $headers  Parsed header column names (in order)
      * @param  ?string  $suggestedPhoneRegion  Best-effort ISO alpha-2 region derived from the tenant's company_country, or null.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $delimiter,
-        public array $headers,
         public string $quotechar,
+        public array $headers,
         public ?string $suggestedPhoneRegion,
         array $raw = [],
     ) {
@@ -45,8 +45,8 @@ final readonly class CsvSniff extends Data
 
         return new self(
             delimiter: $attributes->string('delimiter'),
-            headers: $attributes->strings('headers'),
             quotechar: $attributes->string('quotechar'),
+            headers: $attributes->strings('headers'),
             suggestedPhoneRegion: $attributes->nullableString('suggested_phone_region'),
             raw: $data,
         );

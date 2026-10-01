@@ -27,21 +27,21 @@ final readonly class FlowRun extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $completedAt,
+        public string $id,
+        public string $tenantId,
+        public string $flowId,
         public string $contactId,
-        public array $context,
-        public string $createdAt,
         public ?string $currentNodeId,
+        public string $status,
+        public array $context,
+        public string $idempotencyKey,
+        public string $startedAt,
+        public ?string $completedAt,
+        public string $createdAt,
+        public string $updatedAt,
         public ?string $errorMessage,
         public ?string $failedNodeId,
         public ?string $failedNodeLabel,
-        public string $flowId,
-        public string $id,
-        public string $idempotencyKey,
-        public string $startedAt,
-        public string $status,
-        public string $tenantId,
-        public string $updatedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,21 +55,21 @@ final readonly class FlowRun extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            completedAt: $attributes->nullableString('completed_at'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            flowId: $attributes->string('flow_id'),
             contactId: $attributes->string('contact_id'),
-            context: $attributes->array('context'),
-            createdAt: $attributes->string('created_at'),
             currentNodeId: $attributes->nullableString('current_node_id'),
+            status: $attributes->string('status'),
+            context: $attributes->array('context'),
+            idempotencyKey: $attributes->string('idempotency_key'),
+            startedAt: $attributes->string('started_at'),
+            completedAt: $attributes->nullableString('completed_at'),
+            createdAt: $attributes->string('created_at'),
+            updatedAt: $attributes->string('updated_at'),
             errorMessage: $attributes->nullableString('error_message'),
             failedNodeId: $attributes->nullableString('failed_node_id'),
             failedNodeLabel: $attributes->nullableString('failed_node_label'),
-            flowId: $attributes->string('flow_id'),
-            id: $attributes->string('id'),
-            idempotencyKey: $attributes->string('idempotency_key'),
-            startedAt: $attributes->string('started_at'),
-            status: $attributes->string('status'),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->string('updated_at'),
             raw: $data,
         );
     }

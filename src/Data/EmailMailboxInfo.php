@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailMailboxInfo extends Data
 {
     /**
-     * @param  string  $emailAddress  Mailbox email address
      * @param  string  $id  Mailbox UUID
+     * @param  string  $emailAddress  Mailbox email address
      * @param  string  $name  Mailbox display name
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $emailAddress,
         public string $id,
+        public string $emailAddress,
         public string $name,
         array $raw = [],
     ) {
@@ -39,8 +39,8 @@ final readonly class EmailMailboxInfo extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            emailAddress: $attributes->string('email_address'),
             id: $attributes->string('id'),
+            emailAddress: $attributes->string('email_address'),
             name: $attributes->string('name'),
             raw: $data,
         );

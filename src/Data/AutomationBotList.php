@@ -22,17 +22,17 @@ final readonly class AutomationBotList extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $activationRulesCount,
-        public ?string $avatarUrl,
-        public BotTypeEnum|string $botType,
-        public DateTimeImmutable $createdAt,
         public string $id,
-        public bool $isActive,
-        public string $name,
-        public ?int $priority,
         public string $tenantId,
+        public string $name,
+        public BotTypeEnum|string $botType,
+        public bool $isActive,
+        public ?int $priority,
+        public ?string $avatarUrl,
         public ?int $totalConversations,
         public ?int $totalEscalations,
+        public ?int $activationRulesCount,
+        public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,17 +46,17 @@ final readonly class AutomationBotList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            activationRulesCount: $attributes->nullableInt('activation_rules_count'),
-            avatarUrl: $attributes->nullableString('avatar_url'),
-            botType: $attributes->enum('bot_type', BotTypeEnum::class),
-            createdAt: $attributes->dateTime('created_at'),
             id: $attributes->string('id'),
-            isActive: $attributes->bool('is_active'),
-            name: $attributes->string('name'),
-            priority: $attributes->nullableInt('priority'),
             tenantId: $attributes->string('tenant_id'),
+            name: $attributes->string('name'),
+            botType: $attributes->enum('bot_type', BotTypeEnum::class),
+            isActive: $attributes->bool('is_active'),
+            priority: $attributes->nullableInt('priority'),
+            avatarUrl: $attributes->nullableString('avatar_url'),
             totalConversations: $attributes->nullableInt('total_conversations'),
             totalEscalations: $attributes->nullableInt('total_escalations'),
+            activationRulesCount: $attributes->nullableInt('activation_rules_count'),
+            createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );
     }

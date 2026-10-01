@@ -70,8 +70,11 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/confirm_contact_merge_suggestion_api_v1_contact_merge_suggestions__suggestion_id__confirm_post
      */
-    public function confirmMergeSuggestion(string $suggestionId, ?array $body = null, ?string $idempotencyKey = null): ContactMergeSuggestion
-    {
+    public function confirmMergeSuggestion(
+        string $suggestionId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): ContactMergeSuggestion {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contact-merge-suggestions/'.Payload::segment($suggestionId).'/confirm',
@@ -147,12 +150,41 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/list_contacts_api_v1_contacts_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $search = null, ?bool $includeLiveChat = null, ?string $sortBy = null, ?string $sortDir = null, ?string $customFieldId = null, ?string $customFieldValue = null, ?string $customFieldValueTo = null, ?string $customFieldOp = null, ?string $listId = null, ?string $listSubscriptionStatus = null, SubscriptionChannelType|string|null $listSubscriptionChannel = null, ?array $tagId = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $search = null,
+        ?bool $includeLiveChat = null,
+        ?string $sortBy = null,
+        ?string $sortDir = null,
+        ?string $customFieldId = null,
+        ?string $customFieldValue = null,
+        ?string $customFieldValueTo = null,
+        ?string $customFieldOp = null,
+        ?string $listId = null,
+        ?string $listSubscriptionStatus = null,
+        SubscriptionChannelType|string|null $listSubscriptionChannel = null,
+        ?array $tagId = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/contacts',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'search' => $search, 'include_live_chat' => $includeLiveChat, 'sort_by' => $sortBy, 'sort_dir' => $sortDir, 'custom_field_id' => $customFieldId, 'custom_field_value' => $customFieldValue, 'custom_field_value_to' => $customFieldValueTo, 'custom_field_op' => $customFieldOp, 'list_id' => $listId, 'list_subscription_status' => $listSubscriptionStatus, 'list_subscription_channel' => $listSubscriptionChannel, 'tag_id' => $tagId]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'search' => $search,
+                'include_live_chat' => $includeLiveChat,
+                'sort_by' => $sortBy,
+                'sort_dir' => $sortDir,
+                'custom_field_id' => $customFieldId,
+                'custom_field_value' => $customFieldValue,
+                'custom_field_value_to' => $customFieldValueTo,
+                'custom_field_op' => $customFieldOp,
+                'list_id' => $listId,
+                'list_subscription_status' => $listSubscriptionStatus,
+                'list_subscription_channel' => $listSubscriptionChannel,
+                'tag_id' => $tagId,
+            ]),
         ));
 
         return Hydrate::page($response->data(), Contact::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, search: $search, includeLiveChat: $includeLiveChat, sortBy: $sortBy, sortDir: $sortDir, customFieldId: $customFieldId, customFieldValue: $customFieldValue, customFieldValueTo: $customFieldValueTo, customFieldOp: $customFieldOp, listId: $listId, listSubscriptionStatus: $listSubscriptionStatus, listSubscriptionChannel: $listSubscriptionChannel, tagId: $tagId));
@@ -174,28 +206,50 @@ final readonly class Contacts
      *
      * Scopes: contacts:create.
      *
+     * @param  ?string  $name  Contact's full name
+     * @param  ?string  $firstName  Contact's first/given name
+     * @param  ?string  $lastName  Contact's last/family name
+     * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
+     * @param  ?string  $email  Email address
+     * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr'). Auto-inferred from phone country if omitted.
      * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
      * @param  list<array<string, mixed>>|null  $contactMethods  Contact methods to create alongside the contact
-     * @param  array<string, mixed>|null  $customFields  Custom field values keyed by custom field definition ID (preferred, stable across renames) or by the field `key`. Each value is validated and coerced to the field's type (see GET /custom-fields). On create, null / "" / [] entries are ignored. In auto_merge mode the given values overwrite the matched contact's values. Unknown or inactive fields are rejected with 422 `unknown_field` and nothing is written.
      * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates.
-     * @param  ?string  $email  Email address
-     * @param  ?string  $firstName  Contact's first/given name
-     * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr'). Auto-inferred from phone country if omitted.
-     * @param  ?string  $lastName  Contact's last/family name
-     * @param  ?string  $name  Contact's full name
-     * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
+     * @param  array<string, mixed>|null  $customFields  Custom field values keyed by custom field definition ID (preferred, stable across renames) or by the field `key`. Each value is validated and coerced to the field's type (see GET /custom-fields). On create, null / "" / [] entries are ignored. In auto_merge mode the given values overwrite the matched contact's values. Unknown or inactive fields are rejected with 422 `unknown_field` and nothing is written.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/create_contact_api_v1_contacts_post
      */
-    public function create(?string $birthday = null, ?array $contactMethods = null, ?array $customFields = null, DuplicateMode|string|null $duplicateMode = null, ?string $email = null, ?string $firstName = null, ?string $languages = null, ?string $lastName = null, ?string $name = null, ?string $phone = null, ?string $idempotencyKey = null): Contact
-    {
+    public function create(
+        ?string $name = null,
+        ?string $firstName = null,
+        ?string $lastName = null,
+        ?string $phone = null,
+        ?string $email = null,
+        ?string $languages = null,
+        ?string $birthday = null,
+        ?array $contactMethods = null,
+        DuplicateMode|string|null $duplicateMode = null,
+        ?array $customFields = null,
+        ?string $idempotencyKey = null,
+    ): Contact {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts',
-            body: Payload::body(['birthday' => $birthday, 'contact_methods' => $contactMethods, 'custom_fields' => $customFields, 'duplicate_mode' => $duplicateMode, 'email' => $email, 'first_name' => $firstName, 'languages' => $languages, 'last_name' => $lastName, 'name' => $name, 'phone' => $phone]),
+            body: Payload::body([
+                'name' => $name,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'phone' => $phone,
+                'email' => $email,
+                'languages' => $languages,
+                'birthday' => $birthday,
+                'contact_methods' => $contactMethods,
+                'duplicate_mode' => $duplicateMode,
+                'custom_fields' => $customFields,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -292,12 +346,34 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/export_contacts_api_v1_contacts_export_post
      */
-    public function export(?string $format = null, ?string $search = null, ?bool $includeLiveChat = null, ?string $customFieldId = null, ?string $customFieldValue = null, ?string $customFieldValueTo = null, ?string $customFieldOp = null, ?string $listId = null, ?string $listSubscriptionStatus = null, SubscriptionChannelType|string|null $listSubscriptionChannel = null, ?string $idempotencyKey = null): ContactExportStart
-    {
+    public function export(
+        ?string $format = null,
+        ?string $search = null,
+        ?bool $includeLiveChat = null,
+        ?string $customFieldId = null,
+        ?string $customFieldValue = null,
+        ?string $customFieldValueTo = null,
+        ?string $customFieldOp = null,
+        ?string $listId = null,
+        ?string $listSubscriptionStatus = null,
+        SubscriptionChannelType|string|null $listSubscriptionChannel = null,
+        ?string $idempotencyKey = null,
+    ): ContactExportStart {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/export',
-            query: Payload::query(['format' => $format, 'search' => $search, 'include_live_chat' => $includeLiveChat, 'custom_field_id' => $customFieldId, 'custom_field_value' => $customFieldValue, 'custom_field_value_to' => $customFieldValueTo, 'custom_field_op' => $customFieldOp, 'list_id' => $listId, 'list_subscription_status' => $listSubscriptionStatus, 'list_subscription_channel' => $listSubscriptionChannel]),
+            query: Payload::query([
+                'format' => $format,
+                'search' => $search,
+                'include_live_chat' => $includeLiveChat,
+                'custom_field_id' => $customFieldId,
+                'custom_field_value' => $customFieldValue,
+                'custom_field_value_to' => $customFieldValueTo,
+                'custom_field_op' => $customFieldOp,
+                'list_id' => $listId,
+                'list_subscription_status' => $listSubscriptionStatus,
+                'list_subscription_channel' => $listSubscriptionChannel,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -431,24 +507,45 @@ final readonly class Contacts
      *
      * Scopes: contacts:update.
      *
-     * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
-     * @param  array<string, mixed>|null  $customFields  Custom field values to MERGE, keyed by custom field definition ID (preferred) or field `key`. Only the given fields are touched; null / "" / [] clears that field. Omitting `custom_fields` (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written.
      * @param  ?string  $firstName  Contact's first/given name
-     * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr').
      * @param  ?string  $lastName  Contact's last/family name
      * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
+     * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr').
+     * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
+     * @param  array<string, mixed>|null  $customFields  Custom field values to MERGE, keyed by custom field definition ID (preferred) or field `key`. Only the given fields are touched; null / "" / [] clears that field. Omitting `custom_fields` (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/partial_update_contact_api_v1_contacts__contact_id__patch
      */
-    public function partialUpdate(string $contactId, ?string $avatarUrl = null, ?string $birthday = null, ?array $customFields = null, ?string $email = null, ?string $firstName = null, ?string $languages = null, ?string $lastName = null, ?string $name = null, ?string $phone = null, ?string $idempotencyKey = null): Contact
-    {
+    public function partialUpdate(
+        string $contactId,
+        ?string $name = null,
+        ?string $firstName = null,
+        ?string $lastName = null,
+        ?string $phone = null,
+        ?string $email = null,
+        ?string $avatarUrl = null,
+        ?string $languages = null,
+        ?string $birthday = null,
+        ?array $customFields = null,
+        ?string $idempotencyKey = null,
+    ): Contact {
         $response = $this->connector->send(new Request(
             Method::Patch,
             '/contacts/'.Payload::segment($contactId),
-            body: Payload::body(['avatar_url' => $avatarUrl, 'birthday' => $birthday, 'custom_fields' => $customFields, 'email' => $email, 'first_name' => $firstName, 'languages' => $languages, 'last_name' => $lastName, 'name' => $name, 'phone' => $phone]),
+            body: Payload::body([
+                'name' => $name,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'phone' => $phone,
+                'email' => $email,
+                'avatar_url' => $avatarUrl,
+                'languages' => $languages,
+                'birthday' => $birthday,
+                'custom_fields' => $customFields,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -475,23 +572,43 @@ final readonly class Contacts
      *
      * Scopes: contacts:update.
      *
-     * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
-     * @param  array<string, mixed>|null  $customFields  Custom field values to MERGE, keyed by custom field definition ID (preferred) or field `key`. Only the given fields are touched; null / "" / [] clears that field. Omitting `custom_fields` (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written.
      * @param  ?string  $firstName  Contact's first/given name
-     * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr').
      * @param  ?string  $lastName  Contact's last/family name
      * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
+     * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr').
+     * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
+     * @param  array<string, mixed>|null  $customFields  Custom field values to MERGE, keyed by custom field definition ID (preferred) or field `key`. Only the given fields are touched; null / "" / [] clears that field. Omitting `custom_fields` (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/update_contact_api_v1_contacts__contact_id__put
      */
-    public function update(string $contactId, ?string $avatarUrl = null, ?string $birthday = null, ?array $customFields = null, ?string $email = null, ?string $firstName = null, ?string $languages = null, ?string $lastName = null, ?string $name = null, ?string $phone = null): Contact
-    {
+    public function update(
+        string $contactId,
+        ?string $name = null,
+        ?string $firstName = null,
+        ?string $lastName = null,
+        ?string $phone = null,
+        ?string $email = null,
+        ?string $avatarUrl = null,
+        ?string $languages = null,
+        ?string $birthday = null,
+        ?array $customFields = null,
+    ): Contact {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/contacts/'.Payload::segment($contactId),
-            body: Payload::body(['avatar_url' => $avatarUrl, 'birthday' => $birthday, 'custom_fields' => $customFields, 'email' => $email, 'first_name' => $firstName, 'languages' => $languages, 'last_name' => $lastName, 'name' => $name, 'phone' => $phone]),
+            body: Payload::body([
+                'name' => $name,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'phone' => $phone,
+                'email' => $email,
+                'avatar_url' => $avatarUrl,
+                'languages' => $languages,
+                'birthday' => $birthday,
+                'custom_fields' => $customFields,
+            ]),
         ));
 
         return Contact::fromArray($response->data());
@@ -520,8 +637,11 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/list_contact_attachments_api_v1_contacts__contact_id__attachments_get
      */
-    public function listAttachments(string $contactId, ?string $cursor = null, ?int $pageSize = null): ContactAttachments
-    {
+    public function listAttachments(
+        string $contactId,
+        ?string $cursor = null,
+        ?int $pageSize = null,
+    ): ContactAttachments {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/contacts/'.Payload::segment($contactId).'/attachments',
@@ -668,12 +788,26 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/list_contact_history_api_v1_contacts__contact_id__history_get
      */
-    public function listHistory(string $contactId, ?array $types = null, ?string $dateFrom = null, ?string $dateTo = null, ?string $q = null, ?string $cursor = null, ?int $pageSize = null): ContactHistory
-    {
+    public function listHistory(
+        string $contactId,
+        ?array $types = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+        ?string $q = null,
+        ?string $cursor = null,
+        ?int $pageSize = null,
+    ): ContactHistory {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/contacts/'.Payload::segment($contactId).'/history',
-            query: Payload::query(['types' => $types, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'q' => $q, 'cursor' => $cursor, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'types' => $types,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'q' => $q,
+                'cursor' => $cursor,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return ContactHistory::fromArray($response->data());
@@ -789,8 +923,12 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/merge_contacts_api_v1_contacts__contact_id__merge_post
      */
-    public function merge(string $contactId, array $secondaryIds, ?bool $primaryOverride = null, ?string $idempotencyKey = null): MergeContacts
-    {
+    public function merge(
+        string $contactId,
+        array $secondaryIds,
+        ?bool $primaryOverride = null,
+        ?string $idempotencyKey = null,
+    ): MergeContacts {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/'.Payload::segment($contactId).'/merge',
@@ -824,8 +962,12 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/preview_merge_contacts_api_v1_contacts__contact_id__merge_preview_post
      */
-    public function previewMerge(string $contactId, array $secondaryIds, ?bool $primaryOverride = null, ?string $idempotencyKey = null): MergeContactsPreview
-    {
+    public function previewMerge(
+        string $contactId,
+        array $secondaryIds,
+        ?bool $primaryOverride = null,
+        ?string $idempotencyKey = null,
+    ): MergeContactsPreview {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/'.Payload::segment($contactId).'/merge/preview',
@@ -861,12 +1003,22 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/list_contact_channel_messages_api_v1_contacts__contact_id__messages_get
      */
-    public function listChannelMessages(string $contactId, string $channelId, string $beforeConversationId, ?string $cursor = null, ?int $pageSize = null): ContactChannelTimeline
-    {
+    public function listChannelMessages(
+        string $contactId,
+        string $channelId,
+        string $beforeConversationId,
+        ?string $cursor = null,
+        ?int $pageSize = null,
+    ): ContactChannelTimeline {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/contacts/'.Payload::segment($contactId).'/messages',
-            query: Payload::query(['channel_id' => $channelId, 'before_conversation_id' => $beforeConversationId, 'cursor' => $cursor, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'channel_id' => $channelId,
+                'before_conversation_id' => $beforeConversationId,
+                'cursor' => $cursor,
+                'page_size' => $pageSize,
+            ]),
         ));
 
         return ContactChannelTimeline::fromArray($response->data());
@@ -926,21 +1078,38 @@ final readonly class Contacts
      * @param  string  $value  The external identifier value
      * @param  ?string  $channelId  Required for messenger_id, instagram_id (page-scoped) and whatsapp_bsuid (business-portfolio-scoped)
      * @param  ?string  $displayName  Display name like @username or custom label for social_other
-     * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates.
-     * @param  ?bool  $isPrimary  Set as primary for this method type
      * @param  ?string  $phoneType  Phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown. Auto-inferred from value if omitted.
+     * @param  ?bool  $isPrimary  Set as primary for this method type
+     * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/create_contact_method_api_v1_contacts__contact_id__methods_post
      */
-    public function createMethod(string $contactId, string $methodType, string $value, ?string $channelId = null, ?string $displayName = null, DuplicateMode|string|null $duplicateMode = null, ?bool $isPrimary = null, ?string $phoneType = null, ?string $idempotencyKey = null): ContactMethod
-    {
+    public function createMethod(
+        string $contactId,
+        string $methodType,
+        string $value,
+        ?string $channelId = null,
+        ?string $displayName = null,
+        ?string $phoneType = null,
+        ?bool $isPrimary = null,
+        DuplicateMode|string|null $duplicateMode = null,
+        ?string $idempotencyKey = null,
+    ): ContactMethod {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/contacts/'.Payload::segment($contactId).'/methods',
-            body: Payload::body(['method_type' => $methodType, 'value' => $value, 'channel_id' => $channelId, 'display_name' => $displayName, 'duplicate_mode' => $duplicateMode, 'is_primary' => $isPrimary, 'phone_type' => $phoneType]),
+            body: Payload::body([
+                'method_type' => $methodType,
+                'value' => $value,
+                'channel_id' => $channelId,
+                'display_name' => $displayName,
+                'phone_type' => $phoneType,
+                'is_primary' => $isPrimary,
+                'duplicate_mode' => $duplicateMode,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -978,19 +1147,32 @@ final readonly class Contacts
      * Scopes: contacts:update.
      *
      * @param  ?string  $methodType  Optional: type hint for value normalization. When updating a whatsapp_id row, pass method_type='whatsapp_id' so the new value is normalized at the schema layer. Otherwise the service layer applies normalization based on the existing row's type.
-     * @param  ?string  $phoneType  Override phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown.
      * @param  ?string  $value  Updated identifier value
+     * @param  ?string  $phoneType  Override phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/update_contact_method_api_v1_contacts__contact_id__methods__method_id__put
      */
-    public function updateMethod(string $contactId, string $methodId, ?string $displayName = null, ?bool $isPrimary = null, ?string $methodType = null, ?string $phoneType = null, ?string $value = null): ContactMethod
-    {
+    public function updateMethod(
+        string $contactId,
+        string $methodId,
+        ?string $methodType = null,
+        ?string $value = null,
+        ?string $displayName = null,
+        ?string $phoneType = null,
+        ?bool $isPrimary = null,
+    ): ContactMethod {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/contacts/'.Payload::segment($contactId).'/methods/'.Payload::segment($methodId),
-            body: Payload::body(['display_name' => $displayName, 'is_primary' => $isPrimary, 'method_type' => $methodType, 'phone_type' => $phoneType, 'value' => $value]),
+            body: Payload::body([
+                'method_type' => $methodType,
+                'value' => $value,
+                'display_name' => $displayName,
+                'phone_type' => $phoneType,
+                'is_primary' => $isPrimary,
+            ]),
         ));
 
         return ContactMethod::fromArray($response->data());
@@ -1043,8 +1225,11 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/list_conversation_contact_merge_suggestions_api_v1_conversations__conversation_id__contact_merge_suggestions_get
      */
-    public function listConversationMergeSuggestions(string $conversationId, ?int $page = null, ?int $pageSize = null): Page
-    {
+    public function listConversationMergeSuggestions(
+        string $conversationId,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/conversations/'.Payload::segment($conversationId).'/contact-merge-suggestions',

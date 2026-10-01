@@ -17,34 +17,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailMessageDetail extends Data
 {
     /**
-     * @param  list<AttachmentInfo>  $attachments
-     * @param  list<EmailAddress>  $bccEmails
-     * @param  list<EmailAddress>  $ccEmails
-     * @param  array<array-key, mixed>  $rawHeaders
      * @param  list<EmailAddress>  $toEmails
+     * @param  list<EmailAddress>  $ccEmails
+     * @param  list<EmailAddress>  $bccEmails
+     * @param  array<array-key, mixed>  $rawHeaders
+     * @param  list<AttachmentInfo>  $attachments
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $attachments,
-        public array $bccEmails,
-        public array $ccEmails,
-        public string $createdAt,
-        public string $direction,
-        public ?string $errorMessage,
-        public string $fromEmail,
-        public ?string $fromName,
-        public ?string $htmlBody,
         public string $id,
         public ?string $messageId,
-        public array $rawHeaders,
-        public ?string $receivedAt,
+        public ?string $threadId,
+        public string $direction,
+        public string $fromEmail,
+        public ?string $fromName,
+        public array $toEmails,
+        public array $ccEmails,
+        public array $bccEmails,
         public ?string $replyTo,
-        public ?string $sentAt,
-        public string $status,
         public ?string $subject,
         public ?string $textBody,
-        public ?string $threadId,
-        public array $toEmails,
+        public ?string $htmlBody,
+        public array $rawHeaders,
+        public array $attachments,
+        public string $status,
+        public ?string $errorMessage,
+        public ?string $sentAt,
+        public ?string $receivedAt,
+        public string $createdAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -58,26 +58,26 @@ final readonly class EmailMessageDetail extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            attachments: $attributes->list('attachments', AttachmentInfo::fromArray(...)),
-            bccEmails: $attributes->list('bcc_emails', EmailAddress::fromArray(...)),
-            ccEmails: $attributes->list('cc_emails', EmailAddress::fromArray(...)),
-            createdAt: $attributes->string('created_at'),
-            direction: $attributes->string('direction'),
-            errorMessage: $attributes->nullableString('error_message'),
-            fromEmail: $attributes->string('from_email'),
-            fromName: $attributes->nullableString('from_name'),
-            htmlBody: $attributes->nullableString('html_body'),
             id: $attributes->string('id'),
             messageId: $attributes->nullableString('message_id'),
-            rawHeaders: $attributes->array('raw_headers'),
-            receivedAt: $attributes->nullableString('received_at'),
+            threadId: $attributes->nullableString('thread_id'),
+            direction: $attributes->string('direction'),
+            fromEmail: $attributes->string('from_email'),
+            fromName: $attributes->nullableString('from_name'),
+            toEmails: $attributes->list('to_emails', EmailAddress::fromArray(...)),
+            ccEmails: $attributes->list('cc_emails', EmailAddress::fromArray(...)),
+            bccEmails: $attributes->list('bcc_emails', EmailAddress::fromArray(...)),
             replyTo: $attributes->nullableString('reply_to'),
-            sentAt: $attributes->nullableString('sent_at'),
-            status: $attributes->string('status'),
             subject: $attributes->nullableString('subject'),
             textBody: $attributes->nullableString('text_body'),
-            threadId: $attributes->nullableString('thread_id'),
-            toEmails: $attributes->list('to_emails', EmailAddress::fromArray(...)),
+            htmlBody: $attributes->nullableString('html_body'),
+            rawHeaders: $attributes->array('raw_headers'),
+            attachments: $attributes->list('attachments', AttachmentInfo::fromArray(...)),
+            status: $attributes->string('status'),
+            errorMessage: $attributes->nullableString('error_message'),
+            sentAt: $attributes->nullableString('sent_at'),
+            receivedAt: $attributes->nullableString('received_at'),
+            createdAt: $attributes->string('created_at'),
             raw: $data,
         );
     }

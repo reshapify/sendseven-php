@@ -17,17 +17,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ConversationStatusBreakdown extends Data
 {
     /**
-     * @param  ?int  $assigned  Number of assigned conversations
-     * @param  int  $closed  Number of closed conversations
      * @param  int  $open  Number of open conversations
+     * @param  ?int  $assigned  Number of assigned conversations
      * @param  ?int  $resolved  Number of resolved conversations
+     * @param  int  $closed  Number of closed conversations
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $assigned,
-        public int $closed,
         public int $open,
+        public ?int $assigned,
         public ?int $resolved,
+        public int $closed,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,10 +41,10 @@ final readonly class ConversationStatusBreakdown extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            assigned: $attributes->nullableInt('assigned'),
-            closed: $attributes->int('closed'),
             open: $attributes->int('open'),
+            assigned: $attributes->nullableInt('assigned'),
             resolved: $attributes->nullableInt('resolved'),
+            closed: $attributes->int('closed'),
             raw: $data,
         );
     }

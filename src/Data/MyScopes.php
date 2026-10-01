@@ -17,14 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class MyScopes extends Data
 {
     /**
-     * @param  list<string>  $scopes  List of effective scopes
      * @param  string  $tenantId  Tenant UUID
+     * @param  list<string>  $scopes  List of effective scopes
      * @param  int  $total  Total number of scopes
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $scopes,
         public string $tenantId,
+        public array $scopes,
         public int $total,
         array $raw = [],
     ) {
@@ -39,8 +39,8 @@ final readonly class MyScopes extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            scopes: $attributes->strings('scopes'),
             tenantId: $attributes->string('tenant_id'),
+            scopes: $attributes->strings('scopes'),
             total: $attributes->int('total'),
             raw: $data,
         );

@@ -83,19 +83,24 @@ final readonly class LinkTrackingSettings
      *
      * Scopes: settings:update.
      *
-     * @param  ?int  $linkExpirationDays  Number of days before tracked links expire (1-3650)
      * @param  ?string  $trackingDomain  Selected tracking domain
+     * @param  ?int  $linkExpirationDays  Number of days before tracked links expire (1-3650)
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Link%20Tracking%20Settings/update_link_tracking_settings_api_v1_settings_link_tracking_put
      */
-    public function update(?int $linkExpirationDays = null, ?string $trackingDomain = null): LinkTrackingSettingsResponse
-    {
+    public function update(
+        ?string $trackingDomain = null,
+        ?int $linkExpirationDays = null,
+    ): LinkTrackingSettingsResponse {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/settings/link-tracking',
-            body: Payload::body(['link_expiration_days' => $linkExpirationDays, 'tracking_domain' => $trackingDomain]),
+            body: Payload::body([
+                'tracking_domain' => $trackingDomain,
+                'link_expiration_days' => $linkExpirationDays,
+            ]),
         ));
 
         return LinkTrackingSettingsResponse::fromArray($response->data());

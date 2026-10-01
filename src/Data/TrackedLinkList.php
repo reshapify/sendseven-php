@@ -22,9 +22,9 @@ final readonly class TrackedLinkList extends Data
      */
     public function __construct(
         public array $items,
+        public int $total,
         public int $page,
         public int $pageSize,
-        public int $total,
         public int $totalPages,
         array $raw = [],
     ) {
@@ -40,9 +40,9 @@ final readonly class TrackedLinkList extends Data
 
         return new self(
             items: $attributes->list('items', TrackedLinkListItem::fromArray(...)),
+            total: $attributes->int('total'),
             page: $attributes->int('page'),
             pageSize: $attributes->int('page_size'),
-            total: $attributes->int('total'),
             totalPages: $attributes->int('total_pages'),
             raw: $data,
         );

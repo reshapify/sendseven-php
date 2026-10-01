@@ -17,13 +17,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AvailableEvents extends Data
 {
     /**
-     * @param  list<string>  $categories  List of event categories
      * @param  list<WebhookEventTypeSchema>  $events  List of available event types
+     * @param  list<string>  $categories  List of event categories
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $categories,
         public array $events,
+        public array $categories,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -37,8 +37,8 @@ final readonly class AvailableEvents extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            categories: $attributes->strings('categories'),
             events: $attributes->list('events', WebhookEventTypeSchema::fromArray(...)),
+            categories: $attributes->strings('categories'),
             raw: $data,
         );
     }

@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TemplateButton extends Data
 {
     /**
-     * @param  ?string  $example  Example value for variable URL
-     * @param  ?string  $phoneNumber  Phone number for PHONE_NUMBER buttons
-     * @param  ?string  $text  Button text. Required for every type EXCEPT `REQUEST_CONTACT_INFO`, whose label is fixed by Meta and filled in automatically.
      * @param  string  $type  Button type: QUICK_REPLY, URL, PHONE_NUMBER, COPY_CODE, REQUEST_CONTACT_INFO
+     * @param  ?string  $text  Button text. Required for every type EXCEPT `REQUEST_CONTACT_INFO`, whose label is fixed by Meta and filled in automatically.
      * @param  ?string  $url  URL for URL buttons
+     * @param  ?string  $phoneNumber  Phone number for PHONE_NUMBER buttons
+     * @param  ?string  $example  Example value for variable URL
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $example,
-        public ?string $phoneNumber,
-        public ?string $text,
         public string $type,
+        public ?string $text,
         public ?string $url,
+        public ?string $phoneNumber,
+        public ?string $example,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,11 +43,11 @@ final readonly class TemplateButton extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            example: $attributes->nullableString('example'),
-            phoneNumber: $attributes->nullableString('phone_number'),
-            text: $attributes->nullableString('text'),
             type: $attributes->string('type'),
+            text: $attributes->nullableString('text'),
             url: $attributes->nullableString('url'),
+            phoneNumber: $attributes->nullableString('phone_number'),
+            example: $attributes->nullableString('example'),
             raw: $data,
         );
     }

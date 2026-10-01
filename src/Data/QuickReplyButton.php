@@ -22,13 +22,13 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class QuickReplyButton extends Data
 {
     /**
-     * @param  string  $caption  Button caption (the template's button text)
      * @param  int  $index  0-based position among QUICK_REPLY buttons (0..2)
+     * @param  string  $caption  Button caption (the template's button text)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $caption,
         public int $index,
+        public string $caption,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,8 +42,8 @@ final readonly class QuickReplyButton extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            caption: $attributes->string('caption'),
             index: $attributes->int('index'),
+            caption: $attributes->string('caption'),
             raw: $data,
         );
     }

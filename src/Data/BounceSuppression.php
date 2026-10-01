@@ -20,14 +20,14 @@ final readonly class BounceSuppression extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?string $bounceCategory,
-        public int $bounceCount,
-        public string $bounceType,
-        public string $email,
-        public ?string $firstBouncedAt,
         public string $id,
-        public ?string $lastBouncedAt,
+        public string $email,
+        public string $bounceType,
+        public ?string $bounceCategory,
         public ?string $reason,
+        public int $bounceCount,
+        public ?string $firstBouncedAt,
+        public ?string $lastBouncedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,14 +41,14 @@ final readonly class BounceSuppression extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounceCategory: $attributes->nullableString('bounce_category'),
-            bounceCount: $attributes->int('bounce_count'),
-            bounceType: $attributes->string('bounce_type'),
-            email: $attributes->string('email'),
-            firstBouncedAt: $attributes->nullableString('first_bounced_at'),
             id: $attributes->string('id'),
-            lastBouncedAt: $attributes->nullableString('last_bounced_at'),
+            email: $attributes->string('email'),
+            bounceType: $attributes->string('bounce_type'),
+            bounceCategory: $attributes->nullableString('bounce_category'),
             reason: $attributes->nullableString('reason'),
+            bounceCount: $attributes->int('bounce_count'),
+            firstBouncedAt: $attributes->nullableString('first_bounced_at'),
+            lastBouncedAt: $attributes->nullableString('last_bounced_at'),
             raw: $data,
         );
     }

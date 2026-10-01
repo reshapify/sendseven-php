@@ -18,34 +18,34 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class KbCorrection extends Data
 {
     /**
-     * @param  list<EntryScoreUpdate>  $affectedEntries
-     * @param  list<ProposedChange>  $proposedChanges
      * @param  string  $status  open | analyzing | proposed | applied | rejected | failed
+     * @param  list<ProposedChange>  $proposedChanges
+     * @param  list<EntryScoreUpdate>  $affectedEntries
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public array $affectedEntries,
+        public string $id,
+        public string $tenantId,
         public ?string $aiAnswerEventId,
         public ?string $aiAnswerRatingId,
-        public ?float $analysisConfidence,
-        public ?string $answerText,
-        public ?bool $autoApplied,
         public ?string $conversationId,
-        public ?string $correctAnswer,
-        public DateTimeImmutable $createdAt,
-        public string $id,
-        public ?string $lastError,
-        public array $proposedChanges,
-        public ?string $queryText,
-        public ?string $reportedByName,
         public ?string $reportedByUserId,
-        public ?DateTimeImmutable $resolvedAt,
-        public ?string $resolvedByUserId,
-        public string $status,
-        public string $tenantId,
-        public DateTimeImmutable $updatedAt,
+        public ?string $reportedByName,
         public ?string $whatIsWrong,
         public ?string $why,
+        public ?string $correctAnswer,
+        public string $status,
+        public array $proposedChanges,
+        public ?float $analysisConfidence,
+        public ?bool $autoApplied,
+        public ?string $resolvedByUserId,
+        public ?DateTimeImmutable $resolvedAt,
+        public ?string $lastError,
+        public DateTimeImmutable $createdAt,
+        public DateTimeImmutable $updatedAt,
+        public ?string $answerText,
+        public ?string $queryText,
+        public array $affectedEntries,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,28 +59,28 @@ final readonly class KbCorrection extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            affectedEntries: $attributes->list('affected_entries', EntryScoreUpdate::fromArray(...)),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
             aiAnswerEventId: $attributes->nullableString('ai_answer_event_id'),
             aiAnswerRatingId: $attributes->nullableString('ai_answer_rating_id'),
-            analysisConfidence: $attributes->nullableFloat('analysis_confidence'),
-            answerText: $attributes->nullableString('answer_text'),
-            autoApplied: $attributes->nullableBool('auto_applied'),
             conversationId: $attributes->nullableString('conversation_id'),
-            correctAnswer: $attributes->nullableString('correct_answer'),
-            createdAt: $attributes->dateTime('created_at'),
-            id: $attributes->string('id'),
-            lastError: $attributes->nullableString('last_error'),
-            proposedChanges: $attributes->list('proposed_changes', ProposedChange::fromArray(...)),
-            queryText: $attributes->nullableString('query_text'),
-            reportedByName: $attributes->nullableString('reported_by_name'),
             reportedByUserId: $attributes->nullableString('reported_by_user_id'),
-            resolvedAt: $attributes->nullableDateTime('resolved_at'),
-            resolvedByUserId: $attributes->nullableString('resolved_by_user_id'),
-            status: $attributes->string('status'),
-            tenantId: $attributes->string('tenant_id'),
-            updatedAt: $attributes->dateTime('updated_at'),
+            reportedByName: $attributes->nullableString('reported_by_name'),
             whatIsWrong: $attributes->nullableString('what_is_wrong'),
             why: $attributes->nullableString('why'),
+            correctAnswer: $attributes->nullableString('correct_answer'),
+            status: $attributes->string('status'),
+            proposedChanges: $attributes->list('proposed_changes', ProposedChange::fromArray(...)),
+            analysisConfidence: $attributes->nullableFloat('analysis_confidence'),
+            autoApplied: $attributes->nullableBool('auto_applied'),
+            resolvedByUserId: $attributes->nullableString('resolved_by_user_id'),
+            resolvedAt: $attributes->nullableDateTime('resolved_at'),
+            lastError: $attributes->nullableString('last_error'),
+            createdAt: $attributes->dateTime('created_at'),
+            updatedAt: $attributes->dateTime('updated_at'),
+            answerText: $attributes->nullableString('answer_text'),
+            queryText: $attributes->nullableString('query_text'),
+            affectedEntries: $attributes->list('affected_entries', EntryScoreUpdate::fromArray(...)),
             raw: $data,
         );
     }

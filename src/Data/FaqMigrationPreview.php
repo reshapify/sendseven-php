@@ -17,19 +17,19 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class FaqMigrationPreview extends Data
 {
     /**
-     * @param  ?string  $message  Set when there was nothing to do (e.g. everything already migrated)
-     * @param  list<FaqMigrationClusterPreview>  $sampleClusters  The first 50 clusters, biggest first
      * @param  ?bool  $singletonsExcluded  True when the run was started with include_singletons=false
+     * @param  list<FaqMigrationClusterPreview>  $sampleClusters  The first 50 clusters, biggest first
+     * @param  ?string  $message  Set when there was nothing to do (e.g. everything already migrated)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $clusters,
-        public float $estimatedCostEur,
-        public ?string $message,
-        public array $sampleClusters,
-        public ?bool $singletonsExcluded,
-        public int $summariesPending,
         public int $summariesRead,
+        public int $summariesPending,
+        public int $clusters,
+        public ?bool $singletonsExcluded,
+        public float $estimatedCostEur,
+        public array $sampleClusters,
+        public ?string $message,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -43,13 +43,13 @@ final readonly class FaqMigrationPreview extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clusters: $attributes->int('clusters'),
-            estimatedCostEur: $attributes->float('estimated_cost_eur'),
-            message: $attributes->nullableString('message'),
-            sampleClusters: $attributes->list('sample_clusters', FaqMigrationClusterPreview::fromArray(...)),
-            singletonsExcluded: $attributes->nullableBool('singletons_excluded'),
-            summariesPending: $attributes->int('summaries_pending'),
             summariesRead: $attributes->int('summaries_read'),
+            summariesPending: $attributes->int('summaries_pending'),
+            clusters: $attributes->int('clusters'),
+            singletonsExcluded: $attributes->nullableBool('singletons_excluded'),
+            estimatedCostEur: $attributes->float('estimated_cost_eur'),
+            sampleClusters: $attributes->list('sample_clusters', FaqMigrationClusterPreview::fromArray(...)),
+            message: $attributes->nullableString('message'),
             raw: $data,
         );
     }

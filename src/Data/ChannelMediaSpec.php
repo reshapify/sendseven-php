@@ -17,21 +17,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelMediaSpec extends Data
 {
     /**
-     * @param  list<string>  $supportedAudioTypes
-     * @param  list<string>  $supportedDocumentTypes
      * @param  list<string>  $supportedImageTypes
      * @param  list<string>  $supportedVideoTypes
+     * @param  list<string>  $supportedAudioTypes
+     * @param  list<string>  $supportedDocumentTypes
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?float $maxAudioSizeMb,
-        public ?float $maxDocumentSizeMb,
         public ?float $maxImageSizeMb,
         public ?float $maxVideoSizeMb,
-        public array $supportedAudioTypes,
-        public array $supportedDocumentTypes,
+        public ?float $maxAudioSizeMb,
+        public ?float $maxDocumentSizeMb,
         public array $supportedImageTypes,
         public array $supportedVideoTypes,
+        public array $supportedAudioTypes,
+        public array $supportedDocumentTypes,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,14 +45,14 @@ final readonly class ChannelMediaSpec extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            maxAudioSizeMb: $attributes->nullableFloat('max_audio_size_mb'),
-            maxDocumentSizeMb: $attributes->nullableFloat('max_document_size_mb'),
             maxImageSizeMb: $attributes->nullableFloat('max_image_size_mb'),
             maxVideoSizeMb: $attributes->nullableFloat('max_video_size_mb'),
-            supportedAudioTypes: $attributes->strings('supported_audio_types'),
-            supportedDocumentTypes: $attributes->strings('supported_document_types'),
+            maxAudioSizeMb: $attributes->nullableFloat('max_audio_size_mb'),
+            maxDocumentSizeMb: $attributes->nullableFloat('max_document_size_mb'),
             supportedImageTypes: $attributes->strings('supported_image_types'),
             supportedVideoTypes: $attributes->strings('supported_video_types'),
+            supportedAudioTypes: $attributes->strings('supported_audio_types'),
+            supportedDocumentTypes: $attributes->strings('supported_document_types'),
             raw: $data,
         );
     }

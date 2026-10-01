@@ -20,18 +20,18 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactLinkActivity extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $deviceBreakdown  Click counts by device type (desktop, mobile, tablet, other)
-     * @param  list<ContactLinkItem>  $links  Links associated with this contact, with click stats
      * @param  int  $totalClicks  Total number of link clicks
      * @param  int  $uniqueLinks  Number of unique links
+     * @param  array<array-key, mixed>  $deviceBreakdown  Click counts by device type (desktop, mobile, tablet, other)
+     * @param  list<ContactLinkItem>  $links  Links associated with this contact, with click stats
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $contactId,
-        public array $deviceBreakdown,
-        public array $links,
         public int $totalClicks,
         public int $uniqueLinks,
+        public array $deviceBreakdown,
+        public array $links,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,10 +46,10 @@ final readonly class ContactLinkActivity extends Data
 
         return new self(
             contactId: $attributes->string('contact_id'),
-            deviceBreakdown: $attributes->array('device_breakdown'),
-            links: $attributes->list('links', ContactLinkItem::fromArray(...)),
             totalClicks: $attributes->int('total_clicks'),
             uniqueLinks: $attributes->int('unique_links'),
+            deviceBreakdown: $attributes->array('device_breakdown'),
+            links: $attributes->list('links', ContactLinkItem::fromArray(...)),
             raw: $data,
         );
     }

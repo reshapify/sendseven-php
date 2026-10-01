@@ -18,18 +18,18 @@ final readonly class LibraryTemplateList extends Data
 {
     /**
      * @param  list<LibraryTemplate>  $items
+     * @param  ?int  $total  Matches found before the display limit
      * @param  ?string  $language  Normalised language filter applied
      * @param  ?bool  $stale  True when Meta was unreachable and this is the last known catalog. The UI shows a soft 'may be out of date' hint rather than an error.
-     * @param  ?int  $total  Matches found before the display limit
      * @param  ?string  $warning  Human-readable note about staleness
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?LibraryFacets $facets,
         public array $items,
+        public ?int $total,
+        public ?LibraryFacets $facets,
         public ?string $language,
         public ?bool $stale,
-        public ?int $total,
         public ?string $warning,
         array $raw = [],
     ) {
@@ -44,11 +44,11 @@ final readonly class LibraryTemplateList extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            facets: $attributes->nullableObject('facets', LibraryFacets::fromArray(...)),
             items: $attributes->list('items', LibraryTemplate::fromArray(...)),
+            total: $attributes->nullableInt('total'),
+            facets: $attributes->nullableObject('facets', LibraryFacets::fromArray(...)),
             language: $attributes->nullableString('language'),
             stale: $attributes->nullableBool('stale'),
-            total: $attributes->nullableInt('total'),
             warning: $attributes->nullableString('warning'),
             raw: $data,
         );

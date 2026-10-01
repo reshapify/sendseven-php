@@ -23,21 +23,21 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class PreviousConversations extends Data
 {
     /**
-     * @param  ?int  $distinctChannelCount  Count of distinct channels across those prior conversations
      * @param  list<PreviousConversationItem>  $items
-     * @param  ?string  $latestPreviousAt  MAX(last_message_at) across those prior conversations
-     * @param  ?string  $mergeTargetConversationId  The ONLY conversation this one may be merged into: the contact's OVERALL most-recent prior conversation, and ONLY when that immediately-previous conversation is on the SAME channel as the current one. Null when the immediately-previous conversation overall is on a different channel, or when none exists.
-     * @param  ?bool  $mergeable  True when a valid same-channel merge target exists
      * @param  ?int  $totalPrevious  Count of the contact's prior conversations (excludes current)
+     * @param  ?int  $distinctChannelCount  Count of distinct channels across those prior conversations
+     * @param  ?string  $latestPreviousAt  MAX(last_message_at) across those prior conversations
+     * @param  ?bool  $mergeable  True when a valid same-channel merge target exists
+     * @param  ?string  $mergeTargetConversationId  The ONLY conversation this one may be merged into: the contact's OVERALL most-recent prior conversation, and ONLY when that immediately-previous conversation is on the SAME channel as the current one. Null when the immediately-previous conversation overall is on a different channel, or when none exists.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $distinctChannelCount,
         public array $items,
-        public ?string $latestPreviousAt,
-        public ?string $mergeTargetConversationId,
-        public ?bool $mergeable,
         public ?int $totalPrevious,
+        public ?int $distinctChannelCount,
+        public ?string $latestPreviousAt,
+        public ?bool $mergeable,
+        public ?string $mergeTargetConversationId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -51,12 +51,12 @@ final readonly class PreviousConversations extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            distinctChannelCount: $attributes->nullableInt('distinct_channel_count'),
             items: $attributes->list('items', PreviousConversationItem::fromArray(...)),
-            latestPreviousAt: $attributes->nullableString('latest_previous_at'),
-            mergeTargetConversationId: $attributes->nullableString('merge_target_conversation_id'),
-            mergeable: $attributes->nullableBool('mergeable'),
             totalPrevious: $attributes->nullableInt('total_previous'),
+            distinctChannelCount: $attributes->nullableInt('distinct_channel_count'),
+            latestPreviousAt: $attributes->nullableString('latest_previous_at'),
+            mergeable: $attributes->nullableBool('mergeable'),
+            mergeTargetConversationId: $attributes->nullableString('merge_target_conversation_id'),
             raw: $data,
         );
     }

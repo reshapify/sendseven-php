@@ -21,18 +21,18 @@ final readonly class TrackedLink extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public int $clickCount,
+        public string $id,
+        public string $tenantId,
+        public string $shortCode,
+        public string $shortUrl,
+        public string $originalUrl,
+        public string $featureType,
+        public ?string $featureId,
         public ?string $contactId,
         public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $expiresAt,
-        public ?string $featureId,
-        public string $featureType,
-        public string $id,
         public bool $isActive,
-        public string $originalUrl,
-        public string $shortCode,
-        public string $shortUrl,
-        public string $tenantId,
+        public int $clickCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -46,18 +46,18 @@ final readonly class TrackedLink extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            clickCount: $attributes->int('click_count'),
+            id: $attributes->string('id'),
+            tenantId: $attributes->string('tenant_id'),
+            shortCode: $attributes->string('short_code'),
+            shortUrl: $attributes->string('short_url'),
+            originalUrl: $attributes->string('original_url'),
+            featureType: $attributes->string('feature_type'),
+            featureId: $attributes->nullableString('feature_id'),
             contactId: $attributes->nullableString('contact_id'),
             createdAt: $attributes->dateTime('created_at'),
             expiresAt: $attributes->nullableDateTime('expires_at'),
-            featureId: $attributes->nullableString('feature_id'),
-            featureType: $attributes->string('feature_type'),
-            id: $attributes->string('id'),
             isActive: $attributes->bool('is_active'),
-            originalUrl: $attributes->string('original_url'),
-            shortCode: $attributes->string('short_code'),
-            shortUrl: $attributes->string('short_url'),
-            tenantId: $attributes->string('tenant_id'),
+            clickCount: $attributes->int('click_count'),
             raw: $data,
         );
     }

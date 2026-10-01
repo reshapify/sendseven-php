@@ -21,13 +21,13 @@ final readonly class ChannelStats extends Data
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public ?int $bounced,
         public SubscriptionChannelType|string $channelType,
-        public ?int $complained,
-        public ?int $pending,
-        public ?int $subscribed,
         public ?int $total,
+        public ?int $subscribed,
+        public ?int $pending,
         public ?int $unsubscribed,
+        public ?int $bounced,
+        public ?int $complained,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,13 +41,13 @@ final readonly class ChannelStats extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            bounced: $attributes->nullableInt('bounced'),
             channelType: $attributes->enum('channel_type', SubscriptionChannelType::class),
-            complained: $attributes->nullableInt('complained'),
-            pending: $attributes->nullableInt('pending'),
-            subscribed: $attributes->nullableInt('subscribed'),
             total: $attributes->nullableInt('total'),
+            subscribed: $attributes->nullableInt('subscribed'),
+            pending: $attributes->nullableInt('pending'),
             unsubscribed: $attributes->nullableInt('unsubscribed'),
+            bounced: $attributes->nullableInt('bounced'),
+            complained: $attributes->nullableInt('complained'),
             raw: $data,
         );
     }
