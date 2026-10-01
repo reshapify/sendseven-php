@@ -15,7 +15,7 @@ use SensitiveParameter;
  */
 final class SendSeven
 {
-    public const string VERSION = '0.1.1';
+    public const string VERSION = '0.1.2';
 
     public const string BASE_URI = 'https://api.sendseven.com/api/v1';
 

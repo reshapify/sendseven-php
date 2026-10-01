@@ -65,6 +65,11 @@ final readonly class Response
     {
         $data = $this->decoded();
 
+        // A success with no body (204, or an empty 200) carries no fields.
+        if ($data === null && trim($this->body) === '') {
+            return [];
+        }
+
         if (! is_array($data)) {
             throw UnexpectedResponse::because('expected a JSON object or array', $this);
         }
