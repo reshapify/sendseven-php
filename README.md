@@ -5,7 +5,7 @@
 A typed PHP SDK for the [SendSeven](https://sendseven.com) messaging API: WhatsApp, SMS, email, Telegram, Messenger, Instagram, RCS and browser push, from one client.
 
 - **Every endpoint.** All 712 operations, generated from SendSeven's OpenAPI spec and corrected where the live API differs.
-- **Typed throughout.** Responses are readonly objects with real types; lists paginate lazily; enums stay open to new values.
+- **Typed throughout, and forgiving.** Responses are readonly objects with real types; lists paginate lazily; enums stay open to new values; a field SendSeven leaves out reads as empty instead of breaking the call.
 - **Webhooks done right.** The activation challenge, timestamped signatures and typed events, verified against live deliveries.
 - **Safe by default.** Idempotency keys on every write, retries only where safe, and errors that say how to fix them.
 - **Built for tests.** `SendSeven::fake()` scripts responses and asserts requests through the real pipeline.
@@ -146,7 +146,7 @@ include multi_tenant: it comes with Professional, Scale, Enterprise or API Only.
 | `InsufficientBalance` | 402 or an `insufficient_*` code, e.g. the RCS wallet |
 | `ServerError` | 5xx after retries |
 | `TransportFailed` | SendSeven couldn't be reached |
-| `UnexpectedResponse` | the response didn't match its documented shape |
+| `UnexpectedResponse` | a field came back with the wrong type, or the body wasn't JSON. A field that's simply missing reads as an empty value instead (`''`, `0`, `false`, `[]`), so the original is on `->raw()` |
 
 ## Retries, rate limits and idempotency
 

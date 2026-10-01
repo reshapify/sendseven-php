@@ -24,9 +24,20 @@ it('keeps an enum value the SDK does not know yet', function (): void {
         ->and($attributes->enum('other', ChannelType::class))->toBe('carrier_pigeon');
 });
 
-it('names the field that broke the contract', function (): void {
-    expect(fn (): string => (new Attributes(['message' => []], 'event.data'))->string('id'))
-        ->toThrow(UnexpectedResponse::class, 'event.data.id is missing');
+it('names the field whose type broke the contract', function (): void {
     expect(fn (): int => (new Attributes(['count' => 'many'], 'pagination'))->int('count'))
         ->toThrow(UnexpectedResponse::class, 'pagination.count should be an integer, got string');
+});
+
+it('reads a required field the response left out as an empty value', function (): void {
+    $attributes = new Attributes([]);
+
+    expect($attributes->string('name'))->toBe('')
+        ->and($attributes->int('total'))->toBe(0)
+        ->and($attributes->float('price'))->toBe(0.0)
+        ->and($attributes->bool('is_active'))->toBeFalse()
+        ->and($attributes->dateTime('created_at')->getTimestamp())->toBe(0)
+        ->and($attributes->enum('platform', ChannelType::class))->toBe('')
+        ->and($attributes->strings('scopes'))->toBe([])
+        ->and($attributes->object('owner', fn (array $data, string $path): array => [$data, $path]))->toBe([[], 'response.owner']);
 });

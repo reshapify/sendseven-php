@@ -11,8 +11,14 @@ use Exception;
 use Reshapify\SendSeven\Exceptions\UnexpectedResponse;
 
 /**
- * Reads typed values out of a decoded JSON object, naming the exact field
- * when one is missing or has the wrong type.
+ * Reads typed values out of a decoded JSON object.
+ *
+ * A field that is present with the wrong type throws, naming the field: that
+ * is a real change in SendSeven's API. A field the spec calls required but
+ * the response leaves out reads as an empty value ('', 0, false, [], the Unix
+ * epoch, or an object built from empty values). SendSeven's spec has been
+ * wrong about required fields before, and a missing field nobody reads
+ * shouldn't break a request. The original JSON is always on ->raw().
  *
  * @internal used by the generated and curated response objects
  */
@@ -31,7 +37,7 @@ final readonly class Attributes
 
     public function string(string $key): string
     {
-        return $this->nullableString($key) ?? throw $this->missing($key);
+        return $this->nullableString($key) ?? '';
     }
 
     public function nullableString(string $key): ?string
@@ -48,7 +54,7 @@ final readonly class Attributes
 
     public function int(string $key): int
     {
-        return $this->nullableInt($key) ?? throw $this->missing($key);
+        return $this->nullableInt($key) ?? 0;
     }
 
     public function nullableInt(string $key): ?int
@@ -66,7 +72,7 @@ final readonly class Attributes
 
     public function float(string $key): float
     {
-        return $this->nullableFloat($key) ?? throw $this->missing($key);
+        return $this->nullableFloat($key) ?? 0.0;
     }
 
     public function nullableFloat(string $key): ?float
@@ -83,7 +89,7 @@ final readonly class Attributes
 
     public function bool(string $key, ?bool $default = null): bool
     {
-        return $this->nullableBool($key) ?? $default ?? throw $this->missing($key);
+        return $this->nullableBool($key) ?? $default ?? false;
     }
 
     public function nullableBool(string $key): ?bool
@@ -99,7 +105,7 @@ final readonly class Attributes
 
     public function dateTime(string $key): DateTimeImmutable
     {
-        return $this->nullableDateTime($key) ?? throw $this->missing($key);
+        return $this->nullableDateTime($key) ?? new DateTimeImmutable('@0');
     }
 
     public function nullableDateTime(string $key): ?DateTimeImmutable
@@ -184,7 +190,7 @@ final readonly class Attributes
      */
     public function object(string $key, Closure $make): mixed
     {
-        return $this->nullableObject($key, $make) ?? throw $this->missing($key);
+        return $this->nullableObject($key, $make) ?? $make([], "{$this->path}.{$key}");
     }
 
     /**
@@ -230,7 +236,7 @@ final readonly class Attributes
      */
     public function enum(string $key, string $enum): BackedEnum|string
     {
-        return $this->nullableEnum($key, $enum) ?? throw $this->missing($key);
+        return $this->nullableEnum($key, $enum) ?? '';
     }
 
     /**
@@ -244,11 +250,6 @@ final readonly class Attributes
         $value = $this->nullableString($key);
 
         return $value === null ? null : ($enum::tryFrom($value) ?? $value);
-    }
-
-    private function missing(string $key): UnexpectedResponse
-    {
-        return UnexpectedResponse::because("{$this->path}.{$key} is missing");
     }
 
     private function wrongType(string $key, string $expected, mixed $value): UnexpectedResponse

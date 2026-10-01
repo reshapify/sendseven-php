@@ -17,6 +17,7 @@ Where SendSeven's live behaviour differs from its OpenAPI spec or its prose docs
 | `MessageCreate.to` | Typed as anything in the spec; it's a string address | Patch | docs.sendseven.com |
 | Creating tenants | Needs the `multi_tenant` plan feature **and** a token from the billing account's owner | `FeatureDisabled`, `NotBillingAccountOwner`, `Client::capabilities()` | Live refusals, 1 Oct 2026 |
 | Viber | Listed in `ChannelType`, but has no connect flow, capabilities or docs | Kept in the enum; not offered by `ConnectLink` | docs.sendseven.com, Oct 2026 |
+| Required fields | The spec's "required" lists aren't reliable (several above were wrong) | Missing fields read as empty values; wrong types still throw | Design decision, 1 Oct 2026 |
 | RCS availability | Germany only, for accounts billed in DE; provisioned by SendSeven, not through connect links | `ConnectLink::for()` refuses RCS with an explanation | docs.sendseven.com, Oct 2026 |
 
 Found another? Add a patch with an `x-source` saying how you verified it, regenerate, and add a row here.
