@@ -90,4 +90,9 @@ jobs:
       - name: Run live tests
         env:
           SENDSEVEN_TEST_TOKEN: ${{ secrets.SENDSEVEN_TEST_TOKEN }}
-        run: vendor/bin/pest --group=live
+        run: |
+          if [ -z "$SENDSEVEN_TEST_TOKEN" ]; then
+            echo "::notice::No SENDSEVEN_TEST_TOKEN secret; live tests skipped."
+            exit 0
+          fi
+          vendor/bin/pest --group=live
