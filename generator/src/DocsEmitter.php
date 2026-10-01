@@ -61,6 +61,8 @@ final class DocsEmitter
             '- [README](README.md): install, the client, sending a message, receiving webhooks, errors, testing',
             '- [AGENTS.md](AGENTS.md): rules for agents using or changing this SDK',
             '- [Known quirks](docs/known-quirks.md): where SendSeven behaves differently from its spec',
+            '- [openapi/manifest.json](openapi/manifest.json): every endpoint mapped to its SDK call, parameters and return type',
+            '- [llms-full.txt](llms-full.txt): all of the docs and the full reference in one file (large; search it rather than reading it whole)',
             '',
             '## Guides',
             '',
@@ -80,6 +82,29 @@ final class DocsEmitter
         }
 
         return Writer::markdownHeader().implode("\n", $out)."\n";
+    }
+
+    /**
+     * Everything in one file, for agents that read a single document: the
+     * hand-written docs first, then every reference page.
+     *
+     * @param  array<string, string>  $handWritten  contents keyed by repository path
+     * @param  array<string, list<Method>>  $resources
+     */
+    public function llmsFull(array $handWritten, array $resources): string
+    {
+        $sections = [];
+
+        foreach ($handWritten as $path => $contents) {
+            $sections[] = "<!-- {$path} -->\n\n".trim($contents);
+        }
+
+        foreach ($resources as $tag => $methods) {
+            $page = 'docs/reference/'.Naming::kebab($tag).'.md';
+            $sections[] = "<!-- {$page} -->\n\n".trim(str_replace(Writer::markdownHeader(), '', $this->resource($tag, $methods)));
+        }
+
+        return Writer::markdownHeader().implode("\n\n---\n\n", $sections)."\n";
     }
 
     /**

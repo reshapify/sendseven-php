@@ -1,0 +1,93 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+        stability: [prefer-lowest, prefer-stable]
+
+    name: PHP ${{ matrix.php }} (${{ matrix.stability }})
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, json, mbstring
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+
+      - name: Run tests
+        run: vendor/bin/pest --ci --exclude-group=live
+
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: Static analysis, style and generated code
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction
+
+      - name: Generated code is up to date
+        run: |
+          bin/generate
+          git diff --exit-code || { echo "::error::Generated files are stale. Run 'composer generate' and commit the result."; exit 1; }
+          test -z "$(git status --porcelain)" || { git status --porcelain; echo "::error::bin/generate created untracked files."; exit 1; }
+
+      - name: Pint
+        run: composer test:lint
+
+      - name: Rector
+        run: composer test:refactor
+
+      - name: PHPStan
+        run: composer test:types
+
+      - name: Type coverage
+        run: composer test:type-coverage
+
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    name: Live API (read-only)
+    if: github.event_name == 'push' && github.repository == 'reshapify/sendseven-php'
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction
+
+      - name: Run live tests
+        env:
+          SENDSEVEN_TEST_TOKEN: ${{ secrets.SENDSEVEN_TEST_TOKEN }}
+        run: vendor/bin/pest --group=live

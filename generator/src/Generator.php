@@ -67,6 +67,7 @@ final readonly class Generator
         $writer->write('src/Resources/Concerns/ProvidesResources.php', (new ClientEmitter)->emit(array_map('count', $methodsByTag)));
         $writer->write('docs/reference/README.md', $docs->index($methodsByTag, $spec->version()));
         $writer->write('llms.txt', $docs->llms($methodsByTag));
+        $writer->write('llms-full.txt', $docs->llmsFull($this->handWrittenDocs(), $methodsByTag));
         $writer->writeJson('openapi/manifest.json', $this->manifest($methodsByTag, $spec->version()));
 
         $removed = $writer->prune(['src/Resources', 'src/Data', 'src/Enums', 'docs/reference']);
@@ -114,6 +115,30 @@ final readonly class Generator
         }
 
         return ['specVersion' => $specVersion, 'operations' => $operations];
+    }
+
+    /**
+     * The hand-written docs, in reading order, keyed by repository path.
+     *
+     * @return array<string, string>
+     */
+    private function handWrittenDocs(): array
+    {
+        $paths = ['README.md', 'AGENTS.md', 'docs/known-quirks.md'];
+
+        foreach (glob($this->root.'/docs/guides/*.md') ?: [] as $guide) {
+            $paths[] = 'docs/guides/'.basename($guide);
+        }
+
+        $docs = [];
+
+        foreach ($paths as $path) {
+            if (is_file($this->root.'/'.$path)) {
+                $docs[$path] = (string) file_get_contents($this->root.'/'.$path);
+            }
+        }
+
+        return $docs;
     }
 
     /**

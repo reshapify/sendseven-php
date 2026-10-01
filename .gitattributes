@@ -1,15 +1,26 @@
-# Path-based git attributes
-# https://www.kernel.org/pub/software/scm/git/docs/gitattributes.html
+# Keep the Composer dist small, but ship everything agents read from vendor/:
+# docs/, AGENTS.md, skills/, llms.txt, llms-full.txt and openapi/manifest.json.
+* text=auto eol=lf
 
-# Ignore all test and documentation with "export-ignore".
 /.github export-ignore
 /.gitattributes export-ignore
 /.gitignore export-ignore
-/phpunit.xml.dist export-ignore
-/psalm.xml.dist export-ignore
-/tests export-ignore
 /.editorconfig export-ignore
-/.php-cs-fixer.dist.php export-ignore
-/art export-ignore
-/docs export-ignore
-/UPGRADING.md export-ignore
+/bin export-ignore
+/build export-ignore
+/generator export-ignore
+/openapi/patches export-ignore
+/openapi/sendseven.json export-ignore
+/tests export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/pint.json export-ignore
+/rector.php export-ignore
+
+# Generated output: collapse in diffs.
+/src/Data/** linguist-generated
+/src/Resources/*.php linguist-generated
+/docs/reference/** linguist-generated
+/llms.txt linguist-generated
+/llms-full.txt linguist-generated
+/openapi/manifest.json linguist-generated

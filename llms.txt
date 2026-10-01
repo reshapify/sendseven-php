@@ -9,6 +9,8 @@ Start here:
 - [README](README.md): install, the client, sending a message, receiving webhooks, errors, testing
 - [AGENTS.md](AGENTS.md): rules for agents using or changing this SDK
 - [Known quirks](docs/known-quirks.md): where SendSeven behaves differently from its spec
+- [openapi/manifest.json](openapi/manifest.json): every endpoint mapped to its SDK call, parameters and return type
+- [llms-full.txt](llms-full.txt): all of the docs and the full reference in one file (large; search it rather than reading it whole)
 
 ## Guides
 

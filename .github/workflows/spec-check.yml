@@ -1,0 +1,57 @@
+name: SendSeven spec check
+
+# Weekly: download SendSeven's live OpenAPI spec, regenerate, and open a PR
+# if anything changed, so API changes arrive as a reviewable diff.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction
+
+      - name: Fetch the live spec and regenerate
+        run: bin/generate --fetch
+
+      - name: Run the suite against the new code
+        id: suite
+        continue-on-error: true
+        run: |
+          composer test:types
+          vendor/bin/pest --exclude-group=live
+
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: spec/sendseven-update
+          delete-branch: true
+          commit-message: Update to SendSeven's latest OpenAPI spec
+          title: SendSeven's API spec changed
+          body: |
+            The weekly check found changes in https://api.sendseven.com/api/v1/openapi.json and regenerated the SDK.
+
+            Checks on the regenerated code: **${{ steps.suite.outcome }}**.
+
+            Before merging:
+            - Read the diff of `openapi/sendseven.json` and `openapi/manifest.json` for removed or renamed operations (a breaking change needs a major version).
+            - Check the patches in `openapi/patches` still apply, and drop any that SendSeven has now fixed (update `docs/known-quirks.md`).
+            - Add a CHANGELOG entry.
+          labels: spec-update
