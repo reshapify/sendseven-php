@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Reshapify\SendSeven;
 
+use Reshapify\SendSeven\Account\Capabilities;
+use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Http\Response;
+use Reshapify\SendSeven\Resources\ChannelConnect;
 use Reshapify\SendSeven\Resources\Concerns\ProvidesResources;
 
 /**
@@ -37,6 +40,36 @@ final readonly class Client
     public function tenantId(): ?string
     {
         return $this->connector->tenantId();
+    }
+
+    /**
+     * What this token can do: its tenant, the plan's features and its scopes.
+     * Three requests; cache the result if you check it often.
+     *
+     * @throws ApiException
+     */
+    public function capabilities(): Capabilities
+    {
+        $scopes = $this->rolesPermissions()->getMyScopes();
+        $tenant = null;
+
+        foreach ($this->tenants()->mine() as $candidate) {
+            if ($candidate->id === $scopes->tenantId) {
+                $tenant = $candidate;
+            }
+        }
+
+        return new Capabilities($tenant, $this->tenants()->features(), $scopes);
+    }
+
+    /**
+     * Links customers open to connect their own channels (WhatsApp Embedded
+     * Signup, Messenger, Instagram, Telegram, SMS, email). An alias of
+     * channelConnect(), with create(ConnectLink) for building links.
+     */
+    public function connectLinks(): ChannelConnect
+    {
+        return $this->channelConnect();
     }
 
     /**

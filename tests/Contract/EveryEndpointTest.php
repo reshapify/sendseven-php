@@ -41,7 +41,7 @@ function placeholder(array $parameter): mixed
     };
 }
 
-it('calls the right endpoint', function (array $operation) {
+it('calls the right endpoint', function (array $operation): void {
     $fake = SendSeven::fake(['*' => []]);
     $arguments = [];
 

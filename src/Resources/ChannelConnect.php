@@ -17,6 +17,7 @@ use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
+use Reshapify\SendSeven\Resources\Concerns\ChannelConnectHelpers;
 use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
@@ -29,6 +30,8 @@ use Reshapify\SendSeven\Support\Payload;
  */
 final readonly class ChannelConnect
 {
+    use ChannelConnectHelpers;
+
     public function __construct(private Connector $connector) {}
 
     /**
