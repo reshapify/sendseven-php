@@ -39,7 +39,7 @@ jobs:
           vendor/bin/pest --exclude-group=live
 
       - name: Open a pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: spec/sendseven-update
           delete-branch: true
