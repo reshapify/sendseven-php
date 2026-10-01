@@ -5,7 +5,7 @@ description: Use when writing PHP that talks to the SendSeven messaging API (Wha
 
 # SendSeven PHP SDK
 
-`composer require reshapify/sendseven` (Laravel: `reshapify/laravel-sendseven`).
+`composer require reshapify/sendseven` (Laravel: `reshapify/sendseven-laravel`).
 
 ## Find the method
 

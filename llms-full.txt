@@ -4,6 +4,8 @@
 
 # SendSeven for PHP
 
+> Unofficial. Not affiliated with or endorsed by SendSeven GmbH.
+
 A typed PHP SDK for the [SendSeven](https://sendseven.com) messaging API: WhatsApp, SMS, email, Telegram, Messenger, Instagram, RCS and browser push, from one client.
 
 - **Every endpoint.** All 712 operations, generated from SendSeven's OpenAPI spec and corrected where the live API differs.
@@ -16,7 +18,7 @@ A typed PHP SDK for the [SendSeven](https://sendseven.com) messaging API: WhatsA
 composer require reshapify/sendseven
 ```
 
-Requires PHP 8.3+ and any PSR-18 HTTP client (Guzzle, Symfony HttpClient…), which is found automatically. Laravel? Use [reshapify/laravel-sendseven](https://github.com/reshapify/laravel-sendseven).
+Requires PHP 8.3+ and any PSR-18 HTTP client (Guzzle, Symfony HttpClient…), which is found automatically. Laravel? Use [reshapify/sendseven-laravel](https://github.com/reshapify/sendseven-laravel).
 
 ## Send a message
 
@@ -191,9 +193,11 @@ Webhook tests can sign their own deliveries with `Webhook::sign($body, $secret)`
 
 ## Contributing
 
-`composer test` runs Pint, Rector, PHPStan (max), type coverage (100%) and Pest. Generated code is never edited by hand: change the generator or `openapi/patches`, then run `composer generate`. See [AGENTS.md](AGENTS.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately: [SECURITY.md](SECURITY.md).
 
-This is a community SDK, not an official SendSeven product. MIT licensed.
+## License
+
+MIT. Unofficial: not affiliated with or endorsed by SendSeven GmbH; "SendSeven" is used only to say what this SDK works with. `openapi/sendseven.json` is SendSeven's published API description and isn't covered by this license; see [openapi/NOTICE.md](openapi/NOTICE.md).
 
 ---
 

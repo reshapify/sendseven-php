@@ -1,6 +1,6 @@
 {
     "name": "reshapify/sendseven",
-    "description": "A typed, fully documented PHP SDK for the SendSeven messaging API: WhatsApp, SMS, email, Telegram, Messenger, Instagram and more.",
+    "description": "Unofficial. A typed, fully documented PHP SDK for the SendSeven messaging API: WhatsApp, SMS, email, Telegram, Messenger, Instagram and more.",
     "keywords": [
         "sendseven",
         "whatsapp",
@@ -21,6 +21,11 @@
             "role": "Developer"
         }
     ],
+    "support": {
+        "issues": "https://github.com/reshapify/sendseven-php/issues",
+        "source": "https://github.com/reshapify/sendseven-php",
+        "security": "https://github.com/reshapify/sendseven-php/security/policy"
+    },
     "require": {
         "php": "^8.3",
         "php-http/discovery": "^1.20",

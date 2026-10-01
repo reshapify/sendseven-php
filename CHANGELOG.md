@@ -3,7 +3,7 @@
 All notable changes to `sendseven` will be documented in this file.
 
 
-## Unreleased
+## 0.1.0 - 2026-10-01
 
 - Every SendSeven endpoint (712 operations in 71 resources), generated from SendSeven's OpenAPI spec plus verified corrections in `openapi/patches`.
 - Typed responses, enums that tolerate new values, pagination with `lazy()`.
