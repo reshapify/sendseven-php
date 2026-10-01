@@ -57,6 +57,16 @@ final class Writer
     }
 
     /**
+     * JSON files can't carry a comment, so the marker goes in a "_generated" key.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function writeJson(string $relativePath, array $data): void
+    {
+        $this->write($relativePath, json_encode(['_generated' => self::MARKER, ...$data], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
+    }
+
+    /**
      * Delete generated files in the directories that weren't written this run.
      *
      * @param  list<string>  $directories  relative to the root

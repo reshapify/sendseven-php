@@ -51,8 +51,19 @@ final readonly class MethodBuilder
             $parameters[] = new Parameter($variable, $wire, $in, $type, $required, $description);
         };
 
+        $declared = [];
+
         foreach ($operation->parameters('path') as $parameter) {
+            $declared[] = (string) $parameter['name'];
             $add((string) $parameter['name'], 'path', $this->types->parameter($parameter['schema'] ?? ['type' => 'string'], true), true, (string) ($parameter['description'] ?? ''));
+        }
+
+        // Some operations (e.g. PUT /tenants/{tenant_id}) use a path
+        // placeholder without declaring it; it is still required.
+        preg_match_all('/\{([^}]+)\}/', $operation->relativePath(), $placeholders);
+
+        foreach (array_diff($placeholders[1], $declared) as $undeclared) {
+            $add($undeclared, 'path', new PhpType('string', 'string'), true, '');
         }
 
         $body = $operation->requestBody();

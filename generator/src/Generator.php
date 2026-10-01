@@ -67,6 +67,7 @@ final readonly class Generator
         $writer->write('src/Resources/Concerns/ProvidesResources.php', (new ClientEmitter)->emit(array_map('count', $methodsByTag)));
         $writer->write('docs/reference/README.md', $docs->index($methodsByTag, $spec->version()));
         $writer->write('llms.txt', $docs->llms($methodsByTag));
+        $writer->writeJson('openapi/manifest.json', $this->manifest($methodsByTag, $spec->version()));
 
         $removed = $writer->prune(['src/Resources', 'src/Data', 'src/Enums', 'docs/reference']);
 
@@ -77,6 +78,42 @@ final readonly class Generator
             'enums' => count($enums),
             'removed' => $removed,
         ];
+    }
+
+    /**
+     * Every operation and the SDK method that calls it: for agents looking up
+     * an endpoint, and for the contract test that checks each one.
+     *
+     * @param  array<string, list<Method>>  $methodsByTag
+     * @return array<string, mixed>
+     */
+    private function manifest(array $methodsByTag, string $specVersion): array
+    {
+        $operations = [];
+
+        foreach ($methodsByTag as $tag => $methods) {
+            foreach ($methods as $method) {
+                $operations[] = [
+                    'operationId' => $method->operation->id(),
+                    'call' => '$sendseven->'.lcfirst(Naming::studly($tag)).'()->'.$method->name.'()',
+                    'resource' => lcfirst(Naming::studly($tag)),
+                    'method' => $method->name,
+                    'http' => strtoupper($method->operation->method).' '.$method->operation->relativePath(),
+                    'summary' => $method->operation->summary(),
+                    'scopes' => $method->operation->scopes(),
+                    'returns' => $method->returnDoc(),
+                    'parameters' => array_map(static fn (Parameter $parameter): array => [
+                        'name' => $parameter->name,
+                        'wire' => $parameter->wire,
+                        'in' => $parameter->in,
+                        'type' => $parameter->type->native,
+                        'required' => $parameter->required,
+                    ], $method->parameters),
+                ];
+            }
+        }
+
+        return ['specVersion' => $specVersion, 'operations' => $operations];
     }
 
     /**

@@ -214,11 +214,11 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/update_tenant_api_v1_tenants__tenant_id__put
      */
-    public function update(?bool $allowMessagingOtherAgentsConversations = null, ?bool $autoSummarizeLiveChat = null, ?string $autoSummarizeOnClose = null, ?string $autoTranscriptExportFormat = null, ?string $botNotificationPolicy = null, ?array $brandColors = null, ?string $companyDomain = null, ?string $companyEmail = null, ?string $companyName = null, ?int $dashboardWaitThresholdNormal = null, ?int $dashboardWaitThresholdUrgent = null, ?string $defaultCountry = null, ?string $defaultLanguage = null, ?string $defaultTimezone = null, ?string $duplicateContactMode = null, ?string $faqGenerationMode = null, ?int $faqMinClusterSize = null, float|int|null $kbAutoApplyThreshold = null, ?string $kbCorrectionMode = null, ?string $liveChatContactVisibility = null, ?bool $multiAgentMode = null, ?string $name = null): Tenant
+    public function update(string $tenantId, ?bool $allowMessagingOtherAgentsConversations = null, ?bool $autoSummarizeLiveChat = null, ?string $autoSummarizeOnClose = null, ?string $autoTranscriptExportFormat = null, ?string $botNotificationPolicy = null, ?array $brandColors = null, ?string $companyDomain = null, ?string $companyEmail = null, ?string $companyName = null, ?int $dashboardWaitThresholdNormal = null, ?int $dashboardWaitThresholdUrgent = null, ?string $defaultCountry = null, ?string $defaultLanguage = null, ?string $defaultTimezone = null, ?string $duplicateContactMode = null, ?string $faqGenerationMode = null, ?int $faqMinClusterSize = null, float|int|null $kbAutoApplyThreshold = null, ?string $kbCorrectionMode = null, ?string $liveChatContactVisibility = null, ?bool $multiAgentMode = null, ?string $name = null): Tenant
     {
         $response = $this->connector->send(new Request(
             Method::Put,
-            '/tenants/'.'{tenant_id}',
+            '/tenants/'.Payload::segment($tenantId),
             body: Payload::body(['allow_messaging_other_agents_conversations' => $allowMessagingOtherAgentsConversations, 'auto_summarize_live_chat' => $autoSummarizeLiveChat, 'auto_summarize_on_close' => $autoSummarizeOnClose, 'auto_transcript_export_format' => $autoTranscriptExportFormat, 'bot_notification_policy' => $botNotificationPolicy, 'brand_colors' => $brandColors, 'company_domain' => $companyDomain, 'company_email' => $companyEmail, 'company_name' => $companyName, 'dashboard_wait_threshold_normal' => $dashboardWaitThresholdNormal, 'dashboard_wait_threshold_urgent' => $dashboardWaitThresholdUrgent, 'default_country' => $defaultCountry, 'default_language' => $defaultLanguage, 'default_timezone' => $defaultTimezone, 'duplicate_contact_mode' => $duplicateContactMode, 'faq_generation_mode' => $faqGenerationMode, 'faq_min_cluster_size' => $faqMinClusterSize, 'kb_auto_apply_threshold' => $kbAutoApplyThreshold, 'kb_correction_mode' => $kbCorrectionMode, 'live_chat_contact_visibility' => $liveChatContactVisibility, 'multi_agent_mode' => $multiAgentMode, 'name' => $name]),
         ));
 
@@ -270,11 +270,11 @@ final readonly class Tenants
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tenants/update_channel_priority_api_v1_tenants__tenant_id__channel_priority_put
      */
-    public function updateChannelPriority(array $channelPriority): array
+    public function updateChannelPriority(string $tenantId, array $channelPriority): array
     {
         $response = $this->connector->send(new Request(
             Method::Put,
-            '/tenants/'.'{tenant_id}'.'/channel-priority',
+            '/tenants/'.Payload::segment($tenantId).'/channel-priority',
             body: Payload::body(['channel_priority' => $channelPriority]),
         ));
 
