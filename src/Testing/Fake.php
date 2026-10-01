@@ -18,11 +18,11 @@ use Reshapify\SendSeven\Http\RetryPolicy;
  * mapping), so a scripted 422 throws ValidationFailed exactly as SendSeven
  * would; retries are off, so a scripted failure fails once.
  */
-final class Fake
+final readonly class Fake
 {
-    public readonly Client $client;
+    public Client $client;
 
-    private readonly FakeTransport $transport;
+    private FakeTransport $transport;
 
     /**
      * @param  array<string|int, mixed>  $responses  see respond()

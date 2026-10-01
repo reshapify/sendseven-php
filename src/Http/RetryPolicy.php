@@ -30,7 +30,7 @@ final readonly class RetryPolicy
             return false;
         }
 
-        return $response === null || $response->status === 429 || $response->status >= 500;
+        return ! $response instanceof Response || $response->status === 429 || $response->status >= 500;
     }
 
     /**

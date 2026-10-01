@@ -55,8 +55,8 @@ final readonly class PsrTransport implements Transport
 
         try {
             $psrResponse = $this->client->sendRequest($psrRequest);
-        } catch (ClientExceptionInterface $exception) {
-            throw TransportFailed::for($request, $exception);
+        } catch (ClientExceptionInterface $clientException) {
+            throw TransportFailed::for($request, $clientException);
         }
 
         $headers = [];

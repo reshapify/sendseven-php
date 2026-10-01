@@ -10,7 +10,7 @@ function pageOf(int $page, int $totalPages, array $items, ?Closure $fetch = null
     return new Page($items, new Pagination(total: 5, page: $page, pageSize: 2, totalPages: $totalPages, hasNext: $page < $totalPages, hasPrevious: $page > 1), $fetch);
 }
 
-it('walks every page lazily, fetching each only when reached', function () {
+it('walks every page lazily, fetching each only when reached', function (): void {
     $fetched = [];
     $fetch = function (int $page) use (&$fetch, &$fetched): Page {
         $fetched[] = $page;
@@ -26,6 +26,6 @@ it('walks every page lazily, fetching each only when reached', function () {
         ->and($fetched)->toBe([2, 3]);
 });
 
-it('has no next page on the last page', function () {
+it('has no next page on the last page', function (): void {
     expect(pageOf(2, 2, ['x'], fn () => throw new LogicException('should not fetch'))->nextPage())->toBeNull();
 });

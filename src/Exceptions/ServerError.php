@@ -11,6 +11,6 @@ final class ServerError extends ApiException
 {
     public function hint(): string
     {
-        return 'This is on SendSeven\'s side and was already retried. Try again later, and quote the request ID to SendSeven support if it persists.';
+        return "This is on SendSeven's side and was already retried. Try again later, and quote the request ID to SendSeven support if it persists.";
     }
 }

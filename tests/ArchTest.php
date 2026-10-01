@@ -19,9 +19,9 @@ arch('concrete classes are final')
     ->classes()
     ->toBeFinal()
     ->ignoring([
-        'Reshapify\SendSeven\Data\Data',
-        'Reshapify\SendSeven\Exceptions\ApiException',
-        'Reshapify\SendSeven\Webhooks\Events\Event',
+        Reshapify\SendSeven\Data\Data::class,
+        Reshapify\SendSeven\Exceptions\ApiException::class,
+        Reshapify\SendSeven\Webhooks\Events\Event::class,
     ]);
 
 arch('every exception can be caught as a SendSevenException')

@@ -95,13 +95,13 @@ final readonly class Connector
         // A key per logical request makes POST and PATCH safe to retry: SendSeven
         // answers a repeat with the original result instead of acting twice.
         if ($this->automaticIdempotencyKeys && ! $request->method->isIdempotent() && $request->header('Idempotency-Key') === null) {
-            $prepared = $prepared->withHeader('Idempotency-Key', self::uuid());
+            return $prepared->withHeader('Idempotency-Key', $this->uuid());
         }
 
         return $prepared;
     }
 
-    private static function uuid(): string
+    private function uuid(): string
     {
         $bytes = random_bytes(16);
         $bytes[6] = chr((ord($bytes[6]) & 0x0F) | 0x40);

@@ -23,7 +23,7 @@ final class FakeTransport implements Transport
 
     public function queue(string $pattern, mixed $response): void
     {
-        $responses = is_array($response) && array_is_list($response) && $response !== [] && ! self::isJsonList($response) ? $response : [$response];
+        $responses = is_array($response) && array_is_list($response) && $response !== [] && ! $this->isJsonList($response) ? $response : [$response];
 
         foreach ($responses as $item) {
             $this->queues[$pattern][] = $item;
@@ -90,7 +90,7 @@ final class FakeTransport implements Transport
      *
      * @param  list<mixed>  $value
      */
-    private static function isJsonList(array $value): bool
+    private function isJsonList(array $value): bool
     {
         foreach ($value as $item) {
             if ($item instanceof Response || $item instanceof Closure) {

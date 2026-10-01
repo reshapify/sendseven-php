@@ -10,7 +10,7 @@ use Reshapify\SendSeven\Http\Response;
 use Reshapify\SendSeven\Http\RetryPolicy;
 use Reshapify\SendSeven\SendSeven;
 
-it('authenticates every request and identifies the SDK', function () {
+it('authenticates every request and identifies the SDK', function (): void {
     $transport = new ScriptedTransport([Response::json(['ok' => true])]);
 
     connector($transport)->send(Request::get('/tenants/me'));
@@ -20,7 +20,7 @@ it('authenticates every request and identifies the SDK', function () {
         ->and($transport->sent[0]->header('User-Agent'))->toBe('reshapify/sendseven-php/'.SendSeven::VERSION.' PHP/'.PHP_VERSION);
 });
 
-it('adds an idempotency key to writes, never to reads, and keeps one you set', function () {
+it('adds an idempotency key to writes, never to reads, and keeps one you set', function (): void {
     $transport = new ScriptedTransport([Response::json([]), Response::json([]), Response::json([])]);
     $connector = connector($transport);
 
@@ -33,7 +33,7 @@ it('adds an idempotency key to writes, never to reads, and keeps one you set', f
         ->and($transport->sent[2]->header('Idempotency-Key'))->toBe('order-42');
 });
 
-it('acts on another tenant through X-Tenant-ID', function () {
+it('acts on another tenant through X-Tenant-ID', function (): void {
     $transport = new ScriptedTransport([Response::json([])]);
 
     connector($transport)->forTenant('tenant_acme')->send(Request::get('/contacts'));
@@ -41,7 +41,7 @@ it('acts on another tenant through X-Tenant-ID', function () {
     expect($transport->sent[0]->header('X-Tenant-ID'))->toBe('tenant_acme');
 });
 
-it('retries rate limits and server errors with the same idempotency key, honouring Retry-After', function () {
+it('retries rate limits and server errors with the same idempotency key, honouring Retry-After', function (): void {
     $sleeper = new RecordingSleeper;
     $transport = new ScriptedTransport([
         new Response(429, '{"detail":"Too many requests"}', ['retry-after' => '2']),
@@ -53,40 +53,40 @@ it('retries rate limits and server errors with the same idempotency key, honouri
 
     expect($response->status)->toBe(201)
         ->and($transport->sent)->toHaveCount(3)
-        ->and(array_unique(array_map(fn (Request $request) => $request->header('Idempotency-Key'), $transport->sent)))->toHaveCount(1)
+        ->and(array_unique(array_map(fn (Request $request): ?string => $request->header('Idempotency-Key'), $transport->sent)))->toHaveCount(1)
         ->and($sleeper->slept[0])->toBe(2000);
 });
 
-it('gives up after the last attempt and throws what SendSeven said', function () {
+it('gives up after the last attempt and throws what SendSeven said', function (): void {
     $transport = new ScriptedTransport(array_fill(0, 3, new Response(500, '{"detail":"boom"}')));
 
-    expect(fn () => connector($transport)->send(Request::get('/channels')))->toThrow(ServerError::class, 'boom (GET /channels, HTTP 500)');
+    expect(fn (): Response => connector($transport)->send(Request::get('/channels')))->toThrow(ServerError::class, 'boom (GET /channels, HTTP 500)');
     expect($transport->sent)->toHaveCount(3);
 });
 
-it('never retries a write without an idempotency key', function () {
+it('never retries a write without an idempotency key', function (): void {
     $transport = new ScriptedTransport([new Response(503, '')]);
-    $connector = new Reshapify\SendSeven\Http\Connector($transport, 'token', automaticIdempotencyKeys: false, sleeper: new RecordingSleeper);
+    $connector = new Reshapify\SendSeven\Http\Connector($transport, 'token', sleeper: new RecordingSleeper, automaticIdempotencyKeys: false);
 
-    expect(fn () => $connector->send(Request::post('/messages', ['text' => 'Hi'])))->toThrow(ServerError::class);
+    expect(fn (): Response => $connector->send(Request::post('/messages', ['text' => 'Hi'])))->toThrow(ServerError::class);
     expect($transport->sent)->toHaveCount(1);
 });
 
-it('retries a request that never reached SendSeven', function () {
+it('retries a request that never reached SendSeven', function (): void {
     $failure = TransportFailed::for(Request::get('/channels'), new RuntimeException('Connection refused'));
     $transport = new ScriptedTransport([$failure, Response::json([])]);
 
     expect(connector($transport)->send(Request::get('/channels'))->status)->toBe(200);
 });
 
-it('throws RateLimited with the wait once retries are exhausted', function () {
+it('throws RateLimited with the wait once retries are exhausted', function (): void {
     $transport = new ScriptedTransport([new Response(429, '{"detail":"slow down"}', ['retry-after' => '30'])]);
 
     try {
         connector($transport, retryPolicy: RetryPolicy::none())->send(Request::get('/contacts'));
         $this->fail('Expected RateLimited');
-    } catch (RateLimited $exception) {
-        expect($exception->retryAfter())->toBe(30)
-            ->and($exception->getMessage())->toContain('Retry after 30 seconds');
+    } catch (RateLimited $rateLimited) {
+        expect($rateLimited->retryAfter())->toBe(30)
+            ->and($rateLimited->getMessage())->toContain('Retry after 30 seconds');
     }
 });

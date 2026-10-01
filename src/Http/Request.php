@@ -102,14 +102,14 @@ final readonly class Request
                     continue;
                 }
 
-                $pairs[] = rawurlencode($name).'='.rawurlencode(self::stringify($item));
+                $pairs[] = rawurlencode($name).'='.rawurlencode($this->stringify($item));
             }
         }
 
         return implode('&', $pairs);
     }
 
-    private static function stringify(int|float|string|bool $value): string
+    private function stringify(int|float|string|bool $value): string
     {
         return is_bool($value) ? ($value ? 'true' : 'false') : (string) $value;
     }

@@ -11,6 +11,6 @@ final class Conflict extends ApiException
 {
     public function hint(): string
     {
-        return 'Fetch the resource\'s current state and retry, or use a new Idempotency-Key for a different request.';
+        return "Fetch the resource's current state and retry, or use a new Idempotency-Key for a different request.";
     }
 }

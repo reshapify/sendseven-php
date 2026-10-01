@@ -29,7 +29,7 @@ final class InvalidSignature extends RuntimeException implements SendSevenExcept
 
     public static function wrongAuthorization(): self
     {
-        return new self('The webhook\'s Authorization header does not match the value configured for the endpoint.');
+        return new self("The webhook's Authorization header does not match the value configured for the endpoint.");
     }
 
     public static function malformedBody(): self

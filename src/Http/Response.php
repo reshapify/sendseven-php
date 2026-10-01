@@ -51,8 +51,8 @@ final readonly class Response
 
         try {
             return json_decode($this->body, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $exception) {
-            throw UnexpectedResponse::because('the body is not valid JSON', $this, $exception);
+        } catch (JsonException $jsonException) {
+            throw UnexpectedResponse::because('the body is not valid JSON', $this, $jsonException);
         }
     }
 

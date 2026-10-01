@@ -11,6 +11,6 @@ final class PermissionDenied extends ApiException
 {
     public function hint(): string
     {
-        return 'Give the token the scope this endpoint needs (see the method\'s docs), or use a token from a user with the right role.';
+        return "Give the token the scope this endpoint needs (see the method's docs), or use a token from a user with the right role.";
     }
 }
