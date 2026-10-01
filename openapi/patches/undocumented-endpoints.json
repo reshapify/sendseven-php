@@ -1,0 +1,88 @@
+{
+    "description": "Endpoints SendSeven serves but leaves out of its OpenAPI spec. Each was confirmed against the live API.",
+    "paths": {
+        "/api/v1/whatsapp-templates/translate": {
+            "post": {
+                "operationId": "translate_whatsapp_template_api_v1_whatsapp_templates_translate_post",
+                "summary": "Translate a WhatsApp template",
+                "description": "Translate a template's text with SendSeven's AI translation.\n\n**Required Scopes:** `templates:create`",
+                "tags": ["WhatsApp Templates"],
+                "x-source": "Live: answered 422 naming body_text and target_language as required (1 Oct 2026); used by Renotify's template translation.",
+                "requestBody": {
+                    "required": true,
+                    "content": {"application/json": {"schema": {
+                        "type": "object",
+                        "required": ["body_text", "target_language"],
+                        "properties": {
+                            "body_text": {"type": "string", "description": "The template body to translate"},
+                            "target_language": {"type": "string", "description": "Language code to translate into, e.g. de"},
+                            "source_language": {"anyOf": [{"type": "string"}, {"type": "null"}], "description": "Language code of the text; detected when omitted"},
+                            "header_text": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                            "footer_text": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                            "button_texts": {"anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}]}
+                        }
+                    }}}
+                },
+                "responses": {"200": {"description": "The translated texts", "content": {"application/json": {"schema": {"type": "object", "additionalProperties": true}}}}}
+            }
+        },
+        "/api/v1/messages/proxy": {
+            "post": {
+                "operationId": "proxy_message_api_v1_messages_proxy_post",
+                "summary": "Send a raw platform request through a channel",
+                "description": "Pass a request straight to the channel's platform API, e.g. to mark a WhatsApp message as read.\n\n**Required Scopes:** `messages:create`",
+                "tags": ["Messages"],
+                "x-source": "Live: answered 422 rather than 404 (1 Oct 2026); used by Renotify to send WhatsApp read receipts.",
+                "requestBody": {
+                    "required": true,
+                    "content": {"application/json": {"schema": {
+                        "type": "object",
+                        "required": ["channel_id", "endpoint", "payload"],
+                        "properties": {
+                            "channel_id": {"type": "string"},
+                            "endpoint": {"type": "string", "description": "The platform endpoint, e.g. messages"},
+                            "payload": {"type": "object", "additionalProperties": true, "description": "The platform's own request body"}
+                        }
+                    }}}
+                },
+                "responses": {"200": {"description": "The platform's response", "content": {"application/json": {"schema": {"type": "object", "additionalProperties": true}}}}}
+            }
+        },
+        "/api/v1/billing/rcs-wallet/prices": {
+            "get": {
+                "operationId": "get_rcs_prices_api_v1_billing_rcs_wallet_prices_get",
+                "summary": "Get your RCS unit prices",
+                "description": "Net EUR prices per RCS unit (basic, single, session, mau), resolved exactly as a real send would be.\n\n**Required Scopes:** `billing:read`",
+                "tags": ["RCS Wallet"],
+                "x-requires-feature": "rcs",
+                "x-source": "docs.sendseven.com/guides/billing/rcs-wallet (1 Oct 2026)",
+                "responses": {"200": {"description": "Prices", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RcsPricesResponse"}}}}}
+            }
+        },
+        "/api/v1/billing/rcs-wallet": {
+            "get": {
+                "operationId": "get_rcs_wallet_api_v1_billing_rcs_wallet_get",
+                "summary": "Get the RCS wallet",
+                "description": "The prepaid RCS wallet shared by every workspace on the billing account: balance, reserved amount and top-up settings.\n\n**Required Scopes:** `billing:read`",
+                "tags": ["RCS Wallet"],
+                "x-requires-feature": "rcs",
+                "x-source": "docs.sendseven.com/guides/billing/rcs-wallet (1 Oct 2026)",
+                "responses": {"200": {"description": "The wallet", "content": {"application/json": {"schema": {"type": "object", "additionalProperties": true}}}}}
+            }
+        }
+    },
+    "schemas": {
+        "RcsPricesResponse": {
+            "type": "object",
+            "required": ["currency", "prices"],
+            "properties": {
+                "currency": {"type": "string", "description": "Always EUR"},
+                "prices_are_net": {"type": "boolean"},
+                "price_source": {"type": "string", "description": "tenant_override, ba_override, plan, platform_default or code_default"},
+                "prices": {"type": "object", "additionalProperties": {"type": "string"}, "description": "Net EUR price per unit: basic, single, session, mau"},
+                "session_upgrade": {"anyOf": [{"type": "object", "additionalProperties": {"type": "string"}}, {"type": "null"}]},
+                "agent_fee": {"anyOf": [{"type": "object", "additionalProperties": true}, {"type": "null"}]}
+            }
+        }
+    }
+}

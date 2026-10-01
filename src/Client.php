@@ -8,6 +8,7 @@ use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Http\Response;
+use Reshapify\SendSeven\Resources\Concerns\ProvidesResources;
 
 /**
  * The SendSeven API. Each method returns a resource for one area of the API
@@ -15,6 +16,8 @@ use Reshapify\SendSeven\Http\Response;
  */
 final readonly class Client
 {
+    use ProvidesResources;
+
     public function __construct(private Connector $connector) {}
 
     /**

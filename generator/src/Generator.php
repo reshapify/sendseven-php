@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Reshapify\SendSeven\Generator;
+
+/**
+ * Generates the resources, response objects, enums, client accessors and
+ * reference docs from the spec.
+ */
+final readonly class Generator
+{
+    /** Names the runtime uses, which generated data classes must not take. */
+    private const array RESERVED_CLASS_NAMES = [
+        'Request', 'Response', 'Method', 'Page', 'Pagination', 'Payload', 'Hydrate', 'Connector', 'Attributes',
+        'Data', 'FilePart', 'Client', 'Factory', 'ApiException',
+    ];
+
+    public function __construct(private string $root) {}
+
+    /**
+     * @return array{resources: int, methods: int, data: int, enums: int, removed: int}
+     */
+    public function run(): array
+    {
+        $spec = new Spec($this->root.'/openapi/sendseven.json', glob($this->root.'/openapi/patches/*.json') ?: []);
+        $schemaNames = array_keys($this->allSchemas($this->root.'/openapi/sendseven.json'));
+        $operationsByTag = $spec->operationsByTag();
+        $resourceNames = array_map(Naming::studly(...), array_keys($operationsByTag));
+
+        $registry = new Registry($schemaNames, $this->root.'/src', [...$resourceNames, ...self::RESERVED_CLASS_NAMES]);
+        $types = new TypeMapper($spec, $registry);
+        $builder = new MethodBuilder($spec, $types, $registry);
+        $writer = new Writer($this->root);
+        $docs = new DocsEmitter;
+        $resources = new ResourceEmitter($this->root.'/src');
+
+        $methodsByTag = [];
+
+        foreach ($operationsByTag as $tag => $operations) {
+            $methodsByTag[$tag] = $builder->build($tag, $operations);
+        }
+
+        foreach ($methodsByTag as $tag => $methods) {
+            $writer->write('src/Resources/'.Naming::studly($tag).'.php', $resources->emit($tag, $methods));
+            $writer->write('docs/reference/'.Naming::kebab($tag).'.md', $docs->resource($tag, $methods));
+        }
+
+        $dataEmitter = new DataEmitter($spec, $types, $registry);
+        $dataCount = 0;
+
+        while (($pending = $registry->takePending()) !== []) {
+            foreach ($pending as $schemaName) {
+                $class = $registry->data($schemaName);
+                $writer->write('src/Data/'.TypeMapper::short($class).'.php', $dataEmitter->emit($schemaName));
+                $dataCount++;
+            }
+        }
+
+        $enumEmitter = new EnumEmitter;
+        $enums = $registry->enumsToWrite();
+
+        foreach ($enums as $class => $schema) {
+            $writer->write('src/Enums/'.TypeMapper::short($class).'.php', $enumEmitter->emit($class, $schema));
+        }
+
+        $writer->write('src/Resources/Concerns/ProvidesResources.php', (new ClientEmitter)->emit(array_map('count', $methodsByTag)));
+        $writer->write('docs/reference/README.md', $docs->index($methodsByTag, $spec->version()));
+        $writer->write('llms.txt', $docs->llms($methodsByTag));
+
+        $removed = $writer->prune(['src/Resources', 'src/Data', 'src/Enums', 'docs/reference']);
+
+        return [
+            'resources' => count($methodsByTag),
+            'methods' => array_sum(array_map('count', $methodsByTag)),
+            'data' => $dataCount,
+            'enums' => count($enums),
+            'removed' => $removed,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function allSchemas(string $file): array
+    {
+        $document = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+
+        return is_array($document['components']['schemas'] ?? null) ? $document['components']['schemas'] : [];
+    }
+}

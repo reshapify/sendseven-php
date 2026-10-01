@@ -1,0 +1,63 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Regenerates src/Resources, src/Data, src/Enums, docs/reference and
+ * llms.txt from openapi/sendseven.json and openapi/patches.
+ *
+ *     bin/generate            regenerate from the vendored spec
+ *     bin/generate --fetch    download the live spec first
+ */
+
+use Reshapify\SendSeven\Generator\Generator;
+
+require __DIR__.'/../vendor/autoload.php';
+
+$root = dirname(__DIR__);
+
+if (in_array('--fetch', $argv, true)) {
+    $live = file_get_contents('https://api.sendseven.com/api/v1/openapi.json');
+
+    if ($live === false) {
+        fwrite(STDERR, "Could not download the spec.\n");
+        exit(1);
+    }
+
+    $decoded = json_decode($live, true, 512, JSON_THROW_ON_ERROR);
+    file_put_contents($root.'/openapi/sendseven.json', json_encode(ksortRecursive($decoded), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n");
+    echo "Fetched spec version {$decoded['info']['version']}.\n";
+}
+
+$result = (new Generator($root))->run();
+
+// Format the output with the project's Pint rules so regenerating gives
+// the same bytes as committed code.
+passthru(escapeshellarg($root.'/vendor/bin/pint').' --quiet '.implode(' ', array_map('escapeshellarg', [$root.'/src/Resources', $root.'/src/Data', $root.'/src/Enums'])), $pintExit);
+
+if ($pintExit !== 0) {
+    fwrite(STDERR, "Pint failed to format the generated code.\n");
+    exit($pintExit);
+}
+
+echo "Generated {$result['methods']} methods in {$result['resources']} resources, {$result['data']} response objects and {$result['enums']} enums";
+echo $result['removed'] > 0 ? "; removed {$result['removed']} stale files.\n" : ".\n";
+echo "Now run: composer lint && composer test\n";
+
+/**
+ * @param  mixed  $value
+ * @return mixed
+ */
+function ksortRecursive($value)
+{
+    if (! is_array($value)) {
+        return $value;
+    }
+
+    if (! array_is_list($value)) {
+        ksort($value);
+    }
+
+    return array_map('ksortRecursive', $value);
+}

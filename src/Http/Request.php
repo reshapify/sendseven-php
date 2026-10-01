@@ -13,6 +13,7 @@ final readonly class Request
      * @param  array<string, scalar|list<scalar>|null>  $query  null values are left out
      * @param  array<array-key, mixed>|null  $body  sent as JSON
      * @param  array<string, string>  $headers
+     * @param  array<string, scalar|FilePart|list<scalar|FilePart>|null>|null  $multipart  sent as multipart/form-data instead of JSON
      */
     public function __construct(
         public Method $method,
@@ -20,6 +21,7 @@ final readonly class Request
         public array $query = [],
         public ?array $body = null,
         public array $headers = [],
+        public ?array $multipart = null,
     ) {}
 
     /**
@@ -66,7 +68,7 @@ final readonly class Request
 
     public function withHeader(string $name, string $value): self
     {
-        return new self($this->method, $this->path, $this->query, $this->body, [...$this->headers, $name => $value]);
+        return new self($this->method, $this->path, $this->query, $this->body, [...$this->headers, $name => $value], $this->multipart);
     }
 
     public function header(string $name): ?string

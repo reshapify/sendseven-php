@@ -21,6 +21,10 @@ return RectorConfig::configure()
     // Generic docblocks (Page<TItem>, list<Contact>) carry type information
     // PHP can't express; they are not "useless".
     ->withSkip([
+        // Generated from the spec; fix the generator instead.
+        __DIR__.'/src/Resources',
+        __DIR__.'/src/Data',
+        __DIR__.'/src/Enums',
         RemoveUselessReturnTagRector::class,
         RemoveUselessParamTagRector::class,
         RemoveUselessUnionReturnDocblockRector::class,

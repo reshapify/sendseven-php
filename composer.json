@@ -46,7 +46,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Reshapify\\SendSeven\\Tests\\": "tests"
+            "Reshapify\\SendSeven\\Tests\\": "tests",
+            "Reshapify\\SendSeven\\Generator\\": "generator/src"
         }
     },
     "scripts": {
@@ -63,7 +64,8 @@
             "@test:types",
             "@test:type-coverage",
             "@test:unit"
-        ]
+        ],
+        "generate": "bin/generate"
     },
     "config": {
         "sort-packages": true,

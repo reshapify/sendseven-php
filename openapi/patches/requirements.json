@@ -1,0 +1,10 @@
+{
+    "description": "What each operation needs beyond a scope: plan features and roles. Shown in the reference docs and checked by the SDK where it can.",
+    "operations": {
+        "create_tenant_api_v1_tenants_post": {
+            "x-requires-feature": "multi_tenant",
+            "x-requires-role": "billing_account_owner",
+            "x-source": "Live refusals (1 Oct 2026): 403 feature_disabled multi_tenant; 403 'Only billing account owners can create new tenants'."
+        }
+    }
+}

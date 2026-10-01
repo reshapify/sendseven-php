@@ -47,7 +47,12 @@ final readonly class PsrTransport implements Transport
             $psrRequest = $psrRequest->withHeader($name, $value);
         }
 
-        if ($request->body !== null) {
+        if ($request->multipart !== null) {
+            $boundary = 'sendseven-'.bin2hex(random_bytes(12));
+            $psrRequest = $psrRequest
+                ->withHeader('Content-Type', 'multipart/form-data; boundary='.$boundary)
+                ->withBody($this->streamFactory->createStream($this->multipartBody($request->multipart, $boundary)));
+        } elseif ($request->body !== null) {
             $psrRequest = $psrRequest
                 ->withHeader('Content-Type', 'application/json')
                 ->withBody($this->streamFactory->createStream(json_encode($request->body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
@@ -66,5 +71,32 @@ final readonly class PsrTransport implements Transport
         }
 
         return new Response($psrResponse->getStatusCode(), (string) $psrResponse->getBody(), $headers);
+    }
+
+    /**
+     * @param  array<string, scalar|FilePart|list<scalar|FilePart>|null>  $fields
+     */
+    private function multipartBody(array $fields, string $boundary): string
+    {
+        $body = '';
+
+        foreach ($fields as $name => $value) {
+            foreach (is_array($value) ? $value : [$value] as $item) {
+                if ($item === null) {
+                    continue;
+                }
+
+                $body .= "--{$boundary}\r\n";
+
+                if ($item instanceof FilePart) {
+                    $filename = addcslashes($item->filename, '"\\');
+                    $body .= "Content-Disposition: form-data; name=\"{$name}\"; filename=\"{$filename}\"\r\nContent-Type: {$item->contentType}\r\n\r\n{$item->contents}\r\n";
+                } else {
+                    $body .= "Content-Disposition: form-data; name=\"{$name}\"\r\n\r\n".(is_bool($item) ? ($item ? 'true' : 'false') : (string) $item)."\r\n";
+                }
+            }
+        }
+
+        return $body."--{$boundary}--\r\n";
     }
 }

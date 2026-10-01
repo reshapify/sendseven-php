@@ -153,6 +153,28 @@ final readonly class Attributes
     }
 
     /**
+     * @return list<int>
+     */
+    public function ints(string $key): array
+    {
+        return array_map(
+            fn (mixed $item): int => is_int($item) || (is_string($item) && preg_match('/^-?\d+$/', $item) === 1) ? (int) $item : throw $this->wrongType($key, 'a list of integers', $item),
+            array_values($this->array($key)),
+        );
+    }
+
+    /**
+     * @return list<float>
+     */
+    public function floats(string $key): array
+    {
+        return array_map(
+            fn (mixed $item): float => is_int($item) || is_float($item) || (is_string($item) && is_numeric($item)) ? (float) $item : throw $this->wrongType($key, 'a list of numbers', $item),
+            array_values($this->array($key)),
+        );
+    }
+
+    /**
      * A nested object, built by $make.
      *
      * @template T
