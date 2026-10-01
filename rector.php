@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector;
 
 return RectorConfig::configure()
     ->withPaths([__DIR__.'/src', __DIR__.'/tests'])
@@ -14,4 +16,10 @@ return RectorConfig::configure()
         typeDeclarations: true,
         privatization: true,
         earlyReturn: true,
-    );
+    )
+    // Generic docblocks (Page<TItem>, list<Contact>) carry type information
+    // PHP can't express; they are not "useless".
+    ->withSkip([
+        RemoveUselessReturnTagRector::class,
+        RemoveUselessParamTagRector::class,
+    ]);
