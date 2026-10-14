@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Reshapify\SendSeven\Enums\ChannelType;
 use Reshapify\SendSeven\Enums\ContactMethodType;
 use Reshapify\SendSeven\Enums\MessageDirection;
+use Reshapify\SendSeven\Webhooks\Data\Attachment;
+use Reshapify\SendSeven\Webhooks\Data\Location;
 use Reshapify\SendSeven\Webhooks\Events\ChannelEvent;
 use Reshapify\SendSeven\Webhooks\Events\MessageReactionChanged;
 use Reshapify\SendSeven\Webhooks\Events\MessageReceived;
@@ -130,7 +132,43 @@ describe('documented events', function (): void {
         'meta.button' => [['message_type' => 'interactive', 'text' => 'Yes', 'meta' => ['button' => ['id' => 'confirm', 'text' => 'Yes']]], 'confirm', 'Yes', false],
         'button_reply attachment' => [['message_type' => 'interactive', 'text' => 'No', 'attachments' => [['type' => 'button_reply', 'button_id' => 'decline', 'button_title' => 'No']]], 'decline', 'No', false],
         'list reply' => [['message_type' => 'interactive', 'text' => 'Tuesday', 'interactive' => ['type' => 'list_reply', 'list_reply' => ['id' => 'tue', 'title' => 'Tuesday']]], 'tue', 'Tuesday', true],
+        'interactive under meta' => [['message_type' => 'interactive', 'text' => 'Pass', 'meta' => ['interactive' => ['button_reply' => ['id' => 'pass', 'title' => 'Pass']]]], 'pass', 'Pass', false],
+        'template quick reply' => [['message_type' => 'button', 'text' => 'Stop', 'meta' => ['button' => ['payload' => 'opt_out', 'text' => 'Stop']]], 'opt_out', 'Stop', false],
+        'list_reply attachment' => [['message_type' => 'interactive', 'text' => 'Wed', 'attachments' => [['type' => 'list_reply', 'row_id' => 'wed']]], 'wed', 'Wed', true],
     ]);
+
+    it('has no button reply for a typed message, or a blank id', function (): void {
+        $typed = Webhook::parse('{"id":"e","type":"message.received","data":{"message":{"id":"m","message_type":"text","text":"hello"}}}');
+        $blank = Webhook::parse('{"id":"e","type":"message.received","data":{"message":{"id":"m","message_type":"interactive","meta":{"button":{"id":"  "}}}}}');
+
+        expect($typed)->toBeInstanceOf(MessageReceived::class)
+            ->and($blank)->toBeInstanceOf(MessageReceived::class);
+        assert($typed instanceof MessageReceived && $blank instanceof MessageReceived);
+        expect($typed->message->buttonReply())->toBeNull()->and($blank->message->buttonReply())->toBeNull();
+    });
+
+    it('finds every image, however it is typed', function (): void {
+        $event = Webhook::parse(json_encode(['id' => 'e', 'type' => 'message.received', 'data' => ['message' => ['id' => 'm', 'message_type' => 'image', 'text' => 'Front of store', 'attachments' => [
+            ['type' => 'image', 'signed_url' => 'https://s/1.jpg', 'url' => 'https://api/1'],
+            ['type' => 'photo', 'url' => 'https://api/2'],
+            ['url' => 'https://api/3'],
+            ['type' => 'document', 'url' => 'https://api/4.pdf'],
+        ]]]], JSON_THROW_ON_ERROR));
+
+        assert($event instanceof MessageReceived);
+        expect(array_map(fn (Attachment $image): ?string => $image->downloadUrl(), $event->message->images()))->toBe(['https://s/1.jpg', 'https://api/2', 'https://api/3'])
+            ->and($event->message->typedText())->toBe('Front of store');
+    });
+
+    it('reads a shared location, and ignores the summary SendSeven writes for it', function (): void {
+        $event = Webhook::parse(json_encode(['id' => 'e', 'type' => 'message.received', 'data' => ['message' => ['id' => 'm', 'message_type' => 'location', 'text' => '📍 Location', 'attachments' => [
+            ['type' => 'location', 'latitude' => '18.0179', 'longitude' => -76.8099, 'name' => 'Head office', 'address' => ' '],
+        ]]]], JSON_THROW_ON_ERROR));
+
+        assert($event instanceof MessageReceived);
+        expect($event->message->location())->toEqual(new Location(18.0179, -76.8099, 'Head office'))
+            ->and($event->message->typedText())->toBeNull();
+    });
 
     it('ties a new channel to the connect link that created it', function (): void {
         $event = Webhook::parse('{"id":"evt_channel_001","type":"channel.created","event_id":"ch_123","data":{"channel":{"id":"ch_123","platform":"whatsapp","is_active":true,"is_verified":true,"is_archived":false,"created_via_connect_token_id":"cct_9a8b7c6d"}}}');

@@ -32,6 +32,17 @@ $message = $sendseven->messages()->send(
 echo $message->id;
 ```
 
+`send()` returns the message even when SendSeven reports it `failed` (e.g. outside WhatsApp's 24-hour window). `sendText()` throws `MessageFailed` instead. For WhatsApp buttons and lists, `sendButtons()` and `sendList()` trim everything to WhatsApp's limits and, if SendSeven refuses them, send the options as a numbered text the customer can answer:
+
+```php
+$contact = $sendseven->contacts()->findOrCreateByPhone('+18765550123');
+
+$sendseven->messages()->sendButtons('ch_whatsapp', $contact->id, 'Is the shelf stocked?', [
+    'yes' => 'Yes',
+    'no' => 'No',
+]);
+```
+
 Every area of the API is a method on the client: `contacts()`, `channels()`, `whatsAppTemplates()`, `conversations()`, `campaigns()`, `webhooks()` and [65 more](docs/reference/README.md). Arguments are named and typed; optional ones are left out of the request.
 
 ## Lists

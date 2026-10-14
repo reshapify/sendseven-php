@@ -33,6 +33,7 @@ use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
+use Reshapify\SendSeven\Resources\Concerns\ContactsHelpers;
 use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
@@ -45,6 +46,8 @@ use Reshapify\SendSeven\Support\Payload;
  */
 final readonly class Contacts
 {
+    use ContactsHelpers;
+
     public function __construct(private Connector $connector) {}
 
     /**

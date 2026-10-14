@@ -3,6 +3,14 @@
 All notable changes to `sendseven` will be documented in this file.
 
 
+## 0.2.0 - 2026-10-13
+
+- `messages()->sendText()`: sends text to a contact or address and throws `MessageFailed` when SendSeven answers 2xx with a failed message.
+- `messages()->sendButtons()` and `sendList()`: trim to WhatsApp's limits and fall back to a numbered text message when SendSeven refuses or fails the interactive message (`fallbackToText: false` to rethrow instead).
+- `contacts()->findByPhone()` and `findOrCreateByPhone()`: an exact match on the digits, never a fuzzy search hit.
+- Webhook messages: `images()` (every image, including `photo` and untyped ones), `location()`, and `typedText()` (null for SendSeven's own summaries of reactions, stickers, locations and contacts).
+- `buttonReply()` also reads `meta.interactive`, template quick-reply payloads (`meta.button.payload`), `list_reply` attachments and `row_id`/`payload`/`id`, and ignores blank ids. Interactive replies are now checked before `meta.button`.
+
 ## 0.1.2 - 2026-10-01
 
 - A successful response with no body (204, or an empty 200) reads as an empty object instead of throwing.

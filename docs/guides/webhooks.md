@@ -74,9 +74,10 @@ Every event has `id` (unique per event: use it to ignore redeliveries), `eventId
 
 - `message->fromId` is the sender: a phone number on WhatsApp, SMS and RCS, or the channel's ID for the person on Telegram, Messenger and Instagram.
 - `message->type` is SendSeven's `message_type`: `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `interactive`, `button`, `reaction`…
-- `message->text` is the text, or a media caption (`""` when there is none).
-- `message->attachment()` gives the first file. Use `downloadUrl()`: the signed URL needs no token but expires 24 hours after the event; `url` needs the API token and never expires.
-- `message->buttonReply()` gives the button or list row tapped. SendSeven reports it in three ways (`meta.button`, a `button_reply` attachment, or `interactive.list_reply`), and this checks all three.
+- `message->text` is the text, or a media caption (`""` when there is none). For `reaction`, `sticker`, `location` and `contact` messages SendSeven writes its own summary there; `message->typedText()` gives only what the customer typed (or captioned), and null otherwise.
+- `message->attachment()` gives the first file and `message->images()` every image (including attachments typed `photo`, and untyped ones on an image message). Use `downloadUrl()`: the signed URL needs no token but expires 24 hours after the event; `url` needs the API token and never expires.
+- `message->location()` gives a shared location: `latitude`, `longitude`, `name` and `address`.
+- `message->buttonReply()` gives the button or list row tapped. SendSeven reports it in several ways (`interactive.button_reply` or `list_reply`, the same under `meta.interactive`, `meta.button` with a template quick reply's `payload` or an `id`, or a `button_reply` or `list_reply` attachment), and this checks them all.
 - `message->errorCode()` and `errorMessage()` explain a failure: Meta's codes such as `131047` (outside the 24-hour window), or SendSeven's such as `rcs_not_reachable`.
 - `message->contactInfo()` holds sender details SendSeven sometimes adds: name, phone, WhatsApp username and business-scoped ID.
 

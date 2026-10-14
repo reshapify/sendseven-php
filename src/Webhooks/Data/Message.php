@@ -104,30 +104,101 @@ final readonly class Message extends Data
     }
 
     /**
-     * The button or list row the customer tapped. SendSeven reports it in
-     * meta.button, a button_reply attachment, or an interactive list_reply.
+     * Every image on the message. Some deliveries type an image as "photo",
+     * or leave an image message's attachment untyped.
+     *
+     * @return list<Attachment>
      */
-    public function buttonReply(): ?ButtonReply
+    public function images(): array
     {
-        $button = $this->meta['button'] ?? null;
+        return array_values(array_filter(
+            $this->attachments,
+            fn (Attachment $attachment): bool => in_array($attachment->type, ['image', 'photo'], true)
+                || ($this->type === 'image' && ! isset($attachment->raw()['type'])),
+        ));
+    }
 
-        if (is_array($button) && is_scalar($button['id'] ?? null)) {
-            return new ButtonReply((string) $button['id'], is_scalar($button['text'] ?? null) ? (string) $button['text'] : (string) $this->text);
-        }
-
+    /**
+     * The location the customer shared, from a location attachment.
+     */
+    public function location(): ?Location
+    {
         foreach ($this->attachments as $attachment) {
-            $reply = $attachment->raw();
+            $data = $attachment->raw();
 
-            if ($attachment->type === 'button_reply' && is_scalar($reply['button_id'] ?? null)) {
-                return new ButtonReply((string) $reply['button_id'], is_scalar($reply['button_title'] ?? null) ? (string) $reply['button_title'] : (string) $this->text);
+            if ($attachment->type === 'location' && is_numeric($data['latitude'] ?? null) && is_numeric($data['longitude'] ?? null)) {
+                return new Location(
+                    (float) $data['latitude'],
+                    (float) $data['longitude'],
+                    $this->filled($data['name'] ?? null),
+                    $this->filled($data['address'] ?? null),
+                );
             }
         }
 
-        $interactive = $this->raw()['interactive'] ?? null;
-        $row = is_array($interactive) ? ($interactive['list_reply'] ?? $interactive['button_reply'] ?? null) : null;
+        return null;
+    }
 
-        if (is_array($row) && is_scalar($row['id'] ?? null)) {
-            return new ButtonReply((string) $row['id'], is_scalar($row['title'] ?? null) ? (string) $row['title'] : (string) $this->text, isset($interactive['list_reply']));
+    /**
+     * What the customer typed, or the caption on their media. Null when
+     * SendSeven wrote the text itself: it summarises reactions, stickers,
+     * locations and shared contacts into text, which isn't customer input.
+     */
+    public function typedText(): ?string
+    {
+        if (in_array($this->type, ['reaction', 'sticker', 'location', 'contact', 'contacts'], true)) {
+            return null;
+        }
+
+        return $this->filled($this->text);
+    }
+
+    /**
+     * The button or list row the customer tapped. SendSeven reports it in
+     * one of several places: an interactive reply (top level or under meta),
+     * meta.button (a template quick reply's payload, or an id), or a
+     * button_reply or list_reply attachment.
+     */
+    public function buttonReply(): ?ButtonReply
+    {
+        $data = $this->raw();
+
+        foreach ([$data['interactive'] ?? null, $this->meta['interactive'] ?? null] as $interactive) {
+            if (! is_array($interactive)) {
+                continue;
+            }
+
+            foreach (['button_reply' => false, 'list_reply' => true] as $key => $fromList) {
+                $row = $interactive[$key] ?? null;
+
+                if (is_array($row) && ($id = $this->filled($row['id'] ?? null)) !== null) {
+                    return new ButtonReply($id, $this->filled($row['title'] ?? null) ?? (string) $this->text, $fromList);
+                }
+            }
+        }
+
+        $button = $this->meta['button'] ?? null;
+
+        if (is_array($button) && ($id = $this->filled($button['payload'] ?? null) ?? $this->filled($button['id'] ?? null)) !== null) {
+            return new ButtonReply($id, $this->filled($button['text'] ?? null) ?? (string) $this->text);
+        }
+
+        foreach ($this->attachments as $attachment) {
+            if (! in_array($attachment->type, ['button_reply', 'list_reply'], true)) {
+                continue;
+            }
+
+            $reply = $attachment->raw();
+            $id = $this->filled($reply['button_id'] ?? null)
+                ?? $this->filled($reply['row_id'] ?? null)
+                ?? $this->filled($reply['payload'] ?? null)
+                ?? $this->filled($reply['id'] ?? null);
+
+            if ($id !== null) {
+                $title = $this->filled($reply['button_title'] ?? null) ?? $this->filled($reply['title'] ?? null) ?? (string) $this->text;
+
+                return new ButtonReply($id, $title, $attachment->type === 'list_reply');
+            }
         }
 
         return null;
@@ -162,5 +233,16 @@ final readonly class Message extends Data
         $info = $this->raw()['contact_info'] ?? null;
 
         return is_array($info) ? $info : [];
+    }
+
+    private function filled(mixed $value): ?string
+    {
+        if (! is_scalar($value) || is_bool($value)) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }
