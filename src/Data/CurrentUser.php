@@ -32,7 +32,7 @@ final readonly class CurrentUser extends Data
      * @param  ?string  $darkTheme  Dark mode theme
      * @param  ?string  $preferredLanguage  Preferred UI language code (e.g., en, de, fr)
      * @param  ?string  $preferredTranslationLanguage  Preferred language for chat translations
-     * @param  ?bool  $autoTranslateEnabled  Whether automatic translation of incoming messages is enabled
+     * @param  ?bool  $autoTranslateEnabled  Whether translation of the user's OUTGOING replies is auto-activated (incoming messages are never translated automatically)
      * @param  ?bool  $shoutboxHidden  Whether the team-chat Shoutbox widget is hidden/deactivated (user-global)
      * @param  ?string  $spokenLanguages  Comma-separated ISO 639-1 codes the user speaks (e.g., 'de,en')
      * @param  ?DateTimeImmutable  $aupAcceptedAt  When the user accepted the Acceptable Use Policy
@@ -46,6 +46,7 @@ final readonly class CurrentUser extends Data
      * @param  ?bool  $emailAutoSignatureEnabled  Master toggle for auto-inserting the signature into the composer (per-tenant)
      * @param  ?bool  $emailAutoSignatureOnReplies  Auto-insert the signature when opening a reply composer (per-tenant)
      * @param  ?bool  $emailAutoSignatureOnNew  Auto-insert the signature when opening a new-email composer (per-tenant)
+     * @param  ?bool  $aiSuggestionsEnabled  Whether you may use AI suggestions in Conversations in the current workspace (per-member setting managed by a team admin). False when no workspace context is sent or you are not a member of it.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -75,6 +76,7 @@ final readonly class CurrentUser extends Data
         public ?bool $emailAutoSignatureEnabled,
         public ?bool $emailAutoSignatureOnReplies,
         public ?bool $emailAutoSignatureOnNew,
+        public ?bool $aiSuggestionsEnabled,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -114,6 +116,7 @@ final readonly class CurrentUser extends Data
             emailAutoSignatureEnabled: $attributes->nullableBool('email_auto_signature_enabled'),
             emailAutoSignatureOnReplies: $attributes->nullableBool('email_auto_signature_on_replies'),
             emailAutoSignatureOnNew: $attributes->nullableBool('email_auto_signature_on_new'),
+            aiSuggestionsEnabled: $attributes->nullableBool('ai_suggestions_enabled'),
             raw: $data,
         );
     }

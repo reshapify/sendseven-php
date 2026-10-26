@@ -18,7 +18,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * KB Corrections: 7 endpoints.
+ * KB Corrections: 8 endpoints.
  *
  * Reach it with $sendseven->kbCorrections().
  *
@@ -112,7 +112,7 @@ final readonly class KbCorrections
      * Reporting is deliberately an everyday agent permission — the person who notices the mistake is
      * the one on the conversation. Deciding what the KB says still needs knowledge_base:manage.
      *
-     * Scopes: conversations:write.
+     * Scopes: conversations:update.
      *
      * @param  list<string>|null  $faqItemIds  Entries the reporter believes are wrong
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -177,7 +177,11 @@ final readonly class KbCorrections
      * Every applied change writes a faq_entry_revisions row, which is what makes this reversible in
      * one click.
      *
-     * Scopes: knowledge_base:manage.
+     * Body (optional): change_indexes applies a subset; edited_changes ([{index, proposed_text}])
+     * applies the reviewer's own wording for update_entry / create_entry changes (422 edit_* codes
+     * otherwise).
+     *
+     * Scopes: knowledge_base:manage, automation:update.
      *
      * @param  array<string, mixed>|null  $body  The request body
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -203,6 +207,9 @@ final readonly class KbCorrections
      *
      * Decline a proposed correction. Nothing touches the knowledge base.
      *
+     * A policy correction routed to an open agent skill suggestion has its rule removed from that
+     * suggestion; with no rule left the suggestion is dismissed. The answer rating itself is kept.
+     *
      * Scopes: knowledge_base:manage.
      *
      * @param  array<string, mixed>|null  $body  The request body
@@ -218,6 +225,34 @@ final readonly class KbCorrections
             Method::Post,
             '/kb-corrections/'.Payload::segment($correctionId).'/reject',
             body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return KbCorrection::fromArray($response->data());
+    }
+
+    /**
+     * Retry Kb Correction Analysis.
+     *
+     * Re-run the AI analysis of a correction that failed or stalled.
+     *
+     * Allowed for failed corrections and for open/analyzing ones that have not moved for the stale
+     * window (a lost job). Anything else → 409 not_retryable. The row goes back to open and the
+     * analysis job is re-published; poll GET /kb-corrections/{id}.
+     *
+     * Scopes: knowledge_base:manage.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/KB%20Corrections/retry_kb_correction_analysis_api_v1_kb_corrections__correction_id__retry_analysis_post
+     */
+    public function retryAnalysis(string $correctionId, ?string $idempotencyKey = null): KbCorrection
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/kb-corrections/'.Payload::segment($correctionId).'/retry-analysis',
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

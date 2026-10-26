@@ -12,21 +12,22 @@ use Reshapify\SendSeven\Support\Attributes;
 /**
  * Response for WhatsApp messaging window status check.
  *
- * Two window kinds are represented:
+ * The window is Meta's 24-hour customer service window, measured from the last inbound customer
+ * message. Once it has expired, only template messages may be sent (requires_template true).
  *
  * @see https://api.sendseven.com/api/v1/docs (schema WhatsAppWindowStatusResponse)
  */
 final readonly class WhatsAppWindowStatusResponse extends Data
 {
     /**
-     * @param  bool  $inWindow  Whether the conversation is within the active free-form window
-     * @param  ?string  $windowType  Active window kind: 'customer_service' (24h) or 'free_entry_point' (72h)
+     * @param  bool  $inWindow  Whether the 24-hour customer service window is open, so free-form messages can be sent
+     * @param  ?string  $windowType  Always 'customer_service' (the 24-hour customer service window). The free entry point window never extends free-form sending.
      * @param  ?int  $remainingSeconds  Seconds remaining in the window (null if outside window)
      * @param  bool  $requiresTemplate  Whether a template message is required to send
-     * @param  ?bool  $isFreeEntryPoint  Whether this conversation originated from a free entry point (CTWA ad / Page CTA)
+     * @param  ?bool  $isFreeEntryPoint  Meta pricing only: whether this conversation started from a Click-to-WhatsApp ad, which can open Meta's free entry point window
      * @param  ?string  $lastCustomerMessageAt  ISO timestamp of last customer message (null if never)
      * @param  ?string  $windowEndAt  ISO timestamp when the active window expires
-     * @param  ?string  $freeEntryPointAnchorAt  ISO timestamp the 72h FEP window is anchored at (the business's first outbound response after the referral). Null when not a FEP conversation or no business response has been sent yet.
+     * @param  ?string  $freeEntryPointAnchorAt  Meta pricing only: ISO timestamp of the business's first reply after the Click-to-WhatsApp ad, if it was sent inside the customer service window. Meta's free entry point window starts here and can stay open for up to 7 days (Meta does not report the exact end). Null when not a Click-to-WhatsApp ad conversation or no such reply exists.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

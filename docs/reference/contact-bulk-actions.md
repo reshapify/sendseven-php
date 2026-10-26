@@ -2,7 +2,7 @@
 
 # Contact Bulk Actions
 
-`$sendseven->contactBulkActions()` — 4 endpoints.
+`$sendseven->contactBulkActions()` — 5 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -10,6 +10,7 @@
 | [`execute()`](#execute) | `POST /contacts/bulk-actions/execute` | Execute Bulk Action |
 | [`preview()`](#preview) | `POST /contacts/bulk-actions/preview` | Preview Bulk Action |
 | [`get()`](#get) | `GET /contacts/bulk-actions/{bulk_action_id}` | Get Bulk Action |
+| [`undo()`](#undo) | `POST /contacts/bulk-actions/{bulk_action_id}/undo` | Undo Bulk Action |
 
 ## list
 
@@ -96,3 +97,24 @@ $result = $sendseven->contactBulkActions()->get(bulkActionId: 'bulk_action_id');
 | `$bulkActionId` | `string` | yes |  |
 
 Returns `BulkActionStatus`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contact%20Bulk%20Actions/get_bulk_action_api_v1_contacts_bulk_actions__bulk_action_id__get)
+
+## undo
+
+Undo Bulk Action. `POST /contacts/bulk-actions/{bulk_action_id}/undo`
+
+Undo a completed contact bulk action that only set the contact owner.
+
+Restores each contact's previous owner, but only where the owner is still the one the bulk action set (a later change wins) and the previous owner is still an active member. Conversations already handed to the new owner stay assigned. 404 unknown run; 422 not_undoable for runs that contain other action types, are not completed or were already undone. Members limited to Custom Inboxes only undo contacts they can edit; the others are counted as skipped. The owner-change history names the user who undid it.
+
+```php
+$result = $sendseven->contactBulkActions()->undo(bulkActionId: 'bulk_action_id');
+```
+
+- Scopes: `contacts:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$bulkActionId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `BulkActionUndo`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contact%20Bulk%20Actions/undo_bulk_action_api_v1_contacts_bulk_actions__bulk_action_id__undo_post)

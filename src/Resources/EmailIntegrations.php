@@ -12,9 +12,6 @@ use Reshapify\SendSeven\Data\ArchiveIntegration;
 use Reshapify\SendSeven\Data\BlockedSender;
 use Reshapify\SendSeven\Data\ConnectionTest;
 use Reshapify\SendSeven\Data\ConversationEmailSummary;
-use Reshapify\SendSeven\Data\DnsRecord;
-use Reshapify\SendSeven\Data\DnsVerificationCheck;
-use Reshapify\SendSeven\Data\DomainVerification;
 use Reshapify\SendSeven\Data\EmailIntegration;
 use Reshapify\SendSeven\Data\EmailIntegrationCreateResponse;
 use Reshapify\SendSeven\Data\EmailMessage;
@@ -24,9 +21,9 @@ use Reshapify\SendSeven\Data\EmailTemplatePreview;
 use Reshapify\SendSeven\Data\EmailThread;
 use Reshapify\SendSeven\Data\GmailSync;
 use Reshapify\SendSeven\Data\InlineImageUpload;
-use Reshapify\SendSeven\Data\SendingStatus;
 use Reshapify\SendSeven\Data\Sync;
 use Reshapify\SendSeven\Data\TestAlias;
+use Reshapify\SendSeven\Enums\CreatableEmailIntegrationType;
 use Reshapify\SendSeven\Enums\EmailIntegrationType;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
@@ -37,7 +34,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Email Integrations: 35 endpoints.
+ * Email Integrations: 29 endpoints.
  *
  * Reach it with $sendseven->emailIntegrations().
  *
@@ -79,23 +76,18 @@ final readonly class EmailIntegrations
      * Create a new email integration.
      *
      * Integration Types: - gmail - OAuth2 connection to Gmail - smtp_imap - Generic SMTP/IMAP server -
-     * sendgrid - Customer's own SendGrid account (deprecated for new integrations) - ses_managed -
-     * SendSeven managed SES (auto-setup: creates tenant, config set, starts domain verification) -
-     * proxy - Email forwarding via proxy address
+     * sendgrid - Customer's own SendGrid account (deprecated for new integrations) - proxy - Email
+     * forwarding via proxy address
      *
-     * For ses_managed integrations with ses_domain provided: - Automatically creates SES Configuration
-     * Set - Automatically starts domain verification - Returns DNS records that must be added to
-     * complete verification
+     * ses_managed is no longer supported and is rejected with 422.
      *
      * Scopes: email_integrations:create.
      *
      * @param  string  $name  Integration name
      * @param  string  $emailAddress  Email address for this integration
-     * @param  EmailIntegrationType|string  $integrationType  Type of integration (gmail, smtp_imap, sendgrid, ses_managed, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type.
+     * @param  CreatableEmailIntegrationType|string  $integrationType  Type of integration (gmail, smtp_imap, sendgrid, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type.
      * @param  array<string, mixed>|null  $smtpConfig
      * @param  array<string, mixed>|null  $imapConfig
-     * @param  ?string  $sesDomain  Domain for SES verification
-     * @param  ?string  $sesReputationPolicy  SES reputation policy
      * @param  ?string  $proxyForwardTo  Email to forward proxy emails to
      * @param  ?string  $outboundMailboxId  ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies.
      * @param  ?string  $outboundProviderId  DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending.
@@ -113,11 +105,9 @@ final readonly class EmailIntegrations
     public function create(
         string $name,
         string $emailAddress,
-        EmailIntegrationType|string $integrationType,
+        CreatableEmailIntegrationType|string $integrationType,
         ?array $smtpConfig = null,
         ?array $imapConfig = null,
-        ?string $sesDomain = null,
-        ?string $sesReputationPolicy = null,
         ?string $proxyForwardTo = null,
         ?string $outboundMailboxId = null,
         ?string $outboundProviderId = null,
@@ -137,8 +127,6 @@ final readonly class EmailIntegrations
                 'integration_type' => $integrationType,
                 'smtp_config' => $smtpConfig,
                 'imap_config' => $imapConfig,
-                'ses_domain' => $sesDomain,
-                'ses_reputation_policy' => $sesReputationPolicy,
                 'proxy_forward_to' => $proxyForwardTo,
                 'outbound_mailbox_id' => $outboundMailboxId,
                 'outbound_provider_id' => $outboundProviderId,
@@ -217,7 +205,10 @@ final readonly class EmailIntegrations
      * Adds the email address to the blacklist. Future emails from this sender will be skipped during
      * polling.
      *
-     * Scopes: email_integrations:update.
+     * The whole contact (all channels) is blocked only when the address clearly belongs to exactly one
+     * contact AND the caller also has contacts:update; otherwise only the address itself is blocked.
+     *
+     * Scopes: email_integrations:update, contacts:update.
      *
      * @param  string  $emailAddress  Email address to block
      * @param  ?string  $reason  Reason for blocking
@@ -253,7 +244,12 @@ final readonly class EmailIntegrations
      *
      * Unblock an email sender (remove from blacklist).
      *
-     * Scopes: email_integrations:update.
+     * Unblocks the owning contact as a whole only when the caller also has contacts:update; otherwise
+     * only the address itself is unblocked.
+     *
+     * a contact-level unblock)
+     *
+     * Scopes: email_integrations:update, contacts:update.
      *
      *
      * @throws ApiException
@@ -299,7 +295,8 @@ final readonly class EmailIntegrations
      * reply to.
      *
      * Features: - Plain text and/or HTML body support (rich text) - Subject line required - CC/BCC
-     * support - Attachment support via attachment IDs
+     * support - Attachment support via attachment IDs - include_signature / signature_html: append the
+     * sender's signature (or an edited one) once, same as the reply endpoint
      *
      * Scopes: email_integrations:update, messages:create.
      *
@@ -311,6 +308,8 @@ final readonly class EmailIntegrations
      * @param  list<string>|null  $bccEmails  BCC recipients
      * @param  list<string>|null  $attachmentIds  IDs of attachments to include
      * @param  ?string  $senderId  Override the connection used to send this email. Must be one of the ids returned by GET /api/v1/inboxes/{id}/sender-options (or, when composing inside an existing conversation, /api/v1/conversations/{id}/sender-options).
+     * @param  ?bool  $includeSignature  Append the sender's email signature (personal signature, else the workspace template, placeholders resolved) to this email. Skipped when the body already contains it. Omitted/false: the body is sent as given.
+     * @param  ?string  $signatureHtml  An edited signature for this email, used instead of the saved one when include_signature is true (sanitized, placeholders resolved).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -327,6 +326,8 @@ final readonly class EmailIntegrations
         ?array $bccEmails = null,
         ?array $attachmentIds = null,
         ?string $senderId = null,
+        ?bool $includeSignature = null,
+        ?string $signatureHtml = null,
         ?string $idempotencyKey = null,
     ): EmailReply {
         $response = $this->connector->send(new Request(
@@ -341,6 +342,8 @@ final readonly class EmailIntegrations
                 'bcc_emails' => $bccEmails,
                 'attachment_ids' => $attachmentIds,
                 'sender_id' => $senderId,
+                'include_signature' => $includeSignature,
+                'signature_html' => $signatureHtml,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -553,7 +556,7 @@ final readonly class EmailIntegrations
      *
      * Optionally hide all existing messages from this sender.
      *
-     * Scopes: email_integrations:update.
+     * Scopes: email_integrations:update, contacts:update.
      *
      * @param  ?string  $reason  Reason for blocking
      * @param  ?bool  $hideExistingMessages  Also hide all existing messages from this sender
@@ -629,8 +632,11 @@ final readonly class EmailIntegrations
      * @param  list<string>|null  $toEmails  Explicit recipient override; when omitted, defaults to the original message's Reply-To or From address. When provided and non-empty, these addresses are used exactly (reply-all expansion is not applied on top).
      * @param  ?bool  $replyAll  Reply to all original recipients
      * @param  ?string  $subjectOverride  Override reply subject (default: Re: original)
+     * @param  ?bool  $includeSignature  Append the sender's email signature (personal signature, else the workspace template, placeholders resolved) to this reply. Skipped when the body already contains it. Omitted/false: the body is sent as given.
+     * @param  ?string  $signatureHtml  Email only: an edited signature for this message, used instead of the saved one when include_signature is true (sanitized, placeholders resolved).
      * @param  ?bool  $includeThreadHistory  Override whether to append the quoted prior-thread history block beneath this reply. When omitted/null, the owning mailbox's include_thread_history default (TRUE) is used.
      * @param  ?string  $senderId  Override the connection used to send this reply. Must be one of the ids returned by GET /api/v1/conversations/{conversation_id}/sender-options.
+     * @param  array<string, mixed>|null  $meta  Optional outbound translation info: {translations: {original, original_language}, translated_to}. Other keys are ignored.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -648,8 +654,11 @@ final readonly class EmailIntegrations
         ?array $toEmails = null,
         ?bool $replyAll = null,
         ?string $subjectOverride = null,
+        ?bool $includeSignature = null,
+        ?string $signatureHtml = null,
         ?bool $includeThreadHistory = null,
         ?string $senderId = null,
+        ?array $meta = null,
         ?string $idempotencyKey = null,
     ): EmailReply {
         $response = $this->connector->send(new Request(
@@ -665,8 +674,11 @@ final readonly class EmailIntegrations
                 'to_emails' => $toEmails,
                 'reply_all' => $replyAll,
                 'subject_override' => $subjectOverride,
+                'include_signature' => $includeSignature,
+                'signature_html' => $signatureHtml,
                 'include_thread_history' => $includeThreadHistory,
                 'sender_id' => $senderId,
+                'meta' => $meta,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -791,13 +803,14 @@ final readonly class EmailIntegrations
      *
      * Archive (soft-delete) an email integration with full resource cleanup.
      *
-     * This archives the integration and cleans up all associated resources: - For SES managed
-     * integrations: removes domain identity from AWS SES (only if no other active integration uses the
-     * same domain), deletes the SES configuration set, and removes the SES tenant - Deletes DNS
-     * verification records from the database - Deactivates proxy mappings for proxy integrations -
-     * Clears sensitive credentials (OAuth tokens, passwords, API keys) - Marks the integration as
-     * archived with timestamp - Preserves the integration record for billing history and audit
-     * purposes
+     * This archives the integration and cleans up all associated resources: - Deactivates proxy
+     * mappings for proxy integrations - Clears the integration's default flag - Deactivates mailboxes
+     * that send only through this integration (and clears their default flag) - Clears email settings
+     * that pointed at it: support integration, default support/campaign mailbox, double opt-in
+     * mailbox, and the support From address when it belonged to this integration. No new default is
+     * chosen. - Clears sensitive credentials (OAuth tokens, passwords, API keys) - Marks the
+     * integration as archived with timestamp - Preserves the integration record for billing history
+     * and audit purposes
      *
      * The integration will no longer appear in the list or be usable. After archiving, the same domain
      * can be re-added to a new integration.
@@ -904,37 +917,6 @@ final readonly class EmailIntegrations
     }
 
     /**
-     * Add Domain.
-     *
-     * Start domain verification for an SES managed integration.
-     *
-     * This: 1. Creates an email identity for the domain in SES 2. Returns DNS records (DKIM, SPF,
-     * DMARC) that need to be added 3. Associates the domain with the SES tenant once verified
-     *
-     * The customer must add these DNS records to their domain before emails can be sent.
-     *
-     * Scopes: email_integrations:update.
-     *
-     * @param  string  $domain  Domain to verify (e.g., 'acme.com')
-     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
-     *
-     * @throws ApiException
-     *
-     * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/add_domain_api_v1_email_integrations__integration_id__add_domain_post
-     */
-    public function addDomain(string $integrationId, string $domain, ?string $idempotencyKey = null): DomainVerification
-    {
-        $response = $this->connector->send(new Request(
-            Method::Post,
-            '/email-integrations/'.Payload::segment($integrationId).'/add-domain',
-            body: Payload::body(['domain' => $domain]),
-            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-        ));
-
-        return DomainVerification::fromArray($response->data());
-    }
-
-    /**
      * Remove Gmail Alias.
      *
      * Remove a verified Gmail send-as alias.
@@ -954,55 +936,6 @@ final readonly class EmailIntegrations
             Method::Delete,
             '/email-integrations/'.Payload::segment($integrationId).'/aliases/'.Payload::segment($aliasEmail),
         ));
-    }
-
-    /**
-     * Get Dns Records.
-     *
-     * Get DNS records required for domain verification.
-     *
-     * Returns DKIM, SPF, and DMARC records that need to be set in DNS.
-     *
-     * Scopes: email_integrations:read.
-     *
-     * @return list<DnsRecord>
-     *
-     * @throws ApiException
-     *
-     * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/get_dns_records_api_v1_email_integrations__integration_id__dns_records_get
-     */
-    public function getDnsRecords(string $integrationId): array
-    {
-        $response = $this->connector->send(new Request(
-            Method::Get,
-            '/email-integrations/'.Payload::segment($integrationId).'/dns-records',
-        ));
-
-        return Hydrate::list($response->data(), DnsRecord::fromArray(...));
-    }
-
-    /**
-     * Get Domain Status.
-     *
-     * Check domain verification status for an SES managed integration.
-     *
-     * Returns the current verification status and DNS records.
-     *
-     * Scopes: email_integrations:read.
-     *
-     *
-     * @throws ApiException
-     *
-     * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/get_domain_status_api_v1_email_integrations__integration_id__domain_status_get
-     */
-    public function getDomainStatus(string $integrationId): DomainVerification
-    {
-        $response = $this->connector->send(new Request(
-            Method::Get,
-            '/email-integrations/'.Payload::segment($integrationId).'/domain-status',
-        ));
-
-        return DomainVerification::fromArray($response->data());
     }
 
     /**
@@ -1031,62 +964,6 @@ final readonly class EmailIntegrations
         ));
 
         return GmailSync::fromArray($response->data());
-    }
-
-    /**
-     * Pause Sending.
-     *
-     * Pause email sending for an SES managed integration.
-     *
-     * This manually pauses the SES tenant, stopping all email sending. Use this if you need to
-     * temporarily disable sending (e.g., suspected abuse).
-     *
-     * Scopes: email_integrations:update.
-     *
-     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
-     *
-     * @throws ApiException
-     *
-     * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/pause_sending_api_v1_email_integrations__integration_id__pause_sending_post
-     */
-    public function pauseSending(string $integrationId, ?string $idempotencyKey = null): SendingStatus
-    {
-        $response = $this->connector->send(new Request(
-            Method::Post,
-            '/email-integrations/'.Payload::segment($integrationId).'/pause-sending',
-            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-        ));
-
-        return SendingStatus::fromArray($response->data());
-    }
-
-    /**
-     * Resume Sending.
-     *
-     * Resume email sending for an SES managed integration.
-     *
-     * This resumes sending for a paused SES tenant.
-     *
-     * Note: If the tenant was auto-paused due to reputation issues, you should address the underlying
-     * problem before resuming.
-     *
-     * Scopes: email_integrations:update.
-     *
-     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
-     *
-     * @throws ApiException
-     *
-     * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/resume_sending_api_v1_email_integrations__integration_id__resume_sending_post
-     */
-    public function resumeSending(string $integrationId, ?string $idempotencyKey = null): SendingStatus
-    {
-        $response = $this->connector->send(new Request(
-            Method::Post,
-            '/email-integrations/'.Payload::segment($integrationId).'/resume-sending',
-            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-        ));
-
-        return SendingStatus::fromArray($response->data());
     }
 
     /**
@@ -1169,31 +1046,5 @@ final readonly class EmailIntegrations
         ));
 
         return TestAlias::fromArray($response->data());
-    }
-
-    /**
-     * Verify Dns.
-     *
-     * Trigger DNS verification check.
-     *
-     * Checks if the required DNS records have been properly configured.
-     *
-     * Scopes: email_integrations:update.
-     *
-     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
-     *
-     * @throws ApiException
-     *
-     * @see https://api.sendseven.com/api/v1/docs#/Email%20Integrations/verify_dns_api_v1_email_integrations__integration_id__verify_dns_post
-     */
-    public function verifyDns(string $integrationId, ?string $idempotencyKey = null): DnsVerificationCheck
-    {
-        $response = $this->connector->send(new Request(
-            Method::Post,
-            '/email-integrations/'.Payload::segment($integrationId).'/verify-dns',
-            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
-        ));
-
-        return DnsVerificationCheck::fromArray($response->data());
     }
 }

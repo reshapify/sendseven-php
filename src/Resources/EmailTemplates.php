@@ -86,8 +86,9 @@ final readonly class EmailTemplates
      * creation - Variables use lowercase_with_underscores naming convention
      *
      * Variable System: - Template variables: {{hero_title}}, {{cta_url}}, {{main_content}} - Contact
-     * variables: {{contact.name}}, {{contact.email}} - Company variables: {{company.name}} - System
-     * variables: {{system.year}}
+     * variables: {{contact.first_name}}, {{contact.email}}, {{contact.custom.<key>}} - Company
+     * variables: {{company.name}}, {{company.address}}, {{company.logo_url}} - Agent variables:
+     * {{agent.name}}, {{agent.job_title}} - System variables: {{system.year}}
      *
      * Scopes: email:create.
      *
@@ -138,12 +139,13 @@ final readonly class EmailTemplates
      * Preview MJML template without saving (with variable replacement)
      *
      * - Accepts MJML source with {{variable}} placeholders - Replaces variables with example values -
-     * Brand variables are auto-filled from tenant settings - Compiles MJML to HTML - Returns HTML for
-     * preview - Does not save to database
+     * Company variables are auto-filled from your company profile and branding - Compiles MJML to HTML
+     * - Returns HTML for preview - Does not save to database
      *
-     * Brand Variables (auto-filled): - {{company.brand_color_primary}} - Primary brand color -
-     * {{company.brand_color_secondary}} - Secondary brand color - {{company.brand_color_accent}} -
-     * Accent brand color - {{company.logo_url}} - Company logo URL - {{company.name}} - Company name
+     * Company Variables (auto-filled when set in your company profile): -
+     * {{company.brand_color_primary}} / _secondary / _accent - Brand colors - {{company.logo_url}} -
+     * Company logo URL - {{company.name}}, {{company.legal_name}}, {{company.address}},
+     * {{company.phone}}, {{company.email}}, {{company.website}}
      *
      * Scopes: email:read.
      *

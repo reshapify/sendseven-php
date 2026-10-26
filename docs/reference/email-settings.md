@@ -41,7 +41,7 @@ $result = $sendseven->emailSettings()->get();
 
 - Scopes: `settings:read`
 
-Returns `EmailSettingsResponse`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Settings/get_email_settings_api_v1_email_settings_get)
+Returns `AppSchemasEmailSettingsSchemaEmailSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Settings/get_email_settings_api_v1_email_settings_get)
 
 ## update
 
@@ -68,7 +68,7 @@ $result = $sendseven->emailSettings()->update();
 | `$footerMode` | `?string` | no | Which compliance links emails carry by default: both (unsubscribe + manage preferences), unsubscribe_only, or none (no visible footer — transactional senders only; RFC 8058 List-Unsubscribe headers are still sent). Individual emails can override this via the email content's footer_mode. unsubscribe_only and none also disable the hosted preference center for this account. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
-Returns `EmailSettingsResponse`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Settings/update_email_settings_api_v1_email_settings_patch)
+Returns `AppSchemasEmailSettingsSchemaEmailSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Settings/update_email_settings_api_v1_email_settings_patch)
 
 ## validateComplianceFooter
 

@@ -10,6 +10,7 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\EmailContent;
 use Reshapify\SendSeven\Data\EmailContentListItem;
 use Reshapify\SendSeven\Data\EmailContentPreview;
+use Reshapify\SendSeven\Data\EmailContentRender;
 use Reshapify\SendSeven\Data\EmailVariables;
 use Reshapify\SendSeven\Enums\EmailContentTypeEnum;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -21,7 +22,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Email Contents: 8 endpoints.
+ * Email Contents: 9 endpoints.
  *
  * Reach it with $sendseven->emailContents().
  *
@@ -181,10 +182,11 @@ final readonly class EmailContents
      *
      * Returns a comprehensive list of variables that can be used in email templates:
      *
-     * - contact: Recipient contact information (name, email, phone, etc.) - company: Your
-     * company/organization details (including brand colors) - campaign: Auto-filled campaign variables
-     * (unsubscribe link, etc.) - system: System variables (current year, date, etc.) - custom_fields:
-     * Your tenant's custom contact fields
+     * - contact: Recipient contact information (name, email, phone, birthday) - custom_fields: Your
+     * workspace's custom contact fields (contact.custom.<key>) - company: Your company profile and
+     * branding (name, address, logo, colors, ...) - agent: The team member who sends the email (name,
+     * email, phone, job title, role) - campaign: Auto-filled campaign variables (unsubscribe link,
+     * etc.) - system: System variables (current year, date)
      *
      * Scopes: email:read.
      *
@@ -379,5 +381,48 @@ final readonly class EmailContents
         ));
 
         return EmailContentPreview::fromArray($response->data());
+    }
+
+    /**
+     * Render Email Content.
+     *
+     * Render email content for a real recipient (conversation reply / new email).
+     *
+     * The server resolves every variable:
+     *
+     * - contact.* / contact.custom.*: the contact contact_id, or the contact of conversation_id (must
+     * belong to your workspace, else 404) - company.*: your company profile and branding - agent.*:
+     * you (the requesting user), while an active workspace member - system.*: current year / date
+     *
+     * Scopes: email:read.
+     *
+     * @param  ?string  $contactId  Contact to personalise for (must belong to the workspace)
+     * @param  ?string  $conversationId  Conversation whose contact is used when contact_id is not given
+     * @param  array<string, mixed>|null  $variables  Template variable fills (plain names such as hero_title). Namespaced values (contact.*, company.*, agent.*, campaign.*, system.*) are always resolved by the server and ignored here.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Email%20Contents/render_email_content_api_v1_email_contents__content_id__render_post
+     */
+    public function render(
+        string $contentId,
+        ?string $contactId = null,
+        ?string $conversationId = null,
+        ?array $variables = null,
+        ?string $idempotencyKey = null,
+    ): EmailContentRender {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/email-contents/'.Payload::segment($contentId).'/render',
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'conversation_id' => $conversationId,
+                'variables' => $variables,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return EmailContentRender::fromArray($response->data());
     }
 }

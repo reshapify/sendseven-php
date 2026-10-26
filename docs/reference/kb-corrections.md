@@ -2,7 +2,7 @@
 
 # KB Corrections
 
-`$sendseven->kbCorrections()` — 7 endpoints.
+`$sendseven->kbCorrections()` — 8 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -13,6 +13,7 @@
 | [`get()`](#get) | `GET /kb-corrections/{correction_id}` | Get Kb Correction |
 | [`approve()`](#approve) | `POST /kb-corrections/{correction_id}/approve` | Approve Kb Correction |
 | [`reject()`](#reject) | `POST /kb-corrections/{correction_id}/reject` | Reject Kb Correction |
+| [`retryAnalysis()`](#retryanalysis) | `POST /kb-corrections/{correction_id}/retry-analysis` | Retry Kb Correction Analysis |
 
 ## listFaqEntryRevisions
 
@@ -87,7 +88,7 @@ Reporting is deliberately an everyday agent permission — the person who notice
 $result = $sendseven->kbCorrections()->create(whatIsWrong: 'what_is_wrong');
 ```
 
-- Scopes: `conversations:write`
+- Scopes: `conversations:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -131,7 +132,7 @@ Every applied change writes a faq_entry_revisions row, which is what makes this 
 $result = $sendseven->kbCorrections()->approve(correctionId: 'correction_id');
 ```
 
-- Scopes: `knowledge_base:manage`
+- Scopes: `knowledge_base:manage`, `automation:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -147,6 +148,8 @@ Reject Kb Correction. `POST /kb-corrections/{correction_id}/reject`
 
 Decline a proposed correction. Nothing touches the knowledge base.
 
+A policy correction routed to an open agent skill suggestion has its rule removed from that suggestion; with no rule left the suggestion is dismissed. The answer rating itself is kept.
+
 ```php
 $result = $sendseven->kbCorrections()->reject(correctionId: 'correction_id');
 ```
@@ -160,3 +163,24 @@ $result = $sendseven->kbCorrections()->reject(correctionId: 'correction_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `KbCorrection`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/KB%20Corrections/reject_kb_correction_api_v1_kb_corrections__correction_id__reject_post)
+
+## retryAnalysis
+
+Retry Kb Correction Analysis. `POST /kb-corrections/{correction_id}/retry-analysis`
+
+Re-run the AI analysis of a correction that failed or stalled.
+
+Allowed for failed corrections and for open/analyzing ones that have not moved for the stale window (a lost job). Anything else → 409 not_retryable. The row goes back to open and the analysis job is re-published; poll GET /kb-corrections/{id}.
+
+```php
+$result = $sendseven->kbCorrections()->retryAnalysis(correctionId: 'correction_id');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$correctionId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `KbCorrection`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/KB%20Corrections/retry_kb_correction_analysis_api_v1_kb_corrections__correction_id__retry_analysis_post)

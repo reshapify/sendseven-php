@@ -28,6 +28,7 @@ final readonly class ChannelHealthItem extends Data
         public ?string $lastError,
         public ?string $lastErrorAt,
         public ?string $emailAddress,
+        public ?int $degradedErrorCode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,6 +50,7 @@ final readonly class ChannelHealthItem extends Data
             lastError: $attributes->nullableString('last_error'),
             lastErrorAt: $attributes->nullableString('last_error_at'),
             emailAddress: $attributes->nullableString('email_address'),
+            degradedErrorCode: $attributes->nullableInt('degraded_error_code'),
             raw: $data,
         );
     }

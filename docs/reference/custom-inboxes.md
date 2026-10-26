@@ -55,6 +55,8 @@ $result = $sendseven->customInboxes()->createInbox(name: 'name');
 | `$tagIds` | `list<string>\|null` | no | Tag IDs used by the tag rule (interpreted via tag_filter_mode) |
 | `$fieldFilters` | `list<array<string, mixed>>\|null` | no | Custom-field rules (AND-combined) |
 | `$allowedUserIds` | `list<string>\|null` | no | Whitelisted user IDs (only used when access_mode='specific') |
+| `$allChannels` | `?bool` | no | True = the inbox covers every channel and email connection of the workspace (channel_ids / email_connections are ignored). False = only the listed ones; with none listed the inbox shows nothing. |
+| `$accessTagIds` | `list<string>\|null` | no | Team-member tag IDs that grant access (only used when access_mode='specific'): members holding ANY of these tags see the conversations matching this inbox's full filter. Separate from tag_ids, which filter conversations. |
 | `$isActive` | `?bool` | no |  |
 | `$sortOrder` | `?int` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
@@ -125,6 +127,8 @@ $result = $sendseven->customInboxes()->updateInbox(inboxId: 'inbox_id');
 | `$tagIds` | `list<string>\|null` | no |  |
 | `$fieldFilters` | `list<array<string, mixed>>\|null` | no |  |
 | `$allowedUserIds` | `list<string>\|null` | no |  |
+| `$allChannels` | `?bool` | no |  |
+| `$accessTagIds` | `list<string>\|null` | no |  |
 | `$isActive` | `?bool` | no |  |
 | `$sortOrder` | `?int` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |

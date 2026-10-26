@@ -13,6 +13,7 @@ use Reshapify\SendSeven\Data\Message;
 use Reshapify\SendSeven\Data\Reaction;
 use Reshapify\SendSeven\Data\SendCarousel;
 use Reshapify\SendSeven\Data\SendContacts;
+use Reshapify\SendSeven\Data\SenderAction;
 use Reshapify\SendSeven\Data\SendSticker;
 use Reshapify\SendSeven\Enums\InteractiveType;
 use Reshapify\SendSeven\Enums\MessageDirection;
@@ -28,7 +29,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Messages: 11 endpoints.
+ * Messages: 12 endpoints.
  *
  * Reach it with $sendseven->messages().
  *
@@ -121,11 +122,12 @@ final readonly class Messages
      * @param  string|array<array-key, mixed>|null  $attachments  Attachment IDs (UUIDs) returned from POST /api/v1/attachments/upload or POST /api/v1/attachments/from-url. Do NOT pass raw URLs here — fetch them via /attachments/from-url first to get an ID. Accepts either an array or a single bare ID string (`"<uuid>"` is treated as `["<uuid>"]`). Whitespace is trimmed and empty entries are dropped. On channels that can only carry ONE media object per message (WhatsApp, Telegram, Messenger, Instagram, SMS/MMS, browser push, RCS) several attachments are delivered as several messages — one per attachment, with `text` used as the caption of the FIRST one. This response returns the first message; the additional ones are listed in `related_message_ids`. Email (MIME parts) and live chat deliver all attachments inside a single message.
      * @param  list<string>|null  $attachmentFilenames  Optional per-message display-filename overrides for `attachments`, aligned positionally by index (entry N overrides the filename of `attachments[N]`). Controls the filename shown to the recipient — e.g. Meta's `filename` field on a WhatsApp document, so the user sees `Invoice-2026.pdf` instead of the stored object name. When omitted (or an entry is null/empty), the send path falls back to the original filename stored on the Attachment record (`attachments.filename`). If the list is shorter than `attachments`, only the leading attachments are overridden; extra entries beyond the number of attachments are ignored. Every entry now takes effect: on a channel that delivers one attachment per message, entry N is the filename of the message carrying `attachments[N]`.
      * @param  array<string, mixed>|null  $meta  Customer metadata
-     * @param  ?bool  $isVoice  Mark this message as a voice message (push-to-talk). Only valid when `message_type` is `audio` AND at least one attachment (the recorded audio) is supplied — the server rejects the send (422) otherwise. When true, `duration_ms` is required. Persisted into the message's `meta` as `meta.is_voice` (sibling meta keys are preserved). The recorded file is the first entry in `attachments` (a normal Attachment ID); the messages-out worker transcodes it to OGG/Opus before delivery. Default false → ordinary audio file send (unchanged behavior).
-     * @param  ?int  $durationMs  Recorded duration of the voice message in milliseconds. REQUIRED when `is_voice` is true; must be > 0 and <= 300000 (5 minutes — longer recordings are rejected with 422). Ignored when `is_voice` is false. Persisted into `meta.duration_ms`.
+     * @param  ?bool  $isVoice  Mark this message as a voice message (push-to-talk). Only valid when `message_type` is `audio` AND at least one attachment (the recorded audio) is supplied; the server rejects the send (422 `INVALID_VOICE_MESSAGE`) otherwise. The recorded file is the first entry in `attachments` (a normal Attachment ID); it is converted to the channel's native voice format before delivery. The duration is determined automatically from the recorded attachment and stored on the message as `meta.duration_ms` (alongside `meta.is_voice`; sibling meta keys are preserved). If it cannot be read at send time, `meta.duration_ms` is filled in once the recording has been processed. Voice messages are limited to 5 minutes (300000 ms): a longer recording is rejected with 422 `INVALID_VOICE_MESSAGE`, or, if its length can only be determined during processing, the message fails delivery (status `failed`). Default false: ordinary audio file send (unchanged behavior).
      * @param  ?bool  $includeSignature  Append the sender's email signature to outbound email (EmailSignature for the user, falling back to EmailSignatureTemplate for the tenant). Default `true` for email; ignored for chat-app channels.
+     * @param  ?string  $signatureHtml  Email only: an edited signature for this message, used instead of the saved one when include_signature is true (sanitized, placeholders resolved).
      * @param  ?string  $senderId  Optional sender override for email channel sends. The id either of an EmailIntegration (proxy / gmail / smtp-imap / ses-managed) or an EmailProviderConfig (SendGrid / Mailgun / SES). Surface candidates via GET /api/v1/conversations/{id}/sender-options. The server validates the choice against the user's EmailMailbox ACL, additionally allowing the conversation's default reply sender (the receiving connection's outbound_provider) even when the user is not on that mailbox's ACL. Ignored for non-email channels.
      * @param  ?string  $messageTrafficType  RCS only. Declares the traffic class of this send to the mobile carrier (`AgentMessage.messageTrafficType`): one of `AUTHENTICATION`, `TRANSACTION`, `PROMOTION`, `SERVICEREQUEST`, `ACKNOWLEDGEMENT`. This is a REGULATORY declaration, not a billing option — if the message is marketing you must declare `PROMOTION`. Omitted (the default) means `SERVICEREQUEST`, which is correct only for replies to a customer's own enquiry. Unrecognised values are ignored (the default applies) rather than failing the send. Ignored by all non-RCS channels.
+     * @param  array<string, mixed>|null  $channelOptions  Channel-specific send options. Currently only `tag` for Instagram and Facebook Messenger (`{"tag": "HUMAN_AGENT"}` or `{"tag": "none"}`). HUMAN_AGENT is only for replies genuinely written by a human agent, never for automation, bots or AI: Meta may revoke messaging access for misuse. Sends outside Meta's messaging window are not blocked by SendSeven; Meta decides and a rejection arrives as `message.failed`. 422 `channel_option_not_supported` for HUMAN_AGENT on any other channel.
      * @param  ?string  $contentFormat  How the send pipeline must treat the message body. `plain` (the default when omitted) = human-typed text, passed through to the channel UNTOUCHED. `markdown` = canonical markdown that the channel adapter renders into each channel's own formatting. Omit this for normal human replies — only AI/bot/flow-generated content should opt into `markdown`. Stored on the message as `meta.content_format`; absence is always treated as `plain`.
      * @param  array<string, mixed>|null  $content  DEPRECATED: use text and message_type directly
      * @param  array<string, mixed>|null  $metadata  DEPRECATED: use meta
@@ -149,10 +151,11 @@ final readonly class Messages
         ?array $attachmentFilenames = null,
         ?array $meta = null,
         ?bool $isVoice = null,
-        ?int $durationMs = null,
         ?bool $includeSignature = null,
+        ?string $signatureHtml = null,
         ?string $senderId = null,
         ?string $messageTrafficType = null,
+        ?array $channelOptions = null,
         ?string $contentFormat = null,
         ?array $content = null,
         ?array $metadata = null,
@@ -175,10 +178,11 @@ final readonly class Messages
                 'attachment_filenames' => $attachmentFilenames,
                 'meta' => $meta,
                 'is_voice' => $isVoice,
-                'duration_ms' => $durationMs,
                 'include_signature' => $includeSignature,
+                'signature_html' => $signatureHtml,
                 'sender_id' => $senderId,
                 'message_traffic_type' => $messageTrafficType,
+                'channel_options' => $channelOptions,
                 'content_format' => $contentFormat,
                 'content' => $content,
                 'metadata' => $metadata,
@@ -204,7 +208,7 @@ final readonly class Messages
      *
      * @param  string  $conversationId  Conversation UUID to attach the note to
      * @param  string  $text  Note text content
-     * @param  list<string>|null  $mentionedUserIds  User IDs mentioned with @ in this note (triggers notifications)
+     * @param  list<string>|null  $mentionedUserIds  User IDs mentioned with @ in this note (triggers notifications, max 50)
      * @param  ?string  $assignToUserId  If provided, assign the conversation to this user
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -265,7 +269,7 @@ final readonly class Messages
     /**
      * Send carousel message.
      *
-     * Send a carousel (multi-card) message via WhatsApp or Messenger.
+     * Send a carousel (multi-card) message via WhatsApp, Messenger or Instagram.
      *
      * This endpoint supports both platforms with different approaches:
      *
@@ -278,7 +282,7 @@ final readonly class Messages
      * @param  ?string  $templateName  WhatsApp template name (required for WhatsApp)
      * @param  ?string  $language  Template language code (default: 'en')
      * @param  list<array<string, mixed>>|null  $cards  WhatsApp carousel cards (max 10, required for WhatsApp)
-     * @param  list<array<string, mixed>>|null  $elements  Messenger carousel elements (max 10, required for Messenger)
+     * @param  list<array<string, mixed>>|null  $elements  Messenger / Instagram carousel elements (max 10, required for Messenger and Instagram). Instagram accepts only web_url and postback buttons and needs a subtitle, image_url, default_action or button besides each title.
      * @param  array<string, mixed>|null  $meta  Custom metadata to attach to the message
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -552,5 +556,38 @@ final readonly class Messages
         ));
 
         return Reaction::fromArray($response->data());
+    }
+
+    /**
+     * Mark a received message as read on the channel.
+     *
+     * Send a read receipt for an inbound message.
+     *
+     * Shows the contact that their message was read (for example the blue ticks on WhatsApp or "Seen"
+     * on Messenger and Instagram). No request body is needed.
+     *
+     * ## Important Notes - Only inbound messages (sent by the contact) can be marked as read (422
+     * message_not_inbound otherwise). - Not every channel supports read receipts — check GET
+     * /channels/sender-actions. Unsupported channels return 422 sender_action_not_supported (for
+     * example Telegram, SMS, email). - This is not a message: nothing is billed, no message is created
+     * and no webhook is sent. - Your inbox's own unread state is not changed by this call.
+     *
+     * Scopes: messages:create.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Messages/mark_message_read_on_channel_api_v1_messages__message_id__read_post
+     */
+    public function markReadOnChannel(string $messageId, ?string $idempotencyKey = null): SenderAction
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/messages/'.Payload::segment($messageId).'/read',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return SenderAction::fromArray($response->data());
     }
 }

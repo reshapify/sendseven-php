@@ -87,6 +87,7 @@ final readonly class Campaigns
      *
      * @param  array<string, mixed>|null  $channelContent
      * @param  list<string>|null  $listIds
+     * @param  array<string, mixed>|null  $audienceConditions  Audience Builder condition tree (same format as a dynamic list's `segment_conditions`). Must be a top-level `AND` whose children include at least one positive list membership: a `has_optin` condition (`operator: equals`, `value: true`, `list_id` of a static or newsletter list of this workspace) or a group of only such conditions (`OR` = any of the lists, `AND` = all of them). Other children narrow the audience down or exclude contacts (e.g. `has_optin` with `value: false`). When set, the campaign's lists are DERIVED from the membership lists and any `list_ids` sent are ignored. Errors: 422 `audience_list_membership_required`, `audience_membership_list_invalid`, or a validation error for a malformed tree. A tree with no conditions counts as null.
      * @param  list<string>|null  $channelFilter
      * @param  list<string>|null  $selectedChannelIds
      * @param  ?int  $sendRateLimit  Send speed in messages per minute (1-60000). Null = channel default speed.
@@ -109,6 +110,7 @@ final readonly class Campaigns
         ?string $targetUrl = null,
         ?string $browserPushTitle = null,
         ?array $listIds = null,
+        ?array $audienceConditions = null,
         ?array $channelFilter = null,
         ?array $selectedChannelIds = null,
         DateTimeInterface|string|null $scheduledAt = null,
@@ -139,6 +141,7 @@ final readonly class Campaigns
                 'target_url' => $targetUrl,
                 'browser_push_title' => $browserPushTitle,
                 'list_ids' => $listIds,
+                'audience_conditions' => $audienceConditions,
                 'channel_filter' => $channelFilter,
                 'selected_channel_ids' => $selectedChannelIds,
                 'scheduled_at' => $scheduledAt,
@@ -253,7 +256,9 @@ final readonly class Campaigns
      * message text. At send time, these placeholders are automatically replaced with the recipient
      * contact's data.
      *
-     * Includes the tenant's active custom field definitions as {{contact.custom.<key>}} variables.
+     * Includes the tenant's active custom field definitions as {{contact.custom.<key>}} variables only
+     * when the caller also holds contacts:read (custom-field definitions are gated by it on GET
+     * /custom-fields); without it the built-in variables are returned.
      *
      * Scopes: campaigns:read.
      *
@@ -301,6 +306,11 @@ final readonly class Campaigns
      *
      * Get a specific campaign
      *
+     * failure_reason explains a failed campaign (e.g. "no_recipients"). For a scheduled campaign,
+     * preflight_warnings lists problems found now, before the send: [{"code":
+     * "no_reachable_recipients"}] when its audience currently resolves to nobody ([] = nothing found,
+     * null = could not be checked).
+     *
      * Scopes: campaigns:read.
      *
      *
@@ -339,6 +349,7 @@ final readonly class Campaigns
      *
      * @param  array<string, mixed>|null  $channelContent
      * @param  list<string>|null  $listIds
+     * @param  array<string, mixed>|null  $audienceConditions  Audience Builder condition tree (same format as a dynamic list's `segment_conditions`). Must be a top-level `AND` whose children include at least one positive list membership: a `has_optin` condition (`operator: equals`, `value: true`, `list_id` of a static or newsletter list of this workspace) or a group of only such conditions (`OR` = any of the lists, `AND` = all of them). Other children narrow the audience down or exclude contacts (e.g. `has_optin` with `value: false`). When set, the campaign's lists are DERIVED from the membership lists and any `list_ids` sent are ignored. Errors: 422 `audience_list_membership_required`, `audience_membership_list_invalid`, or a validation error for a malformed tree. A tree with no conditions counts as null. Omit to leave unchanged; null clears it (the campaign keeps its current lists).
      * @param  list<string>|null  $channelFilter
      * @param  list<string>|null  $selectedChannelIds
      * @param  ?int  $sendRateLimit  Send speed in messages per minute (1-60000). Null clears it (channel default speed).
@@ -361,6 +372,7 @@ final readonly class Campaigns
         ?string $targetUrl = null,
         ?string $browserPushTitle = null,
         ?array $listIds = null,
+        ?array $audienceConditions = null,
         ?array $channelFilter = null,
         ?array $selectedChannelIds = null,
         DateTimeInterface|string|null $scheduledAt = null,
@@ -389,6 +401,7 @@ final readonly class Campaigns
                 'target_url' => $targetUrl,
                 'browser_push_title' => $browserPushTitle,
                 'list_ids' => $listIds,
+                'audience_conditions' => $audienceConditions,
                 'channel_filter' => $channelFilter,
                 'selected_channel_ids' => $selectedChannelIds,
                 'scheduled_at' => $scheduledAt,
@@ -499,24 +512,26 @@ final readonly class Campaigns
      *
      * Estimate campaign cost and check balance before sending
      *
+     * shared_whatsapp_numbers.groups additionally need contacts:read; without it groups is [] and
+     * groups_redacted is true, counts stay)
+     *
      * Returns: - total_cost_eur: RAW usage cost in EUR (before the included pool) - recipient_count:
-     * Number of recipients - breakdown: Cost breakdown by channel ({count, cost}) - warnings: List of
+     * Number of messages the send will create (one per recipient and channel; the same resolution as
+     * the send itself, so a contact without an address for a channel is not counted) -
+     * recipients_by_channel: {channel_type: messages} for the same rows - whatsapp_resolved_via:
+     * {"whatsapp_id": n, "phone": n} -- how the WhatsApp addresses were found (a contact without a
+     * WhatsApp ID is sent to its primary phone number) - audience_warnings: [{code, count}] --
+     * "no_reachable_recipients" (nobody can be reached) and "shared_whatsapp_number" (count =
+     * recipients whose WhatsApp number is also the number of another recipient; they are ALL still
+     * sent) - shared_whatsapp_numbers: {count, group_count, truncated, groups_redacted, groups:
+     * [{number, channel_id, contacts: [{id, name, resolved_via}]}]} -- at most 50 groups / 20 contacts
+     * per group inline (truncated=true when cut). resolved_via: "whatsapp_id" | "phone".
+     * groups_redacted=true (and groups=[]) when the caller lacks contacts:read; count / group_count
+     * and the audience_warnings count are still returned. - breakdown: Cost breakdown by channel
+     * ({count, cost}); count is billable units (a long SMS counts once per part) - warnings: List of
      * warnings about variable costs - can_send: Whether campaign can be sent based on balance -
      * balance_error: Error message if insufficient balance - current_balance_eur: Current balance in
      * EUR
-     *
-     * Included-pool fields (base_fee plans only; 0 / null on legacy minimum_commit plans or plans with
-     * no included pool -- the UI gates the pool UI on included_messages_total > 0 and otherwise
-     * headlines total_cost_eur): - included_messages_total: effective pooled allowance this month
-     * (int) - included_messages_used: pooled units already consumed this month (int) -
-     * included_messages_remaining: max(0, total - used) (int) - projected_sends: billable send units
-     * this campaign draws (int) - sends_covered_by_pool: min(projected_sends, remaining) (int) -
-     * sends_over_pool: max(0, projected_sends - remaining) (int) - payable_overage_eur: EUR actually
-     * payable for THIS campaign after the pool absorbs what it can (0.00 when fully covered; null when
-     * no pool applies -- use total_cost_eur). Excludes Meta/WhatsApp per-conversation template fees,
-     * which Meta bills separately. - fully_covered: bool, true when sends_over_pool == 0 -
-     * pool_is_shared: bool, true when the pool is shared across the account (human wording is authored
-     * on the frontend for i18n)
      *
      * Scopes: campaigns:read.
      *

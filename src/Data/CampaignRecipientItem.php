@@ -29,7 +29,7 @@ final readonly class CampaignRecipientItem extends Data
      * @param  ?string  $identifier  Channel handle (messenger) or email address (email)
      * @param  string  $status  Raw per-recipient status value
      * @param  ?string  $errorReason  Failure/bounce reason for failed-group recipients
-     * @param  ?string  $lastErrorCode  Machine-readable reason code, when it is a documented customer-facing code. Currently `insufficient_rcs_balance` / `rcs_wallet_blocked` for RCS rows held until the RCS balance is topped up; null otherwise (always null for email).
+     * @param  ?string  $lastErrorCode  Machine-readable reason code, when it is a documented customer-facing code. Currently `insufficient_rcs_balance` / `rcs_wallet_blocked` for RCS rows held until the RCS balance is topped up, and `rcs_postpaid_cap_reached` for RCS rows held until the monthly RCS spending cap is raised or the next month starts; null otherwise (always null for email).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

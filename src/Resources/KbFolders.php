@@ -303,9 +303,17 @@ final readonly class KbFolders
      * Only applicable to folders under "Websites" that have documents with source URLs. Will re-fetch
      * all pages and update content.
      *
+     * Omit exclude_paths, exclude_query_params, language and translation_handling to reuse the
+     * settings of the website's last crawl; sent fields replace them ([] clears a list). Invalid rules
+     * → 422 invalid_exclude_rule.
+     *
      * Scopes: knowledge_base:admin.
      *
      * @param  ?bool  $clearExisting  If true, delete all existing documents before re-crawling
+     * @param  list<string>|null  $excludePaths  Paths to leave out ('/en' excludes '/en/...' but not '/enterprise'). Omit to reuse the last crawl's rules; [] clears them.
+     * @param  list<string>|null  $excludeQueryParams  'name' or 'name=value' query parameters to leave out. Omit to reuse; [] clears.
+     * @param  ?string  $language  Content language to keep (e.g. 'de'). Omit to reuse.
+     * @param  ?string  $translationHandling  'keep_all' or 'skip_translations'. Omit to reuse the last crawl's setting.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -315,12 +323,22 @@ final readonly class KbFolders
     public function recrawlWebsite(
         string $folderId,
         ?bool $clearExisting = null,
+        ?array $excludePaths = null,
+        ?array $excludeQueryParams = null,
+        ?string $language = null,
+        ?string $translationHandling = null,
         ?string $idempotencyKey = null,
     ): WebsiteCrawlJob {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/knowledge-base/folders/'.Payload::segment($folderId).'/recrawl',
-            body: Payload::body(['clear_existing' => $clearExisting]),
+            body: Payload::body([
+                'clear_existing' => $clearExisting,
+                'exclude_paths' => $excludePaths,
+                'exclude_query_params' => $excludeQueryParams,
+                'language' => $language,
+                'translation_handling' => $translationHandling,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 

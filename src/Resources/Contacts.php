@@ -38,7 +38,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Contacts: 31 endpoints.
+ * Contacts: 32 endpoints.
  *
  * Reach it with $sendseven->contacts().
  *
@@ -98,6 +98,9 @@ final readonly class Contacts
      * conversation_id and source_contact are null in the response when you cannot open the visitor's
      * conversation.
      *
+     * API keys, OAuth apps and embed tokens without contacts:read get only {"id": "..."} in
+     * source_contact / target_contact.
+     *
      * Scopes: contacts:update.
      *
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -147,6 +150,9 @@ final readonly class Contacts
      * @param  ?string  $listSubscriptionStatus  Subscription status to match for list_id. Defaults to 'subscribed'. 'any' = a subscription row in ANY status; 'not_subscribed' = NOT currently subscribed (includes contacts with no row at all). Requires list_id (422).
      * @param  SubscriptionChannelType|string|null  $listSubscriptionChannel  Optionally narrow the list filter to one subscription channel (subscription rows are per channel). Requires list_id (422).
      * @param  list<string>|null  $tagId  tags.id — filter to contacts carrying that tag. Repeatable (?tag_id=a&tag_id=b) to match contacts carrying ANY of the given tags (OR). Filters by tag id, NOT tag name; this is distinct from `search` (which never matches tags). Each id must belong to the tenant (422 if not). Combinable with `search` and the other filters (all AND-ed).
+     * @param  ?bool  $isBlocked  Blocked-state filter: true = only blocked contacts, false = only unblocked contacts, omitted = all. Uses the contact's blocked flag. Combinable with every other filter.
+     * @param  ?string  $ownerUserId  Contact-owner filter: a team member's user id, `me` (contacts you own) or `none` (contacts without an owner).
+     * @param  ?string  $include  Comma-separated optional extras to embed in each item: `subscriptions` (active list subscriptions), `conversation_stats` (conversation_count + last_conversation_at). Unknown tokens return 422.
      * @return Page<Contact>
      *
      * @throws ApiException
@@ -168,6 +174,9 @@ final readonly class Contacts
         ?string $listSubscriptionStatus = null,
         SubscriptionChannelType|string|null $listSubscriptionChannel = null,
         ?array $tagId = null,
+        ?bool $isBlocked = null,
+        ?string $ownerUserId = null,
+        ?string $include = null,
     ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -187,10 +196,13 @@ final readonly class Contacts
                 'list_subscription_status' => $listSubscriptionStatus,
                 'list_subscription_channel' => $listSubscriptionChannel,
                 'tag_id' => $tagId,
+                'is_blocked' => $isBlocked,
+                'owner_user_id' => $ownerUserId,
+                'include' => $include,
             ]),
         ));
 
-        return Hydrate::page($response->data(), Contact::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, search: $search, includeLiveChat: $includeLiveChat, sortBy: $sortBy, sortDir: $sortDir, customFieldId: $customFieldId, customFieldValue: $customFieldValue, customFieldValueTo: $customFieldValueTo, customFieldOp: $customFieldOp, listId: $listId, listSubscriptionStatus: $listSubscriptionStatus, listSubscriptionChannel: $listSubscriptionChannel, tagId: $tagId));
+        return Hydrate::page($response->data(), Contact::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, search: $search, includeLiveChat: $includeLiveChat, sortBy: $sortBy, sortDir: $sortDir, customFieldId: $customFieldId, customFieldValue: $customFieldValue, customFieldValueTo: $customFieldValueTo, customFieldOp: $customFieldOp, listId: $listId, listSubscriptionStatus: $listSubscriptionStatus, listSubscriptionChannel: $listSubscriptionChannel, tagId: $tagId, isBlocked: $isBlocked, ownerUserId: $ownerUserId, include: $include));
     }
 
     /**
@@ -216,8 +228,9 @@ final readonly class Contacts
      * @param  ?string  $email  Email address
      * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr'). Auto-inferred from phone country if omitted.
      * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
+     * @param  ?string  $ownerUserId  Contact owner (team member user id). Must be an active member of this workspace (422 `invalid_contact_owner` otherwise). When an auto_merge match returns an existing contact, the owner is only set if that contact has none and the caller holds contacts:update.
      * @param  list<array<string, mixed>>|null  $contactMethods  Contact methods to create alongside the contact
-     * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates.
+     * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates. allow_duplicates cannot loosen a workspace set to dont_allow_duplicates: it is then ignored and a collision returns 409 with override_ignored=true.
      * @param  array<string, mixed>|null  $customFields  Custom field values keyed by custom field definition ID (preferred, stable across renames) or by the field `key`. Each value is validated and coerced to the field's type (see GET /custom-fields). On create, null / "" / [] entries are ignored. In auto_merge mode the given values overwrite the matched contact's values. Unknown or inactive fields are rejected with 422 `unknown_field` and nothing is written.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -233,6 +246,7 @@ final readonly class Contacts
         ?string $email = null,
         ?string $languages = null,
         ?string $birthday = null,
+        ?string $ownerUserId = null,
         ?array $contactMethods = null,
         DuplicateMode|string|null $duplicateMode = null,
         ?array $customFields = null,
@@ -249,6 +263,7 @@ final readonly class Contacts
                 'email' => $email,
                 'languages' => $languages,
                 'birthday' => $birthday,
+                'owner_user_id' => $ownerUserId,
                 'contact_methods' => $contactMethods,
                 'duplicate_mode' => $duplicateMode,
                 'custom_fields' => $customFields,
@@ -343,6 +358,8 @@ final readonly class Contacts
      * @param  ?string  $listId  lists.id — filter by list subscription (same as GET /contacts).
      * @param  ?string  $listSubscriptionStatus  Subscription status for list_id, default 'subscribed' (same semantics as GET /contacts). Requires list_id.
      * @param  SubscriptionChannelType|string|null  $listSubscriptionChannel  Narrow the list filter to one subscription channel (same as GET /contacts). Requires list_id.
+     * @param  ?bool  $isBlocked  true = only blocked contacts, false = only unblocked (same as GET /contacts).
+     * @param  ?string  $ownerUserId  Contact-owner filter: a team member's user id, `me` (contacts you own) or `none` (contacts without an owner).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -360,6 +377,8 @@ final readonly class Contacts
         ?string $listId = null,
         ?string $listSubscriptionStatus = null,
         SubscriptionChannelType|string|null $listSubscriptionChannel = null,
+        ?bool $isBlocked = null,
+        ?string $ownerUserId = null,
         ?string $idempotencyKey = null,
     ): ContactExportStart {
         $response = $this->connector->send(new Request(
@@ -376,6 +395,8 @@ final readonly class Contacts
                 'list_id' => $listId,
                 'list_subscription_status' => $listSubscriptionStatus,
                 'list_subscription_channel' => $listSubscriptionChannel,
+                'is_blocked' => $isBlocked,
+                'owner_user_id' => $ownerUserId,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -515,6 +536,7 @@ final readonly class Contacts
      * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
      * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr').
      * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
+     * @param  ?string  $ownerUserId  Contact owner (team member user id). null clears the owner. The owner must be an active member of this workspace; setting it also assigns the contact's open unassigned conversations to them.
      * @param  array<string, mixed>|null  $customFields  Custom field values to MERGE, keyed by custom field definition ID (preferred) or field `key`. Only the given fields are touched; null / "" / [] clears that field. Omitting `custom_fields` (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -532,6 +554,7 @@ final readonly class Contacts
         ?string $avatarUrl = null,
         ?string $languages = null,
         ?string $birthday = null,
+        ?string $ownerUserId = null,
         ?array $customFields = null,
         ?string $idempotencyKey = null,
     ): Contact {
@@ -547,6 +570,7 @@ final readonly class Contacts
                 'avatar_url' => $avatarUrl,
                 'languages' => $languages,
                 'birthday' => $birthday,
+                'owner_user_id' => $ownerUserId,
                 'custom_fields' => $customFields,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
@@ -580,6 +604,7 @@ final readonly class Contacts
      * @param  ?string  $phone  Phone number with country code (E.164, e.g. +491754633940)
      * @param  ?string  $languages  Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr').
      * @param  ?string  $birthday  Contact's date of birth (ISO 8601 YYYY-MM-DD)
+     * @param  ?string  $ownerUserId  Contact owner (team member user id). null clears the owner. The owner must be an active member of this workspace; setting it also assigns the contact's open unassigned conversations to them.
      * @param  array<string, mixed>|null  $customFields  Custom field values to MERGE, keyed by custom field definition ID (preferred) or field `key`. Only the given fields are touched; null / "" / [] clears that field. Omitting `custom_fields` (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written.
      *
      * @throws ApiException
@@ -596,6 +621,7 @@ final readonly class Contacts
         ?string $avatarUrl = null,
         ?string $languages = null,
         ?string $birthday = null,
+        ?string $ownerUserId = null,
         ?array $customFields = null,
     ): Contact {
         $response = $this->connector->send(new Request(
@@ -610,6 +636,7 @@ final readonly class Contacts
                 'avatar_url' => $avatarUrl,
                 'languages' => $languages,
                 'birthday' => $birthday,
+                'owner_user_id' => $ownerUserId,
                 'custom_fields' => $customFields,
             ]),
         ));
@@ -628,8 +655,10 @@ final readonly class Contacts
      * Each item carries a short-lived (60 min) signed VIEW url into the private media bucket plus,
      * when available, a signed thumbnail url — never raw bucket urls.
      *
-     * Items are one-per-message primary attachment, ordered DESC by (created_at, message_id);
-     * next_cursor is the opaque cursor of the last returned item when has_more is true.
+     * Sources: a message's primary attachment, interactive/template header media, and email file
+     * attachments (source="email", one item per file, message_id = the email's message). Inline email
+     * images (signature logos, cid: parts) are never listed; emails received/sent before email files
+     * were linked to generic attachments are not shown. Every item carries source (message | email).
      *
      * Scopes: contacts:read, messages:read.
      *
@@ -745,8 +774,14 @@ final readonly class Contacts
      *
      * Block a contact across all channels.
      *
-     * Blocked contacts will have their inbound messages silently dropped and will not trigger bot
-     * responses. If the contact has an email address, it is also added to the email sender blacklist.
+     * Blocks the contact and its identifiers. Incoming messages from any of the contact's phone
+     * numbers, email addresses and channel ids are dropped (and counted in blocked_inbound_count) and
+     * outgoing sends are refused with 409 CONTACT_BLOCKED while the contact is blocked. Verified and
+     * channel-native identifiers (the channel account the contact messaged from, verified email
+     * addresses) stay blocked even if the contact is deleted and later re-created; unverified,
+     * manually entered details are covered only while the contact exists and is blocked. Idempotent.
+     *
+     * Custom-Inbox restricted members can only block contacts they can reach (otherwise 404).
      *
      * Scopes: contacts:update.
      *
@@ -780,7 +815,7 @@ final readonly class Contacts
      *
      * Scopes: contacts:read, flows:read, conversations:read, scheduler:read, knowledge_base:read.
      *
-     * @param  list<string>|null  $types  Filter by event_type. Repeatable. Allowed values: `conversation`, `flow_run`, `flow_message`, `message`, `scheduler`, `ticket_summary`. Omit to include all known types (current FE behavior). Use `message` for the flat all-messages stream that powers the Messages view mode; use `scheduler` for pending/fired scheduled sends; use `ticket_summary` for the contact's AI conversation summaries (editable KB documents).
+     * @param  list<string>|null  $types  Filter by event_type. Repeatable. Allowed values: `conversation`, `flow_run`, `flow_message`, `message`, `scheduler`, `ticket_summary`, `conversation_deleted`. Omit to include all known types (current FE behavior). Use `message` for the flat all-messages stream that powers the Messages view mode; use `scheduler` for pending/fired scheduled sends; use `ticket_summary` for the contact's AI conversation summaries (editable KB documents); `conversation_deleted` lists the contact's permanently deleted conversations with who deleted them and when.
      * @param  ?string  $dateFrom  ISO8601 lower bound on each source's sort column.
      * @param  ?string  $dateTo  ISO8601 upper bound on each source's sort column.
      * @param  ?string  $q  Substring filter (LIKE %q%). Ignored when shorter than 2 chars. Matches conversation.subject + last message text, flow.name, and message.text depending on the event_type.
@@ -1083,7 +1118,8 @@ final readonly class Contacts
      * @param  ?string  $displayName  Display name like @username or custom label for social_other
      * @param  ?string  $phoneType  Phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown. Auto-inferred from value if omitted.
      * @param  ?bool  $isPrimary  Set as primary for this method type
-     * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates.
+     * @param  ?bool  $verified  Mark this identifier as verified (you have confirmed the contact controls it). Recorded with verified_source='api'. Channel-native platform IDs (telegram_id, messenger_id, instagram_id, whatsapp_bsuid) are always verified.
+     * @param  DuplicateMode|string|null  $duplicateMode  Optional per-request override for duplicate-contact handling. If omitted, the tenant's ``duplicate_contact_mode`` setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates. allow_duplicates cannot loosen a workspace set to dont_allow_duplicates: it is then ignored and a collision returns 409 with override_ignored=true.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -1098,6 +1134,7 @@ final readonly class Contacts
         ?string $displayName = null,
         ?string $phoneType = null,
         ?bool $isPrimary = null,
+        ?bool $verified = null,
         DuplicateMode|string|null $duplicateMode = null,
         ?string $idempotencyKey = null,
     ): ContactMethod {
@@ -1111,6 +1148,7 @@ final readonly class Contacts
                 'display_name' => $displayName,
                 'phone_type' => $phoneType,
                 'is_primary' => $isPrimary,
+                'verified' => $verified,
                 'duplicate_mode' => $duplicateMode,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
@@ -1145,13 +1183,22 @@ final readonly class Contacts
     /**
      * Update Contact Method.
      *
-     * Update a contact method (value, display_name, is_primary).
+     * Update a contact method (value, display_name, is_primary, verified).
+     *
+     * verified: true marks the identifier as verified (verified_source api), false clears it; omit it
+     * to keep the current state. Changing value without verified: true resets the method to unverified
+     * (a new value is a new claim). Changing verified is not allowed for OAuth apps (403
+     * verification_not_allowed).
+     *
+     * Without contacts:read the response contains only id, contact_id and the fields you sent, echoed
+     * as sent.
      *
      * Scopes: contacts:update.
      *
      * @param  ?string  $methodType  Optional: type hint for value normalization. When updating a whatsapp_id row, pass method_type='whatsapp_id' so the new value is normalized at the schema layer. Otherwise the service layer applies normalization based on the existing row's type.
      * @param  ?string  $value  Updated identifier value
      * @param  ?string  $phoneType  Override phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown.
+     * @param  ?bool  $verified  true marks the identifier as verified (verified_source='api'); false clears it. Omit to keep it unchanged. Changing `value` without sending verified=true resets the method to unverified.
      *
      * @throws ApiException
      *
@@ -1165,6 +1212,7 @@ final readonly class Contacts
         ?string $displayName = null,
         ?string $phoneType = null,
         ?bool $isPrimary = null,
+        ?bool $verified = null,
     ): ContactMethod {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -1175,7 +1223,45 @@ final readonly class Contacts
                 'display_name' => $displayName,
                 'phone_type' => $phoneType,
                 'is_primary' => $isPrimary,
+                'verified' => $verified,
             ]),
+        ));
+
+        return ContactMethod::fromArray($response->data());
+    }
+
+    /**
+     * Update Contact Method Verification.
+     *
+     * Mark a contact method as verified or unverified.
+     *
+     * Verified identifiers are trusted by AI agents and by automatic duplicate handling; unverified
+     * ones are treated as claims. Sets verified_source to manual and records who changed it. Marking a
+     * method verified also confirms any pending "typed by a live chat visitor" record for that
+     * identifier. Unmarking keeps that history.
+     *
+     * Not available to OAuth apps or embedded views (403 verification_not_allowed).
+     *
+     * Scopes: contacts:update.
+     *
+     * @param  bool  $verified  true marks the identifier as verified, false marks it unverified.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Contacts/update_contact_method_verification_api_v1_contacts__contact_id__methods__method_id__verification_patch
+     */
+    public function updateMethodVerification(
+        string $contactId,
+        string $methodId,
+        bool $verified,
+        ?string $idempotencyKey = null,
+    ): ContactMethod {
+        $response = $this->connector->send(new Request(
+            Method::Patch,
+            '/contacts/'.Payload::segment($contactId).'/methods/'.Payload::segment($methodId).'/verification',
+            body: Payload::body(['verified' => $verified]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
         return ContactMethod::fromArray($response->data());
@@ -1186,8 +1272,10 @@ final readonly class Contacts
      *
      * Unblock a contact across all channels.
      *
-     * Removes the contact block and also removes the email sender blacklist entry if the contact has
-     * an email address.
+     * Clears the contact block and removes the blocks on all of its identifiers (every channel),
+     * including its email addresses on the email sender block list. Idempotent.
+     *
+     * Custom-Inbox restricted members can only unblock contacts they can reach (otherwise 404).
      *
      * Scopes: contacts:update.
      *

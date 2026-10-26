@@ -19,6 +19,7 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
     /**
      * @param  array<array-key, mixed>  $definition
      * @param  list<mixed>  $defaultChannelChain
+     * @param  array<array-key, mixed>  $autoPauseDetails
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -39,11 +40,16 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
         public ?bool $stopOnConversationClosed,
         public ?int $priority,
         public ?bool $exclusive,
+        public ?int $version,
         public ?string $createdByUserId,
         public string $createdAt,
         public string $updatedAt,
         public ?FlowValidationStatus $validation,
         public ?int $runCount,
+        public ?string $autoPausedAt,
+        public ?string $autoPauseReason,
+        public array $autoPauseDetails,
+        public ?int $activeLoopPauseCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -74,11 +80,16 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
             stopOnConversationClosed: $attributes->nullableBool('stop_on_conversation_closed'),
             priority: $attributes->nullableInt('priority'),
             exclusive: $attributes->nullableBool('exclusive'),
+            version: $attributes->nullableInt('version'),
             createdByUserId: $attributes->nullableString('created_by_user_id'),
             createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             validation: $attributes->nullableObject('validation', FlowValidationStatus::fromArray(...)),
             runCount: $attributes->nullableInt('run_count'),
+            autoPausedAt: $attributes->nullableString('auto_paused_at'),
+            autoPauseReason: $attributes->nullableString('auto_pause_reason'),
+            autoPauseDetails: $attributes->array('auto_pause_details'),
+            activeLoopPauseCount: $attributes->nullableInt('active_loop_pause_count'),
             raw: $data,
         );
     }

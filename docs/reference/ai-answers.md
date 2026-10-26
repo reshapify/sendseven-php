@@ -39,7 +39,7 @@ Withdraw your own rating. Affected entry scores are recomputed.
 $result = $sendseven->aiAnswers()->deleteRating(eventId: 'event_id');
 ```
 
-- Scopes: `conversations:write`
+- Scopes: `conversations:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -53,19 +53,19 @@ Rate Ai Answer. `POST /ai-answers/{event_id}/rate`
 
 Rate an AI answer 👍 / 👎 / ✗ (upsert — re-rating replaces).
 
-down and wrong REQUIRE reason_category: a verdict with no reason cannot drive the correction loop and only produces noise in the score.
+reason_category (factually_wrong | outdated | incomplete | off_topic | wrong_tone | policy_violation | hallucinated | other) is optional:
 
 ```php
 $result = $sendseven->aiAnswers()->rate(eventId: 'event_id', verdict: 'verdict');
 ```
 
-- Scopes: `conversations:write`
+- Scopes: `conversations:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$eventId` | `string` | yes |  |
 | `$verdict` | `string` | yes | up \| down \| wrong |
-| `$reasonCategory` | `?string` | no | Required for down/wrong: factually_wrong \| outdated \| incomplete \| off_topic \| wrong_tone \| policy_violation \| hallucinated |
+| `$reasonCategory` | `?string` | no | Why the answer was bad: factually_wrong \| outdated \| incomplete \| off_topic \| wrong_tone \| policy_violation \| hallucinated \| other. Optional for 'down' (without it the 👎 is a statistic only; with it a review-only correction is opened). For 'wrong' it defaults to 'factually_wrong'. |
 | `$comment` | `?string` | no |  |
 | `$betterAnswer` | `?string` | no | What the answer should have said |
 | `$sourceAttribution` | `list<string>\|null` | no | faq_items.id values the rater explicitly blames. Takes full weight with no sharing (ignored for 'up' verdicts). |

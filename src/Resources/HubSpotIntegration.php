@@ -397,7 +397,13 @@ final readonly class HubSpotIntegration
      *
      * Update sync direction toggles and/or field-mapping overrides.
      *
-     * Scopes: settings:update.
+     * Custom-field targets (custom:<key>) need contacts:read. Without it, GET /status leaves them out,
+     * a field_mapping you send replaces only the non-custom part (the saved custom-field mappings are
+     * kept as they are), sending a custom:<key> target returns 403 contacts_read_required, and sending
+     * a property that is currently mapped to a custom field returns 409
+     * hubspot_property_has_hidden_mapping (nothing is saved).
+     *
+     * Scopes: settings:update, contacts:read.
      *
      * @param  array<string, mixed>|null  $syncDirectionConfig  Legacy wholesale config, e.g. {"contacts": "bidirectional" | "hubspot_to_ss" | "ss_to_hubspot" | "off", "transcripts": true}. Prefer the flat sync_direction / sync_transcripts fields.
      * @param  array<string, mixed>|null  $fieldMappingConfig  Legacy alias for field_mapping: {"hubspot_property": "sendseven_field"} overrides.
@@ -442,7 +448,10 @@ final readonly class HubSpotIntegration
      *
      * Connection state + sync configuration for the current tenant.
      *
-     * Scopes: settings:read.
+     * field_mapping entries that target a custom field (custom:<key>) are included only when the
+     * caller also holds contacts:read (custom field schema rule); otherwise they are left out.
+     *
+     * Scopes: settings:read, contacts:read.
      *
      * @throws ApiException
      *

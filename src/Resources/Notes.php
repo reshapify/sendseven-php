@@ -10,6 +10,7 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\ContactNote;
 use Reshapify\SendSeven\Data\Note;
 use Reshapify\SendSeven\Data\Success;
+use Reshapify\SendSeven\Data\UnifiedNoteItem;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
@@ -19,7 +20,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Notes: 6 endpoints.
+ * Notes: 7 endpoints.
  *
  * Reach it with $sendseven->notes().
  *
@@ -88,6 +89,9 @@ final readonly class Notes
      *
      * Get all notes for a conversation.
      *
+     * 404 when the conversation does not exist in the workspace or is not visible to the caller
+     * (custom inboxes).
+     *
      * Scopes: notes:read.
      *
      * @param  ?int  $page  Page number (1-indexed)
@@ -117,6 +121,10 @@ final readonly class Notes
      * Notes provide internal context for agents handling conversations. They are not visible to
      * customers.
      *
+     * The note is also shown in the conversation timeline as an internal note (the response's
+     * message_id is that timeline item). Internal notes are never sent to the customer and never
+     * billed.
+     *
      * Scopes: notes:create.
      *
      * @param  string  $content  Note content (plain text or markdown)
@@ -139,9 +147,58 @@ final readonly class Notes
     }
 
     /**
+     * Get Unified Notes Feed.
+     *
+     * Unified notes feed: notes, internal notes from the timeline and closing notes in one list,
+     * newest first.
+     *
+     * source=internal_message, are only included when the caller also holds messages:read)
+     *
+     * page * page_size must not exceed 1000 (422). For the contact scopes the newest 500 conversations
+     * of the contact are searched.
+     *
+     * Scopes: notes:read.
+     *
+     * @param  ?string  $conversationId  Conversation to show notes for (contact is derived from it)
+     * @param  ?string  $contactId  Contact to show notes for (required if conversation_id is not given)
+     * @param  ?string  $scope  `conversation` = notes of this conversation; `contact_conversations` = notes of all conversations of the contact; `contact` = contact-level notes; `all` = both
+     * @param  ?int  $page  Page number (1-indexed)
+     * @param  ?int  $pageSize  Items per page
+     * @return Page<UnifiedNoteItem>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Notes/get_unified_notes_feed_api_v1_notes_feed_get
+     */
+    public function getUnifiedFeed(
+        ?string $conversationId = null,
+        ?string $contactId = null,
+        ?string $scope = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/notes/feed',
+            query: Payload::query([
+                'conversation_id' => $conversationId,
+                'contact_id' => $contactId,
+                'scope' => $scope,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
+        ));
+
+        return Hydrate::page($response->data(), UnifiedNoteItem::fromArray(...), fn (int $page): Page => $this->getUnifiedFeed(conversationId: $conversationId, contactId: $contactId, scope: $scope, page: $page, pageSize: $pageSize));
+    }
+
+    /**
      * Delete Note.
      *
      * Delete a note.
+     *
+     * Only the note's author or a workspace owner/admin may delete it (403 otherwise). 404 when the
+     * note's conversation is not visible to the caller.
      *
      * Scopes: notes:delete.
      *
@@ -164,6 +221,9 @@ final readonly class Notes
      * Update Note.
      *
      * Update a note.
+     *
+     * Only the note's author or a workspace owner/admin may edit it (403 otherwise). 404 when the
+     * note's conversation is not visible to the caller.
      *
      * Scopes: notes:update.
      *

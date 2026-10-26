@@ -44,9 +44,9 @@ Returns `Page<ListResponse>`. [SendSeven reference](https://api.sendseven.com/ap
 
 Create List. `POST /lists`
 
-Create a new list (static, dynamic, or newsletter).
+Create a new list (newsletter or dynamic; static is legacy).
 
-- Static lists: Contacts are manually added/removed - Dynamic lists: Contacts are matched via segment conditions - Newsletter lists: Contacts subscribe via widgets/deep links
+- Static lists (legacy, no longer offered in the app; still accepted for older integrations): contacts are manually added/removed. Prefer a newsletter list, and tags for fixed groupings. - Dynamic lists: Contacts are matched via segment conditions. The conditions must start from list subscribers: a top-level AND with at least one positive has_optin condition (value: true, list_id of a static or newsletter list of this workspace) or a group of only such conditions (OR = any of the lists, AND = all). Otherwise HTTP 422 {code, message}: audience_list_membership_required, audience_membership_list_invalid, audience_conditions_invalid. - Newsletter lists: Contacts subscribe via widgets/deep links
 
 ```php
 $result = $sendseven->lists()->create(name: 'name', listType: 'list_type');
@@ -57,9 +57,9 @@ $result = $sendseven->lists()->create(name: 'name', listType: 'list_type');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$name` | `string` | yes | List name |
-| `$listType` | `ListType\|string` | yes | Type of list: static, dynamic, or newsletter |
+| `$listType` | `ListType\|string` | yes | Type of list: newsletter (contacts opt in / out per channel) or dynamic (members matched by segment_conditions). static is legacy: still accepted for older integrations, but no longer offered in the app; use a newsletter list instead (and tags for fixed groupings). |
 | `$description` | `?string` | no | List description |
-| `$segmentConditions` | `array<string, mixed>\|null` | no | Segment conditions for dynamic lists |
+| `$segmentConditions` | `array<string, mixed>\|null` | no | Segment conditions for dynamic lists. Required for dynamic lists and must start from list subscribers: a top-level AND whose children include a positive has_optin condition (operator: equals, value: true, list_id of a newsletter list (or a legacy static list) of this workspace, optional channel_type) or a group of only such conditions (OR = any of the lists, AND = all of them). Other children exclude contacts (has_optin with value: false) or narrow the audience down. Otherwise 422 {code, message}: audience_list_membership_required, audience_membership_list_invalid, audience_conditions_invalid. |
 | `$slug` | `?string` | no | URL-safe slug for newsletter lists (auto-generated if not provided) |
 | `$newsletterConfig` | `?string` | no | JSON string for newsletter configuration. Keys: opt_in_keywords, opt_out_keywords, welcome_message, goodbye_message, confirmation_message, auto_subscribe_via_deeplink, plus the button lists welcome_buttons / goodbye_buttons — each up to 3 objects of {"type": "unsubscribe"\|"unsubscribe_all"\|"subscribe"\|"url", "caption": "max 20 chars", "url": "https://… (url type only)"}. Buttons render natively on WhatsApp / Telegram / Messenger / Instagram and degrade to a keyword text hint elsewhere. Omitting goodbye_buttons entirely means a default "Re-subscribe" button is added; send [] for none. |
 | `$showInPreferenceCenter` | `?bool` | no | Whether this newsletter list is offered in the hosted email preference center (the 'Manage preferences' link in emails). Defaults to false — opt in explicitly to expose a list. Lists created before this field existed remain visible. |
@@ -77,13 +77,13 @@ Evaluate Conditions Count. `POST /lists/evaluate-count`
 
 Count contacts matching inline segment conditions.
 
-Accepts segment conditions directly (no saved list required) and returns the count of matching contacts without loading them into memory.
+Accepts segment conditions directly (no saved list required) and returns the count of matching contacts without loading them into memory. Needs contacts:read too: arbitrary conditions make the count a probe for contact and custom-field values.
 
 ```php
 $sendseven->lists()->evaluateConditionsCount();
 ```
 
-- Scopes: `lists:read`
+- Scopes: `lists:read`, `contacts:read`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -160,7 +160,7 @@ Update List. `PUT /lists/{list_id}`
 
 Update a list.
 
-Updates name, description, segment conditions, slug, or newsletter config. For dynamic lists, contact count is automatically recalculated.
+Updates name, description, segment conditions, slug, or newsletter config. For dynamic lists, contact count is automatically recalculated, and new segment_conditions must start from list subscribers (same rule and 422 codes as create). Name / description-only updates of existing lists are not re-validated.
 
 ```php
 $result = $sendseven->lists()->update(listId: 'list_id');
@@ -173,7 +173,7 @@ $result = $sendseven->lists()->update(listId: 'list_id');
 | `$listId` | `string` | yes |  |
 | `$name` | `?string` | no |  |
 | `$description` | `?string` | no |  |
-| `$segmentConditions` | `array<string, mixed>\|null` | no |  |
+| `$segmentConditions` | `array<string, mixed>\|null` | no | New segment conditions (dynamic lists). Same membership rule and 422 codes as on create. Omit to leave unchanged. |
 | `$slug` | `?string` | no |  |
 | `$newsletterConfig` | `?string` | no | Newsletter configuration JSON — same shape as on create, including welcome_buttons / goodbye_buttons |
 | `$showInPreferenceCenter` | `?bool` | no | Whether this newsletter list is offered in the hosted email preference center. Omit to leave unchanged. |
@@ -231,13 +231,13 @@ Evaluate Dynamic List. `POST /lists/{list_id}/evaluate`
 
 Preview contacts that match segment conditions.
 
-Used for testing/previewing dynamic list conditions before saving. Temporarily applies the provided conditions and returns matching contacts.
+Used for testing/previewing dynamic list conditions before saving. Evaluates the provided conditions against the list (nothing is saved) and returns matching contacts (name, phone, email), hence contacts:read.
 
 ```php
 $result = $sendseven->lists()->evaluateDynamic(listId: 'list_id');
 ```
 
-- Scopes: `lists:read`
+- Scopes: `lists:read`, `contacts:read`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -253,9 +253,9 @@ Returns `ListContacts`. [SendSeven reference](https://api.sendseven.com/api/v1/d
 
 Add Contact To List. `POST /lists/{list_id}/members`
 
-Add a contact to a list (static or newsletter).
+Add a contact to a list (newsletter, or a legacy static list).
 
-- Static lists: channel_type should be None (uses email by default) - Newsletter lists: channel_type is required (email, telegram, messenger, instagram, etc.); channel_id is additionally required for the scoped channels telegram / messenger / instagram.
+- Static lists (legacy): channel_type is ignored (stored as email) - Newsletter lists: channel_type is required (email, telegram, messenger, instagram, etc.); channel_id is additionally required for the scoped channels telegram / messenger / instagram.
 
 ```php
 $result = $sendseven->lists()->addContactTo(listId: 'list_id', contactId: 'contact_id');
@@ -279,7 +279,7 @@ Remove Contact From List. `DELETE /lists/{list_id}/members/{contact_id}`
 
 Remove a contact from a list.
 
-- Static lists: Removes the contact completely - Newsletter lists: Removes the subscription for a specific channel; channel_type is required. (For backwards compatibility a missing channel_type still falls back to email, but this is DEPRECATED and will be removed in a future release.) - Dynamic lists: Cannot remove (membership determined by conditions)
+- Static lists (legacy): Removes the contact completely - Newsletter lists: Removes the subscription for a specific channel; channel_type is required. (For backwards compatibility a missing channel_type still falls back to email, but this is DEPRECATED and will be removed in a future release.) - Dynamic lists: Cannot remove (membership determined by conditions)
 
 ```php
 $sendseven->lists()->removeContactFrom(listId: 'list_id', contactId: 'contact_id');

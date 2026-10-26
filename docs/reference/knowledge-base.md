@@ -2,10 +2,11 @@
 
 # Knowledge Base
 
-`$sendseven->knowledgeBase()` — 23 endpoints.
+`$sendseven->knowledgeBase()` — 27 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
+| [`getCrawlLimitsEndpoint()`](#getcrawllimitsendpoint) | `GET /knowledge-base/crawl/limits` | Get Crawl Limits Endpoint |
 | [`listDocuments()`](#listdocuments) | `GET /knowledge-base/documents` | List Documents |
 | [`createDocument()`](#createdocument) | `POST /knowledge-base/documents` | Create Document |
 | [`bulkDeleteDocuments()`](#bulkdeletedocuments) | `POST /knowledge-base/documents/bulk-delete` | Bulk Delete Documents |
@@ -19,6 +20,7 @@
 | [`uploadDocumentFile()`](#uploaddocumentfile) | `POST /knowledge-base/documents/upload` | Upload Document File |
 | [`uploadMultipleDocuments()`](#uploadmultipledocuments) | `POST /knowledge-base/documents/upload-multiple` | Upload Multiple Documents |
 | [`deleteDocument()`](#deletedocument) | `DELETE /knowledge-base/documents/{document_id}` | Delete Document |
+| [`getDocument()`](#getdocument) | `GET /knowledge-base/documents/{document_id}` | Get Document |
 | [`getDocumentRaw()`](#getdocumentraw) | `GET /knowledge-base/documents/{document_id}/raw` | Get Document Raw |
 | [`putDocumentRaw()`](#putdocumentraw) | `PUT /knowledge-base/documents/{document_id}/raw` | Put Document Raw |
 | [`refreshDocument()`](#refreshdocument) | `POST /knowledge-base/documents/{document_id}/refresh` | Refresh Document |
@@ -26,9 +28,27 @@
 | [`deleteFolder()`](#deletefolder) | `DELETE /knowledge-base/folders/{folder_id}` | Delete Folder |
 | [`retryFailedDocumentsInFolder()`](#retryfaileddocumentsinfolder) | `POST /knowledge-base/folders/{folder_id}/retry-failed` | Retry Failed Documents In Folder |
 | [`getKbJobStatus()`](#getkbjobstatus) | `GET /knowledge-base/jobs/{job_id}` | Get Kb Job Status |
+| [`getReviewQueue()`](#getreviewqueue) | `GET /knowledge-base/review-queue` | Get Review Queue |
+| [`getReviewQueueSummary()`](#getreviewqueuesummary) | `GET /knowledge-base/review-queue/summary` | Get Review Queue Summary |
 | [`search()`](#search) | `POST /knowledge-base/search` | Search Knowledge Base |
 | [`listTicketSummaries()`](#listticketsummaries) | `GET /knowledge-base/tickets` | List Ticket Summaries |
 | [`deleteTicketFromKb()`](#deleteticketfromkb) | `DELETE /knowledge-base/tickets/{ticket_id}` | Delete Ticket From Kb |
+
+## getCrawlLimitsEndpoint
+
+Get Crawl Limits Endpoint. `GET /knowledge-base/crawl/limits`
+
+Get the website-crawl page limit for the current workspace.
+
+max_pages is the most pages a single crawl or re-crawl may request (page_limit). Requests above it are rejected with 422 crawl_page_limit_exceeded. The limit is 2000 pages by default (default_max_pages); is_custom=true means it was raised for this workspace. Contact support_email to request a higher limit.
+
+```php
+$result = $sendseven->knowledgeBase()->getCrawlLimitsEndpoint();
+```
+
+- Scopes: `knowledge_base:create`
+
+Returns `CrawlLimits`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_crawl_limits_endpoint_api_v1_knowledge_base_crawl_limits_get)
 
 ## listDocuments
 
@@ -118,10 +138,14 @@ $result = $sendseven->knowledgeBase()->crawlWebsite(url: 'url');
 | `$url` | `string` | yes | URL to crawl |
 | `$followLinks` | `?bool` | no | If true, follow links and crawl multiple pages. If false, only crawl the single URL provided. |
 | `$titlePrefix` | `?string` | no | Optional prefix for document titles |
-| `$pageLimit` | `?int` | no | Maximum pages to crawl when follow_links=True (1-2000, default 200). Smart safeguards prevent duplicate content pages. |
+| `$pageLimit` | `?int` | no | Maximum pages to crawl when follow_links=True (default 200). Must not exceed your workspace crawl limit (2000 pages unless raised for your workspace; see GET /knowledge-base/crawl/limits). Larger values are rejected with 422 crawl_page_limit_exceeded - contact support@sendseven.com to raise the limit. Smart safeguards prevent duplicate content pages. |
 | `$maxDepth` | `?int` | no | Maximum crawl depth when follow_links=True (default from settings) |
 | `$rateLimit` | `float\|int\|null` | no | Seconds between requests (default from settings) |
 | `$refresh` | `?bool` | no | If true, delete existing documents from this domain before crawling |
+| `$excludePaths` | `list<string>\|null` | no | Paths to leave out of the crawl (max 50, each starting with '/', max 200 chars). Matching is case-insensitive on whole path segments: '/en' excludes '/en' and '/en/pricing' but not '/enterprise'. '/' alone is rejected. Example for a site whose main language is at the root and other languages under /en, /fr: ["/en", "/fr"]. Invalid rules return 422 invalid_exclude_rule. |
+| `$excludeQueryParams` | `list<string>\|null` | no | Query parameters to leave out (max 20): 'name' excludes every URL carrying that parameter, 'name=value' only that value (case-insensitive), e.g. ["lang=en"]. |
+| `$language` | `?string` | no | Content language to keep, e.g. 'de', 'en' or 'pt-br'. Used with translation_handling='skip_translations'. |
+| `$translationHandling` | `?string` | no | 'keep_all' (default) imports every language version. 'skip_translations' skips a page only when its own language differs from language AND the page links a version in language (hreflang) that is part of this crawl. Pages without such a version are kept, so no unique content is lost. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `WebsiteCrawlJob`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/crawl_website_api_v1_knowledge_base_documents_crawl_post)
@@ -239,8 +263,12 @@ $result = $sendseven->knowledgeBase()->recrawlDomain(historyId: 'history_id');
 | `$historyId` | `string` | yes | ID of the crawl history record to use for re-crawling |
 | `$mode` | `?string` | no | Recrawl mode. Defaults to 'full_rescan', which re-discovers pages from scratch via sitemap/BFS and picks up newly added pages. 'existing_pages' re-crawls only the URLs stored from the previous crawl. |
 | `$titlePrefix` | `?string` | no | Optional prefix for document titles |
-| `$pageLimit` | `?int` | no | Maximum pages to crawl (1-2000). If omitted, the coordinator falls back to its default page limit. |
+| `$pageLimit` | `?int` | no | Maximum pages to crawl. Must not exceed your workspace crawl limit (2000 pages unless raised for your workspace; see GET /knowledge-base/crawl/limits); larger values are rejected with 422 crawl_page_limit_exceeded. If omitted, the default page limit applies (capped at your workspace limit). |
 | `$clearExisting` | `?bool` | no | Hard reset. When True, the existing documents for this domain (and their RAG corpus files) are deleted BEFORE the re-crawl runs, then pages are re-discovered and re-imported from scratch. When False (default), the re-crawl is non-destructive: existing documents are updated in-place and orphaned documents are cleaned up only after a successful crawl (crawl-then-reconcile). |
+| `$excludePaths` | `list<string>\|null` | no | Paths to leave out of the crawl (max 50, each starting with '/', max 200 chars). Matching is case-insensitive on whole path segments: '/en' excludes '/en' and '/en/pricing' but not '/enterprise'. '/' alone is rejected. Example for a site whose main language is at the root and other languages under /en, /fr: ["/en", "/fr"]. Invalid rules return 422 invalid_exclude_rule. Omit to reuse the rules of the last crawl; [] clears them. |
+| `$excludeQueryParams` | `list<string>\|null` | no | Query parameters to leave out (max 20): 'name' excludes every URL carrying that parameter, 'name=value' only that value (case-insensitive), e.g. ["lang=en"]. Omit to reuse the last crawl's rules; [] clears them. |
+| `$language` | `?string` | no | Content language to keep, e.g. 'de', 'en' or 'pt-br'. Used with translation_handling='skip_translations'. Omit to reuse the last crawl's language. |
+| `$translationHandling` | `?string` | no | 'keep_all' (default) imports every language version. 'skip_translations' skips a page only when its own language differs from language AND the page links a version in language (hreflang) that is part of this crawl. Pages without such a version are kept, so no unique content is lost. Omit to reuse the last crawl's setting. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `WebsiteCrawlJob`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/recrawl_domain_api_v1_knowledge_base_documents_recrawl_post)
@@ -312,6 +340,26 @@ $result = $sendseven->knowledgeBase()->deleteDocument(documentId: 'document_id')
 
 Returns `KnowledgeBaseDelete`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/delete_document_api_v1_knowledge_base_documents__document_id__delete)
 
+## getDocument
+
+Get Document. `GET /knowledge-base/documents/{document_id}`
+
+Get a single knowledge base document.
+
+Same shape as the items of GET /knowledge-base/documents. Used to deep-link an AI answer's source to its document. Returns 404 when the document does not exist, belongs to another workspace, or is being deleted (status == deleting), since the source no longer exists.
+
+```php
+$result = $sendseven->knowledgeBase()->getDocument(documentId: 'document_id');
+```
+
+- Scopes: `knowledge_base:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$documentId` | `string` | yes |  |
+
+Returns `KnowledgeBaseDocument`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_document_api_v1_knowledge_base_documents__document_id__get)
+
 ## getDocumentRaw
 
 Get Document Raw. `GET /knowledge-base/documents/{document_id}/raw`
@@ -338,7 +386,7 @@ Put Document Raw. `PUT /knowledge-base/documents/{document_id}/raw`
 
 Replace the raw text content of an editable KB document.
 
-Behaviour: 1. Validates size (≤ 1 MB) — returns 413 otherwise. 2. Validates that the document type + extension are editable (otherwise 400, same rules as GET /raw). 3. Uploads the new bytes to GCS (same path pattern as upload_to_gcs() — rag_uploads/{tenant_id}/doc_{id}_{uuid}.{ext}). 4. Updates the DB row: gemini_file_name / upload_metadata.gcs_uri point at the new blob, status → pending_ingestion, a fresh job_id is set, updated_at = utc_now(). 5. Publishes a kb_add_file message to PUBSUB_TOPIC_KB_ADMINISTRATION so the KB administration worker performs the Vertex AI RAG import. When ingestion completes, status transitions back to ready.
+Behaviour: 1. Rejects empty / whitespace-only content with 422 and validates size (≤ 1 MB, 413 otherwise), both before any read or write. 2. Validates that the document type + extension are editable (otherwise 400, same rules as GET /raw). 3. Uploads the new bytes to GCS (same path pattern as upload_to_gcs() — rag_uploads/{tenant_id}/doc_{id}_{uuid}.{ext}). 4. Updates the DB row: gemini_file_name / upload_metadata.gcs_uri point at the new blob, status → pending_ingestion, a fresh job_id is set, updated_at = utc_now(). 5. Publishes a kb_add_file message to PUBSUB_TOPIC_KB_ADMINISTRATION so the KB administration worker performs the Vertex AI RAG import. When ingestion completes, status transitions back to ready.
 
 ```php
 $result = $sendseven->knowledgeBase()->putDocumentRaw(documentId: 'document_id', content: 'content');
@@ -455,6 +503,43 @@ $result = $sendseven->knowledgeBase()->getKbJobStatus(jobId: 'job_id');
 | `$jobId` | `string` | yes |  |
 
 Returns `JobStatus`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_kb_job_status_api_v1_knowledge_base_jobs__job_id__get)
+
+## getReviewQueue
+
+Get Review Queue. `GET /knowledge-base/review-queue`
+
+The ordered KB review queue (one card at a time).
+
+Order: corrections (oldest first) → flagged entries (most flags first) → needs_review → drafts (oldest first) → failed documents (oldest first). Item ids are <type>:<uuid>. pagination.total == summary.total.
+
+```php
+$result = $sendseven->knowledgeBase()->getReviewQueue();
+```
+
+- Scopes: `knowledge_base:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `Page<ReviewQueueItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_review_queue_api_v1_knowledge_base_review_queue_get)
+
+## getReviewQueueSummary
+
+Get Review Queue Summary. `GET /knowledge-base/review-queue/summary`
+
+Counts for the KB review queue — badge and summary card read THIS.
+
+entries is the same DISTINCT union as GET /faq-entries/review-count (status IN (draft, needs_review) OR flagged_count > 0, ledger rows excluded); breakdown overlaps. corrections = proposed + failed + stalled (open/analyzing untouched for an hour). total = corrections + entries + failed_documents.
+
+```php
+$result = $sendseven->knowledgeBase()->getReviewQueueSummary();
+```
+
+- Scopes: `knowledge_base:read`
+
+Returns `ReviewQueueSummary`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_review_queue_summary_api_v1_knowledge_base_review_queue_summary_get)
 
 ## search
 

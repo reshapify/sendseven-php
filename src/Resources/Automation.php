@@ -16,8 +16,12 @@ use Reshapify\SendSeven\Data\BotConversationSession;
 use Reshapify\SendSeven\Data\BotConversationSessionList;
 use Reshapify\SendSeven\Data\BotInteractionLog;
 use Reshapify\SendSeven\Data\BotReorder;
+use Reshapify\SendSeven\Data\HubStats;
+use Reshapify\SendSeven\Data\HubTemplateList;
 use Reshapify\SendSeven\Data\KeywordTriggerSchema;
+use Reshapify\SendSeven\Data\TemplateCreate;
 use Reshapify\SendSeven\Enums\BotTypeEnum;
+use Reshapify\SendSeven\Enums\EscalationRoutingStrategyEnum;
 use Reshapify\SendSeven\Enums\OfflineEscalationBehaviorEnum;
 use Reshapify\SendSeven\Enums\WebSearchModeEnum;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -29,7 +33,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Automation: 29 endpoints.
+ * Automation: 33 endpoints.
  *
  * Reach it with $sendseven->automation().
  *
@@ -102,6 +106,10 @@ final readonly class Automation
      * Create an AI-powered bot that can handle customer conversations using the knowledge base.
      * Configure personality, escalation rules, and field collection requirements.
      *
+     * Keyword bots are retired: bot_type='keyword' returns 422 with detail.code =
+     * "keyword_bots_retired". Use a Flow with a keyword trigger instead. Existing keyword bots keep
+     * working.
+     *
      * Scopes: automation:create.
      *
      * @param  string  $name  Bot display name
@@ -145,11 +153,14 @@ final readonly class Automation
      * @param  ?bool  $isEscalationScheduleEnabled  Enable time-based escalation gating
      * @param  ?string  $escalationTimezone  IANA timezone for escalation schedule (e.g., 'Europe/Berlin')
      * @param  list<array<string, mixed>>|null  $escalationSchedule  Time ranges when human escalation is available
+     * @param  ?string  $escalationTagId  Tag (skill) to route escalated conversations to
+     * @param  EscalationRoutingStrategyEnum|string|null  $escalationRoutingStrategy  Assignment on handoff: null = keep unassigned; round_robin_all | least_busy_all = all eligible members (tag ignored + cleared); notify_only | round_robin | least_busy = by tag (requires escalation_tag_id)
+     * @param  ?int  $escalationFallbackMinutes  Unattended alert after N minutes if still unassigned / unanswered (any non-null strategy; off-hours the countdown starts at the next escalation-schedule opening)
      * @param  ?int  $maxEmailReplies  Max email replies per conversation before handing off to agents (email_support bots)
      * @param  ?bool  $isEmailReplyMode  When TRUE on an 'assistant' bot, the email auto-reply logic kicks in (equivalent to legacy bot_type='email_support'). Default FALSE.
      * @param  ?string  $coexistBotId  ID of another bot to coexist with
      * @param  ?string  $coexistMode  Coexistence mode: 'active_when_active' or 'active_when_inactive'
-     * @param  ?string  $baseLanguage  Language the bot's messages are written in (ISO 639-1)
+     * @param  ?string  $baseLanguage  Language the bot's messages are written in (ISO 639-1). Optional: when omitted it defaults to the workspace language, else the creating user's app language, else 'en'.
      * @param  array<string, mixed>|null  $translationCache  Cached translations keyed by language code
      * @param  ?bool  $greetingButtonsEnabled  Show 'Talk to Human' / 'Ask the bot' buttons under the greeting (NULL/false = off)
      * @param  ?string  $greetingHumanButtonCaption  Caption for the 'Talk to Human' button. NULL = localized default.
@@ -207,6 +218,9 @@ final readonly class Automation
         ?bool $isEscalationScheduleEnabled = null,
         ?string $escalationTimezone = null,
         ?array $escalationSchedule = null,
+        ?string $escalationTagId = null,
+        EscalationRoutingStrategyEnum|string|null $escalationRoutingStrategy = null,
+        ?int $escalationFallbackMinutes = null,
         ?int $maxEmailReplies = null,
         ?bool $isEmailReplyMode = null,
         ?string $coexistBotId = null,
@@ -269,6 +283,9 @@ final readonly class Automation
                 'is_escalation_schedule_enabled' => $isEscalationScheduleEnabled,
                 'escalation_timezone' => $escalationTimezone,
                 'escalation_schedule' => $escalationSchedule,
+                'escalation_tag_id' => $escalationTagId,
+                'escalation_routing_strategy' => $escalationRoutingStrategy,
+                'escalation_fallback_minutes' => $escalationFallbackMinutes,
                 'max_email_replies' => $maxEmailReplies,
                 'is_email_reply_mode' => $isEmailReplyMode,
                 'coexist_bot_id' => $coexistBotId,
@@ -373,7 +390,8 @@ final readonly class Automation
      *
      * Update an automation bot.
      *
-     * Update bot configuration. Only provided fields will be updated.
+     * Update bot configuration. Only provided fields will be updated. Changing a non-keyword bot's
+     * bot_type to keyword returns 422 keyword_bots_retired; existing keyword bots stay fully editable.
      *
      * Scopes: automation:update.
      *
@@ -444,6 +462,9 @@ final readonly class Automation
         ?bool $isEscalationScheduleEnabled = null,
         ?string $escalationTimezone = null,
         ?array $escalationSchedule = null,
+        ?string $escalationTagId = null,
+        EscalationRoutingStrategyEnum|string|null $escalationRoutingStrategy = null,
+        ?int $escalationFallbackMinutes = null,
         ?int $maxEmailReplies = null,
         ?bool $isEmailReplyMode = null,
         ?string $coexistBotId = null,
@@ -506,6 +527,9 @@ final readonly class Automation
                 'is_escalation_schedule_enabled' => $isEscalationScheduleEnabled,
                 'escalation_timezone' => $escalationTimezone,
                 'escalation_schedule' => $escalationSchedule,
+                'escalation_tag_id' => $escalationTagId,
+                'escalation_routing_strategy' => $escalationRoutingStrategy,
+                'escalation_fallback_minutes' => $escalationFallbackMinutes,
                 'max_email_replies' => $maxEmailReplies,
                 'is_email_reply_mode' => $isEmailReplyMode,
                 'coexist_bot_id' => $coexistBotId,
@@ -533,8 +557,8 @@ final readonly class Automation
      *
      * Get analytics for a specific bot.
      *
-     * Returns detailed metrics including session stats, resolution rate, escalation reasons, and token
-     * usage.
+     * Returns detailed metrics including session stats, resolution rate, and escalation reasons. AI
+     * usage is billed in credits (see GET /billing/ai-usage).
      *
      * Scopes: automation:read, analytics:read.
      *
@@ -640,6 +664,36 @@ final readonly class Automation
         ));
 
         return $response->data();
+    }
+
+    /**
+     * Duplicate Bot.
+     *
+     * Duplicate a Conversational Agent inside the same workspace.
+     *
+     * The copy is an unpublished draft, paused, and placed last. It keeps settings, skills (incl.
+     * pinned versions) and knowledge sources, but no activation rules, conversations, ratings or
+     * history. Classic bots return 422 duplicate_classic_not_supported.
+     *
+     * Scopes: automation:create.
+     *
+     * @param  array<string, mixed>|null  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Automation/duplicate_bot_api_v1_automation_bots__bot_id__duplicate_post
+     */
+    public function duplicateBot(string $botId, ?array $body = null, ?string $idempotencyKey = null): AutomationBot
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/automation/bots/'.Payload::segment($botId).'/duplicate',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return AutomationBot::fromArray($response->data());
     }
 
     /**
@@ -1096,6 +1150,81 @@ final readonly class Automation
         ));
 
         return AutomationBot::fromArray($response->data());
+    }
+
+    /**
+     * Get Hub Stats.
+     *
+     * Agents overview: KPIs + one row per bot (agents and classic bots, incl. paused) in priority
+     * order.
+     *
+     * A conversation counts once per bot; it is *handed off* when a human was brought in, otherwise
+     * *resolved*. Percentages are null below min_sample (20) conversations per bot.
+     *
+     * Scopes: automation:read.
+     *
+     * @param  ?int  $days  Range in days: 7, 30 or 90
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Automation/get_hub_stats_api_v1_automation_hub_stats_get
+     */
+    public function getHubStats(?int $days = null): HubStats
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/automation/hub/stats',
+            query: Payload::query(['days' => $days]),
+        ));
+
+        return HubStats::fromArray($response->data());
+    }
+
+    /**
+     * List Hub Templates.
+     *
+     * Agent templates for "Aus Vorlage" (keys only; display copy is client-side).
+     *
+     * Scopes: automation:read.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Automation/list_hub_templates_api_v1_automation_hub_templates_get
+     */
+    public function listHubTemplates(): HubTemplateList
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/automation/hub/templates',
+        ));
+
+        return HubTemplateList::fromArray($response->data());
+    }
+
+    /**
+     * Create From Template.
+     *
+     * Create a paused, unpublished (draft) Conversational Agent from a template, in the workspace
+     * language (else the creating user's app language, else English; template languages: de, en, pt,
+     * es, fr, it). No AI credits are used.
+     *
+     * Scopes: automation:create.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Automation/create_from_template_api_v1_automation_hub_templates__key__create_post
+     */
+    public function createFromTemplate(string $key, ?string $idempotencyKey = null): TemplateCreate
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/automation/hub/templates/'.Payload::segment($key).'/create',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return TemplateCreate::fromArray($response->data());
     }
 
     /**

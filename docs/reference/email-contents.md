@@ -2,7 +2,7 @@
 
 # Email Contents
 
-`$sendseven->emailContents()` — 8 endpoints.
+`$sendseven->emailContents()` — 9 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -14,6 +14,7 @@
 | [`update()`](#update) | `PATCH /email-contents/{content_id}` | Update Email Content |
 | [`duplicate()`](#duplicate) | `POST /email-contents/{content_id}/duplicate` | Duplicate Email Content |
 | [`preview()`](#preview) | `POST /email-contents/{content_id}/preview` | Preview Email Content |
+| [`render()`](#render) | `POST /email-contents/{content_id}/render` | Render Email Content |
 
 ## list
 
@@ -212,3 +213,27 @@ $result = $sendseven->emailContents()->preview(contentId: 'content_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `EmailContentPreview`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contents/preview_email_content_api_v1_email_contents__content_id__preview_post)
+
+## render
+
+Render Email Content. `POST /email-contents/{content_id}/render`
+
+Render email content for a real recipient (conversation reply / new email).
+
+The server resolves every variable:
+
+```php
+$result = $sendseven->emailContents()->render(contentId: 'content_id');
+```
+
+- Scopes: `email:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$contentId` | `string` | yes |  |
+| `$contactId` | `?string` | no | Contact to personalise for (must belong to the workspace) |
+| `$conversationId` | `?string` | no | Conversation whose contact is used when contact_id is not given |
+| `$variables` | `array<string, mixed>\|null` | no | Template variable fills (plain names such as hero_title). Namespaced values (contact.*, company.*, agent.*, campaign.*, system.*) are always resolved by the server and ignored here. |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `EmailContentRender`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contents/render_email_content_api_v1_email_contents__content_id__render_post)

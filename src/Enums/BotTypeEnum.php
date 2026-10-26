@@ -23,4 +23,5 @@ enum BotTypeEnum: string
     case Appointment = 'appointment';
     case Keyword = 'keyword';
     case EmailSupport = 'email_support';
+    case Agent = 'agent';
 }

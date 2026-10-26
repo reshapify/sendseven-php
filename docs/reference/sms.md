@@ -9,7 +9,7 @@
 | [`listAvailableNumbers()`](#listavailablenumbers) | `GET /sms/available-numbers` | List MSISDNs available to purchase in a country |
 | [`getBalance()`](#getbalance) | `GET /sms/balance` | Current prepaid SMS balance |
 | [`updateLowBalanceThreshold()`](#updatelowbalancethreshold) | `PUT /sms/low-balance-threshold` | Set the low-balance warning threshold |
-| [`priceMessage()`](#pricemessage) | `GET /sms/message-pricing` | Estimated retail price to send one SMS to a country / number |
+| [`priceMessage()`](#pricemessage) | `GET /sms/message-pricing` | Estimated price to send one SMS to a country / number |
 | [`pricelist()`](#pricelist) | `GET /sms/pricelist` | Full per-country SMS pricelist (platform fee + SendSeven margin) |
 | [`listSenders()`](#listsenders) | `GET /sms/senders` | List the tenant's configured SMS senders |
 | [`createAlphanumericSender()`](#createalphanumericsender) | `POST /sms/senders/alphanumeric` | Register an alphanumeric SMS sender id (no verification) |
@@ -21,9 +21,9 @@
 
 List MSISDNs available to purchase in a country. `GET /sms/available-numbers`
 
-List numbers offered by seven.io for the given country.
+List numbers offered by our SMS provider for the given country.
 
-Results are cached per-tenant for 5 minutes to keep the pick-a-number picker snappy and to avoid hammering seven.io when a customer pages through options.
+Results are cached per-tenant for 5 minutes to keep the pick-a-number picker snappy and to avoid hammering the SMS provider when a customer pages through options.
 
 ```php
 $result = $sendseven->sms()->listAvailableNumbers(country: 'country');
@@ -41,7 +41,9 @@ Returns `AvailableNumbersList`. [SendSeven reference](https://api.sendseven.com/
 
 Current prepaid SMS balance. `GET /sms/balance`
 
-Return the tenant's current seven.io subaccount balance.
+Return the workspace's prepaid SMS balance and balance settings.
+
+Besides balance_eur and the auto-top-up / low-balance-warning settings, the response carries:
 
 ```php
 $result = $sendseven->sms()->getBalance();
@@ -77,11 +79,11 @@ Returns `Balance`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/
 
 ## priceMessage
 
-Estimated retail price to send one SMS to a country / number. `GET /sms/message-pricing`
+Estimated price to send one SMS to a country / number. `GET /sms/message-pricing`
 
-Estimate the tenant's retail per-segment SMS price.
+Estimate what one SMS to a country / number costs.
 
-Accepts either a phone (preferred — country resolved by E.164 prefix), a country ISO-2 hint, or both. Pricing is sourced live from seven.io's GET /api/pricing (cached 24h in Redis), with a bundled fallback file used if both Redis and the live API are unreachable.
+Accepts either a phone (preferred — country resolved by E.164 prefix), a country ISO-2 hint, or both. Carrier prices are refreshed daily; source reports whether this answer came from the live price list, the cache or the fallback list.
 
 ```php
 $result = $sendseven->sms()->priceMessage();
@@ -93,7 +95,7 @@ $result = $sendseven->sms()->priceMessage();
 |---|---|---|---|
 | `$phone` | `?string` | no | Recipient MSISDN (E.164) |
 | `$country` | `?string` | no | ISO-3166 alpha-2 (e.g. 'DE') — alternative to phone |
-| `$text` | `?string` | no | Optional message body. When supplied, response includes segment count + total cost. |
+| `$text` | `?string` | no | Optional message body. When supplied, the response includes the segment count and total_eur = carrier fee x segments + SendSeven fee (once per message). |
 | `$appendOptOutLink` | `?bool` | no | Price the text as a Reach campaign with the SMS opt-out link enabled: a representative ' Unsubscribe: https://c.sendseven.com/<code>' suffix (same length and encoding as the real per-recipient link) is appended before segments, char_count and total are computed. |
 
 Returns `MessagePricing`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/SMS/message_pricing_api_v1_sms_message_pricing_get)
@@ -104,7 +106,7 @@ Full per-country SMS pricelist (platform fee + SendSeven margin). `GET /sms/pric
 
 Return the full SMS pricelist as a per-country table.
 
-Used by the frontend pricing page. Pricing is sourced live from seven.io (cached 24h), with a bundled fallback file as last resort. The source field reports which one served this request.
+Used by the frontend pricing page. Carrier prices are refreshed daily; the source field reports whether this answer came from the live price list, the cache or the fallback list.
 
 ```php
 $result = $sendseven->sms()->pricelist();
@@ -120,7 +122,7 @@ List the tenant's configured SMS senders. `GET /sms/senders`
 
 List every SMS sender configured for the tenant.
 
-The frontend cannot get this from /channels: ChannelResponse deliberately omits Channel.config (it holds API tokens and secrets), so sender_type / mode / msisdn_or_alpha were invisible. This endpoint returns a hand-whitelisted projection of those non-secret facts. seven_io_subaccount_id and every other credential stay server-side.
+The frontend cannot get this from /channels: ChannelResponse deliberately omits Channel.config (it holds API tokens and secrets), so sender_type / mode / msisdn_or_alpha were invisible. This endpoint returns a hand-whitelisted projection of those non-secret facts. Provider subaccount ids and every other credential stay server-side.
 
 ```php
 $result = $sendseven->sms()->listSenders();
@@ -141,7 +143,7 @@ Register an alphanumeric SMS sender id (no verification). `POST /sms/senders/alp
 
 Register an alphanumeric sender id for outbound campaigns.
 
-Enforces seven.io's 11-character upper bound. Replies are not possible for alphanumeric senders — the frontend copy communicates this.
+Enforces the 11-character upper bound for alphanumeric senders. Replies are not possible for alphanumeric senders — the frontend copy communicates this.
 
 ```php
 $result = $sendseven->sms()->createAlphanumericSender(senderId: 'sender_id');
@@ -160,7 +162,7 @@ Returns `AlphanumericSender`. [SendSeven reference](https://api.sendseven.com/ap
 
 Confirm DTMF voice PIN and bind Channel. `POST /sms/senders/confirm`
 
-Compare the PIN supplied by the customer to the one seven.io read aloud.
+Compare the PIN supplied by the customer to the one read aloud.
 
 On success we flip the verification row to VERIFIED and create the SMS :class:Channel. On mismatch we flip to FAILED and 400.
 
@@ -182,9 +184,9 @@ Returns `SenderConfirm`. [SendSeven reference](https://api.sendseven.com/api/v1/
 
 Start DTMF voice verification for an own MSISDN. `POST /sms/senders/verify`
 
-Kick off seven.io's DTMF voice verification.
+Kick off the DTMF voice verification.
 
-seven.io places an outbound call that reads a PIN aloud; the customer repeats it back to our UI which POSTs it to :func:confirm_sender below.
+The SMS provider places an outbound call that reads a PIN aloud; the customer repeats it back to our UI which POSTs it to :func:confirm_sender below.
 
 ```php
 $result = $sendseven->sms()->verifySender(msisdn: 'msisdn');
@@ -206,7 +208,7 @@ Release a dedicated number or archive an alphanumeric/verified sender. `DELETE /
 
 Delete / release an SMS sender.
 
-For dedicated senders this calls :meth:SmsProvisioningService.release_number (which talks to seven.io). For alphanumeric / verified_own senders we only archive the :class:Channel row — no seven.io resource to release.
+For dedicated senders this releases the number at the SMS provider. For alphanumeric / verified_own senders we only archive the :class:Channel row; there is no number to release.
 
 ```php
 $result = $sendseven->sms()->deleteSender(channelId: 'channel_id');
@@ -217,6 +219,6 @@ $result = $sendseven->sms()->deleteSender(channelId: 'channel_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
-| `$immediate` | `?bool` | no | If true, release seven.io number immediately |
+| `$immediate` | `?bool` | no | If true, release the number immediately |
 
 Returns `DeleteSender`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/SMS/delete_sender_api_v1_sms_senders__channel_id__delete)

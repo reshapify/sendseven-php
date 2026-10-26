@@ -37,6 +37,7 @@ final readonly class ChatTranslation
      * Scopes: messages:read.
      *
      * @param  string  $targetLanguage  ISO 639-1 language code (e.g. 'en', 'de')
+     * @param  mixed  $source  'sent' (default: the message as sent) or 'original'.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -46,12 +47,13 @@ final readonly class ChatTranslation
     public function translateEmailMessage(
         string $emailMessageId,
         string $targetLanguage,
+        mixed $source = null,
         ?string $idempotencyKey = null,
     ): TranslateMessage {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/email-messages/'.Payload::segment($emailMessageId).'/translate',
-            body: Payload::body(['target_language' => $targetLanguage]),
+            body: Payload::body(['target_language' => $targetLanguage, 'source' => $source]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -66,10 +68,17 @@ final readonly class ChatTranslation
      * Cached translations are stored in message.meta.translations so repeated requests for the same
      * language return instantly.
      *
+     * source: "original" (only for a translated OUTBOUND chat message with a
+     * meta.translations.original): translates that operator original instead and caches it in
+     * meta.original_translations[<lang>]; response {translated, target_language, source: "original",
+     * cached, message_id}. Otherwise 422 no_original. Same gate, scope and billing as the default.
+     *
      * Scopes: messages:read.
      *
      * @param  string  $targetLanguage  ISO 639-1 language code (e.g. 'en', 'de')
+     * @param  mixed  $source  'sent' (default: the message as sent) or 'original'.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     * @return array<array-key, mixed>
      *
      * @throws ApiException
      *
@@ -78,16 +87,17 @@ final readonly class ChatTranslation
     public function translateMessage(
         string $messageId,
         string $targetLanguage,
+        mixed $source = null,
         ?string $idempotencyKey = null,
-    ): TranslateMessage {
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/messages/'.Payload::segment($messageId).'/translate',
-            body: Payload::body(['target_language' => $targetLanguage]),
+            body: Payload::body(['target_language' => $targetLanguage, 'source' => $source]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
-        return TranslateMessage::fromArray($response->data());
+        return $response->data();
     }
 
     /**

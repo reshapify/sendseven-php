@@ -2,13 +2,14 @@
 
 # Invitations
 
-`$sendseven->invitations()` — 6 endpoints.
+`$sendseven->invitations()` — 7 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`getTenant()`](#gettenant) | `GET /invitations` | Get tenant invitations |
 | [`create()`](#create) | `POST /invitations` | Create invitation |
 | [`delete()`](#delete) | `DELETE /invitations/{invitation_id}` | Delete (cancel) invitation |
+| [`update()`](#update) | `PATCH /invitations/{invitation_id}` | Update invitation |
 | [`resend()`](#resend) | `POST /invitations/{invitation_id}/resend` | Resend invitation |
 | [`accept()`](#accept) | `POST /invitations/{token}/accept` | Accept invitation |
 | [`decline()`](#decline) | `POST /invitations/{token}/decline` | Decline invitation |
@@ -42,8 +43,10 @@ $result = $sendseven->invitations()->create(email: 'email');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$email` | `string` | yes | Email address to invite |
+| `$roleIds` | `list<string>\|null` | no | RBAC Role UUIDs to assign on accept (1-20, system OR this tenant's custom roles; duplicates are ignored). The first one is the primary role. Takes precedence over role_id and role. |
 | `$roleId` | `?string` | no | RBAC Role UUID to assign (system OR this tenant's custom role). Get valid ids from GET /roles. Preferred over the legacy role field. |
 | `$role` | `InvitationRoleEnum\|string\|null` | no | DEPRECATED legacy role slug (owner, admin, marketing_agent, support_agent, viewer, billing_admin, developer, analyst, content_manager, designer). Ignored when role_id is set. |
+| `$memberSettings` | `array<string, mixed>\|null` | no | Optional access settings applied to the member when they accept (inbox access, contact history, member tags, AI suggestions, account-wide usage access). Omit for the defaults. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Invitation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Invitations/create_invitation_api_v1_invitations_post)
@@ -66,11 +69,33 @@ $result = $sendseven->invitations()->delete(invitationId: 'invitation_id');
 
 Returns `Delete`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Invitations/delete_invitation_api_v1_invitations__invitation_id__delete)
 
+## update
+
+Update invitation. `PATCH /invitations/{invitation_id}`
+
+Change the roles and/or the member access settings of a pending or expired invitation. Settings are merged: only the fields you send change. The token, expiry date and email stay the same and no email is sent.
+
+```php
+$result = $sendseven->invitations()->update(invitationId: 'invitation_id');
+```
+
+- Scopes: `team:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$invitationId` | `string` | yes |  |
+| `$roleIds` | `list<string>\|null` | no |  |
+| `$roleId` | `?string` | no |  |
+| `$memberSettings` | `array<string, mixed>\|null` | no |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `Invitation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Invitations/update_invitation_api_v1_invitations__invitation_id__patch)
+
 ## resend
 
 Resend invitation. `POST /invitations/{invitation_id}/resend`
 
-Resend an invitation with a new token and expiry (requires ADMIN or OWNER)
+Resend a pending or expired invitation with a new token and expiry. The invited roles must be within your own permissions, exactly as when creating an invitation. Access settings are kept as they are.
 
 ```php
 $result = $sendseven->invitations()->resend(invitationId: 'invitation_id');

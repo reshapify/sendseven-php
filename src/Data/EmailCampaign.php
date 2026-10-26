@@ -25,9 +25,11 @@ final readonly class EmailCampaign extends Data
      * @param  string  $id  Unique identifier (UUID)
      * @param  string  $tenantId  Tenant this resource belongs to
      * @param  string  $campaignId  Base campaign ID
-     * @param  ?string  $sendingMethod  'provider', 'ses_integration', or 'none'
+     * @param  ?string  $emailIntegrationId  Legacy, read-only. Always null for campaigns created now.
+     * @param  ?string  $sendingMethod  'provider', or 'none'. 'ses_integration' only on legacy campaigns (cannot send).
      * @param  list<string>  $subscriptionCategories
      * @param  list<string>  $listIds  List IDs targeted by this campaign
+     * @param  array<array-key, mixed>  $audienceConditions  Audience Builder condition tree; null = the campaign targets its saved lists
      * @param  ?int  $failedCount  Number of recipients whose send permanently failed
      * @param  ?int  $recipientCount  Estimated recipients (draft/scheduled) or actual sent count
      * @param  ?string  $timezone  IANA timezone for scheduled_at display (e.g. 'Europe/Berlin')
@@ -51,6 +53,7 @@ final readonly class EmailCampaign extends Data
         public ?string $replyToEmail,
         public array $subscriptionCategories,
         public array $listIds,
+        public array $audienceConditions,
         public ?bool $personalizationEnabled,
         public ?bool $trackingEnabled,
         public ?bool $trackClicks,
@@ -100,6 +103,7 @@ final readonly class EmailCampaign extends Data
             replyToEmail: $attributes->nullableString('reply_to_email'),
             subscriptionCategories: $attributes->strings('subscription_categories'),
             listIds: $attributes->strings('list_ids'),
+            audienceConditions: $attributes->array('audience_conditions'),
             personalizationEnabled: $attributes->nullableBool('personalization_enabled'),
             trackingEnabled: $attributes->nullableBool('tracking_enabled'),
             trackClicks: $attributes->nullableBool('track_clicks'),

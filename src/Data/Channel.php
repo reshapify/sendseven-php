@@ -25,12 +25,17 @@ final readonly class Channel extends Data
     /**
      * @param  ?string  $activationStatus  ES/Coexistence activation lifecycle. `null` = ACTIVE (legacy / healthy channels). `AVAILABLE` = the channel row exists but setup is not complete (see `setup_pending_reason`); such a channel is `is_active=false` and MUST NOT be rendered as connected.
      * @param  ?string  $setupPendingReason  Non-null when the channel row exists but setup is INCOMPLETE and needs customer action. `coexistence_setup_incomplete` = the WhatsApp number must finish Coexistence setup on the phone (keep it active on the WhatsApp Business App, re-run connect, and complete Meta's dialog incl. the QR scan + on-handset confirmation). `null` for every fully-set-up channel. A channel with this set is NOT connected and must not render as such.
+     * @param  ?string  $needsReconnectReason  Non-null when the channel was disconnected and the customer must reconnect it. `token_invalidated` = the access token / bot token is no longer valid (connect the channel again with a new token). `webhook_removed` = the bot's webhook was removed outside SendSeven, so no messages arrive (Telegram: reconnect via `POST /channels/{id}/refresh-webhook`). `null` otherwise.
+     * @param  ?string  $degradedReason  Non-null when the channel is still connected but Meta has been refusing its outgoing messages with a permission error. `meta_permission_denied` = several messages to different recipients failed with Meta error #10 or #200 (the app or number lost permission to send). The channel stays active and keeps receiving messages; the state clears automatically after the next successfully sent message. WhatsApp, Messenger and Instagram only. `null` when healthy, and always `null` while `needs_reconnect_reason` is set or the channel is inactive.
+     * @param  ?DateTimeImmutable  $degradedSince  When the channel entered the degraded state (UTC). `null` when `degraded_reason` is `null`.
+     * @param  ?int  $degradedErrorCode  The Meta error code that caused the degraded state: `10` (permission not granted or removed) or `200` (no permission to send for this account). `null` when `degraded_reason` is `null`.
      * @param  ?string  $avatarUrl  Profile picture of the connected account on this channel (Facebook Page / Instagram account). Null when unavailable or not captured for this channel type. Meta CDN URLs expire — do not persist client-side.
      * @param  ?string  $rcsAgentId  [RCS] Google RBM agent id, stored BARE (no '@rbm.goog' suffix). Normalisation happens on write via a model @validates hook.
      * @param  ?string  $rcsPartnerId  [RCS] Google RBM partner account id.
      * @param  array<array-key, mixed>  $rcsLaunchState  [RCS] Free-form brand-verification + per-carrier launch status. Absent/empty means NOTHING is launched (fail closed): pre-launch an agent can only reach allowlisted tester devices.
      * @param  ?string  $rcsMessageTrafficType  [RCS] The channel's DEFAULT `messageTrafficType` (`AUTHENTICATION` | `TRANSACTION` | `PROMOTION` | `SERVICEREQUEST` | `ACKNOWLEDGEMENT`), or `null` when none is set. A German regulatory declaration about the nature of the message (UWG / telecoms), NOT a billing tier and not a delivery-speed setting. `null` means unset -- the adapter then falls back to `SERVICEREQUEST` -- and is what an archived channel reads, since this value is deliberately not preserved across archiving. Returned canonicalised, i.e. exactly the value that will be sent to Google; a stored value outside the five enum values reads as `null` because that is what the adapter will make of it. Set it with `PUT /channels/{id}/rcs/credentials`.
      * @param  ?string  $rcsPricingMode  [RCS] How this RCS agent is billed (read-only; set by SendSeven): `per_message` = each message is billed and counts towards your messages; `mau` = billed once per monthly active recipient, and its messages do NOT count as messages sent. `null` on every non-RCS channel.
+     * @param  ?WhatsAppLocalStorageState  $localStorage  [WhatsApp] Meta Local Storage state of the number (read-only). `status`: enabled | not_enabled | unknown; `location`: eu | other (null unless enabled); `source`: customer_choice | default | migrated_number | preexisting; `reason`: coexistence | already_registered | meta_rejected | not_requested. `null` for numbers connected before this was recorded.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -46,12 +51,17 @@ final readonly class Channel extends Data
         public DateTimeImmutable $createdAt,
         public ?string $activationStatus,
         public ?string $setupPendingReason,
+        public ?string $needsReconnectReason,
+        public ?string $degradedReason,
+        public ?DateTimeImmutable $degradedSince,
+        public ?int $degradedErrorCode,
         public ?string $avatarUrl,
         public ?string $rcsAgentId,
         public ?string $rcsPartnerId,
         public array $rcsLaunchState,
         public ?string $rcsMessageTrafficType,
         public ?string $rcsPricingMode,
+        public ?WhatsAppLocalStorageState $localStorage,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -77,12 +87,17 @@ final readonly class Channel extends Data
             createdAt: $attributes->dateTime('created_at'),
             activationStatus: $attributes->nullableString('activation_status'),
             setupPendingReason: $attributes->nullableString('setup_pending_reason'),
+            needsReconnectReason: $attributes->nullableString('needs_reconnect_reason'),
+            degradedReason: $attributes->nullableString('degraded_reason'),
+            degradedSince: $attributes->nullableDateTime('degraded_since'),
+            degradedErrorCode: $attributes->nullableInt('degraded_error_code'),
             avatarUrl: $attributes->nullableString('avatar_url'),
             rcsAgentId: $attributes->nullableString('rcs_agent_id'),
             rcsPartnerId: $attributes->nullableString('rcs_partner_id'),
             rcsLaunchState: $attributes->array('rcs_launch_state'),
             rcsMessageTrafficType: $attributes->nullableString('rcs_message_traffic_type'),
             rcsPricingMode: $attributes->nullableString('rcs_pricing_mode'),
+            localStorage: $attributes->nullableObject('local_storage', WhatsAppLocalStorageState::fromArray(...)),
             raw: $data,
         );
     }

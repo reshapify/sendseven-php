@@ -19,6 +19,7 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Invitation extends Data
 {
     /**
+     * @param  list<string>  $roleIds
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -26,6 +27,7 @@ final readonly class Invitation extends Data
         public string $tenantId,
         public string $email,
         public string $invitedRole,
+        public array $roleIds,
         public string $invitedByUserId,
         public string $invitationToken,
         public InvitationStatusEnum|string $status,
@@ -36,6 +38,7 @@ final readonly class Invitation extends Data
         public ?DateTimeImmutable $updatedAt,
         public ?string $tenantName,
         public ?string $invitedByName,
+        public ?InvitationMemberSettings $memberSettings,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -53,6 +56,7 @@ final readonly class Invitation extends Data
             tenantId: $attributes->string('tenant_id'),
             email: $attributes->string('email'),
             invitedRole: $attributes->string('invited_role'),
+            roleIds: $attributes->strings('role_ids'),
             invitedByUserId: $attributes->string('invited_by_user_id'),
             invitationToken: $attributes->string('invitation_token'),
             status: $attributes->enum('status', InvitationStatusEnum::class),
@@ -63,6 +67,7 @@ final readonly class Invitation extends Data
             updatedAt: $attributes->nullableDateTime('updated_at'),
             tenantName: $attributes->nullableString('tenant_name'),
             invitedByName: $attributes->nullableString('invited_by_name'),
+            memberSettings: $attributes->nullableObject('member_settings', InvitationMemberSettings::fromArray(...)),
             raw: $data,
         );
     }

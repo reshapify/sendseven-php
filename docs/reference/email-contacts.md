@@ -2,13 +2,15 @@
 
 # Email Contacts
 
-`$sendseven->emailContacts()` — 8 endpoints.
+`$sendseven->emailContacts()` — 10 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`list()`](#list) | `GET /email-contacts` | List Email Contacts |
 | [`import()`](#import) | `POST /email-contacts/import` | Import Email Contacts |
+| [`listImportJobs()`](#listimportjobs) | `GET /email-contacts/import/jobs` | List Import Jobs |
 | [`downloadImportTemplate()`](#downloadimporttemplate) | `GET /email-contacts/import/template` | Download Import Template |
+| [`cancelImportJob()`](#cancelimportjob) | `POST /email-contacts/import/{job_id}/cancel` | Cancel Import Job |
 | [`getImportJobStatus()`](#getimportjobstatus) | `GET /email-contacts/import/{job_id}/status` | Get Import Job Status |
 | [`sniffCsv()`](#sniffcsv) | `POST /email-contacts/sniff` | Sniff Csv |
 | [`delete()`](#delete) | `DELETE /email-contacts/{subscription_id}` | Delete Email Contact |
@@ -57,7 +59,7 @@ $result = $sendseven->emailContacts()->import(file: FilePart::fromPath('/path/to
 |---|---|---|---|
 | `$file` | `FilePart` | yes | CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields. |
 | `$columnMapping` | `?string` | no | JSON string mapping target fields to CSV column names, e.g. {"email": "E-Mail", "name": "Full Name", "phone": "Telefon"}. Per-EAV custom-field targets use the key "custom_field:<field_definition_id>". |
-| `$duplicateMode` | `?string` | no | Override the tenant's duplicate_contact_mode for this import. Values: auto_merge, allow_duplicates, dont_allow_duplicates, update_existing. Omit to use the tenant default. |
+| `$duplicateMode` | `?string` | no | Override the tenant's duplicate_contact_mode for this import. Values: auto_merge, allow_duplicates, dont_allow_duplicates, update_existing. Omit to use the tenant default. allow_duplicates is ignored in a workspace set to dont_allow_duplicates (see duplicate_mode_override_ignored on the job status). |
 | `$updateFieldMode` | `?string` | no | Only used with duplicate_mode=update_existing. 'overwrite' (default) replaces standard + EAV custom fields from the CSV (blank cells never wipe); 'fill_empty' only populates empty fields. Values: overwrite, fill_empty. |
 | `$subscriptions` | `?string` | no | JSON array of structured channel->list subscription targets, e.g. [{"channel_type":"email","list_id":"..."},{"channel_type":"whatsapp","list_id":"..."}]. A contact is subscribed to a target only if it has the channel's required method (email→email, sms→phone, whatsapp→whatsapp_id/phone); others are silently skipped. Supported channels: email, sms, whatsapp. Takes precedence over create_subscription. Requires optin_confirmed=true. |
 | `$delimiter` | `?string` | no | CSV delimiter override. One of: ',' ';' tab '\|'. Omit to auto-sniff. |
@@ -65,13 +67,38 @@ $result = $sendseven->emailContacts()->import(file: FilePart::fromPath('/path/to
 | `$defaultPhoneRegion` | `?string` | no | ISO-3166 alpha-2 region (e.g. 'DE') used to auto-prefix phone numbers lacking a '+' to E.164 (national '0175…' → '+49175…'). Omit to keep the lenient digit-prepend behaviour. |
 | `$applyTagIds` | `?string` | no | Post-import action: JSON array of tag IDs (e.g. ["id1","id2"]) applied to EVERY contact this import creates OR updates. Tag IDs must belong to the tenant (404 otherwise). |
 | `$applyCustomField` | `?string` | no | Post-import action: JSON object {"field_id": "...", "value": ...} — the custom-field value is set (overwrite) on EVERY contact this import creates OR updates. The field must be an active custom field of the tenant; SELECT/MULTISELECT values are options-validated, DATE/DATETIME must be ISO. |
+| `$identifiersVerified` | `?bool` | no | Treat the imported phone numbers, email addresses and WhatsApp IDs as verified (you have confirmed the contacts control them). Stored with verified_source='import'. Default false: imported identifiers are unverified claims. Not available to OAuth apps. |
+| `$matchPriority` | `?string` | no | Match existing contacts by: which identifier is tried FIRST when a row is matched to an existing contact (after a contact_id column). Values: email (default, unchanged behaviour), phone, whatsapp_id. The other identifiers are fallbacks in the order email, phone, whatsapp_id. email: primary email, then any email address of a contact. phone: primary phone, then any phone number, then a WhatsApp ID with the same digits. whatsapp_id: any WhatsApp ID, then a phone number with the same digits. An identifier that already belongs to another contact is never moved (row warning identifier_owned_by_other_contact). Used by update_existing and auto_merge. |
 | `$createSubscription` | `?bool` | no | Create email subscriptions for imported contacts |
 | `$optinConfirmed` | `?bool` | no | User confirms all contacts have valid opt-in consent |
 | `$listId` | `?string` | no | Optional list ID to add imported contacts to |
 | `$listIds` | `?string` | no | Comma-separated list IDs to subscribe contacts to |
+| `$identifiersVerifiedQuery` | `?bool` | no | Same as the identifiers_verified form field; either one enables it. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ImportJobStart`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contacts/import_email_contacts_api_v1_email_contacts_import_post)
+
+## listImportJobs
+
+List Import Jobs. `GET /email-contacts/import/jobs`
+
+List this workspace's contact imports, newest first.
+
+status endpoint).
+
+```php
+$result = $sendseven->emailContacts()->listImportJobs();
+```
+
+- Scopes: `contacts:read`, `contacts:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$page` | `?int` | no | Page number (1-indexed) |
+| `$pageSize` | `?int` | no | Items per page (max 100) |
+| `$status` | `?string` | no | active = imports still queued or running (an import that stopped responding is not listed); all (default) = every import, newest first |
+
+Returns `Page<ImportJobListItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contacts/list_import_jobs_api_v1_email_contacts_import_jobs_get)
 
 ## downloadImportTemplate
 
@@ -93,19 +120,40 @@ $sendseven->emailContacts()->downloadImportTemplate();
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contacts/download_import_template_api_v1_email_contacts_import_template_get)
 
+## cancelImportJob
+
+Cancel Import Job. `POST /email-contacts/import/{job_id}/cancel`
+
+Stop a running contact import.
+
+Cooperative: the import stops after the batch it is currently writing (checked at every batch commit and between phases), skips its remaining phases and ends with status: "cancelled" and a partial summary (cancelled: true). Rows already imported STAY (nothing is rolled back). Returns 202 with the current status and cancel_requested: true; keep polling the status endpoint. 404 for an unknown job / another workspace's job, 409 when the job already finished.
+
+```php
+$result = $sendseven->emailContacts()->cancelImportJob(jobId: 'job_id');
+```
+
+- Scopes: `contacts:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$jobId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ImportJobStatus`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contacts/cancel_import_job_api_v1_email_contacts_import__job_id__cancel_post)
+
 ## getImportJobStatus
 
 Get Import Job Status. `GET /email-contacts/import/{job_id}/status`
 
 Get the status/progress of an async contact import job.
 
-Poll this endpoint after POST /email-contacts/import. When status is completed the full import summary is returned under summary; when failed see error_message.
+without contacts:read gets the summary without existing-contact ids and list names).
 
 ```php
 $result = $sendseven->emailContacts()->getImportJobStatus(jobId: 'job_id');
 ```
 
-- Scopes: `contacts:create`
+- Scopes: `contacts:read`, `contacts:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|

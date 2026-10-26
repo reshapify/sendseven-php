@@ -2,7 +2,7 @@
 
 # Email Integrations
 
-`$sendseven->emailIntegrations()` — 35 endpoints.
+`$sendseven->emailIntegrations()` — 29 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -30,17 +30,11 @@
 | [`delete()`](#delete) | `DELETE /email-integrations/{integration_id}` | Delete Email Integration |
 | [`get()`](#get) | `GET /email-integrations/{integration_id}` | Get Email Integration |
 | [`update()`](#update) | `PATCH /email-integrations/{integration_id}` | Update Email Integration |
-| [`addDomain()`](#adddomain) | `POST /email-integrations/{integration_id}/add-domain` | Add Domain |
 | [`removeGmailAlias()`](#removegmailalias) | `DELETE /email-integrations/{integration_id}/aliases/{alias_email}` | Remove Gmail Alias |
-| [`getDnsRecords()`](#getdnsrecords) | `GET /email-integrations/{integration_id}/dns-records` | Get Dns Records |
-| [`getDomainStatus()`](#getdomainstatus) | `GET /email-integrations/{integration_id}/domain-status` | Get Domain Status |
 | [`syncGmail()`](#syncgmail) | `POST /email-integrations/{integration_id}/gmail/sync` | Sync Gmail Integration |
-| [`pauseSending()`](#pausesending) | `POST /email-integrations/{integration_id}/pause-sending` | Pause Sending |
-| [`resumeSending()`](#resumesending) | `POST /email-integrations/{integration_id}/resume-sending` | Resume Sending |
 | [`sync()`](#sync) | `POST /email-integrations/{integration_id}/sync` | Sync Email Integration |
 | [`test()`](#test) | `POST /email-integrations/{integration_id}/test` | Test Email Integration |
 | [`addGmailAlias()`](#addgmailalias) | `POST /email-integrations/{integration_id}/test-alias` | Add Gmail Alias |
-| [`verifyDns()`](#verifydns) | `POST /email-integrations/{integration_id}/verify-dns` | Verify Dns |
 
 ## list
 
@@ -69,7 +63,7 @@ Create Email Integration. `POST /email-integrations`
 
 Create a new email integration.
 
-Integration Types: - gmail - OAuth2 connection to Gmail - smtp_imap - Generic SMTP/IMAP server - sendgrid - Customer's own SendGrid account (deprecated for new integrations) - ses_managed - SendSeven managed SES (auto-setup: creates tenant, config set, starts domain verification) - proxy - Email forwarding via proxy address
+Integration Types: - gmail - OAuth2 connection to Gmail - smtp_imap - Generic SMTP/IMAP server - sendgrid - Customer's own SendGrid account (deprecated for new integrations) - proxy - Email forwarding via proxy address
 
 ```php
 $result = $sendseven->emailIntegrations()->create(name: 'name', emailAddress: 'email_address', integrationType: 'integration_type');
@@ -81,11 +75,9 @@ $result = $sendseven->emailIntegrations()->create(name: 'name', emailAddress: 'e
 |---|---|---|---|
 | `$name` | `string` | yes | Integration name |
 | `$emailAddress` | `string` | yes | Email address for this integration |
-| `$integrationType` | `EmailIntegrationType\|string` | yes | Type of integration (gmail, smtp_imap, sendgrid, ses_managed, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type. |
+| `$integrationType` | `CreatableEmailIntegrationType\|string` | yes | Type of integration (gmail, smtp_imap, sendgrid, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type. |
 | `$smtpConfig` | `array<string, mixed>\|null` | no |  |
 | `$imapConfig` | `array<string, mixed>\|null` | no |  |
-| `$sesDomain` | `?string` | no | Domain for SES verification |
-| `$sesReputationPolicy` | `?string` | no | SES reputation policy |
 | `$proxyForwardTo` | `?string` | no | Email to forward proxy emails to |
 | `$outboundMailboxId` | `?string` | no | ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies. |
 | `$outboundProviderId` | `?string` | no | DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending. |
@@ -149,7 +141,7 @@ Adds the email address to the blacklist. Future emails from this sender will be 
 $result = $sendseven->emailIntegrations()->blockSenderDirectly(emailAddress: 'email_address');
 ```
 
-- Scopes: `email_integrations:update`
+- Scopes: `email_integrations:update`, `contacts:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -166,11 +158,13 @@ Unblock Sender. `DELETE /email-integrations/blocked-senders/{email_address}`
 
 Unblock an email sender (remove from blacklist).
 
+Unblocks the owning contact as a whole only when the caller also has contacts:update; otherwise only the address itself is unblocked.
+
 ```php
 $sendseven->emailIntegrations()->unblockSender(emailAddress: 'email_address');
 ```
 
-- Scopes: `email_integrations:update`
+- Scopes: `email_integrations:update`, `contacts:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -221,6 +215,8 @@ $result = $sendseven->emailIntegrations()->composeNew(conversationId: 'conversat
 | `$bccEmails` | `list<string>\|null` | no | BCC recipients |
 | `$attachmentIds` | `list<string>\|null` | no | IDs of attachments to include |
 | `$senderId` | `?string` | no | Override the connection used to send this email. Must be one of the ids returned by GET /api/v1/inboxes/{id}/sender-options (or, when composing inside an existing conversation, /api/v1/conversations/{id}/sender-options). |
+| `$includeSignature` | `?bool` | no | Append the sender's email signature (personal signature, else the workspace template, placeholders resolved) to this email. Skipped when the body already contains it. Omitted/false: the body is sent as given. |
+| `$signatureHtml` | `?string` | no | An edited signature for this email, used instead of the saved one when include_signature is true (sanitized, placeholders resolved). |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `EmailReply`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/compose_new_email_api_v1_email_integrations_conversations__conversation_id__compose_email_post)
@@ -366,7 +362,7 @@ Adds the sender's email address to the blacklist. Future emails from this sender
 $result = $sendseven->emailIntegrations()->blockSenderFromMessage(emailMessageId: 'email_message_id');
 ```
 
-- Scopes: `email_integrations:update`
+- Scopes: `email_integrations:update`, `contacts:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -424,8 +420,11 @@ $result = $sendseven->emailIntegrations()->sendReply(emailMessageId: 'email_mess
 | `$toEmails` | `list<string>\|null` | no | Explicit recipient override; when omitted, defaults to the original message's Reply-To or From address. When provided and non-empty, these addresses are used exactly (reply-all expansion is not applied on top). |
 | `$replyAll` | `?bool` | no | Reply to all original recipients |
 | `$subjectOverride` | `?string` | no | Override reply subject (default: Re: original) |
+| `$includeSignature` | `?bool` | no | Append the sender's email signature (personal signature, else the workspace template, placeholders resolved) to this reply. Skipped when the body already contains it. Omitted/false: the body is sent as given. |
+| `$signatureHtml` | `?string` | no | Email only: an edited signature for this message, used instead of the saved one when include_signature is true (sanitized, placeholders resolved). |
 | `$includeThreadHistory` | `?bool` | no | Override whether to append the quoted prior-thread history block beneath this reply. When omitted/null, the owning mailbox's include_thread_history default (TRUE) is used. |
 | `$senderId` | `?string` | no | Override the connection used to send this reply. Must be one of the ids returned by GET /api/v1/conversations/{conversation_id}/sender-options. |
+| `$meta` | `array<string, mixed>\|null` | no | Optional outbound translation info: {translations: {original, original_language}, translated_to}. Other keys are ignored. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `EmailReply`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/send_email_reply_api_v1_email_integrations_email_messages__email_message_id__reply_post)
@@ -518,7 +517,7 @@ Delete Email Integration. `DELETE /email-integrations/{integration_id}`
 
 Archive (soft-delete) an email integration with full resource cleanup.
 
-This archives the integration and cleans up all associated resources: - For SES managed integrations: removes domain identity from AWS SES (only if no other active integration uses the same domain), deletes the SES configuration set, and removes the SES tenant - Deletes DNS verification records from the database - Deactivates proxy mappings for proxy integrations - Clears sensitive credentials (OAuth tokens, passwords, API keys) - Marks the integration as archived with timestamp - Preserves the integration record for billing history and audit purposes
+This archives the integration and cleans up all associated resources: - Deactivates proxy mappings for proxy integrations - Clears the integration's default flag - Deactivates mailboxes that send only through this integration (and clears their default flag) - Clears email settings that pointed at it: support integration, default support/campaign mailbox, double opt-in mailbox, and the support From address when it belonged to this integration. No new default is chosen. - Clears sensitive credentials (OAuth tokens, passwords, API keys) - Marks the integration as archived with timestamp - Preserves the integration record for billing history and audit purposes
 
 ```php
 $result = $sendseven->emailIntegrations()->delete(integrationId: 'integration_id');
@@ -582,28 +581,6 @@ $result = $sendseven->emailIntegrations()->update(integrationId: 'integration_id
 
 Returns `EmailIntegration`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/update_email_integration_api_v1_email_integrations__integration_id__patch)
 
-## addDomain
-
-Add Domain. `POST /email-integrations/{integration_id}/add-domain`
-
-Start domain verification for an SES managed integration.
-
-This: 1. Creates an email identity for the domain in SES 2. Returns DNS records (DKIM, SPF, DMARC) that need to be added 3. Associates the domain with the SES tenant once verified
-
-```php
-$result = $sendseven->emailIntegrations()->addDomain(integrationId: 'integration_id', domain: 'domain');
-```
-
-- Scopes: `email_integrations:update`
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `$integrationId` | `string` | yes |  |
-| `$domain` | `string` | yes | Domain to verify (e.g., 'acme.com') |
-| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
-
-Returns `DomainVerification`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/add_domain_api_v1_email_integrations__integration_id__add_domain_post)
-
 ## removeGmailAlias
 
 Remove Gmail Alias. `DELETE /email-integrations/{integration_id}/aliases/{alias_email}`
@@ -624,46 +601,6 @@ $sendseven->emailIntegrations()->removeGmailAlias(integrationId: 'integration_id
 | `$aliasEmail` | `string` | yes |  |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/remove_gmail_alias_api_v1_email_integrations__integration_id__aliases__alias_email__delete)
-
-## getDnsRecords
-
-Get Dns Records. `GET /email-integrations/{integration_id}/dns-records`
-
-Get DNS records required for domain verification.
-
-Returns DKIM, SPF, and DMARC records that need to be set in DNS.
-
-```php
-$result = $sendseven->emailIntegrations()->getDnsRecords(integrationId: 'integration_id');
-```
-
-- Scopes: `email_integrations:read`
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `$integrationId` | `string` | yes |  |
-
-Returns `list<DnsRecord>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/get_dns_records_api_v1_email_integrations__integration_id__dns_records_get)
-
-## getDomainStatus
-
-Get Domain Status. `GET /email-integrations/{integration_id}/domain-status`
-
-Check domain verification status for an SES managed integration.
-
-Returns the current verification status and DNS records.
-
-```php
-$result = $sendseven->emailIntegrations()->getDomainStatus(integrationId: 'integration_id');
-```
-
-- Scopes: `email_integrations:read`
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `$integrationId` | `string` | yes |  |
-
-Returns `DomainVerification`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/get_domain_status_api_v1_email_integrations__integration_id__domain_status_get)
 
 ## syncGmail
 
@@ -686,48 +623,6 @@ $result = $sendseven->emailIntegrations()->syncGmail(integrationId: 'integration
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `GmailSync`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/sync_gmail_integration_api_v1_email_integrations__integration_id__gmail_sync_post)
-
-## pauseSending
-
-Pause Sending. `POST /email-integrations/{integration_id}/pause-sending`
-
-Pause email sending for an SES managed integration.
-
-This manually pauses the SES tenant, stopping all email sending. Use this if you need to temporarily disable sending (e.g., suspected abuse).
-
-```php
-$result = $sendseven->emailIntegrations()->pauseSending(integrationId: 'integration_id');
-```
-
-- Scopes: `email_integrations:update`
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `$integrationId` | `string` | yes |  |
-| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
-
-Returns `SendingStatus`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/pause_sending_api_v1_email_integrations__integration_id__pause_sending_post)
-
-## resumeSending
-
-Resume Sending. `POST /email-integrations/{integration_id}/resume-sending`
-
-Resume email sending for an SES managed integration.
-
-This resumes sending for a paused SES tenant.
-
-```php
-$result = $sendseven->emailIntegrations()->resumeSending(integrationId: 'integration_id');
-```
-
-- Scopes: `email_integrations:update`
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `$integrationId` | `string` | yes |  |
-| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
-
-Returns `SendingStatus`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/resume_sending_api_v1_email_integrations__integration_id__resume_sending_post)
 
 ## sync
 
@@ -792,24 +687,3 @@ $result = $sendseven->emailIntegrations()->addGmailAlias(integrationId: 'integra
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `TestAlias`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/add_gmail_alias_api_v1_email_integrations__integration_id__test_alias_post)
-
-## verifyDns
-
-Verify Dns. `POST /email-integrations/{integration_id}/verify-dns`
-
-Trigger DNS verification check.
-
-Checks if the required DNS records have been properly configured.
-
-```php
-$result = $sendseven->emailIntegrations()->verifyDns(integrationId: 'integration_id');
-```
-
-- Scopes: `email_integrations:update`
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `$integrationId` | `string` | yes |  |
-| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
-
-Returns `DnsVerificationCheck`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Integrations/verify_dns_api_v1_email_integrations__integration_id__verify_dns_post)

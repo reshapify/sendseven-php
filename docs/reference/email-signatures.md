@@ -148,7 +148,7 @@ Preview Template. `POST /email-signatures/template/preview`
 
 Preview a signature template with resolved placeholders.
 
-If content_html is not provided in the request, uses the current tenant template. Optionally override placeholder values for preview.
+If content_html is not provided in the request, uses the current tenant template. The content is cleaned exactly as saving would store it, and placeholders resolve exactly as in a sent email: your real details, the real company logo, and empty fields stay empty. Per-field overrides replace single values; use_sample_values: true fills empty values with sample data.
 
 ```php
 $result = $sendseven->emailSignatures()->previewTemplate();
@@ -166,6 +166,7 @@ $result = $sendseven->emailSignatures()->previewTemplate();
 | `$companyName` | `?string` | no | Override company name |
 | `$companyLogo` | `?string` | no | Override company logo URL |
 | `$companyWebsite` | `?string` | no | Override company website |
+| `$useSampleValues` | `?bool` | no | Fill placeholders whose real value is empty with sample values (e.g. 'Support Agent'). Default false: the preview resolves exactly like a sent email (your real details, real company logo, empty fields stay empty). |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `SignaturePreview`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Signatures/preview_template_api_v1_email_signatures_template_preview_post)

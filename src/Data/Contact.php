@@ -29,10 +29,17 @@ final readonly class Contact extends Data
      * @param  ?string  $updatedAt  When the resource was last updated (UTC)
      * @param  string  $id  Unique identifier (UUID)
      * @param  string  $tenantId  Tenant this resource belongs to
+     * @param  ?int  $blockedInboundCount  Number of incoming messages dropped because the contact is blocked.
+     * @param  ?DateTimeImmutable  $lastBlockedInboundAt  When the most recent incoming message was dropped because of the block.
      * @param  array<array-key, mixed>  $customFields
      * @param  list<TagInfo>  $tags
      * @param  list<ContactMethod>  $contactMethods
-     * @param  list<DuplicateRef>  $potentialDuplicates  Populated when the request used allow_duplicates mode and a duplicate was detected. Empty/null otherwise.
+     * @param  list<ContactSubscriptionSummary>  $subscriptions  Active list subscriptions (status subscribed/pending). Only populated on GET /contacts with include=subscriptions; [] when the contact has none. Null otherwise.
+     * @param  ?int  $conversationCount  Number of conversations with this contact. Only populated on GET /contacts with include=conversation_stats (0 when none).
+     * @param  ?DateTimeImmutable  $lastConversationAt  Most recent conversation activity (MAX conversations.last_message_at). Only populated on GET /contacts with include=conversation_stats; null when the contact has no conversations.
+     * @param  ?string  $ownerUserId  Team member who owns this contact (null = no owner)
+     * @param  ?ContactOwnerInfo  $owner  Contact owner {id, name, avatar_url, availability_state}. Populated on GET /contacts, GET /contacts/{id} and contact updates; null when the contact has no owner.
+     * @param  list<mixed>  $potentialDuplicates  Populated when the request used allow_duplicates mode and a duplicate was detected. Empty/null otherwise. Each entry carries the other contact's name/phone/email/methods only when the caller holds contacts:read; otherwise it is just {"id"}.
      * @param  ?MergedFromInfo  $mergedFrom  Set when the requested ID was an old/merged UUID and we resolved it to the surviving contact via contact_aliases.
      * @param  array<array-key, mixed>  $raw
      */
@@ -52,10 +59,19 @@ final readonly class Contact extends Data
         public ?string $languages,
         public ?string $birthday,
         public ?bool $isBlocked,
+        public ?bool $isArchived,
+        public ?int $blockedInboundCount,
+        public ?DateTimeImmutable $lastBlockedInboundAt,
+        public ?string $source,
         public ?DateTimeImmutable $lastContactedAt,
         public array $customFields,
         public array $tags,
         public array $contactMethods,
+        public array $subscriptions,
+        public ?int $conversationCount,
+        public ?DateTimeImmutable $lastConversationAt,
+        public ?string $ownerUserId,
+        public ?ContactOwnerInfo $owner,
         public array $potentialDuplicates,
         public ?MergedFromInfo $mergedFrom,
         array $raw = [],
@@ -86,11 +102,20 @@ final readonly class Contact extends Data
             languages: $attributes->nullableString('languages'),
             birthday: $attributes->nullableString('birthday'),
             isBlocked: $attributes->nullableBool('is_blocked'),
+            isArchived: $attributes->nullableBool('is_archived'),
+            blockedInboundCount: $attributes->nullableInt('blocked_inbound_count'),
+            lastBlockedInboundAt: $attributes->nullableDateTime('last_blocked_inbound_at'),
+            source: $attributes->nullableString('source'),
             lastContactedAt: $attributes->nullableDateTime('last_contacted_at'),
             customFields: $attributes->array('custom_fields'),
             tags: $attributes->list('tags', TagInfo::fromArray(...)),
             contactMethods: $attributes->list('contact_methods', ContactMethod::fromArray(...)),
-            potentialDuplicates: $attributes->list('potential_duplicates', DuplicateRef::fromArray(...)),
+            subscriptions: $attributes->list('subscriptions', ContactSubscriptionSummary::fromArray(...)),
+            conversationCount: $attributes->nullableInt('conversation_count'),
+            lastConversationAt: $attributes->nullableDateTime('last_conversation_at'),
+            ownerUserId: $attributes->nullableString('owner_user_id'),
+            owner: $attributes->nullableObject('owner', ContactOwnerInfo::fromArray(...)),
+            potentialDuplicates: array_values($attributes->array('potential_duplicates')),
             mergedFrom: $attributes->nullableObject('merged_from', MergedFromInfo::fromArray(...)),
             raw: $data,
         );

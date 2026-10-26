@@ -20,6 +20,10 @@ final readonly class FlowDetails extends Data
      * @param  ?AppSchemasWhatsAppFlowFlow  $flow  Basic flow information
      * @param  list<FlowScreenInfo>  $screens  Flow screens with fields
      * @param  list<string>  $variables  Variables that can be passed via data parameter
+     * @param  ?string  $entryScreen  Screen the flow opens on
+     * @param  ?bool  $isStatic  True when the flow has no data endpoint (first-screen data must be sent with the message)
+     * @param  ?bool  $flowJsonAvailable  Whether the flow JSON could be read
+     * @param  array<array-key, mixed>  $defaults  Saved default data per screen id: {screen_id: data}
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -27,6 +31,10 @@ final readonly class FlowDetails extends Data
         public ?AppSchemasWhatsAppFlowFlow $flow,
         public array $screens,
         public array $variables,
+        public ?string $entryScreen,
+        public ?bool $isStatic,
+        public ?bool $flowJsonAvailable,
+        public array $defaults,
         public ?string $error,
         array $raw = [],
     ) {
@@ -45,6 +53,10 @@ final readonly class FlowDetails extends Data
             flow: $attributes->nullableObject('flow', AppSchemasWhatsAppFlowFlow::fromArray(...)),
             screens: $attributes->list('screens', FlowScreenInfo::fromArray(...)),
             variables: $attributes->strings('variables'),
+            entryScreen: $attributes->nullableString('entry_screen'),
+            isStatic: $attributes->nullableBool('is_static'),
+            flowJsonAvailable: $attributes->nullableBool('flow_json_available'),
+            defaults: $attributes->array('defaults'),
             error: $attributes->nullableString('error'),
             raw: $data,
         );

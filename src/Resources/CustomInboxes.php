@@ -72,6 +72,8 @@ final readonly class CustomInboxes
      * @param  list<string>|null  $tagIds  Tag IDs used by the tag rule (interpreted via tag_filter_mode)
      * @param  list<array<string, mixed>>|null  $fieldFilters  Custom-field rules (AND-combined)
      * @param  list<string>|null  $allowedUserIds  Whitelisted user IDs (only used when access_mode='specific')
+     * @param  ?bool  $allChannels  True = the inbox covers every channel and email connection of the workspace (channel_ids / email_connections are ignored). False = only the listed ones; with none listed the inbox shows nothing.
+     * @param  list<string>|null  $accessTagIds  Team-member tag IDs that grant access (only used when access_mode='specific'): members holding ANY of these tags see the conversations matching this inbox's full filter. Separate from tag_ids, which filter conversations.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -90,6 +92,8 @@ final readonly class CustomInboxes
         ?array $tagIds = null,
         ?array $fieldFilters = null,
         ?array $allowedUserIds = null,
+        ?bool $allChannels = null,
+        ?array $accessTagIds = null,
         ?bool $isActive = null,
         ?int $sortOrder = null,
         ?string $idempotencyKey = null,
@@ -109,6 +113,8 @@ final readonly class CustomInboxes
                 'tag_ids' => $tagIds,
                 'field_filters' => $fieldFilters,
                 'allowed_user_ids' => $allowedUserIds,
+                'all_channels' => $allChannels,
+                'access_tag_ids' => $accessTagIds,
                 'is_active' => $isActive,
                 'sort_order' => $sortOrder,
             ]),
@@ -176,6 +182,7 @@ final readonly class CustomInboxes
      * @param  list<string>|null  $tagIds
      * @param  list<array<string, mixed>>|null  $fieldFilters
      * @param  list<string>|null  $allowedUserIds
+     * @param  list<string>|null  $accessTagIds
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -195,6 +202,8 @@ final readonly class CustomInboxes
         ?array $tagIds = null,
         ?array $fieldFilters = null,
         ?array $allowedUserIds = null,
+        ?bool $allChannels = null,
+        ?array $accessTagIds = null,
         ?bool $isActive = null,
         ?int $sortOrder = null,
         ?string $idempotencyKey = null,
@@ -214,6 +223,8 @@ final readonly class CustomInboxes
                 'tag_ids' => $tagIds,
                 'field_filters' => $fieldFilters,
                 'allowed_user_ids' => $allowedUserIds,
+                'all_channels' => $allChannels,
+                'access_tag_ids' => $accessTagIds,
                 'is_active' => $isActive,
                 'sort_order' => $sortOrder,
             ]),

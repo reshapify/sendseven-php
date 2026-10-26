@@ -2,12 +2,14 @@
 
 # User Inbox Access
 
-`$sendseven->userInboxAccess()` — 2 endpoints.
+`$sendseven->userInboxAccess()` — 4 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`get()`](#get) | `GET /users/{user_id}/inbox-access` | Get per-user inbox access settings |
 | [`update()`](#update) | `PUT /users/{user_id}/inbox-access` | Update per-user inbox access settings |
+| [`getTags()`](#gettags) | `GET /users/{user_id}/tags` | List a team member's tags |
+| [`updateTags()`](#updatetags) | `PUT /users/{user_id}/tags` | Replace a team member's tags |
 
 ## get
 
@@ -51,3 +53,44 @@ $result = $sendseven->userInboxAccess()->update(userId: 'user_id', mode: 'mode')
 | `$contactHistoryVisibility` | `?string` | no |  |
 
 Returns `UserInboxAccessResponse`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/User%20Inbox%20Access/update_user_inbox_access_api_v1_users__user_id__inbox_access_put)
+
+## getTags
+
+List a team member's tags. `GET /users/{user_id}/tags`
+
+List the tags assigned to a team member.
+
+Member tags are used by custom inboxes with "specific members" access: members holding any of the inbox's access tags can see the inbox.
+
+```php
+$result = $sendseven->userInboxAccess()->getTags(userId: 'user_id');
+```
+
+- Scopes: `team:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+
+Returns `UserTags`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/User%20Inbox%20Access/get_user_tags_api_v1_users__user_id__tags_get)
+
+## updateTags
+
+Replace a team member's tags. `PUT /users/{user_id}/tags`
+
+Replace the full set of tags assigned to a team member.
+
+Send every tag the member should hold; tags not in tag_ids are removed, an empty list removes all. Re-sending the same set is a no-op.
+
+```php
+$result = $sendseven->userInboxAccess()->updateTags(userId: 'user_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$tagIds` | `list<string>\|null` | no |  |
+
+Returns `UserTags`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/User%20Inbox%20Access/update_user_tags_api_v1_users__user_id__tags_put)

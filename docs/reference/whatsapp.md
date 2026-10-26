@@ -2,7 +2,7 @@
 
 # WhatsApp
 
-`$sendseven->whatsApp()` — 8 endpoints.
+`$sendseven->whatsApp()` — 9 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -10,6 +10,7 @@
 | [`getCoexistenceStatus()`](#getcoexistencestatus) | `GET /whatsapp/channels/{channel_id}/coexistence-status` | Get Coexistence Status |
 | [`listFlows()`](#listflows) | `GET /whatsapp/channels/{channel_id}/flows` | List Whatsapp Flows |
 | [`getFlowDetails()`](#getflowdetails) | `GET /whatsapp/channels/{channel_id}/flows/{flow_id}` | Get Whatsapp Flow Details |
+| [`updateFlowDefaults()`](#updateflowdefaults) | `PUT /whatsapp/channels/{channel_id}/flows/{flow_id}/defaults` | Update Whatsapp Flow Defaults |
 | [`getSendingLimit()`](#getsendinglimit) | `GET /whatsapp/channels/{channel_id}/sending-limit` | Get Whatsapp Sending Limit |
 | [`getCallWindow()`](#getcallwindow) | `GET /whatsapp/conversations/{conversation_id}/call-window` | Get Whatsapp Call Window |
 | [`getWindowStatus()`](#getwindowstatus) | `GET /whatsapp/conversations/{conversation_id}/whatsapp-window` | Get Whatsapp Window Status |
@@ -61,7 +62,7 @@ List Whatsapp Flows. `GET /whatsapp/channels/{channel_id}/flows`
 
 List available WhatsApp Flows for a channel
 
-WhatsApp Flows must be created in Meta Business Manager before they can be used. This endpoint retrieves all flows associated with the channel's WhatsApp Business Account.
+Retrieves the flows of the channel's WhatsApp Business Account from Meta. Flows built in SendSeven carry definition_id / definition_status. Flows of ARCHIVED SendSeven WhatsApp Flows are hidden unless include_archived=true; Meta flows superseded by "publish changes" are always hidden (they no longer serve new sends).
 
 ```php
 $result = $sendseven->whatsApp()->listFlows(channelId: 'channel_id');
@@ -72,6 +73,7 @@ $result = $sendseven->whatsApp()->listFlows(channelId: 'channel_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
+| `$includeArchived` | `?bool` | no | Also list Meta flows whose SendSeven WhatsApp Flow is archived |
 
 Returns `FetchFlows`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp/list_whatsapp_flows_api_v1_whatsapp_channels__channel_id__flows_get)
 
@@ -81,7 +83,7 @@ Get Whatsapp Flow Details. `GET /whatsapp/channels/{channel_id}/flows/{flow_id}`
 
 Get detailed information about a specific WhatsApp Flow
 
-This endpoint retrieves the flow's structure including screens, input fields, and variables that can be pre-populated when sending the flow.
+Returns the flow's screens (with input fields, the raw data declaration as data_schema, and whether the screen is terminal), the entry screen, whether the flow is static (no data endpoint — first-screen data must be sent with the message), and the saved default data per screen.
 
 ```php
 $result = $sendseven->whatsApp()->getFlowDetails(channelId: 'channel_id', flowId: 'flow_id');
@@ -93,8 +95,32 @@ $result = $sendseven->whatsApp()->getFlowDetails(channelId: 'channel_id', flowId
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
 | `$flowId` | `string` | yes |  |
+| `$refresh` | `?bool` | no | Bypass the cached flow JSON and re-download it from Meta |
 
 Returns `FlowDetails`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp/get_whatsapp_flow_details_api_v1_whatsapp_channels__channel_id__flows__flow_id__get)
+
+## updateFlowDefaults
+
+Update Whatsapp Flow Defaults. `PUT /whatsapp/channels/{channel_id}/flows/{flow_id}/defaults`
+
+Save the default data for one screen of a WhatsApp Flow.
+
+The saved data is used whenever this flow is sent without explicit data (from the conversation composer or as a template FLOW button). Send data: null to remove the saved default for that screen.
+
+```php
+$result = $sendseven->whatsApp()->updateFlowDefaults(channelId: 'channel_id', flowId: 'flow_id', screen: 'screen');
+```
+
+- Scopes: `channels:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$channelId` | `string` | yes |  |
+| `$flowId` | `string` | yes |  |
+| `$screen` | `string` | yes | Screen id |
+| `$data` | `array<string, mixed>\|null` | no | Default data for the screen; null removes the saved default |
+
+Returns `UpdateFlowDefaults`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp/update_whatsapp_flow_defaults_api_v1_whatsapp_channels__channel_id__flows__flow_id__defaults_put)
 
 ## getSendingLimit
 
@@ -160,9 +186,9 @@ Returns `WhatsAppWindowStatusResponse`. [SendSeven reference](https://api.sendse
 
 Send Whatsapp Flow. `POST /whatsapp/flows/send`
 
-Send a WhatsApp Flow message to a contact
+Send a WhatsApp Flow message (free-form, inside the 24-hour window)
 
-WhatsApp Flows allow businesses to create rich, interactive experiences within WhatsApp conversations. The flow must exist and be published (or in draft mode for testing).
+The recipient is resolved from conversation_id (preferred), contact_id or recipient (phone number). Contacts without a phone number that are reachable via a WhatsApp business-scoped user ID are supported.
 
 ```php
 $result = $sendseven->whatsApp()->sendFlow(channelId: 'channel_id', flowId: 'flow_id', flowCta: 'flow_cta');
@@ -174,16 +200,16 @@ $result = $sendseven->whatsApp()->sendFlow(channelId: 'channel_id', flowId: 'flo
 |---|---|---|---|
 | `$channelId` | `string` | yes | Channel ID to send from |
 | `$flowId` | `string` | yes | WhatsApp Flow ID |
-| `$flowCta` | `string` | yes | Button text to trigger flow (max 20 chars) |
+| `$flowCta` | `string` | yes | Button text to trigger flow (max 30 chars) |
 | `$contactId` | `?string` | no | Contact ID to send to |
 | `$recipient` | `?string` | no | Recipient phone number (alternative to contact_id) |
 | `$body` | `?string` | no | Message body text |
 | `$header` | `?string` | no | Optional header text |
 | `$footer` | `?string` | no | Optional footer text |
 | `$screen` | `?string` | no | Initial screen to navigate to |
-| `$data` | `array<string, mixed>\|null` | no | Data to pre-populate flow fields |
+| `$data` | `array<string, mixed>\|null` | no | Data for the first screen. When omitted, the saved default data for (flow_id, screen) is used. String values may contain contact variables such as {{contact.first_name}} or {{contact.custom.<key>}}; they are rendered per recipient. |
 | `$mode` | `FlowMode\|string\|null` | no | Flow mode: draft or published |
-| `$conversationId` | `?string` | no | Link to existing conversation (creates new if not provided) |
+| `$conversationId` | `?string` | no | Conversation to send into. Resolves the recipient and channel context; takes precedence over contact_id / recipient. |
 | `$flowToken` | `?string` | no | Optional tracking token (auto-generated if not provided) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 

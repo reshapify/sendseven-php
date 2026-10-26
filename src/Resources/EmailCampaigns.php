@@ -83,18 +83,22 @@ final readonly class EmailCampaigns
      *
      * Create a new email campaign.
      *
-     * - Creates both base Campaign and EmailCampaign records - Validates provider/integration and
-     * content exist - Estimates recipient count - Optional send_rate_limit (emails per minute,
-     * 1-60000) and send_batch_size (recipients per batch, at least 1). Rejected values return HTTP 422
-     * {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid, send_pacing_unavailable.
+     * - Creates both base Campaign and EmailCampaign records - Validates the sending provider and
+     * content exist - Estimates recipient count - Audience: list_ids and/or subscription_categories,
+     * or audience_conditions (Audience Builder tree). A tree must hold a top-level positive list
+     * membership; the campaign's lists are derived from it and list_ids is ignored. Rejected trees
+     * return HTTP 422 {code, message}: audience_list_membership_required,
+     * audience_membership_list_invalid, audience_conditions_invalid. - Optional send_rate_limit
+     * (emails per minute, 1-60000) and send_batch_size (recipients per batch, at least 1). Rejected
+     * values return HTTP 422 {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid,
+     * send_pacing_unavailable.
      *
      * Scopes: campaigns:create.
      *
      * @param  string  $name  Campaign name
      * @param  string  $subjectLine  Email subject
      * @param  ?string  $mailboxId  Email mailbox to send from. Auto-resolves from_email, from_name, and sending method. When provided, from_email/from_name/provider/integration fields become optional.
-     * @param  ?string  $emailProviderConfigId  Email provider to use (SendGrid/Mailgun)
-     * @param  ?string  $emailIntegrationId  SES email integration to use (Type 4)
+     * @param  ?string  $emailProviderConfigId  Email sending provider to use
      * @param  ?string  $emailTemplateId  Email template (LEGACY - for backward compatibility)
      * @param  ?string  $emailContentId  Email content (NEW - 3-tier system with layouts)
      * @param  ?string  $previewText  Email preview text
@@ -103,6 +107,7 @@ final readonly class EmailCampaigns
      * @param  ?string  $replyToEmail  Reply-to email address
      * @param  list<string>|null  $subscriptionCategories  Target specific subscription categories (max 100)
      * @param  list<string>|null  $listIds  Target specific lists (max 100; must belong to this workspace)
+     * @param  array<string, mixed>|null  $audienceConditions  Audience Builder condition tree (same format as a dynamic list's `segment_conditions`). Must be a top-level `AND` whose children include at least one positive list membership: a `has_optin` condition (`operator: equals`, `value: true`, `list_id` of a static or newsletter list of this workspace) or a group of only such conditions (`OR` = any of the lists, `AND` = all of them). Other children narrow the audience down or exclude contacts (e.g. `has_optin` with `value: false`). When set, the campaign's lists are DERIVED from the membership lists and any `list_ids` sent are ignored. Errors: 422 `audience_list_membership_required`, `audience_membership_list_invalid`, or a validation error for a malformed tree. A tree with no conditions counts as null.
      * @param  ?bool  $personalizationEnabled  Enable personalization
      * @param  ?bool  $trackingEnabled  Track email OPENS. Omit to inherit the tenant's track_opens_default (defaults True).
      * @param  ?bool  $trackClicks  Track link CLICKS. Omit to inherit the tenant's track_clicks_default (defaults True).
@@ -121,7 +126,6 @@ final readonly class EmailCampaigns
         string $subjectLine,
         ?string $mailboxId = null,
         ?string $emailProviderConfigId = null,
-        ?string $emailIntegrationId = null,
         ?string $emailTemplateId = null,
         ?string $emailContentId = null,
         ?string $previewText = null,
@@ -130,6 +134,7 @@ final readonly class EmailCampaigns
         ?string $replyToEmail = null,
         ?array $subscriptionCategories = null,
         ?array $listIds = null,
+        ?array $audienceConditions = null,
         ?bool $personalizationEnabled = null,
         ?bool $trackingEnabled = null,
         ?bool $trackClicks = null,
@@ -147,7 +152,6 @@ final readonly class EmailCampaigns
                 'subject_line' => $subjectLine,
                 'mailbox_id' => $mailboxId,
                 'email_provider_config_id' => $emailProviderConfigId,
-                'email_integration_id' => $emailIntegrationId,
                 'email_template_id' => $emailTemplateId,
                 'email_content_id' => $emailContentId,
                 'preview_text' => $previewText,
@@ -156,6 +160,7 @@ final readonly class EmailCampaigns
                 'reply_to_email' => $replyToEmail,
                 'subscription_categories' => $subscriptionCategories,
                 'list_ids' => $listIds,
+                'audience_conditions' => $audienceConditions,
                 'personalization_enabled' => $personalizationEnabled,
                 'tracking_enabled' => $trackingEnabled,
                 'track_clicks' => $trackClicks,
@@ -179,16 +184,20 @@ final readonly class EmailCampaigns
      * complaints / hard bounces / suppressed addresses excluded, duplicate addresses collapsed), so
      * subscribed is the number of emails the campaign will actually send.
      *
-     * Audience: all_contacts wins; else list_ids; else subscription_categories; nothing selected
-     * returns zeros.
+     * Audience: audience_conditions (Audience Builder tree) wins; else all_contacts; else list_ids;
+     * else subscription_categories; nothing selected returns zeros. A tree must hold a top-level
+     * positive list membership (static or newsletter list of this workspace), else HTTP 422 {code,
+     * message} with audience_list_membership_required, audience_membership_list_invalid or
+     * audience_conditions_invalid; its membership lists replace list_ids, and only contacts with an
+     * active email subscription on them are counted.
      *
-     * Scopes: campaigns:read.
+     * Scopes: campaigns:read, contacts:read, audience_conditions.
      *
      * @param  ?bool  $allContacts  Target all contacts with email addresses
      * @param  list<string>|null  $listIds  Target specific lists (max 100)
+     * @param  array<string, mixed>|null  $audienceConditions  Audience Builder condition tree (same format as a dynamic list's `segment_conditions`). Must be a top-level `AND` whose children include at least one positive list membership: a `has_optin` condition (`operator: equals`, `value: true`, `list_id` of a static or newsletter list of this workspace) or a group of only such conditions (`OR` = any of the lists, `AND` = all of them). Other children narrow the audience down or exclude contacts (e.g. `has_optin` with `value: false`). When set, the campaign's lists are DERIVED from the membership lists and any `list_ids` sent are ignored. Errors: 422 `audience_list_membership_required`, `audience_membership_list_invalid`, or a validation error for a malformed tree. A tree with no conditions counts as null. Takes precedence over all_contacts / list_ids / subscription_categories.
      * @param  list<string>|null  $subscriptionCategories  Filter by subscription categories (max 100)
      * @param  ?string  $emailProviderConfigId  Email provider the draft will send with (enables the cost quote)
-     * @param  ?string  $emailIntegrationId  SES email integration the draft will send with (enables the cost quote)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -198,9 +207,9 @@ final readonly class EmailCampaigns
     public function getRecipientCount(
         ?bool $allContacts = null,
         ?array $listIds = null,
+        ?array $audienceConditions = null,
         ?array $subscriptionCategories = null,
         ?string $emailProviderConfigId = null,
-        ?string $emailIntegrationId = null,
         ?string $idempotencyKey = null,
     ): RecipientCount {
         $response = $this->connector->send(new Request(
@@ -209,9 +218,9 @@ final readonly class EmailCampaigns
             body: Payload::body([
                 'all_contacts' => $allContacts,
                 'list_ids' => $listIds,
+                'audience_conditions' => $audienceConditions,
                 'subscription_categories' => $subscriptionCategories,
                 'email_provider_config_id' => $emailProviderConfigId,
-                'email_integration_id' => $emailIntegrationId,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -307,12 +316,17 @@ final readonly class EmailCampaigns
      * campaign is sending moves the recipients not sent yet into batch 1 at the new speed. - Rejected
      * values return HTTP 422 {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid,
      * send_pacing_unavailable, send_pacing_not_editable (any other status, e.g. completed or
-     * cancelled).
+     * cancelled). - audience_conditions (Audience Builder tree): omit to leave unchanged, explicit
+     * null clears it (the campaign keeps its current lists). While a tree is set the campaign's lists
+     * are derived from its membership lists and any list_ids sent are ignored. Rejected trees return
+     * HTTP 422 {code, message}: audience_list_membership_required, audience_membership_list_invalid,
+     * audience_conditions_invalid.
      *
      * Scopes: campaigns:update.
      *
      * @param  list<string>|null  $subscriptionCategories
      * @param  list<string>|null  $listIds  Target specific lists (max 100; must belong to this workspace)
+     * @param  array<string, mixed>|null  $audienceConditions  Audience Builder condition tree (same format as a dynamic list's `segment_conditions`). Must be a top-level `AND` whose children include at least one positive list membership: a `has_optin` condition (`operator: equals`, `value: true`, `list_id` of a static or newsletter list of this workspace) or a group of only such conditions (`OR` = any of the lists, `AND` = all of them). Other children narrow the audience down or exclude contacts (e.g. `has_optin` with `value: false`). When set, the campaign's lists are DERIVED from the membership lists and any `list_ids` sent are ignored. Errors: 422 `audience_list_membership_required`, `audience_membership_list_invalid`, or a validation error for a malformed tree. A tree with no conditions counts as null. Omit to leave unchanged; null clears it (the campaign keeps its current lists).
      * @param  ?bool  $trackingEnabled  Track email OPENS
      * @param  ?bool  $trackClicks  Track link CLICKS
      * @param  ?int  $sendRateLimit  Send speed in emails per minute (1-60000). Null clears it.
@@ -332,11 +346,11 @@ final readonly class EmailCampaigns
         ?string $fromEmail = null,
         ?string $replyToEmail = null,
         ?string $emailProviderConfigId = null,
-        ?string $emailIntegrationId = null,
         ?string $emailTemplateId = null,
         ?string $emailContentId = null,
         ?array $subscriptionCategories = null,
         ?array $listIds = null,
+        ?array $audienceConditions = null,
         ?bool $personalizationEnabled = null,
         ?bool $trackingEnabled = null,
         ?bool $trackClicks = null,
@@ -356,11 +370,11 @@ final readonly class EmailCampaigns
                 'from_email' => $fromEmail,
                 'reply_to_email' => $replyToEmail,
                 'email_provider_config_id' => $emailProviderConfigId,
-                'email_integration_id' => $emailIntegrationId,
                 'email_template_id' => $emailTemplateId,
                 'email_content_id' => $emailContentId,
                 'subscription_categories' => $subscriptionCategories,
                 'list_ids' => $listIds,
+                'audience_conditions' => $audienceConditions,
                 'personalization_enabled' => $personalizationEnabled,
                 'tracking_enabled' => $trackingEnabled,
                 'track_clicks' => $trackClicks,

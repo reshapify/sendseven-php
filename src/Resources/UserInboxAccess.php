@@ -8,6 +8,7 @@ namespace Reshapify\SendSeven\Resources;
 // change the generator or openapi/patches, then regenerate.
 
 use Reshapify\SendSeven\Data\UserInboxAccessResponse;
+use Reshapify\SendSeven\Data\UserTags;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
@@ -15,7 +16,7 @@ use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * User Inbox Access: 2 endpoints.
+ * User Inbox Access: 4 endpoints.
  *
  * Reach it with $sendseven->userInboxAccess().
  *
@@ -98,5 +99,62 @@ final readonly class UserInboxAccess
         ));
 
         return UserInboxAccessResponse::fromArray($response->data());
+    }
+
+    /**
+     * List a team member's tags.
+     *
+     * List the tags assigned to a team member.
+     *
+     * Member tags are used by custom inboxes with "specific members" access: members holding any of
+     * the inbox's access tags can see the inbox.
+     *
+     * Returns 404 if the user is not a member of this workspace.
+     *
+     * Scopes: team:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/User%20Inbox%20Access/get_user_tags_api_v1_users__user_id__tags_get
+     */
+    public function getTags(string $userId): UserTags
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/users/'.Payload::segment($userId).'/tags',
+        ));
+
+        return UserTags::fromArray($response->data());
+    }
+
+    /**
+     * Replace a team member's tags.
+     *
+     * Replace the full set of tags assigned to a team member.
+     *
+     * Send every tag the member should hold; tags not in tag_ids are removed, an empty list removes
+     * all. Re-sending the same set is a no-op.
+     *
+     * - 404 if the user is not a member of this workspace. - 422 if any tag_ids element is not a tag
+     * of this workspace.
+     *
+     * Scopes: team:update.
+     *
+     * @param  list<string>|null  $tagIds
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/User%20Inbox%20Access/update_user_tags_api_v1_users__user_id__tags_put
+     */
+    public function updateTags(string $userId, ?array $tagIds = null): UserTags
+    {
+        $response = $this->connector->send(new Request(
+            Method::Put,
+            '/users/'.Payload::segment($userId).'/tags',
+            body: Payload::body(['tag_ids' => $tagIds]),
+        ));
+
+        return UserTags::fromArray($response->data());
     }
 }

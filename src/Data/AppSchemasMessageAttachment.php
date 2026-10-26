@@ -17,6 +17,12 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AppSchemasMessageAttachment extends Data
 {
     /**
+     * @param  ?string  $thumbnailUrl  Short-lived signed thumbnail URL (60 min); null when there is no thumbnail.
+     * @param  ?int  $width  Pixel width (image/video), when known
+     * @param  ?int  $height  Pixel height (image/video), when known
+     * @param  ?AttachmentAiSummary  $aiSummary  AI summary of this image/PDF, or null (none yet, or AI features off).
+     * @param  ?bool  $aiSummaryAvailable  True when an on-demand summary can be requested via `POST /attachments/{id}/summary` (AI enabled, supported inbound image/PDF, no ok/pending summary).
+     * @param  ?int  $aiSummaryCredits  AI credits an on-demand summary costs (image 2, PDF 3); null when not available. From 1 November 2026 always null: summaries are charged by the AI work used. `ai_summary_available` tells whether the summary can be requested.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -27,6 +33,12 @@ final readonly class AppSchemasMessageAttachment extends Data
         public string $storagePath,
         public string $createdAt,
         public ?string $url,
+        public ?string $thumbnailUrl,
+        public ?int $width,
+        public ?int $height,
+        public ?AttachmentAiSummary $aiSummary,
+        public ?bool $aiSummaryAvailable,
+        public ?int $aiSummaryCredits,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,6 +59,12 @@ final readonly class AppSchemasMessageAttachment extends Data
             storagePath: $attributes->string('storage_path'),
             createdAt: $attributes->string('created_at'),
             url: $attributes->nullableString('url'),
+            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            width: $attributes->nullableInt('width'),
+            height: $attributes->nullableInt('height'),
+            aiSummary: $attributes->nullableObject('ai_summary', AttachmentAiSummary::fromArray(...)),
+            aiSummaryAvailable: $attributes->nullableBool('ai_summary_available'),
+            aiSummaryCredits: $attributes->nullableInt('ai_summary_credits'),
             raw: $data,
         );
     }

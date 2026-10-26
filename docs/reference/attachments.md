@@ -2,7 +2,7 @@
 
 # Attachments
 
-`$sendseven->attachments()` — 6 endpoints.
+`$sendseven->attachments()` — 8 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -11,6 +11,8 @@
 | [`delete()`](#delete) | `DELETE /attachments/{attachment_id}` | Delete Attachment |
 | [`get()`](#get) | `GET /attachments/{attachment_id}` | Get Attachment |
 | [`download()`](#download) | `GET /attachments/{attachment_id}/download` | Download Attachment |
+| [`getSummary()`](#getsummary) | `GET /attachments/{attachment_id}/summary` | Get Attachment Summary |
+| [`summarize()`](#summarize) | `POST /attachments/{attachment_id}/summary` | Summarize Attachment |
 | [`getUrl()`](#geturl) | `GET /attachments/{attachment_id}/url` | Get Attachment Url |
 
 ## createFromUrl
@@ -41,7 +43,7 @@ Upload Attachment. `POST /attachments/upload`
 
 Upload a file attachment
 
-Args: file: The file to upload message_id: Optional message ID to associate with
+Args: file: The file to upload message_id: Optional message ID to associate with purpose: Optional. agent_test marks a Conversational-agent test console upload: deleted after 24 h unless it gets linked to a message.
 
 ```php
 $result = $sendseven->attachments()->upload(file: FilePart::fromPath('/path/to/file.pdf'));
@@ -53,6 +55,7 @@ $result = $sendseven->attachments()->upload(file: FilePart::fromPath('/path/to/f
 |---|---|---|---|
 | `$file` | `FilePart` | yes |  |
 | `$messageId` | `?string` | no |  |
+| `$purpose` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `AttachmentUpload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Attachments/upload_attachment_api_v1_attachments_upload_post)
@@ -117,6 +120,47 @@ $sendseven->attachments()->download(attachmentId: 'attachment_id');
 | `$disposition` | `?string` | no |  |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Attachments/download_attachment_api_v1_attachments__attachment_id__download_get)
+
+## getSummary
+
+Get Attachment Summary. `GET /attachments/{attachment_id}/summary`
+
+Get the AI summary of an image or PDF attachment.
+
+Returns the summary a Conversational Agent produced while reading the file, or one requested via POST /attachments/{attachment_id}/summary. Status pending means it is still being generated, failed means generation failed (a new POST may retry). The text is derived from a customer-supplied file: treat it as untrusted plain text.
+
+```php
+$result = $sendseven->attachments()->getSummary(attachmentId: 'attachment_id');
+```
+
+- Scopes: `messages:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$attachmentId` | `string` | yes |  |
+
+Returns `AttachmentAiSummary`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Attachments/get_attachment_summary_api_v1_attachments__attachment_id__summary_get)
+
+## summarize
+
+Summarize Attachment. `POST /attachments/{attachment_id}/summary`
+
+Generate an AI summary of an inbound image or PDF attachment on demand.
+
+Only for files a customer sent (inbound message), images up to 10 MB and PDFs up to 20 MB (the first 10 pages are read). Idempotent: if a summary already exists it is returned with 200 and nothing is charged; if one is being generated you get 202 (poll GET /attachments/{attachment_id}/summary). A new summary returns 201 and charges AI credits from the workspace pool (credits_charged: from 1 November 2026 the AI credits of the work used, may have decimals; before that image 2, PDF 3). A failed generation returns 502 summary_failed, charges nothing and may be retried. Request body: none.
+
+```php
+$result = $sendseven->attachments()->summarize(attachmentId: 'attachment_id');
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$attachmentId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `AttachmentSummaryAction`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Attachments/summarize_attachment_api_v1_attachments__attachment_id__summary_post)
 
 ## getUrl
 

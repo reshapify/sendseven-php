@@ -31,6 +31,7 @@ final readonly class UserTenant extends Data
      * @param  ?string  $billingAccountId  Associated billing account ID
      * @param  ?string  $defaultCountry  Tenant default country (ISO-3166-1 alpha-2) or null
      * @param  ?string  $defaultTimezone  Tenant default IANA timezone (e.g. 'Europe/Berlin')
+     * @param  ?string  $defaultLanguage  Workspace language (ISO-639-1, e.g. 'de') or null when not set. Default content language for new flows, templates and bots.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -44,6 +45,7 @@ final readonly class UserTenant extends Data
         public ?string $billingAccountId,
         public ?string $defaultCountry,
         public ?string $defaultTimezone,
+        public ?string $defaultLanguage,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -67,6 +69,7 @@ final readonly class UserTenant extends Data
             billingAccountId: $attributes->nullableString('billing_account_id'),
             defaultCountry: $attributes->nullableString('default_country'),
             defaultTimezone: $attributes->nullableString('default_timezone'),
+            defaultLanguage: $attributes->nullableString('default_language'),
             raw: $data,
         );
     }

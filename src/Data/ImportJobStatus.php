@@ -23,8 +23,16 @@ final readonly class ImportJobStatus extends Data
      * @param  ?int  $totalItems  Total rows detected in the CSV
      * @param  ?int  $processedItems  Rows processed so far
      * @param  ?int  $failedItems  Invalid/failed rows
-     * @param  ?EmailContactImportSummary  $summary  Full import summary; present once status == completed
+     * @param  ?EmailContactImportSummary  $summary  Import summary; present once status == completed or cancelled (partial, committed counts, cancelled=true)
      * @param  ?string  $errorMessage  Present when status == failed
+     * @param  ?string  $phase  Key of the phase currently running; completed | failed | cancelled once the job ended. Null for jobs from older backends.
+     * @param  list<ImportPhaseProgress>  $phases  Ordered full phase list (status skipped = not applicable)
+     * @param  ?ImportLiveCounts  $liveCounts  Running totals of committed writes
+     * @param  ?bool  $cancelRequested  True once POST /email-contacts/import/{job_id}/cancel was called
+     * @param  ?string  $duplicateMode  EFFECTIVE duplicate handling of this import: auto_merge | allow_duplicates | dont_allow_duplicates | update_existing (the workspace default when no override was sent). Null for jobs from older backends.
+     * @param  ?bool  $duplicateModeOverrideIgnored  True when the request asked for allow_duplicates but the workspace is set to dont_allow_duplicates: the override was ignored and colliding rows are blocked.
+     * @param  ?string  $matchPriority  email | phone | whatsapp_id (the import's match option; null for older jobs)
+     * @param  ?bool  $orphaned  True when the import stopped unexpectedly (server restart) and was closed as failed (or cancelled, when a stop had been requested). error_message explains it; rows saved before that are kept.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -37,6 +45,14 @@ final readonly class ImportJobStatus extends Data
         public ?int $failedItems,
         public ?EmailContactImportSummary $summary,
         public ?string $errorMessage,
+        public ?string $phase,
+        public array $phases,
+        public ?ImportLiveCounts $liveCounts,
+        public ?bool $cancelRequested,
+        public ?string $duplicateMode,
+        public ?bool $duplicateModeOverrideIgnored,
+        public ?string $matchPriority,
+        public ?bool $orphaned,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,6 +75,14 @@ final readonly class ImportJobStatus extends Data
             failedItems: $attributes->nullableInt('failed_items'),
             summary: $attributes->nullableObject('summary', EmailContactImportSummary::fromArray(...)),
             errorMessage: $attributes->nullableString('error_message'),
+            phase: $attributes->nullableString('phase'),
+            phases: $attributes->list('phases', ImportPhaseProgress::fromArray(...)),
+            liveCounts: $attributes->nullableObject('live_counts', ImportLiveCounts::fromArray(...)),
+            cancelRequested: $attributes->nullableBool('cancel_requested'),
+            duplicateMode: $attributes->nullableString('duplicate_mode'),
+            duplicateModeOverrideIgnored: $attributes->nullableBool('duplicate_mode_override_ignored'),
+            matchPriority: $attributes->nullableString('match_priority'),
+            orphaned: $attributes->nullableBool('orphaned'),
             raw: $data,
         );
     }

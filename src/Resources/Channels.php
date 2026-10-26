@@ -15,9 +15,11 @@ use Reshapify\SendSeven\Data\ChannelCommentCapability;
 use Reshapify\SendSeven\Data\ChannelHealth;
 use Reshapify\SendSeven\Data\ChannelProfile;
 use Reshapify\SendSeven\Data\ChannelProfileUpdate;
+use Reshapify\SendSeven\Data\ChannelSenderActionSupport;
 use Reshapify\SendSeven\Data\ChannelTypes;
 use Reshapify\SendSeven\Data\FacebookPagePostItem;
 use Reshapify\SendSeven\Data\InstagramMediaItem;
+use Reshapify\SendSeven\Data\LiveChatSettings;
 use Reshapify\SendSeven\Data\ProfilePhotoUpload;
 use Reshapify\SendSeven\Data\RcsCapability;
 use Reshapify\SendSeven\Data\WebhookRefresh;
@@ -36,7 +38,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Channels: 21 endpoints.
+ * Channels: 24 endpoints.
  *
  * Reach it with $sendseven->channels().
  *
@@ -161,7 +163,13 @@ final readonly class Channels
      * (Messenger / Instagram) whose access token was invalidated (Graph API code=190) and need
      * reconnecting. These appear with channel_type = the messaging type ("messenger", "instagram",
      * ...), connection_status = "disconnected", last_error = the disconnection_reason
-     * ("token_invalidated"), and last_error_at = when the channel was disconnected.
+     * ("token_invalidated"), and last_error_at = when the channel was disconnected. - Messaging
+     * channels flagged webhook_removed (Telegram bot whose webhook was removed outside SendSeven),
+     * same shape, last_error = "webhook_removed". - WhatsApp / Messenger / Instagram channels that are
+     * still connected but DEGRADED: several recent messages to different recipients failed with a Meta
+     * permission error (#10 / #200). These appear with connection_status = "degraded", last_error =
+     * "meta_permission_denied", last_error_at = the latest such failure and degraded_error_code = 10
+     * or 200. The channel stays active; the item disappears after the next successfully sent message.
      *
      * Scopes: channels:read.
      *
@@ -177,6 +185,39 @@ final readonly class Channels
         ));
 
         return ChannelHealth::fromArray($response->data());
+    }
+
+    /**
+     * List read-receipt and typing-indicator support per channel type.
+     *
+     * Which channel types support read receipts and typing indicators.
+     *
+     * Returns one item for every channel type (unsupported ones report false), so you can decide
+     * before calling POST /messages/{message_id}/read or POST /conversations/{conversation_id}/typing.
+     *
+     * - read: the contact can be shown that their message was read. - typing: the contact can be shown
+     * a typing indicator. - typing_off: the indicator can be cleared explicitly (otherwise state:
+     * "off" is a no-op and the indicator ends on its own). - typing_ttl_seconds: how long one typing
+     * call is shown; null means until cleared or until you reply. - typing_requires_message: the
+     * platform ties typing to a received message (the latest inbound message is used when you pass
+     * none).
+     *
+     * Scopes: channels:read.
+     *
+     * @return Page<ChannelSenderActionSupport>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/list_sender_action_support_api_v1_channels_sender_actions_get
+     */
+    public function listSenderActionSupport(): Page
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/channels/sender-actions',
+        ));
+
+        return Hydrate::page($response->data(), ChannelSenderActionSupport::fromArray(...), null);
     }
 
     /**
@@ -443,6 +484,54 @@ final readonly class Channels
     }
 
     /**
+     * Get Live Chat Settings.
+     *
+     * Get the Live Chat settings of a live_chat channel: which attachment categories (images, audio,
+     * video, documents) website visitors may send.
+     *
+     * Scopes: channels:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/get_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_get
+     */
+    public function getLiveChatSettings(string $channelId): LiveChatSettings
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/channels/'.Payload::segment($channelId).'/live-chat-settings',
+        ));
+
+        return LiveChatSettings::fromArray($response->data());
+    }
+
+    /**
+     * Update Live Chat Settings.
+     *
+     * Update which attachment categories Live Chat visitors may send. Partial: only the categories in
+     * the body change; the full settings are returned.
+     *
+     * Scopes: channels:update.
+     *
+     * @param  array<string, mixed>  $attachments
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/update_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_put
+     */
+    public function updateLiveChatSettings(string $channelId, array $attachments): LiveChatSettings
+    {
+        $response = $this->connector->send(new Request(
+            Method::Put,
+            '/channels/'.Payload::segment($channelId).'/live-chat-settings',
+            body: Payload::body(['attachments' => $attachments]),
+        ));
+
+        return LiveChatSettings::fromArray($response->data());
+    }
+
+    /**
      * Get Channel Profile.
      *
      * Fetch channel profile from platform API (WhatsApp or Telegram).
@@ -631,7 +720,7 @@ final readonly class Channels
      * WhatsApp does not return a released handle to the pool immediately, so someone else may not be
      * able to claim it right away — and neither can you. Treat this as destructive.
      *
-     * Scopes: channels:write.
+     * Scopes: channels:update.
      *
      *
      * @throws ApiException
@@ -691,7 +780,7 @@ final readonly class Channels
      * portfolio, WhatsApp answers with error 147005. Repeat the request with force_transfer: true to
      * move it to this number.
      *
-     * Scopes: channels:write.
+     * Scopes: channels:update.
      *
      * @param  string  $username  3-35 characters of lowercase letters, numbers, periods and underscores; must contain a letter, may not start/end with a period, contain '..', start with 'www' or end with a domain suffix
      * @param  ?bool  $forceTransfer  Only for retrying after error 147005: moves the username off another phone number in the same Meta portfolio

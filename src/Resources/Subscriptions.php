@@ -38,6 +38,8 @@ final readonly class Subscriptions
      *
      * Get all subscriptions for a specific contact
      *
+     * Scopes: contacts:read.
+     *
      *
      * @throws ApiException
      *
@@ -57,6 +59,8 @@ final readonly class Subscriptions
      * Subscribe contact.
      *
      * Subscribe a contact to a list via a specific channel
+     *
+     * Scopes: contacts:update.
      *
      * @param  string  $listId  List ID to subscribe to
      * @param  SubscriptionChannelType|string  $channelType  Channel type for subscription
@@ -113,6 +117,8 @@ final readonly class Subscriptions
      * Unsubscribe contact.
      *
      * Unsubscribe a contact from a list
+     *
+     * Scopes: contacts:update.
      *
      * @param  array<string, mixed>|null  $body  The request body
      *
@@ -196,7 +202,8 @@ final readonly class Subscriptions
     /**
      * Confirm double opt-in.
      *
-     * Confirm a subscription using the double opt-in token (public endpoint)
+     * Confirm a subscription using the double opt-in token (public endpoint). Returns only the
+     * confirmed subscription's status, channel type and confirmation time.
      *
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *

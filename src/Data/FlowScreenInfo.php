@@ -20,12 +20,16 @@ final readonly class FlowScreenInfo extends Data
      * @param  string  $id  Screen ID
      * @param  ?string  $title  Screen title
      * @param  list<FlowFieldInfo>  $fields  Input fields on this screen
+     * @param  ?bool  $terminal  Whether this screen ends the flow
+     * @param  array<array-key, mixed>  $dataSchema  Raw `data` declaration of the screen from the flow JSON (types, nested items/properties, __example__). Null when the screen declares no data.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $id,
         public ?string $title,
         public array $fields,
+        public ?bool $terminal,
+        public array $dataSchema,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,6 +46,8 @@ final readonly class FlowScreenInfo extends Data
             id: $attributes->string('id'),
             title: $attributes->nullableString('title'),
             fields: $attributes->list('fields', FlowFieldInfo::fromArray(...)),
+            terminal: $attributes->nullableBool('terminal'),
+            dataSchema: $attributes->array('data_schema'),
             raw: $data,
         );
     }

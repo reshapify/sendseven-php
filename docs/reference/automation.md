@@ -2,7 +2,7 @@
 
 # Automation
 
-`$sendseven->automation()` — 29 endpoints.
+`$sendseven->automation()` — 33 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -17,6 +17,7 @@
 | [`deleteBotAvatar()`](#deletebotavatar) | `DELETE /automation/bots/{bot_id}/avatar` | Delete Bot Avatar |
 | [`uploadBotAvatar()`](#uploadbotavatar) | `POST /automation/bots/{bot_id}/avatar` | Upload Bot Avatar |
 | [`convertBotToFlowEndpoint()`](#convertbottoflowendpoint) | `POST /automation/bots/{bot_id}/convert-to-flow` | Convert Bot To Flow Endpoint |
+| [`duplicateBot()`](#duplicatebot) | `POST /automation/bots/{bot_id}/duplicate` | Duplicate Bot |
 | [`listKeywordTriggers()`](#listkeywordtriggers) | `GET /automation/bots/{bot_id}/keyword-triggers` | List Keyword Triggers |
 | [`createKeywordTrigger()`](#createkeywordtrigger) | `POST /automation/bots/{bot_id}/keyword-triggers` | Create Keyword Trigger |
 | [`reorderKeywordTriggers()`](#reorderkeywordtriggers) | `PUT /automation/bots/{bot_id}/keyword-triggers/reorder` | Reorder Keyword Triggers |
@@ -30,6 +31,9 @@
 | [`updateActivationRule()`](#updateactivationrule) | `PUT /automation/bots/{bot_id}/rules/{rule_id}` | Update Activation Rule |
 | [`deleteBotTranslation()`](#deletebottranslation) | `DELETE /automation/bots/{bot_id}/translations/{lang_code}` | Delete Bot Translation |
 | [`upsertBotTranslation()`](#upsertbottranslation) | `PUT /automation/bots/{bot_id}/translations/{lang_code}` | Upsert Bot Translation |
+| [`getHubStats()`](#gethubstats) | `GET /automation/hub/stats` | Get Hub Stats |
+| [`listHubTemplates()`](#listhubtemplates) | `GET /automation/hub/templates` | List Hub Templates |
+| [`createFromTemplate()`](#createfromtemplate) | `POST /automation/hub/templates/{key}/create` | Create From Template |
 | [`listSessions()`](#listsessions) | `GET /automation/sessions` | List Sessions |
 | [`getSession()`](#getsession) | `GET /automation/sessions/{session_id}` | Get Session |
 | [`listSessionLogs()`](#listsessionlogs) | `GET /automation/sessions/{session_id}/logs` | List Session Logs |
@@ -135,11 +139,14 @@ $result = $sendseven->automation()->createBot(name: 'name');
 | `$isEscalationScheduleEnabled` | `?bool` | no | Enable time-based escalation gating |
 | `$escalationTimezone` | `?string` | no | IANA timezone for escalation schedule (e.g., 'Europe/Berlin') |
 | `$escalationSchedule` | `list<array<string, mixed>>\|null` | no | Time ranges when human escalation is available |
+| `$escalationTagId` | `?string` | no | Tag (skill) to route escalated conversations to |
+| `$escalationRoutingStrategy` | `EscalationRoutingStrategyEnum\|string\|null` | no | Assignment on handoff: null = keep unassigned; round_robin_all \| least_busy_all = all eligible members (tag ignored + cleared); notify_only \| round_robin \| least_busy = by tag (requires escalation_tag_id) |
+| `$escalationFallbackMinutes` | `?int` | no | Unattended alert after N minutes if still unassigned / unanswered (any non-null strategy; off-hours the countdown starts at the next escalation-schedule opening) |
 | `$maxEmailReplies` | `?int` | no | Max email replies per conversation before handing off to agents (email_support bots) |
 | `$isEmailReplyMode` | `?bool` | no | When TRUE on an 'assistant' bot, the email auto-reply logic kicks in (equivalent to legacy bot_type='email_support'). Default FALSE. |
 | `$coexistBotId` | `?string` | no | ID of another bot to coexist with |
 | `$coexistMode` | `?string` | no | Coexistence mode: 'active_when_active' or 'active_when_inactive' |
-| `$baseLanguage` | `?string` | no | Language the bot's messages are written in (ISO 639-1) |
+| `$baseLanguage` | `?string` | no | Language the bot's messages are written in (ISO 639-1). Optional: when omitted it defaults to the workspace language, else the creating user's app language, else 'en'. |
 | `$translationCache` | `array<string, mixed>\|null` | no | Cached translations keyed by language code |
 | `$greetingButtonsEnabled` | `?bool` | no | Show 'Talk to Human' / 'Ask the bot' buttons under the greeting (NULL/false = off) |
 | `$greetingHumanButtonCaption` | `?string` | no | Caption for the 'Talk to Human' button. NULL = localized default. |
@@ -220,7 +227,7 @@ Update Bot. `PATCH /automation/bots/{bot_id}`
 
 Update an automation bot.
 
-Update bot configuration. Only provided fields will be updated.
+Update bot configuration. Only provided fields will be updated. Changing a non-keyword bot's bot_type to keyword returns 422 keyword_bots_retired; existing keyword bots stay fully editable.
 
 ```php
 $result = $sendseven->automation()->updateBot(botId: 'bot_id');
@@ -272,6 +279,9 @@ $result = $sendseven->automation()->updateBot(botId: 'bot_id');
 | `$isEscalationScheduleEnabled` | `?bool` | no |  |
 | `$escalationTimezone` | `?string` | no |  |
 | `$escalationSchedule` | `list<array<string, mixed>>\|null` | no |  |
+| `$escalationTagId` | `?string` | no |  |
+| `$escalationRoutingStrategy` | `EscalationRoutingStrategyEnum\|string\|null` | no |  |
+| `$escalationFallbackMinutes` | `?int` | no |  |
 | `$maxEmailReplies` | `?int` | no |  |
 | `$isEmailReplyMode` | `?bool` | no |  |
 | `$coexistBotId` | `?string` | no |  |
@@ -297,7 +307,7 @@ Get Bot Analytics. `GET /automation/bots/{bot_id}/analytics`
 
 Get analytics for a specific bot.
 
-Returns detailed metrics including session stats, resolution rate, escalation reasons, and token usage.
+Returns detailed metrics including session stats, resolution rate, and escalation reasons. AI usage is billed in credits (see GET /billing/ai-usage).
 
 ```php
 $result = $sendseven->automation()->getBotAnalytics(botId: 'bot_id');
@@ -375,6 +385,28 @@ $result = $sendseven->automation()->convertBotToFlowEndpoint(botId: 'bot_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `array<array-key, mixed>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/convert_bot_to_flow_endpoint_api_v1_automation_bots__bot_id__convert_to_flow_post)
+
+## duplicateBot
+
+Duplicate Bot. `POST /automation/bots/{bot_id}/duplicate`
+
+Duplicate a Conversational Agent inside the same workspace.
+
+The copy is an unpublished draft, paused, and placed last. It keeps settings, skills (incl. pinned versions) and knowledge sources, but no activation rules, conversations, ratings or history. Classic bots return 422 duplicate_classic_not_supported.
+
+```php
+$result = $sendseven->automation()->duplicateBot(botId: 'bot_id');
+```
+
+- Scopes: `automation:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$botId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `AutomationBot`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/duplicate_bot_api_v1_automation_bots__bot_id__duplicate_post)
 
 ## listKeywordTriggers
 
@@ -686,6 +718,59 @@ $result = $sendseven->automation()->upsertBotTranslation(botId: 'bot_id', langCo
 | `$body` | `array<string, mixed>` | yes | The request body |
 
 Returns `AutomationBot`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/upsert_bot_translation_api_v1_automation_bots__bot_id__translations__lang_code__put)
+
+## getHubStats
+
+Get Hub Stats. `GET /automation/hub/stats`
+
+Agents overview: KPIs + one row per bot (agents and classic bots, incl. paused) in priority order.
+
+A conversation counts once per bot; it is *handed off* when a human was brought in, otherwise *resolved*. Percentages are null below min_sample (20) conversations per bot.
+
+```php
+$result = $sendseven->automation()->getHubStats();
+```
+
+- Scopes: `automation:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$days` | `?int` | no | Range in days: 7, 30 or 90 |
+
+Returns `HubStats`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/get_hub_stats_api_v1_automation_hub_stats_get)
+
+## listHubTemplates
+
+List Hub Templates. `GET /automation/hub/templates`
+
+Agent templates for "Aus Vorlage" (keys only; display copy is client-side).
+
+```php
+$result = $sendseven->automation()->listHubTemplates();
+```
+
+- Scopes: `automation:read`
+
+Returns `HubTemplateList`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/list_hub_templates_api_v1_automation_hub_templates_get)
+
+## createFromTemplate
+
+Create From Template. `POST /automation/hub/templates/{key}/create`
+
+Create a paused, unpublished (draft) Conversational Agent from a template, in the workspace language (else the creating user's app language, else English; template languages: de, en, pt, es, fr, it). No AI credits are used.
+
+```php
+$result = $sendseven->automation()->createFromTemplate(key: 'key');
+```
+
+- Scopes: `automation:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$key` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `TemplateCreate`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/create_from_template_api_v1_automation_hub_templates__key__create_post)
 
 ## listSessions
 

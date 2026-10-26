@@ -34,13 +34,15 @@ final readonly class WhatsAppTemplate extends Data
      * @param  string  $templateId  WhatsApp's template ID
      * @param  ?string  $qualityScore  Quality score: GREEN, YELLOW, RED, UNKNOWN
      * @param  TemplateParameterFormat|string|null  $parameterFormat  How variable placeholders are resolved when sending. `positional` uses numbered placeholders `{{1}}`, `{{2}}`; `named` uses identifier placeholders like `{{first_name}}`. Determines the accepted shape of `variable_values` on POST /send.
-     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as a fallback when callers do not supply `header_media_url` on send. Set at template creation time and editable via the template editor.
+     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as a fallback when callers do not supply `header_media_url` on send. Set at template creation time and editable via the template editor. `null` when there is no usable default (see `default_header_media_status`).
+     * @param  ?string  $defaultHeaderMediaStatus  State of the default header media for IMAGE/VIDEO/DOCUMENT templates (`null` for TEXT/NONE headers). `ok`: a default is stored and used when a send omits `header_media_url`. `missing`: no default; every send must pass `header_media_url`. `expired`: the template only had WhatsApp's temporary sample link, which is not kept; it is treated as no default, so upload a header media (PATCH `default_header_media_url`) or pass `header_media_url`.
      * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Used as a fallback when callers do not supply `header_document_filename` on send. Only meaningful for DOCUMENT header templates.
      * @param  list<QuickReplyButton>  $quickReplyButtons  Derived, read-only QUICK_REPLY buttons for the Flow Builder ``send_template`` node. Filtered to QUICK_REPLY type only, capped at 3, ``index`` = position among QUICK_REPLY buttons. Computed from ``buttons``; the FE editor + flow validator both consume this so branch wiring (``tplbtn_{index}``) stays consistent.
      * @param  list<mixed>  $carouselCards  For CAROUSEL templates: the ordered list of cards, each a `{"components": [...]}` object mirroring a mini-template (one IMAGE/VIDEO HEADER, one BODY, optional BUTTONS). `null` for non-carousel templates. Round-trips through sync unchanged, so a carousel created in WhatsApp Manager appears here identically.
      * @param  ?bool  $hasCallPermissionRequest  True when the template includes a call permission request (asks the customer for permission to call them). Meta only delivers these from a number with WhatsApp Calling turned on. False for templates not re-synced since this field was introduced.
      * @param  ?bool  $callPermissionBlocked  True when `has_call_permission_request` is true and Calling is turned off for the template's WhatsApp channel. Sending it is refused with HTTP 400 and `detail.error_code` 138000 until Calling is turned on.
      * @param  ?bool  $channelIsCoexistence  True when the template's WhatsApp channel is connected through the WhatsApp Business app (Coexistence). Calling for such a number is turned on in the WhatsApp Business app, not in SendSeven.
+     * @param  ?TemplateEditLimits  $editLimits  Whether the template can be edited in place right now, and the edit limits that apply (see `POST /{template_id}/edit`).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -62,12 +64,14 @@ final readonly class WhatsAppTemplate extends Data
         public ?string $qualityScore,
         public TemplateParameterFormat|string|null $parameterFormat,
         public ?string $defaultHeaderMediaUrl,
+        public ?string $defaultHeaderMediaStatus,
         public ?string $defaultHeaderDocumentFilename,
         public array $quickReplyButtons,
         public array $carouselCards,
         public ?bool $hasCallPermissionRequest,
         public ?bool $callPermissionBlocked,
         public ?bool $channelIsCoexistence,
+        public ?TemplateEditLimits $editLimits,
         public ?DateTimeImmutable $lastSyncedAt,
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
@@ -102,12 +106,14 @@ final readonly class WhatsAppTemplate extends Data
             qualityScore: $attributes->nullableString('quality_score'),
             parameterFormat: $attributes->nullableEnum('parameter_format', TemplateParameterFormat::class),
             defaultHeaderMediaUrl: $attributes->nullableString('default_header_media_url'),
+            defaultHeaderMediaStatus: $attributes->nullableString('default_header_media_status'),
             defaultHeaderDocumentFilename: $attributes->nullableString('default_header_document_filename'),
             quickReplyButtons: $attributes->list('quick_reply_buttons', QuickReplyButton::fromArray(...)),
             carouselCards: array_values($attributes->array('carousel_cards')),
             hasCallPermissionRequest: $attributes->nullableBool('has_call_permission_request'),
             callPermissionBlocked: $attributes->nullableBool('call_permission_blocked'),
             channelIsCoexistence: $attributes->nullableBool('channel_is_coexistence'),
+            editLimits: $attributes->nullableObject('edit_limits', TemplateEditLimits::fromArray(...)),
             lastSyncedAt: $attributes->nullableDateTime('last_synced_at'),
             createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),

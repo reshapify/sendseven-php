@@ -19,6 +19,8 @@ final readonly class PreviewTemplate extends Data
     /**
      * @param  list<TemplateButton>  $buttons
      * @param  array<array-key, mixed>  $variablesUsed  Variables and their resolved values
+     * @param  list<PreviewVariable>  $variables  Per placeholder, in template order (header first, then body): where its value comes from and what a send would use.
+     * @param  list<string>  $missing  Placeholders that are still empty after mapping and fallback. A send with the same inputs would be rejected for these.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -27,6 +29,8 @@ final readonly class PreviewTemplate extends Data
         public ?string $footer,
         public array $buttons,
         public array $variablesUsed,
+        public array $variables,
+        public array $missing,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,6 +49,8 @@ final readonly class PreviewTemplate extends Data
             footer: $attributes->nullableString('footer'),
             buttons: $attributes->list('buttons', TemplateButton::fromArray(...)),
             variablesUsed: $attributes->array('variables_used'),
+            variables: $attributes->list('variables', PreviewVariable::fromArray(...)),
+            missing: $attributes->strings('missing'),
             raw: $data,
         );
     }

@@ -2,7 +2,7 @@
 
 # Conversations
 
-`$sendseven->conversations()` — 29 endpoints.
+`$sendseven->conversations()` — 34 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -14,14 +14,18 @@
 | [`initiate()`](#initiate) | `POST /conversations/initiate` | Initiate Conversation |
 | [`openOrCreate()`](#openorcreate) | `POST /conversations/open-or-create` | Open Or Create Conversation |
 | [`searchSimilar()`](#searchsimilar) | `POST /conversations/search-similar` | Search Similar Conversations |
+| [`delete()`](#delete) | `DELETE /conversations/{conversation_id}` | Delete Conversation |
 | [`get()`](#get) | `GET /conversations/{conversation_id}` | Get Conversation |
 | [`update()`](#update) | `PATCH /conversations/{conversation_id}` | Update Conversation |
 | [`assign()`](#assign) | `POST /conversations/{conversation_id}/assign/{user_id}` | Assign Conversation |
+| [`turnOffAutomation()`](#turnoffautomation) | `POST /conversations/{conversation_id}/automation/turn-off` | Turn Off Conversation Automation |
 | [`getAvailableBots()`](#getavailablebots) | `GET /conversations/{conversation_id}/available-bots` | Get Available Bots |
 | [`getBotSessionStatus()`](#getbotsessionstatus) | `GET /conversations/{conversation_id}/bot-session` | Get Bot Session Status |
+| [`patchBotSessionMode()`](#patchbotsessionmode) | `PATCH /conversations/{conversation_id}/bot-session` | Patch Bot Session Mode |
 | [`disableBotSession()`](#disablebotsession) | `POST /conversations/{conversation_id}/bot-session/disable` | Disable Bot Session |
 | [`enableBotSession()`](#enablebotsession) | `POST /conversations/{conversation_id}/bot-session/enable` | Enable Bot Session |
 | [`close()`](#close) | `POST /conversations/{conversation_id}/close` | Close Conversation |
+| [`getContactContext()`](#getcontactcontext) | `GET /conversations/{conversation_id}/contact-context` | Get Conversation Contact Context |
 | [`emailTranscript()`](#emailtranscript) | `POST /conversations/{conversation_id}/email-transcript` | Email Conversation Transcript |
 | [`merge()`](#merge) | `POST /conversations/{conversation_id}/merge` | Merge Conversation |
 | [`getPrevious()`](#getprevious) | `GET /conversations/{conversation_id}/previous` | Get Previous Conversations |
@@ -35,6 +39,7 @@
 | [`getSwitchableChannels()`](#getswitchablechannels) | `GET /conversations/{conversation_id}/switchable-channels` | Get Switchable Channels |
 | [`createTranscriptExport()`](#createtranscriptexport) | `POST /conversations/{conversation_id}/transcript` | Create Transcript Export |
 | [`getTranscriptExport()`](#gettranscriptexport) | `GET /conversations/{conversation_id}/transcript/{job_id}` | Get Transcript Export |
+| [`sendTypingIndicator()`](#sendtypingindicator) | `POST /conversations/{conversation_id}/typing` | Show or clear a typing indicator |
 
 ## list
 
@@ -54,14 +59,16 @@ $result = $sendseven->conversations()->list();
 |---|---|---|---|
 | `$page` | `?int` | no | Page number (1-indexed) |
 | `$pageSize` | `?int` | no | Items per page |
-| `$status` | `?string` | no | Filter by tab/status: 'open' (excludes snoozed), 'snoozed', 'closed' |
+| `$status` | `?string` | no | Filter by tab/status: 'open' (excludes snoozed), 'snoozed', 'closed', or 'all' (no status filter) |
 | `$assignedTo` | `?string` | no | Filter by assignment: 'me', 'unassigned', 'me_and_unassigned', or user_id |
 | `$needsReply` | `?bool` | no | Filter for conversations needing a reply |
 | `$filter` | `?string` | no | Alias: 'unanswered' sets needs_reply=True |
 | `$contactId` | `?string` | no | Filter by contact ID |
-| `$search` | `?string` | no | Search by contact name, phone, email, or subject |
+| `$search` | `?string` | no | Search by contact name, phone, email, or subject. When the message_search feature is enabled for the workspace (see GET /tenants/features) and the term has at least 3 characters, message text from the last 90 days is searched too (OR). |
 | `$inboxId` | `?string` | no | Filter to conversations in this custom inbox |
 | `$channelType` | `?string` | no | Filter by channel type (e.g. whatsapp, telegram, sms, email, messenger, instagram, live_chat) |
+| `$tagId` | `list<string>\|null` | no | tags.id — filter to conversations carrying the tag on the conversation OR on its contact. Repeatable (?tag_id=a&tag_id=b, max 20); combine with tag_mode. Each id must belong to the workspace (422 if not). AND-ed with all other filters. |
+| `$tagMode` | `?string` | no | How several tag_id values combine: any (default) = at least one of the tags, all = every tag. |
 
 Returns `Page<Conversation>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/list_conversations_api_v1_conversations_get)
 
@@ -207,22 +214,42 @@ Returns `OpenOrCreateConversation`. [SendSeven reference](https://api.sendseven.
 
 Search Similar Conversations. `POST /conversations/search-similar`
 
-Search for similar conversations based on query text using Vertex AI RAG.
+Retired. Always returns 410 Gone.
 
-Request body: {"query_text": "...", "limit": 5}
+Similar ticket search was retired in October 2026. Conversation summaries are still stored on each conversation; list them with GET /api/v1/knowledge-base/tickets.
 
 ```php
-$sendseven->conversations()->searchSimilar(body: []);
+$sendseven->conversations()->searchSimilar();
 ```
 
 - Scopes: `conversations:read`
+- **Deprecated** by SendSeven
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$body` | `array<string, mixed>` | yes | The request body |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/search_similar_conversations_api_v1_conversations_search_similar_post)
+
+## delete
+
+Delete Conversation. `DELETE /conversations/{conversation_id}`
+
+Permanently delete a conversation
+
+Deletes the conversation and everything that belongs to it: all of its messages (including reactions, replies and edit history), email messages, attachments and their stored files, internal notes, tags on the conversation, drafts, live-chat sessions, automation and flow runs that ran in it, and notifications that link to it. This cannot be undone.
+
+```php
+$result = $sendseven->conversations()->delete(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:delete`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+
+Returns `Delete`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/delete_conversation_api_v1_conversations__conversation_id__delete)
 
 ## get
 
@@ -287,6 +314,27 @@ $result = $sendseven->conversations()->assign(conversationId: 'conversation_id',
 
 Returns `Conversation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/assign_conversation_api_v1_conversations__conversation_id__assign__user_id__post)
 
+## turnOffAutomation
+
+Turn Off Conversation Automation. `POST /conversations/{conversation_id}/automation/turn-off`
+
+Turn off all automation on this conversation (full human handover).
+
+Ends the active bot session (Auto or Assist) with reason AGENT_DISABLED (on email conversations the persistent email mode is set to off) and cancels every active flow run on the conversation, whatever its trigger. Idempotent: with nothing active it returns 200 with zero counts.
+
+```php
+$sendseven->conversations()->turnOffAutomation(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/turn_off_conversation_automation_api_v1_conversations__conversation_id__automation_turn_off_post)
+
 ## getAvailableBots
 
 Get Available Bots. `GET /conversations/{conversation_id}/available-bots`
@@ -313,7 +361,7 @@ Get Bot Session Status. `GET /conversations/{conversation_id}/bot-session`
 
 Get current bot session status for a conversation.
 
-Returns: - bot_active: Whether a bot is currently handling this conversation - bot_session_id: The ID of the active bot session (if any) - bot_name: The name of the bot handling the conversation (if any) - bot_id: The ID of the bot (if any)
+Returns: - bot_active: Whether a bot is currently handling this conversation - bot_session_id: The ID of the active bot session (if any) - bot_name: The name of the bot handling the conversation (if any) - bot_id: The ID of the bot (if any) - mode: "auto" | "assist" (null when no active session) - bot_type: the bot's type (e.g. "agent") - assist_available: whether Assist mode can be selected - channel_type: the conversation's channel type - email_mode: email conversations only: "off" | "assist" | "auto" (effective; default "auto"), null otherwise - email_mode_explicit: whether someone chose the email mode - email_mode_options: ["off", "assist", "auto"] on email, else null - email_agent: {bot_id, bot_name, reply_mode, confidence_threshold} of the Conversational Agent handling this email conversation, or null - email_behavior: "off" | "draft_only" | "send_above_threshold" (what the effective mode does with the agent's settings), or null - status: "auto" | "assist_auto_draft" (Assist, nobody active: drafts new customer messages) | "assist_on_request" (Assist, a teammate is active: drafts only on request) | "paused_by_human" (the last session ended because a teammate replied) | "off" - paused: {bot_id, bot_name, previous_mode, by_user_id, by_user_name, at} when status is "paused_by_human", else null - assist_idle_minutes: the workspace's Assist idle window (minutes) - human_active_until: while "assist_on_request", when the conversation counts as inactive again (ISO 8601), else null
 
 ```php
 $sendseven->conversations()->getBotSessionStatus(conversationId: 'conversation_id');
@@ -326,6 +374,28 @@ $sendseven->conversations()->getBotSessionStatus(conversationId: 'conversation_i
 | `$conversationId` | `string` | yes |  |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_bot_session_status_api_v1_conversations__conversation_id__bot_session_get)
+
+## patchBotSessionMode
+
+Patch Bot Session Mode. `PATCH /conversations/{conversation_id}/bot-session`
+
+Switch the active bot session between Auto and Assist without restarting it.
+
+Body {"mode": "auto"|"assist"}. Returns the GET /bot-session shape.
+
+```php
+$sendseven->conversations()->patchBotSessionMode(conversationId: 'conversation_id', body: []);
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$body` | `array<string, mixed>` | yes | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/patch_bot_session_mode_api_v1_conversations__conversation_id__bot_session_patch)
 
 ## disableBotSession
 
@@ -366,6 +436,7 @@ $sendseven->conversations()->enableBotSession(conversationId: 'conversation_id')
 |---|---|---|---|
 | `$conversationId` | `string` | yes |  |
 | `$botId` | `?string` | no |  |
+| `$mode` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/enable_bot_session_api_v1_conversations__conversation_id__bot_session_enable_post)
@@ -392,6 +463,26 @@ $result = $sendseven->conversations()->close(conversationId: 'conversation_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Conversation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/close_conversation_api_v1_conversations__conversation_id__close_post)
+
+## getContactContext
+
+Get Conversation Contact Context. `GET /conversations/{conversation_id}/contact-context`
+
+Get the contact context an AI agent sees for this conversation
+
+Returns assurance, the active contact-token grant (or null), fields (key, name, value, source, verified), methods (type, value, verified), tags (name, verified; ALL of the contact's tags, always verified: false) and subscriptions (list, channel_type, status, opt_in_method, verified). tags / subscriptions are [] when unavailable.
+
+```php
+$sendseven->conversations()->getContactContext(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:read`, `contacts:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_conversation_contact_context_api_v1_conversations__conversation_id__contact_context_get)
 
 ## emailTranscript
 
@@ -550,6 +641,8 @@ Summarize Conversation. `POST /conversations/{conversation_id}/summarize`
 
 Manually trigger AI summary generation for a conversation.
 
+Costs 1 AI credit per successful summary. Free trials that used their AI credits get 403 trial_ai_credits_exhausted.
+
 ```php
 $sendseven->conversations()->summarize(conversationId: 'conversation_id');
 ```
@@ -668,3 +761,25 @@ $result = $sendseven->conversations()->getTranscriptExport(conversationId: 'conv
 | `$jobId` | `string` | yes |  |
 
 Returns `TranscriptExportJob`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_transcript_export_api_v1_conversations__conversation_id__transcript__job_id__get)
+
+## sendTypingIndicator
+
+Show or clear a typing indicator. `POST /conversations/{conversation_id}/typing`
+
+Show (or clear) a typing indicator to the contact in a conversation.
+
+Use it while a reply is being prepared, e.g. by your own bot. The body is optional; an empty body means {"state": "on"}.
+
+```php
+$result = $sendseven->conversations()->sendTypingIndicator(conversationId: 'conversation_id');
+```
+
+- Scopes: `messages:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `SenderAction`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/send_typing_indicator_api_v1_conversations__conversation_id__typing_post)

@@ -2,7 +2,7 @@
 
 # Channels
 
-`$sendseven->channels()` — 21 endpoints.
+`$sendseven->channels()` — 24 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -10,6 +10,7 @@
 | [`create()`](#create) | `POST /channels` | Create Channel |
 | [`getCommentCapabilities()`](#getcommentcapabilities) | `GET /channels/comment-capabilities` | Get Comment Capabilities |
 | [`getHealth()`](#gethealth) | `GET /channels/health` | Get Channel Health |
+| [`listSenderActionSupport()`](#listsenderactionsupport) | `GET /channels/sender-actions` | List read-receipt and typing-indicator support per channel type |
 | [`getTypes()`](#gettypes) | `GET /channels/types` | Get Channel Types |
 | [`delete()`](#delete) | `DELETE /channels/{channel_id}` | Delete Channel |
 | [`get()`](#get) | `GET /channels/{channel_id}` | Get Channel |
@@ -19,6 +20,8 @@
 | [`listFacebookPagePosts()`](#listfacebookpageposts) | `GET /channels/{channel_id}/facebook/posts` | List Facebook Page Posts |
 | [`getFileSupport()`](#getfilesupport) | `GET /channels/{channel_id}/file-support` | Get Channel File Support |
 | [`listInstagramMedia()`](#listinstagrammedia) | `GET /channels/{channel_id}/instagram/media` | List Instagram Media |
+| [`getLiveChatSettings()`](#getlivechatsettings) | `GET /channels/{channel_id}/live-chat-settings` | Get Live Chat Settings |
+| [`updateLiveChatSettings()`](#updatelivechatsettings) | `PUT /channels/{channel_id}/live-chat-settings` | Update Live Chat Settings |
 | [`getProfile()`](#getprofile) | `GET /channels/{channel_id}/profile` | Get Channel Profile |
 | [`updateProfile()`](#updateprofile) | `PUT /channels/{channel_id}/profile` | Update Channel Profile |
 | [`uploadProfilePhoto()`](#uploadprofilephoto) | `POST /channels/{channel_id}/profile/photo` | Upload Channel Profile Photo |
@@ -104,6 +107,22 @@ $result = $sendseven->channels()->getHealth();
 - Scopes: `channels:read`
 
 Returns `ChannelHealth`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/get_channel_health_api_v1_channels_health_get)
+
+## listSenderActionSupport
+
+List read-receipt and typing-indicator support per channel type. `GET /channels/sender-actions`
+
+Which channel types support read receipts and typing indicators.
+
+Returns one item for every channel type (unsupported ones report false), so you can decide before calling POST /messages/{message_id}/read or POST /conversations/{conversation_id}/typing.
+
+```php
+$result = $sendseven->channels()->listSenderActionSupport();
+```
+
+- Scopes: `channels:read`
+
+Returns `Page<ChannelSenderActionSupport>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/list_sender_action_support_api_v1_channels_sender_actions_get)
 
 ## getTypes
 
@@ -285,6 +304,43 @@ $result = $sendseven->channels()->listInstagramMedia(channelId: 'channel_id');
 
 Returns `Page<InstagramMediaItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/list_instagram_media_api_v1_channels__channel_id__instagram_media_get)
 
+## getLiveChatSettings
+
+Get Live Chat Settings. `GET /channels/{channel_id}/live-chat-settings`
+
+Get the Live Chat settings of a live_chat channel: which attachment categories (images, audio, video, documents) website visitors may send.
+
+```php
+$result = $sendseven->channels()->getLiveChatSettings(channelId: 'channel_id');
+```
+
+- Scopes: `channels:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$channelId` | `string` | yes |  |
+
+Returns `LiveChatSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/get_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_get)
+
+## updateLiveChatSettings
+
+Update Live Chat Settings. `PUT /channels/{channel_id}/live-chat-settings`
+
+Update which attachment categories Live Chat visitors may send. Partial: only the categories in the body change; the full settings are returned.
+
+```php
+$result = $sendseven->channels()->updateLiveChatSettings(channelId: 'channel_id', attachments: []);
+```
+
+- Scopes: `channels:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$channelId` | `string` | yes |  |
+| `$attachments` | `array<string, mixed>` | yes |  |
+
+Returns `LiveChatSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/update_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_put)
+
 ## getProfile
 
 Get Channel Profile. `GET /channels/{channel_id}/profile`
@@ -410,7 +466,7 @@ WhatsApp does not return a released handle to the pool immediately, so someone e
 $result = $sendseven->channels()->deleteWhatsAppUsername(channelId: 'channel_id');
 ```
 
-- Scopes: `channels:write`
+- Scopes: `channels:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -450,7 +506,7 @@ Format: 3-35 characters of lowercase letters, numbers, periods and underscores; 
 $result = $sendseven->channels()->setWhatsAppUsername(channelId: 'channel_id', username: 'username');
 ```
 
-- Scopes: `channels:write`
+- Scopes: `channels:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|

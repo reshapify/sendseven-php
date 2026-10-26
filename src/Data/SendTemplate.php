@@ -20,7 +20,7 @@ final readonly class SendTemplate extends Data
      * @param  ?string  $messageId  Internal message ID
      * @param  ?string  $externalId  WhatsApp message ID
      * @param  string  $conversationId  Conversation ID (new or existing)
-     * @param  ?int  $errorCode  WhatsApp API error code (e.g., 131008 for missing parameters, 131042 for payment issues)
+     * @param  mixed  $errorCode  WhatsApp API error code (e.g., 131008 for missing parameters, 131042 for payment issues), "contact_blocked" when the recipient is blocked and nothing was sent, or "missing_template_parameters" when a template variable resolved to an empty value and nothing was sent
      * @param  ?string  $errorDetails  Additional error details from the Meta API (e.g., which parameter is missing)
      * @param  ?bool  $isCoexistence  Set on a 138000 (Calling not enabled) failure: whether the sending number is connected through the WhatsApp Business app (Coexistence). Null otherwise.
      * @param  array<array-key, mixed>  $raw
@@ -31,7 +31,7 @@ final readonly class SendTemplate extends Data
         public ?string $externalId,
         public string $conversationId,
         public ?string $error,
-        public ?int $errorCode,
+        public mixed $errorCode,
         public ?string $errorDetails,
         public ?bool $isCoexistence,
         array $raw = [],
@@ -52,7 +52,7 @@ final readonly class SendTemplate extends Data
             externalId: $attributes->nullableString('external_id'),
             conversationId: $attributes->string('conversation_id'),
             error: $attributes->nullableString('error'),
-            errorCode: $attributes->nullableInt('error_code'),
+            errorCode: $data['error_code'] ?? null,
             errorDetails: $attributes->nullableString('error_details'),
             isCoexistence: $attributes->nullableBool('is_coexistence'),
             raw: $data,

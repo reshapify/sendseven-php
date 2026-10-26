@@ -10,7 +10,7 @@ namespace Reshapify\SendSeven\Data;
 use Reshapify\SendSeven\Support\Attributes;
 
 /**
- * Schema for opt-in confirmation response
+ * Schema for opt-in confirmation response (public endpoint)
  *
  * @see https://api.sendseven.com/api/v1/docs (schema ConfirmOptInResponse)
  */
@@ -22,7 +22,7 @@ final readonly class ConfirmOptIn extends Data
     public function __construct(
         public bool $success,
         public string $message,
-        public ?Subscription $subscription,
+        public ?ConfirmOptInSubscriptionSummary $subscription,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -38,7 +38,7 @@ final readonly class ConfirmOptIn extends Data
         return new self(
             success: $attributes->bool('success'),
             message: $attributes->string('message'),
-            subscription: $attributes->nullableObject('subscription', Subscription::fromArray(...)),
+            subscription: $attributes->nullableObject('subscription', ConfirmOptInSubscriptionSummary::fromArray(...)),
             raw: $data,
         );
     }

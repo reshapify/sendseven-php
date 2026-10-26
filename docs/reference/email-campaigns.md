@@ -60,7 +60,7 @@ Create Campaign. `POST /email-campaigns`
 
 Create a new email campaign.
 
-- Creates both base Campaign and EmailCampaign records - Validates provider/integration and content exist - Estimates recipient count - Optional send_rate_limit (emails per minute, 1-60000) and send_batch_size (recipients per batch, at least 1). Rejected values return HTTP 422 {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid, send_pacing_unavailable.
+- Creates both base Campaign and EmailCampaign records - Validates the sending provider and content exist - Estimates recipient count - Audience: list_ids and/or subscription_categories, or audience_conditions (Audience Builder tree). A tree must hold a top-level positive list membership; the campaign's lists are derived from it and list_ids is ignored. Rejected trees return HTTP 422 {code, message}: audience_list_membership_required, audience_membership_list_invalid, audience_conditions_invalid. - Optional send_rate_limit (emails per minute, 1-60000) and send_batch_size (recipients per batch, at least 1). Rejected values return HTTP 422 {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid, send_pacing_unavailable.
 
 ```php
 $result = $sendseven->emailCampaigns()->create(name: 'name', subjectLine: 'subject_line');
@@ -73,8 +73,7 @@ $result = $sendseven->emailCampaigns()->create(name: 'name', subjectLine: 'subje
 | `$name` | `string` | yes | Campaign name |
 | `$subjectLine` | `string` | yes | Email subject |
 | `$mailboxId` | `?string` | no | Email mailbox to send from. Auto-resolves from_email, from_name, and sending method. When provided, from_email/from_name/provider/integration fields become optional. |
-| `$emailProviderConfigId` | `?string` | no | Email provider to use (SendGrid/Mailgun) |
-| `$emailIntegrationId` | `?string` | no | SES email integration to use (Type 4) |
+| `$emailProviderConfigId` | `?string` | no | Email sending provider to use |
 | `$emailTemplateId` | `?string` | no | Email template (LEGACY - for backward compatibility) |
 | `$emailContentId` | `?string` | no | Email content (NEW - 3-tier system with layouts) |
 | `$previewText` | `?string` | no | Email preview text |
@@ -83,6 +82,7 @@ $result = $sendseven->emailCampaigns()->create(name: 'name', subjectLine: 'subje
 | `$replyToEmail` | `?string` | no | Reply-to email address |
 | `$subscriptionCategories` | `list<string>\|null` | no | Target specific subscription categories (max 100) |
 | `$listIds` | `list<string>\|null` | no | Target specific lists (max 100; must belong to this workspace) |
+| `$audienceConditions` | `array<string, mixed>\|null` | no | Audience Builder condition tree (same format as a dynamic list's segment_conditions). Must be a top-level AND whose children include at least one positive list membership: a has_optin condition (operator: equals, value: true, list_id of a static or newsletter list of this workspace) or a group of only such conditions (OR = any of the lists, AND = all of them). Other children narrow the audience down or exclude contacts (e.g. has_optin with value: false). When set, the campaign's lists are DERIVED from the membership lists and any list_ids sent are ignored. Errors: 422 audience_list_membership_required, audience_membership_list_invalid, or a validation error for a malformed tree. A tree with no conditions counts as null. |
 | `$personalizationEnabled` | `?bool` | no | Enable personalization |
 | `$trackingEnabled` | `?bool` | no | Track email OPENS. Omit to inherit the tenant's track_opens_default (defaults True). |
 | `$trackClicks` | `?bool` | no | Track link CLICKS. Omit to inherit the tenant's track_clicks_default (defaults True). |
@@ -106,15 +106,15 @@ Counts come from the same recipient resolution the send uses (subscribed list me
 $result = $sendseven->emailCampaigns()->getRecipientCount();
 ```
 
-- Scopes: `campaigns:read`
+- Scopes: `campaigns:read`, `contacts:read`, `audience_conditions`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$allContacts` | `?bool` | no | Target all contacts with email addresses |
 | `$listIds` | `list<string>\|null` | no | Target specific lists (max 100) |
+| `$audienceConditions` | `array<string, mixed>\|null` | no | Audience Builder condition tree (same format as a dynamic list's segment_conditions). Must be a top-level AND whose children include at least one positive list membership: a has_optin condition (operator: equals, value: true, list_id of a static or newsletter list of this workspace) or a group of only such conditions (OR = any of the lists, AND = all of them). Other children narrow the audience down or exclude contacts (e.g. has_optin with value: false). When set, the campaign's lists are DERIVED from the membership lists and any list_ids sent are ignored. Errors: 422 audience_list_membership_required, audience_membership_list_invalid, or a validation error for a malformed tree. A tree with no conditions counts as null. Takes precedence over all_contacts / list_ids / subscription_categories. |
 | `$subscriptionCategories` | `list<string>\|null` | no | Filter by subscription categories (max 100) |
 | `$emailProviderConfigId` | `?string` | no | Email provider the draft will send with (enables the cost quote) |
-| `$emailIntegrationId` | `?string` | no | SES email integration the draft will send with (enables the cost quote) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `RecipientCount`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Campaigns/get_recipient_count_api_v1_email_campaigns_recipient_count_post)
@@ -183,7 +183,7 @@ Update Campaign. `PATCH /email-campaigns/{campaign_id}`
 
 Update email campaign.
 
-- Can only update campaigns in DRAFT or SCHEDULED status - Once sending/sent, campaigns are immutable -- except the send speed (send_rate_limit, emails per minute) and batch size (send_batch_size): a sending, paused or failed campaign may change ONLY these two (explicit null clears one). The next emails and the next batch use the new values. Switching them on while the campaign is sending moves the recipients not sent yet into batch 1 at the new speed. - Rejected values return HTTP 422 {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid, send_pacing_unavailable, send_pacing_not_editable (any other status, e.g. completed or cancelled).
+- Can only update campaigns in DRAFT or SCHEDULED status - Once sending/sent, campaigns are immutable -- except the send speed (send_rate_limit, emails per minute) and batch size (send_batch_size): a sending, paused or failed campaign may change ONLY these two (explicit null clears one). The next emails and the next batch use the new values. Switching them on while the campaign is sending moves the recipients not sent yet into batch 1 at the new speed. - Rejected values return HTTP 422 {code, message}: send_rate_limit_out_of_range, send_batch_size_invalid, send_pacing_unavailable, send_pacing_not_editable (any other status, e.g. completed or cancelled). - audience_conditions (Audience Builder tree): omit to leave unchanged, explicit null clears it (the campaign keeps its current lists). While a tree is set the campaign's lists are derived from its membership lists and any list_ids sent are ignored. Rejected trees return HTTP 422 {code, message}: audience_list_membership_required, audience_membership_list_invalid, audience_conditions_invalid.
 
 ```php
 $result = $sendseven->emailCampaigns()->update(campaignId: 'campaign_id');
@@ -201,11 +201,11 @@ $result = $sendseven->emailCampaigns()->update(campaignId: 'campaign_id');
 | `$fromEmail` | `?string` | no |  |
 | `$replyToEmail` | `?string` | no |  |
 | `$emailProviderConfigId` | `?string` | no |  |
-| `$emailIntegrationId` | `?string` | no |  |
 | `$emailTemplateId` | `?string` | no |  |
 | `$emailContentId` | `?string` | no |  |
 | `$subscriptionCategories` | `list<string>\|null` | no |  |
 | `$listIds` | `list<string>\|null` | no | Target specific lists (max 100; must belong to this workspace) |
+| `$audienceConditions` | `array<string, mixed>\|null` | no | Audience Builder condition tree (same format as a dynamic list's segment_conditions). Must be a top-level AND whose children include at least one positive list membership: a has_optin condition (operator: equals, value: true, list_id of a static or newsletter list of this workspace) or a group of only such conditions (OR = any of the lists, AND = all of them). Other children narrow the audience down or exclude contacts (e.g. has_optin with value: false). When set, the campaign's lists are DERIVED from the membership lists and any list_ids sent are ignored. Errors: 422 audience_list_membership_required, audience_membership_list_invalid, or a validation error for a malformed tree. A tree with no conditions counts as null. Omit to leave unchanged; null clears it (the campaign keeps its current lists). |
 | `$personalizationEnabled` | `?bool` | no |  |
 | `$trackingEnabled` | `?bool` | no | Track email OPENS |
 | `$trackClicks` | `?bool` | no | Track link CLICKS |

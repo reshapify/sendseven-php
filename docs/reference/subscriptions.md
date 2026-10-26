@@ -24,6 +24,8 @@ Get all subscriptions for a specific contact
 $result = $sendseven->subscriptions()->getContact(contactId: 'contact_id');
 ```
 
+- Scopes: `contacts:read`
+
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$contactId` | `string` | yes |  |
@@ -39,6 +41,8 @@ Subscribe a contact to a list via a specific channel
 ```php
 $result = $sendseven->subscriptions()->subscribeContact(contactId: 'contact_id', listId: 'list_id', channelType: 'channel_type');
 ```
+
+- Scopes: `contacts:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -66,6 +70,8 @@ Unsubscribe a contact from a list
 ```php
 $result = $sendseven->subscriptions()->unsubscribeContact(contactId: 'contact_id', subscriptionId: 'subscription_id');
 ```
+
+- Scopes: `contacts:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -119,7 +125,7 @@ Returns `SubscriptionStats`. [SendSeven reference](https://api.sendseven.com/api
 
 Confirm double opt-in. `POST /subscriptions/confirm/{token}`
 
-Confirm a subscription using the double opt-in token (public endpoint)
+Confirm a subscription using the double opt-in token (public endpoint). Returns only the confirmed subscription's status, channel type and confirmation time.
 
 ```php
 $result = $sendseven->subscriptions()->confirm(token: 'token');

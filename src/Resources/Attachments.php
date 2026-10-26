@@ -8,6 +8,8 @@ namespace Reshapify\SendSeven\Resources;
 // change the generator or openapi/patches, then regenerate.
 
 use Reshapify\SendSeven\Data\AppSchemasAttachmentSchemaAttachment;
+use Reshapify\SendSeven\Data\AttachmentAiSummary;
+use Reshapify\SendSeven\Data\AttachmentSummaryAction;
 use Reshapify\SendSeven\Data\AttachmentUpload;
 use Reshapify\SendSeven\Data\AttachmentUrl;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -18,7 +20,7 @@ use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Attachments: 6 endpoints.
+ * Attachments: 8 endpoints.
  *
  * Reach it with $sendseven->attachments().
  *
@@ -70,7 +72,9 @@ final readonly class Attachments
      *
      * Upload a file attachment
      *
-     * Args: file: The file to upload message_id: Optional message ID to associate with
+     * Args: file: The file to upload message_id: Optional message ID to associate with purpose:
+     * Optional. agent_test marks a Conversational-agent test console upload: deleted after 24 h unless
+     * it gets linked to a message.
      *
      * Returns: Attachment ID and metadata
      *
@@ -82,12 +86,16 @@ final readonly class Attachments
      *
      * @see https://api.sendseven.com/api/v1/docs#/Attachments/upload_attachment_api_v1_attachments_upload_post
      */
-    public function upload(FilePart $file, ?string $messageId = null, ?string $idempotencyKey = null): AttachmentUpload
-    {
+    public function upload(
+        FilePart $file,
+        ?string $messageId = null,
+        ?string $purpose = null,
+        ?string $idempotencyKey = null,
+    ): AttachmentUpload {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/attachments/upload',
-            query: Payload::query(['message_id' => $messageId]),
+            query: Payload::query(['message_id' => $messageId, 'purpose' => $purpose]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
             multipart: Payload::multipart(['file' => $file]),
         ));
@@ -172,6 +180,72 @@ final readonly class Attachments
             '/attachments/'.Payload::segment($attachmentId).'/download',
             query: Payload::query(['disposition' => $disposition]),
         ));
+    }
+
+    /**
+     * Get Attachment Summary.
+     *
+     * Get the AI summary of an image or PDF attachment.
+     *
+     * Returns the summary a Conversational Agent produced while reading the file, or one requested via
+     * POST /attachments/{attachment_id}/summary. Status pending means it is still being generated,
+     * failed means generation failed (a new POST may retry). The text is derived from a
+     * customer-supplied file: treat it as untrusted plain text.
+     *
+     * Errors: 403 feature_disabled when AI features are off for the workspace; 404 when the attachment
+     * is unknown, not visible to you, or has no summary.
+     *
+     * Scopes: messages:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Attachments/get_attachment_summary_api_v1_attachments__attachment_id__summary_get
+     */
+    public function getSummary(string $attachmentId): AttachmentAiSummary
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/attachments/'.Payload::segment($attachmentId).'/summary',
+        ));
+
+        return AttachmentAiSummary::fromArray($response->data());
+    }
+
+    /**
+     * Summarize Attachment.
+     *
+     * Generate an AI summary of an inbound image or PDF attachment on demand.
+     *
+     * Only for files a customer sent (inbound message), images up to 10 MB and PDFs up to 20 MB (the
+     * first 10 pages are read). Idempotent: if a summary already exists it is returned with 200 and
+     * nothing is charged; if one is being generated you get 202 (poll GET
+     * /attachments/{attachment_id}/summary). A new summary returns 201 and charges AI credits from the
+     * workspace pool (credits_charged: from 1 November 2026 the AI credits of the work used, may have
+     * decimals; before that image 2, PDF 3). A failed generation returns 502 summary_failed, charges
+     * nothing and may be retried. Request body: none.
+     *
+     * Errors: 403 feature_disabled, 404 unknown/inaccessible attachment, 422
+     * attachment_not_summarizable, 429 rate limit (30/min per principal, 60/min per workspace), 503
+     * rate_limit_unavailable.
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Attachments/summarize_attachment_api_v1_attachments__attachment_id__summary_post
+     */
+    public function summarize(string $attachmentId, ?string $idempotencyKey = null): AttachmentSummaryAction
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/attachments/'.Payload::segment($attachmentId).'/summary',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return AttachmentSummaryAction::fromArray($response->data());
     }
 
     /**

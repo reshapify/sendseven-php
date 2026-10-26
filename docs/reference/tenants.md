@@ -2,15 +2,20 @@
 
 # Tenants
 
-`$sendseven->tenants()` — 11 endpoints.
+`$sendseven->tenants()` — 16 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
+| [`deleteBusinessHours()`](#deletebusinesshours) | `DELETE /settings/business-hours` | Delete Business Hours |
+| [`getBusinessHours()`](#getbusinesshours) | `GET /settings/business-hours` | Get Business Hours |
+| [`putBusinessHours()`](#putbusinesshours) | `PUT /settings/business-hours` | Put Business Hours |
+| [`getBusinessHoursUsage()`](#getbusinesshoursusage) | `GET /settings/business-hours/usage` | Get Business Hours Usage |
 | [`create()`](#create) | `POST /tenants` | Create Tenant |
 | [`features()`](#features) | `GET /tenants/features` | Get Tenant Features |
 | [`mine()`](#mine) | `GET /tenants/me` | Get My Tenants |
 | [`retention()`](#retention) | `GET /tenants/me/retention` | Get My Retention |
 | [`updateRetention()`](#updateretention) | `PUT /tenants/me/retention` | Update My Retention |
+| [`previewMyRetention()`](#previewmyretention) | `POST /tenants/me/retention/preview` | Preview My Retention |
 | [`delete()`](#delete) | `DELETE /tenants/{tenant_id}` | Delete Tenant |
 | [`get()`](#get) | `GET /tenants/{tenant_id}` | Get Tenant |
 | [`update()`](#update) | `PUT /tenants/{tenant_id}` | Update Tenant |
@@ -18,16 +23,82 @@
 | [`updateChannelPriority()`](#updatechannelpriority) | `PUT /tenants/{tenant_id}/channel-priority` | Update Channel Priority |
 | [`leave()`](#leave) | `POST /tenants/{tenant_id}/leave` | Leave Tenant |
 
+## deleteBusinessHours
+
+Delete Business Hours. `DELETE /settings/business-hours`
+
+Remove the workspace business hours (back to "not configured").
+
+```php
+$sendseven->tenants()->deleteBusinessHours();
+```
+
+- Scopes: `settings:update`
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tenants/delete_business_hours_api_v1_settings_business_hours_delete)
+
+## getBusinessHours
+
+Get Business Hours. `GET /settings/business-hours`
+
+Get the workspace business hours (weekly schedule + timezone).
+
+configured: false means none are set; agents then keep each rule's own times.
+
+```php
+$result = $sendseven->tenants()->getBusinessHours();
+```
+
+- Scopes: `settings:read`, `automation:read`
+
+Returns `BusinessHours`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tenants/get_business_hours_api_v1_settings_business_hours_get)
+
+## putBusinessHours
+
+Put Business Hours. `PUT /settings/business-hours`
+
+Set the workspace business hours. Agents whose activation rules use the "business hours" / "outside business hours" preset follow them (unless the agent has its own schedule).
+
+```php
+$result = $sendseven->tenants()->putBusinessHours(timezone: 'timezone', timeRanges: []);
+```
+
+- Scopes: `settings:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$timezone` | `string` | yes |  |
+| `$timeRanges` | `list<array<string, mixed>>` | yes |  |
+
+Returns `BusinessHours`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tenants/put_business_hours_api_v1_settings_business_hours_put)
+
+## getBusinessHoursUsage
+
+Get Business Hours Usage. `GET /settings/business-hours/usage`
+
+List the agents that follow the workspace business hours, so a change can be announced before saving: routing = an activation rule uses the "business hours" / "outside business hours" preset without the agent's own schedule; handoff = the team-availability (handoff) hours follow the workspace hours. Covers the live config and any unpublished draft.
+
+```php
+$result = $sendseven->tenants()->getBusinessHoursUsage();
+```
+
+- Scopes: `settings:read`, `automation:read`
+
+Returns `BusinessHoursUsage`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tenants/get_business_hours_usage_api_v1_settings_business_hours_usage_get)
+
 ## create
 
 Create Tenant. `POST /tenants`
 
-Create a new tenant (organization) and start trial
+Create a new tenant (workspace) under a billing account the caller owns.
+
+Callers without any billing account get a 422 signup_requirements_not_met (missing_fields: ["billing_account_id"]): signups must create their billing account via POST /billing-accounts (which enforces the final-signup requirements) first.
 
 ```php
 $result = $sendseven->tenants()->create(name: 'name');
 ```
 
+- Scopes: `tenants:create`
 - Plan feature: `multi_tenant`
 - Role: the billing account's owner
 - Not in SendSeven's spec; verified: Live refusals (1 Oct 2026): 403 feature_disabled multi_tenant; 403 'Only billing account owners can create new tenants'.
@@ -38,7 +109,7 @@ $result = $sendseven->tenants()->create(name: 'name');
 | `$slug` | `?string` | no |  |
 | `$companyEmail` | `?string` | no |  |
 | `$billingAccountId` | `?string` | no |  |
-| `$pricingModelId` | `?string` | no |  |
+| `$pricingModelId` | `?string` | no | Reserved; leave unset. A new workspace always uses its billing account's plan. Any value other than the billing account's current plan id is rejected with 403 pricing_model_not_allowed. |
 | `$aiFeaturesEnabled` | `?bool` | no |  |
 | `$multiAgentMode` | `?bool` | no |  |
 | `$autoSummarizeOnClose` | `?string` | no |  |
@@ -84,9 +155,9 @@ Returns `list<Tenant>`. [SendSeven reference](https://api.sendseven.com/api/v1/d
 
 Get My Retention. `GET /tenants/me/retention`
 
-Get the current data retention policy and value for the caller's tenant.
+Get the current data retention policy and values for the caller's tenant.
 
-Returns the stored message_retention_days (0 = unlimited), the allowed range (floor/ceiling), whether the plan is API-only (fixed at 90), and the effective_days the nightly purge worker enforces.
+Message retention: the stored message_retention_days (0 = unlimited), the plan's presets (allowed_options), floor (30 on API Only, else 90) and ceiling, whether the plan is API-only, and the effective_days the nightly purge enforces.
 
 ```php
 $result = $sendseven->tenants()->retention();
@@ -100,21 +171,44 @@ Returns `RetentionPolicy`. [SendSeven reference](https://api.sendseven.com/api/v
 
 Update My Retention. `PUT /tenants/me/retention`
 
-Set the data retention period (in days) for the caller's tenant.
+Set the retention periods (in days) for the caller's tenant.
 
-Validated against the plan policy. The plan's data_retention_days is the ceiling and 90 days is the global floor: plans capped at 90 are fixed (not configurable); plans with a finite cap > 90 accept any value in [90, cap]; unlimited-cap plans accept 0 (unlimited) or any value >= 90. Returns HTTP 400 with a clear message if the value is out of bounds.
+Send message_retention_days and/or contact_retention_days (at least one, otherwise 422). Both values are validated before either is written.
 
 ```php
-$result = $sendseven->tenants()->updateRetention(messageRetentionDays: 1);
+$result = $sendseven->tenants()->updateRetention();
 ```
 
 - Scopes: `settings:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$messageRetentionDays` | `int` | yes |  |
+| `$messageRetentionDays` | `?int` | no |  |
+| `$contactRetentionDays` | `?int` | no |  |
 
 Returns `RetentionPolicy`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tenants/update_my_retention_api_v1_tenants_me_retention_put)
+
+## previewMyRetention
+
+Preview My Retention. `POST /tenants/me/retention/preview`
+
+Preview what saving the proposed retention values would delete.
+
+Same body as PUT /tenants/me/retention (an omitted field keeps its current value) and the same validation (400 on an invalid value). Counts the messages, inactive contacts and conversations the nightly purge would delete under the proposed values. Read-only: nothing is saved or deleted. counts_capped = true means the counts stopped at a limit and are lower bounds. contact_deletion_starts_at (ISO-8601 UTC) is set when the proposed contact rule is stricter than the active one: it waits 7 days and starts deleting then (counts show what it deletes once it starts). message_deletion_starts_at is the same for the proposed message rule.
+
+```php
+$result = $sendseven->tenants()->previewMyRetention();
+```
+
+- Scopes: `settings:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$messageRetentionDays` | `?int` | no |  |
+| `$contactRetentionDays` | `?int` | no |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `RetentionPreview`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tenants/preview_my_retention_api_v1_tenants_me_retention_preview_post)
 
 ## delete
 

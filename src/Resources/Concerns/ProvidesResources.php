@@ -8,7 +8,9 @@ namespace Reshapify\SendSeven\Resources\Concerns;
 // change the generator or openapi/patches, then regenerate.
 
 use Reshapify\SendSeven\Resources\AgentSuggestions;
+use Reshapify\SendSeven\Resources\AiAgents;
 use Reshapify\SendSeven\Resources\AiAnswers;
+use Reshapify\SendSeven\Resources\AiSkills;
 use Reshapify\SendSeven\Resources\Alerts;
 use Reshapify\SendSeven\Resources\Analytics;
 use Reshapify\SendSeven\Resources\ApiTokens;
@@ -26,6 +28,9 @@ use Reshapify\SendSeven\Resources\Comments;
 use Reshapify\SendSeven\Resources\CompanyProfile;
 use Reshapify\SendSeven\Resources\ContactBulkActions;
 use Reshapify\SendSeven\Resources\Contacts;
+use Reshapify\SendSeven\Resources\ContactTokens;
+use Reshapify\SendSeven\Resources\ContactVerification;
+use Reshapify\SendSeven\Resources\ContextEndpoints;
 use Reshapify\SendSeven\Resources\Conversations;
 use Reshapify\SendSeven\Resources\CustomFields;
 use Reshapify\SendSeven\Resources\CustomInboxes;
@@ -76,6 +81,7 @@ use Reshapify\SendSeven\Resources\Users;
 use Reshapify\SendSeven\Resources\Webhooks;
 use Reshapify\SendSeven\Resources\WhatsApp;
 use Reshapify\SendSeven\Resources\WhatsAppCatalogue;
+use Reshapify\SendSeven\Resources\WhatsAppFlows;
 use Reshapify\SendSeven\Resources\WhatsAppTemplates;
 use Reshapify\SendSeven\Resources\Widgets;
 
@@ -87,11 +93,27 @@ use Reshapify\SendSeven\Resources\Widgets;
 trait ProvidesResources
 {
     /**
+     * AI Agents (44 endpoints).
+     */
+    public function aiAgents(): AiAgents
+    {
+        return new AiAgents($this->connector);
+    }
+
+    /**
      * AI Answers (4 endpoints).
      */
     public function aiAnswers(): AiAnswers
     {
         return new AiAnswers($this->connector);
+    }
+
+    /**
+     * AI Skills (11 endpoints).
+     */
+    public function aiSkills(): AiSkills
+    {
+        return new AiSkills($this->connector);
     }
 
     /**
@@ -127,7 +149,7 @@ trait ProvidesResources
     }
 
     /**
-     * Attachments (6 endpoints).
+     * Attachments (8 endpoints).
      */
     public function attachments(): Attachments
     {
@@ -143,7 +165,7 @@ trait ProvidesResources
     }
 
     /**
-     * Automation (29 endpoints).
+     * Automation (33 endpoints).
      */
     public function automation(): Automation
     {
@@ -183,7 +205,7 @@ trait ProvidesResources
     }
 
     /**
-     * Channels (21 endpoints).
+     * Channels (24 endpoints).
      */
     public function channels(): Channels
     {
@@ -223,7 +245,7 @@ trait ProvidesResources
     }
 
     /**
-     * Contact Bulk Actions (4 endpoints).
+     * Contact Bulk Actions (5 endpoints).
      */
     public function contactBulkActions(): ContactBulkActions
     {
@@ -231,7 +253,23 @@ trait ProvidesResources
     }
 
     /**
-     * Contacts (31 endpoints).
+     * Contact Tokens (3 endpoints).
+     */
+    public function contactTokens(): ContactTokens
+    {
+        return new ContactTokens($this->connector);
+    }
+
+    /**
+     * Contact Verification (12 endpoints).
+     */
+    public function contactVerification(): ContactVerification
+    {
+        return new ContactVerification($this->connector);
+    }
+
+    /**
+     * Contacts (32 endpoints).
      */
     public function contacts(): Contacts
     {
@@ -239,7 +277,15 @@ trait ProvidesResources
     }
 
     /**
-     * Conversations (29 endpoints).
+     * Context Endpoints (7 endpoints).
+     */
+    public function contextEndpoints(): ContextEndpoints
+    {
+        return new ContextEndpoints($this->connector);
+    }
+
+    /**
+     * Conversations (34 endpoints).
      */
     public function conversations(): Conversations
     {
@@ -247,7 +293,7 @@ trait ProvidesResources
     }
 
     /**
-     * Custom Fields (7 endpoints).
+     * Custom Fields (10 endpoints).
      */
     public function customFields(): CustomFields
     {
@@ -295,7 +341,7 @@ trait ProvidesResources
     }
 
     /**
-     * Email Contacts (8 endpoints).
+     * Email Contacts (10 endpoints).
      */
     public function emailContacts(): EmailContacts
     {
@@ -303,7 +349,7 @@ trait ProvidesResources
     }
 
     /**
-     * Email Contents (8 endpoints).
+     * Email Contents (9 endpoints).
      */
     public function emailContents(): EmailContents
     {
@@ -311,7 +357,7 @@ trait ProvidesResources
     }
 
     /**
-     * Email Integrations (35 endpoints).
+     * Email Integrations (29 endpoints).
      */
     public function emailIntegrations(): EmailIntegrations
     {
@@ -375,7 +421,7 @@ trait ProvidesResources
     }
 
     /**
-     * Flows (29 endpoints).
+     * Flows (33 endpoints).
      */
     public function flows(): Flows
     {
@@ -399,7 +445,7 @@ trait ProvidesResources
     }
 
     /**
-     * Invitations (6 endpoints).
+     * Invitations (7 endpoints).
      */
     public function invitations(): Invitations
     {
@@ -415,7 +461,7 @@ trait ProvidesResources
     }
 
     /**
-     * KB Corrections (7 endpoints).
+     * KB Corrections (8 endpoints).
      */
     public function kbCorrections(): KbCorrections
     {
@@ -439,7 +485,7 @@ trait ProvidesResources
     }
 
     /**
-     * Knowledge Base (23 endpoints).
+     * Knowledge Base (27 endpoints).
      */
     public function knowledgeBase(): KnowledgeBase
     {
@@ -487,7 +533,7 @@ trait ProvidesResources
     }
 
     /**
-     * Messages (11 endpoints).
+     * Messages (12 endpoints).
      */
     public function messages(): Messages
     {
@@ -495,7 +541,7 @@ trait ProvidesResources
     }
 
     /**
-     * Notes (6 endpoints).
+     * Notes (7 endpoints).
      */
     public function notes(): Notes
     {
@@ -583,7 +629,7 @@ trait ProvidesResources
     }
 
     /**
-     * Tenants (11 endpoints).
+     * Tenants (16 endpoints).
      */
     public function tenants(): Tenants
     {
@@ -599,7 +645,7 @@ trait ProvidesResources
     }
 
     /**
-     * User Inbox Access (2 endpoints).
+     * User Inbox Access (4 endpoints).
      */
     public function userInboxAccess(): UserInboxAccess
     {
@@ -607,7 +653,7 @@ trait ProvidesResources
     }
 
     /**
-     * Users (14 endpoints).
+     * Users (32 endpoints).
      */
     public function users(): Users
     {
@@ -623,7 +669,7 @@ trait ProvidesResources
     }
 
     /**
-     * WhatsApp (8 endpoints).
+     * WhatsApp (9 endpoints).
      */
     public function whatsApp(): WhatsApp
     {
@@ -639,7 +685,15 @@ trait ProvidesResources
     }
 
     /**
-     * WhatsApp Templates (15 endpoints).
+     * WhatsApp Flows (37 endpoints).
+     */
+    public function whatsAppFlows(): WhatsAppFlows
+    {
+        return new WhatsAppFlows($this->connector);
+    }
+
+    /**
+     * WhatsApp Templates (17 endpoints).
      */
     public function whatsAppTemplates(): WhatsAppTemplates
     {

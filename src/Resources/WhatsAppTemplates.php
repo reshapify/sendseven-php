@@ -10,10 +10,12 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\AdoptLibraryTemplate;
 use Reshapify\SendSeven\Data\AvailableFields;
 use Reshapify\SendSeven\Data\CreateTemplate;
+use Reshapify\SendSeven\Data\EditTemplate;
 use Reshapify\SendSeven\Data\LibraryTemplateList;
 use Reshapify\SendSeven\Data\MediaUpload;
 use Reshapify\SendSeven\Data\PreviewTemplate;
 use Reshapify\SendSeven\Data\SendTemplate;
+use Reshapify\SendSeven\Data\TemplateUsage;
 use Reshapify\SendSeven\Data\UpdateVariableMapping;
 use Reshapify\SendSeven\Data\WhatsAppTemplate;
 use Reshapify\SendSeven\Data\WhatsAppTemplateList;
@@ -28,7 +30,7 @@ use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * WhatsApp Templates: 15 endpoints.
+ * WhatsApp Templates: 17 endpoints.
  *
  * Reach it with $sendseven->whatsAppTemplates().
  *
@@ -93,12 +95,12 @@ final readonly class WhatsAppTemplates
      * @param  string  $name  Template name (lowercase, numbers, underscores only)
      * @param  TemplateCategory|string  $category  Template category
      * @param  list<array<string, mixed>>  $components  Template components
-     * @param  ?string  $language  ISO language code (e.g., en, de, es)
+     * @param  ?string  $language  Meta template language code (e.g., en, de, es, pt_PT). Optional: when omitted it defaults to the workspace language, else the creating user's app language, else `en`.
      * @param  ?bool  $allowCategoryChange  Allow Meta to change template category if needed
      * @param  ?string  $parameterFormat  Placeholder style for the template body. `positional` uses `{{1}}`, `{{2}}`, ...; `named` uses identifier placeholders like `{{first_name}}`. When `named`, supply `body_named_examples` instead of `example.body_text` on the BODY component.
      * @param  array<string, mixed>|null  $bodyNamedExamples  Example values for NAMED placeholders, keyed by placeholder name (e.g., `{"first_name": "John", "order_id": "ORD-123"}`). Required when `parameter_format='named'`. Ignored when `parameter_format='positional'` (use `example.body_text` on the BODY component instead).
      * @param  ?int  $messageSendTtlSeconds  AUTHENTICATION templates only. Time-to-live for the delivered code message (30-900 seconds). WhatsApp stops trying to deliver the message after this window. Ignored for other categories.
-     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_media_url`. Typically the public URL returned by `POST /upload-media`.
+     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_media_url`. Typically the public URL returned by `POST /upload-media`. WhatsApp CDN links (scontent.whatsapp.net, *.fbcdn.net) expire and are not stored.
      * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Persisted alongside the template so the send path can fall back to it when callers don't pass `header_document_filename`. Should include the correct file extension (e.g. 'invoice.pdf'). Only meaningful for DOCUMENT header templates.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -145,9 +147,16 @@ final readonly class WhatsAppTemplates
     /**
      * Get Available Fields.
      *
-     * Get available contact fields for variable mapping
+     * Get the fields a template variable can be mapped to
      *
-     * Returns list of contact fields that can be mapped to template placeholders.
+     * Returns every field path the send-time resolver understands, for variable_mapping and PUT
+     * /whatsapp-templates/{id}/variable-mapping: contact fields, custom_field.<key> for each active
+     * custom field, tenant.name and agent.name / agent.nickname (the sending team member; empty for
+     * API-key sends, so pair them with variable_fallbacks). A fixed text is mapped as custom:<text>.
+     *
+     * custom_field.* entries are included only when the caller also holds contacts:read (custom-field
+     * definitions are gated by it on GET /custom-fields); without it the rest of the list is
+     * unchanged.
      *
      * Scopes: channels:read.
      *
@@ -438,7 +447,9 @@ final readonly class WhatsAppTemplates
      * @param  ?string  $contactMethodId  OPTIONAL. A `contact_methods.id` (UUID) of type `whatsapp_id` or `whatsapp_bsuid` owned by the tenant. When provided it determines BOTH the recipient WhatsApp id (the method's value) AND the contact (the method's owning contact). Highest-priority recipient selector — if both `contact_id` and `contact_method_id` are given, `contact_method_id` WINS and `contact_id` is ignored. A method of any other type returns 422.
      * @param  ?string  $whatsAppId  OPTIONAL. A WhatsApp recipient id sent directly — a phone number WITHOUT a leading `+` (a leading `+` is stripped; spaces/dashes/parens are tolerated for phone-shaped values), an alphanumeric WhatsApp id (Meta now permits alphanumeric ids — digits are NOT required), OR a Business-scoped user ID such as `US.13491208655302741918` (kept verbatim, periods included, and sent in Meta's `recipient` field instead of `to`). The value is normalized with the same canonical contact-method normalization used elsewhere so dedup is consistent. If `contact_id` is also supplied, that contact gains a `whatsapp_id` (or `whatsapp_bsuid`) method with this value (created if missing); otherwise an existing contact is matched by this identifier, or a new contact + method is created. Note that AUTHENTICATION templates cannot be sent to a Business-scoped user ID (Meta error 131062). When sent without a `conversation_id`, the new conversation's channel is the template's channel (optionally selected via `channel_id`).
      * @param  ?string  $channelId  OPTIONAL. A WhatsApp channel id (UUID) owned by the tenant. Always allowed alongside any recipient selector. Used to (a) disambiguate a template referenced by NAME that exists on multiple channels, and (b) select the sending channel when sending by `whatsapp_id` with no contact/conversation. If it conflicts with the resolved template's own channel, the request returns 400.
-     * @param  mixed  $variableValues  Override auto-mapped values. Pass a list (positional only) or a dict (positional with numeric keys, or named with identifier keys). Shape must match the template's parameter_format. Reserved dict keys (coexist with body variable keys): - `url_suffix` — replaces `{{1}}` inside a dynamic URL button. Value is ONLY the suffix portion that fills `{{1}}`, not the full URL (e.g. for template URL `https://example.com/orders/{{1}}`, pass `"url_suffix": "track/INV-2026-001"`). - `otp_code` — the code copied by the user for authentication / OTP COPY_CODE buttons.
+     * @param  mixed  $variableValues  Override auto-mapped values. Pass a list (positional only) or a dict (positional with numeric keys, or named with identifier keys). Shape must match the template's parameter_format. Reserved dict keys (coexist with body variable keys): - `url_suffix` — replaces `{{1}}` inside a dynamic URL button. Value is ONLY the suffix portion that fills `{{1}}`, not the full URL (e.g. for template URL `https://example.com/orders/{{1}}`, pass `"url_suffix": "track/INV-2026-001"`). - `otp_code` — the code copied by the user for authentication / OTP COPY_CODE buttons. A blank value (empty or whitespace) does not count as a value: the variable is then resolved from `variable_mapping`, the template's saved mapping, and finally `variable_fallbacks`.
+     * @param  array<string, mixed>|null  $variableMapping  OPTIONAL. Per-send field mapping for template variables, keyed by placeholder name (`"1"` / `"first_name"`; `"{{1}}"` is also accepted). Overrides the template's saved mapping for this send only. Values: `contact.first_name`, `contact.last_name`, `contact.name`, `contact.email`, `contact.phone`, `contact.birthday`, `custom_field.<key>` (or `contact.custom.<key>`), `tenant.name`, `agent.name`, `agent.nickname`, or `custom:<fixed text>`. Per variable the value is taken from, in order: a non-blank `variable_values` entry, this mapping, the template's saved mapping, then `variable_fallbacks`. If it is still blank the request is rejected with 400 before anything is sent.
+     * @param  array<string, mixed>|null  $variableFallbacks  OPTIONAL. Fixed fallback text per template variable, keyed like `variable_mapping`. Used when the variable otherwise resolves to an empty value (e.g. the contact has no first name).
      * @param  ?string  $language  OPTIONAL. Template language to send when the template is referenced BY NAME and that name exists in multiple languages. Use the exact code stored in `whatsapp_templates.language` — the Meta language/locale code (e.g. `en`, `de`, `en_US`, `pt_BR`). Resolution when a name maps to multiple language rows (after the channel filter): if only one language remains it is used; if several remain, an explicit `language` selects that variant (400 if no such variant), else the recipient contact's stored `language` is matched (exact, then base-language family e.g. `de_DE`↔`de`), else 400 asking for `language`. When the template is referenced by DB ID the language is fixed by that row; passing a conflicting `language` returns 400.
      * @param  ?string  $conversationId  Link to existing conversation (creates new if not provided)
      * @param  ?string  $headerMediaUrl  Header media reference for IMAGE/VIDEO/DOCUMENT templates. Accepts ANY of: - a bare `attachment_id` (UUID) returned by `POST /attachments` or `POST /whatsapp-templates/upload-media` - the proxy URL `/api/v1/attachments/{id}/download` (relative or absolute) - the permanent public URL `/api/v1/attachments/public/{tenant_id}/{id}` - a legacy `https://storage.googleapis.com/...` GCS URL - any absolute external `https://` URL (customer CDN, etc.) The server resolves the input to a Meta-deliverable URL via `WhatsAppHeaderMediaService`. Field name is kept for backwards compatibility — it has not been URL-only since May 2026.
@@ -457,6 +468,8 @@ final readonly class WhatsAppTemplates
         ?string $whatsAppId = null,
         ?string $channelId = null,
         mixed $variableValues = null,
+        ?array $variableMapping = null,
+        ?array $variableFallbacks = null,
         ?string $language = null,
         ?string $conversationId = null,
         ?string $headerMediaUrl = null,
@@ -473,6 +486,8 @@ final readonly class WhatsAppTemplates
                 'whatsapp_id' => $whatsAppId,
                 'channel_id' => $channelId,
                 'variable_values' => $variableValues,
+                'variable_mapping' => $variableMapping,
+                'variable_fallbacks' => $variableFallbacks,
                 'language' => $language,
                 'conversation_id' => $conversationId,
                 'header_media_url' => $headerMediaUrl,
@@ -535,16 +550,16 @@ final readonly class WhatsAppTemplates
      *
      * Update local-only fields on a WhatsApp template.
      *
-     * Currently only default_header_media_url and default_header_document_filename are mutable here.
-     * Template content (body text, header, buttons) is approved by Meta and cannot be edited in place
-     * — to change those, delete and re-create the template.
+     * Only default_header_media_url and default_header_document_filename are changed here; they are
+     * stored by SendSeven and never sent to WhatsApp for review.
      *
-     * Pass an empty string to clear either field; omit the field to leave it unchanged.
+     * To change the template's content (header, body, footer, buttons, carousel cards, category), use
+     * POST /whatsapp-templates/{template_id}/edit, which submits the edit to WhatsApp for review.
      *
      * Scopes: channels:admin.
      *
      * @param  list<array<string, mixed>>|null  $components  Updated template components
-     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as fallback when callers do not pass `header_media_url` on send. Pass an empty string to clear.
+     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Used as fallback when callers do not pass `header_media_url` on send. Pass an empty string to clear. WhatsApp CDN links (scontent.whatsapp.net, *.fbcdn.net) expire and are not stored.
      * @param  ?string  $defaultHeaderDocumentFilename  Default filename presented to the recipient for DOCUMENT-type headers. Used as fallback when callers do not pass `header_document_filename` on send. Pass an empty string to clear; omit the field to leave it unchanged. Only meaningful for DOCUMENT header templates.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -574,6 +589,80 @@ final readonly class WhatsAppTemplates
     }
 
     /**
+     * Edit Template.
+     *
+     * Edit a WhatsApp template in place
+     *
+     * Submits changed content for an existing template to WhatsApp, which reviews it again. The body
+     * has the same content fields as POST /whatsapp-templates (category, components, parameter_format,
+     * body_named_examples, message_send_ttl_seconds, default_header_media_url,
+     * default_header_document_filename). Send the template's COMPLETE components: WhatsApp replaces
+     * all of them.
+     *
+     * Rules (WhatsApp's): - Only APPROVED, REJECTED and PAUSED templates can be edited (409
+     * template_not_editable_status otherwise). - name, language and channel_id can't change; sending
+     * any of them is rejected with 422 template_identity_immutable. Each language is its own template
+     * and is edited separately. - An APPROVED template keeps its category (422
+     * template_category_locked) and can be edited once per 24 hours and 10 times in a rolling 30 days
+     * (429 template_edit_limit_reached with next_edit_available_at and a Retry-After header). REJECTED
+     * and PAUSED templates have no limit. - Media headers need a sample: pass a fresh
+     * example.header_handle from POST /whatsapp-templates/upload-media, or the stored default header
+     * media is re-submitted (422 header_media_required if that isn't possible).
+     *
+     * Scopes: channels:admin.
+     *
+     * @param  TemplateCategory|string  $category  Template category. Must stay the same on an APPROVED template (422 `template_category_locked`).
+     * @param  list<array<string, mixed>>  $components  The template's COMPLETE components (they replace all existing ones)
+     * @param  ?string  $channelId  Not editable. Sending it is rejected with 422 `template_identity_immutable`.
+     * @param  ?string  $name  Not editable. Sending it is rejected with 422 `template_identity_immutable`.
+     * @param  ?string  $language  Not editable. Sending it is rejected with 422 `template_identity_immutable`.
+     * @param  ?string  $parameterFormat  Placeholder style for the template body. `positional` uses `{{1}}`, `{{2}}`, ...; `named` uses identifier placeholders like `{{first_name}}`. Changing it clears the template's default variable mappings.
+     * @param  array<string, mixed>|null  $bodyNamedExamples  Example values for NAMED placeholders, keyed by placeholder name. Required when `parameter_format='named'`.
+     * @param  ?int  $messageSendTtlSeconds  AUTHENTICATION templates only. Time-to-live for the delivered code message (30-900 seconds). Ignored for other categories.
+     * @param  ?string  $defaultHeaderMediaUrl  Default header media URL for IMAGE/VIDEO/DOCUMENT templates. Omit to keep the current default. Cleared automatically when the header is no longer a media header.
+     * @param  ?string  $defaultHeaderDocumentFilename  Default filename for DOCUMENT headers. Omit to keep the current one.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/edit_template_api_v1_whatsapp_templates__template_id__edit_post
+     */
+    public function edit(
+        string $templateId,
+        TemplateCategory|string $category,
+        array $components,
+        ?string $channelId = null,
+        ?string $name = null,
+        ?string $language = null,
+        ?string $parameterFormat = null,
+        ?array $bodyNamedExamples = null,
+        ?int $messageSendTtlSeconds = null,
+        ?string $defaultHeaderMediaUrl = null,
+        ?string $defaultHeaderDocumentFilename = null,
+        ?string $idempotencyKey = null,
+    ): EditTemplate {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/whatsapp-templates/'.Payload::segment($templateId).'/edit',
+            body: Payload::body([
+                'category' => $category,
+                'components' => $components,
+                'channel_id' => $channelId,
+                'name' => $name,
+                'language' => $language,
+                'parameter_format' => $parameterFormat,
+                'body_named_examples' => $bodyNamedExamples,
+                'message_send_ttl_seconds' => $messageSendTtlSeconds,
+                'default_header_media_url' => $defaultHeaderMediaUrl,
+                'default_header_document_filename' => $defaultHeaderDocumentFilename,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return EditTemplate::fromArray($response->data());
+    }
+
+    /**
      * Preview Template.
      *
      * Preview a template with variable substitution
@@ -581,12 +670,17 @@ final readonly class WhatsAppTemplates
      * Returns the template with placeholders replaced using either: - Contact data (if contact_id
      * provided) - Override values (if variable_values provided) - Sample data (if neither provided)
      *
-     * Useful for testing variable mappings before sending.
+     * With a contact_id, every variable resolves exactly as POST /send would resolve it (non-blank
+     * variable_values, then variable_mapping, then the template's saved mapping, then
+     * variable_fallbacks). variables explains each placeholder and missing lists the ones a send would
+     * reject; those stay as {{key}} in body/header.
      *
      * Scopes: channels:read.
      *
      * @param  ?string  $contactId  Contact ID to use for preview (optional - uses sample data if not provided)
      * @param  array<string, mixed>|null  $variableValues  Override values for preview
+     * @param  array<string, mixed>|null  $variableMapping  Per-send field mapping, same semantics as on POST /send (overrides the template's saved mapping for this preview).
+     * @param  array<string, mixed>|null  $variableFallbacks  Fixed fallback text per variable, same semantics as on POST /send.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -597,16 +691,54 @@ final readonly class WhatsAppTemplates
         string $templateId,
         ?string $contactId = null,
         ?array $variableValues = null,
+        ?array $variableMapping = null,
+        ?array $variableFallbacks = null,
         ?string $idempotencyKey = null,
     ): PreviewTemplate {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/whatsapp-templates/'.Payload::segment($templateId).'/preview',
-            body: Payload::body(['contact_id' => $contactId, 'variable_values' => $variableValues]),
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'variable_values' => $variableValues,
+                'variable_mapping' => $variableMapping,
+                'variable_fallbacks' => $variableFallbacks,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
         return PreviewTemplate::fromArray($response->data());
+    }
+
+    /**
+     * Get Template Usage.
+     *
+     * Where a WhatsApp template is used
+     *
+     * Lists the campaigns that are not finished yet, the flows that send this template, and counts of
+     * active scheduled sends and scheduler rules. Check it before an edit: mappings saved on those
+     * don't change when the template is edited. Integrations that send by template name can't be
+     * listed here.
+     *
+     * The counts and in_use are always returned. The campaigns list is only filled when the caller
+     * also holds campaigns:read, and the flows list only with flows:read; otherwise they are empty
+     * (names of campaigns and flows are not exposed to roles that can't read them).
+     *
+     * Scopes: channels:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/get_template_usage_api_v1_whatsapp_templates__template_id__usage_get
+     */
+    public function getUsage(string $templateId): TemplateUsage
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/whatsapp-templates/'.Payload::segment($templateId).'/usage',
+        ));
+
+        return TemplateUsage::fromArray($response->data());
     }
 
     /**

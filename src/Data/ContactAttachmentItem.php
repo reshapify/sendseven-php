@@ -13,7 +13,8 @@ use Reshapify\SendSeven\Support\Attributes;
 /**
  * A single media item exchanged with a contact.
  *
- * One item per message-attached file (the message's primary/featured attachment). Powers the
+ * One item per file: a message's primary/featured attachment, its interactive/template header
+ * media, or each file attachment of an email message (source="email"). Powers the
  * WhatsApp-profile-style media gallery on the contact-detail page. Covers ALL media categories
  * including documents.
  *
@@ -36,6 +37,7 @@ final readonly class ContactAttachmentItem extends Data
      * @param  DateTimeImmutable  $createdAt  Message time (when exchanged)
      * @param  ?string  $conversationId  Conversation the attachment belongs to (for jump-to)
      * @param  string  $messageId  Message the attachment belongs to
+     * @param  ?string  $source  Where the file came from. `message` = chat/media message attachment (incl. interactive/template header media); `email` = an email file attachment (`message_id` is the email's message; one item per file, so an email with N files yields N items).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -53,6 +55,7 @@ final readonly class ContactAttachmentItem extends Data
         public DateTimeImmutable $createdAt,
         public ?string $conversationId,
         public string $messageId,
+        public ?string $source,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -80,6 +83,7 @@ final readonly class ContactAttachmentItem extends Data
             createdAt: $attributes->dateTime('created_at'),
             conversationId: $attributes->nullableString('conversation_id'),
             messageId: $attributes->string('message_id'),
+            source: $attributes->nullableString('source'),
             raw: $data,
         );
     }

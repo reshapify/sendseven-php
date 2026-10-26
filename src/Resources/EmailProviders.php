@@ -14,7 +14,7 @@ use Reshapify\SendSeven\Data\EmailProviderConfig;
 use Reshapify\SendSeven\Data\RefreshDomains;
 use Reshapify\SendSeven\Data\TestEmail;
 use Reshapify\SendSeven\Data\WebhookSettings;
-use Reshapify\SendSeven\Enums\ProviderType;
+use Reshapify\SendSeven\Enums\CreatableProviderType;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
@@ -38,6 +38,8 @@ final readonly class EmailProviders
      *
      * List all active (non-archived) email provider configurations for the tenant
      *
+     * Scopes: settings:read, campaigns:read, widgets:read.
+     *
      * @return list<EmailProviderConfig>
      *
      * @throws ApiException
@@ -59,10 +61,14 @@ final readonly class EmailProviders
      *
      * Create a new email provider configuration
      *
+     * the workspace's DOI / transcript / system-to-contact mail).
+     *
      * - Encrypts API key before storage - If set as default, removes default flag from other providers
      * - Validates provider configuration
      *
-     * @param  ProviderType|string  $providerType  Provider type (sendgrid, mailgun)
+     * Scopes: settings:update.
+     *
+     * @param  CreatableProviderType|string  $providerType  Provider type (sendgrid, mailgun)
      * @param  string  $name  User-friendly name
      * @param  string  $apiKey  API key for provider
      * @param  array<string, mixed>|null  $config  Provider-specific settings
@@ -75,7 +81,7 @@ final readonly class EmailProviders
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Providers/create_provider_api_v1_email_providers_post
      */
     public function create(
-        ProviderType|string $providerType,
+        CreatableProviderType|string $providerType,
         string $name,
         string $apiKey,
         ?array $config = null,
@@ -226,6 +232,8 @@ final readonly class EmailProviders
      * Returns: - success: bool - webhook_url: configured webhook URL - message: status message -
      * current_settings: current webhook configuration (if successful)
      *
+     * Scopes: settings:update.
+     *
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -251,6 +259,8 @@ final readonly class EmailProviders
      * Fetches current verified domains and updates provider config. Supports SendGrid and Mailgun. For
      * Mailgun a domain-scoped SENDING key 401s on /v3/domains and the live list cannot be read — in
      * that case the stored verified_domains degrades to the manually-configured domain.
+     *
+     * Scopes: settings:update.
      *
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -300,8 +310,12 @@ final readonly class EmailProviders
      *
      * Send a test email to verify provider configuration
      *
+     * workspace). The body is HTML-escaped (plain text only).
+     *
      * - Validates API credentials by actually sending an email - Returns success/failure status and
      * provider message ID
+     *
+     * Scopes: settings:update.
      *
      * @param  string  $toEmail  Email address to send test email to
      * @param  ?string  $subject  Email subject

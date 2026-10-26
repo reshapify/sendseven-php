@@ -124,7 +124,7 @@ Remove Role From User. `DELETE /permissions/users/{user_id}/roles/{role_id}`
 
 Remove a role from a user
 
-Security: Users cannot remove their own system or owner roles. Also prevents removing the last owner from a tenant.
+Security: Users cannot remove their own system or owner roles. Also prevents removing the last permanent owner from a tenant (expired or time-limited Support Login Owner grants do not count). You can only remove a role whose scopes you hold yourself (same ceiling as assigning it).
 
 ```php
 $sendseven->rolesPermissions()->removeFromUser(userId: 'user_id', roleId: 'role_id');
@@ -267,7 +267,7 @@ Delete Role. `DELETE /roles/{role_id}`
 
 Delete custom role.
 
-System roles cannot be deleted. Users with this role will lose these permissions.
+System roles cannot be deleted. A role assigned to users, or one that a pending or expired invitation would grant on accept, cannot be deleted (409).
 
 ```php
 $sendseven->rolesPermissions()->delete(roleId: 'role_id');
@@ -350,7 +350,7 @@ Remove Scope From Role. `DELETE /roles/{role_id}/scopes/{scope}`
 
 Remove scope from a custom role.
 
-System roles cannot be modified. Detaching account:billing_read requires the billing-account owner.
+System roles cannot be modified. You can only remove a scope you hold yourself (same ceiling as adding one). Detaching account:billing_read requires the billing-account owner.
 
 ```php
 $result = $sendseven->rolesPermissions()->removeScopeFrom(roleId: 'role_id', scope: 'scope');

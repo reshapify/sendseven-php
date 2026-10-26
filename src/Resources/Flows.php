@@ -10,6 +10,7 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\AppSchemasFlowSchemaFlow;
 use Reshapify\SendSeven\Data\ChannelPerformance;
 use Reshapify\SendSeven\Data\Delete;
+use Reshapify\SendSeven\Data\FlowLoopPause;
 use Reshapify\SendSeven\Data\FlowRun;
 use Reshapify\SendSeven\Data\FlowRunMessage;
 use Reshapify\SendSeven\Data\FlowRunStep;
@@ -19,6 +20,7 @@ use Reshapify\SendSeven\Data\FlowVariables;
 use Reshapify\SendSeven\Data\Funnel;
 use Reshapify\SendSeven\Data\ReorderFlows;
 use Reshapify\SendSeven\Data\Replay;
+use Reshapify\SendSeven\Data\ResumeAllLoopPauses;
 use Reshapify\SendSeven\Enums\FlowRunStatus;
 use Reshapify\SendSeven\Enums\FlowStatus;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -30,7 +32,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Flows: 29 endpoints.
+ * Flows: 33 endpoints.
  *
  * Reach it with $sendseven->flows().
  *
@@ -130,7 +132,7 @@ final readonly class Flows
      *
      * @param  array<string, mixed>  $definition  The full flow graph: ``trigger`` + ``nodes[]`` + ``edges[]`` + ``entry_node_id``. See ``fl01_create_flows.py`` migration docstring for the locked JSON shape. Hard-capped at 256 KB JSON-encoded; validated against the structural rules in ``FlowDefinitionValidator``.
      * @param  ?string  $reEntryPolicy  How to behave when the same contact is triggered again while a run is already in flight. MVP only enforces ``block`` (ignore the new trigger). ``restart`` and ``parallel`` are scaffolded for Phase 3 UX.
-     * @param  ?string  $defaultLanguage  Per-flow fallback language used by the runtime when a contact has no resolvable locale. Typically set by the frontend to the operator's current UI language at create time. Backend defaults to ``'en'`` (DB server_default) if omitted. Must be one of the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
+     * @param  ?string  $defaultLanguage  Per-flow fallback language used by the runtime when a contact has no resolvable locale. If omitted it defaults to the workspace language, else the creating user's app language, else ``'en'`` (unsupported stored values are skipped). Must be one of the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
      * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is ``manual``.
      * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
      * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language they speak to a contact. ``cascade`` (the default) resolves per run via the fallback chain (contact locale → inferred channel locale → ``default_language``). ``fixed`` always speaks ``default_language``, skipping the cascade. OMIT / ``null`` to keep the default — NULL is stored and treated as ``cascade`` by the runtime, so existing flows are unaffected. Any value other than ``cascade`` / ``fixed`` is rejected with 422.
@@ -228,8 +230,9 @@ final readonly class Flows
      *
      * Convenience companion to POST /flows/{flow_id}/runs/{run_id}/stop for callers (notably the
      * Conversations UI) that have the run id from the conversation's active_flow_run.run_id but no
-     * flow_id. Marks the run canceled, deletes pending waits, emits flow.run.canceled via
-     * :class:EventBus. Idempotent — already-terminal runs return their current row unchanged.
+     * flow_id. Marks the run canceled, deletes pending waits and cancels any flows it started and is
+     * waiting on (Start Flow node). Idempotent — already-terminal runs return their current row
+     * unchanged.
      *
      * Scopes: flows:write.
      *
@@ -378,13 +381,12 @@ final readonly class Flows
      * Return the typed variable catalog used by the Flow Builder's Branch node "match contact field /
      * tag / list / custom field" picker.
      *
-     * Sections:
+     * custom_fields is filled only when the caller also holds contacts:read (custom-field definitions
+     * are gated by it on GET /custom-fields); without it the section is an empty list. tags is filled
+     * only with contacts:read or conversations:read (the scopes of GET /tags); without either it is an
+     * empty list. Every other section is unchanged.
      *
-     * * contact_fields — built-in Contact columns + tags/lists pseudo-fields. * custom_fields —
-     * tenant custom_field_definitions exposed as contact.custom.<key> paths with a best-effort type
-     * hint. * tags — tenant tag names (path = tag name). * lists — tenant subscription lists (path
-     * = list UUID, label = list name). * flow_variables — populated only when flow_id is supplied;
-     * otherwise empty.
+     * Sections:
      *
      * Scopes: flows:read.
      *
@@ -458,6 +460,10 @@ final readonly class Flows
      *
      * Update a flow.
      *
+     * Optimistic concurrency: send the version you last read (body version or header If-Match: "<n>";
+     * the body wins). A stale value returns 409 flow_version_conflict with current_version. Without
+     * either, the write is last-write-wins.
+     *
      * All fields optional. When definition is provided the API re-runs save-time structural
      * validation. Editing a published flow is allowed — the engine snapshots definition into
      * flow_runs.context.definition_snapshot at run-start so in-flight runs are isolated from the edit.
@@ -497,6 +503,7 @@ final readonly class Flows
         ?bool $stopOnConversationClosed = null,
         ?int $priority = null,
         ?bool $exclusive = null,
+        ?int $version = null,
         ?string $idempotencyKey = null,
     ): AppSchemasFlowSchemaFlow {
         $response = $this->connector->send(new Request(
@@ -517,6 +524,7 @@ final readonly class Flows
                 'stop_on_conversation_closed' => $stopOnConversationClosed,
                 'priority' => $priority,
                 'exclusive' => $exclusive,
+                'version' => $version,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -558,6 +566,94 @@ final readonly class Flows
         ));
 
         return AppSchemasFlowSchemaFlow::fromArray($response->data());
+    }
+
+    /**
+     * List Flow Loop Pauses.
+     *
+     * List the contacts this flow is (or was) paused for by loop protection.
+     *
+     * contact_name is filled only when the caller ALSO holds contacts:read (otherwise null).
+     *
+     * A flow is paused for a contact when it started for that contact too many times in a short window
+     * via contact triggers. Newest pause first.
+     *
+     * Scopes: flows:read.
+     *
+     * @param  ?string  $status  active (default), resumed or all.
+     * @return Page<FlowLoopPause>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/list_flow_loop_pauses_api_v1_flows__flow_id__loop_pauses_get
+     */
+    public function listLoopPauses(
+        string $flowId,
+        ?string $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/loop-pauses',
+            query: Payload::query(['status' => $status, 'page' => $page, 'page_size' => $pageSize]),
+        ));
+
+        return Hydrate::page($response->data(), FlowLoopPause::fromArray(...), fn (int $page): Page => $this->listLoopPauses(flowId: $flowId, status: $status, page: $page, pageSize: $pageSize));
+    }
+
+    /**
+     * Resume All Flow Loop Pauses.
+     *
+     * Resume the flow for every contact it is currently loop-paused for.
+     *
+     * Also resets those contacts' loop counters. Does not change the flow's own status (see POST
+     * /flows/{flow_id}/resume-auto-pause).
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/resume_all_flow_loop_pauses_api_v1_flows__flow_id__loop_pauses_resume_all_post
+     */
+    public function resumeAllLoopPauses(string $flowId, ?string $idempotencyKey = null): ResumeAllLoopPauses
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/loop-pauses/resume-all',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return ResumeAllLoopPauses::fromArray($response->data());
+    }
+
+    /**
+     * Resume Flow Loop Pause.
+     *
+     * Resume the flow for one loop-paused contact (idempotent).
+     *
+     * Marks the pause resumed, records who resumed it and resets the contact's loop counter so the
+     * flow can start for this contact again. 404 when the flow was never paused for this contact.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/resume_flow_loop_pause_api_v1_flows__flow_id__loop_pauses__contact_id__resume_post
+     */
+    public function resumeLoopPause(string $flowId, string $contactId, ?string $idempotencyKey = null): FlowLoopPause
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/loop-pauses/'.Payload::segment($contactId).'/resume',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowLoopPause::fromArray($response->data());
     }
 
     /**
@@ -712,6 +808,40 @@ final readonly class Flows
     }
 
     /**
+     * Resume Flow Auto Pause.
+     *
+     * Undo a whole-flow pause made by loop protection.
+     *
+     * Clears auto_paused_at / auto_pause_reason / auto_pause_details and sets the flow back to
+     * published (only when it is still paused). With resume_contacts: true every contact the flow is
+     * loop-paused for is resumed too. A manually paused flow is never touched: 409
+     * flow_not_auto_paused.
+     *
+     * Scopes: flows:publish.
+     *
+     * @param  array<string, mixed>|null  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/resume_flow_auto_pause_api_v1_flows__flow_id__resume_auto_pause_post
+     */
+    public function resumeAutoPause(
+        string $flowId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): AppSchemasFlowSchemaFlow {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/resume-auto-pause',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return AppSchemasFlowSchemaFlow::fromArray($response->data());
+    }
+
+    /**
      * List Flow Runs.
      *
      * List runs for a flow.
@@ -765,6 +895,9 @@ final readonly class Flows
      * @param  ?string  $idempotencyKey  Optional caller-supplied idempotency key for at-most-once start semantics. If a run with the same (tenant_id, idempotency_key) already exists, the existing run is returned with HTTP 200 instead of creating a new one. If omitted, the engine derives a key from the request payload (e.g. ``manual:<flow_id>:<contact_id>:<request_id>``).
      * @param  array<string, mixed>|null  $context  Extra variables to seed ``flow_runs.context.vars``. Hard-capped at 16 KB JSON-encoded.
      * @param  array<string, mixed>|null  $contactMethodOverrides  Optional map of ``ChannelType`` (string value, e.g. ``email``, ``sms``, ``whatsapp``, ``telegram``, ``messenger``, ``instagram``, ``browser_push``) → ``contact_method.id``. When the flow sends on the matching channel, this specific contact_method's value is used as the destination instead of the contact's primary method. Per-channel keys are independent; omitted channels fall back to the default (primary) resolution. Each referenced contact_method must belong to the same tenant, the same contact, and have a method_type that matches the channel key.
+     * @param  ?string  $channelId  Optional channel the run is started on (an active channel of this workspace). It becomes the run's originating/current channel: Send steps prefer it (when the flow prefers the originating channel) and Tag & Update entries scoped to the "current channel" use it.
+     * @param  ?string  $contactMethodId  Optional contact method (of this contact) the run is started with. With ``channel_id`` it must be able to address that channel, and it is also applied as the contact_method_overrides pin for that channel type unless one was given explicitly.
+     * @param  ?string  $conversationId  Optional conversation (of this contact) the run is started from, e.g. "Run flow" in the inbox. Marks the run's origin only, so the conversation shows it as running; it does not bind the run to the conversation.
      * @param  ?string  $idempotencyKeyIdempotency  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -777,6 +910,9 @@ final readonly class Flows
         ?string $idempotencyKey = null,
         ?array $context = null,
         ?array $contactMethodOverrides = null,
+        ?string $channelId = null,
+        ?string $contactMethodId = null,
+        ?string $conversationId = null,
         ?string $idempotencyKeyIdempotency = null,
     ): FlowRun {
         $response = $this->connector->send(new Request(
@@ -787,6 +923,9 @@ final readonly class Flows
                 'idempotency_key' => $idempotencyKey,
                 'context' => $context,
                 'contact_method_overrides' => $contactMethodOverrides,
+                'channel_id' => $channelId,
+                'contact_method_id' => $contactMethodId,
+                'conversation_id' => $conversationId,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -909,8 +1048,8 @@ final readonly class Flows
      *
      * Operator-initiated cancel of a flow run.
      *
-     * Marks the run canceled, deletes pending waits, emits flow.run.canceled webhook. Idempotent —
-     * already-terminal runs return their current row unchanged.
+     * Marks the run canceled, deletes pending waits and cancels any flows it started and is waiting on
+     * (Start Flow node). Idempotent — already-terminal runs return their current row unchanged.
      *
      * Scopes: flows:write.
      *

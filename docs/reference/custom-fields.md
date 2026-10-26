@@ -2,7 +2,7 @@
 
 # Custom Fields
 
-`$sendseven->customFields()` — 7 endpoints.
+`$sendseven->customFields()` — 10 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -10,9 +10,12 @@
 | [`setContactValue()`](#setcontactvalue) | `POST /contacts/{contact_id}/fields/{field_id}` | Set Contact Field Value |
 | [`list()`](#list) | `GET /custom-fields` | List Custom Fields |
 | [`create()`](#create) | `POST /custom-fields` | Create Custom Field |
+| [`getKeyReferences()`](#getkeyreferences) | `GET /custom-fields/key-references` | Get Custom Field Key References |
 | [`delete()`](#delete) | `DELETE /custom-fields/{field_id}` | Delete Custom Field |
 | [`get()`](#get) | `GET /custom-fields/{field_id}` | Get Custom Field |
 | [`update()`](#update) | `PUT /custom-fields/{field_id}` | Update Custom Field |
+| [`changeType()`](#changetype) | `POST /custom-fields/{field_id}/change-type` | Change Custom Field Type |
+| [`getUsage()`](#getusage) | `GET /custom-fields/{field_id}/usage` | Get Custom Field Usage |
 
 ## getContactValues
 
@@ -40,7 +43,7 @@ Set Contact Field Value. `POST /contacts/{contact_id}/fields/{field_id}`
 
 Set a custom field value for a contact.
 
-The value is validated against the field's type and options (if applicable). For SELECT/MULTISELECT fields, values that don't match the defined options are rejected with 400 (matching is case-insensitive; the canonical option spelling is stored).
+A value that actually changes emits the contact.updated event and starts matching "Contact updated" flows (field key custom.<key>).
 
 ```php
 $result = $sendseven->customFields()->setContactValue(contactId: 'contact_id', fieldId: 'field_id', value: '...');
@@ -106,17 +109,41 @@ $result = $sendseven->customFields()->create(name: 'name', key: 'key', fieldType
 | `$agentEditable` | `?bool` | no | Whether agents can edit this field |
 | `$userEditable` | `?bool` | no | Whether contacts can edit this field (self-service) |
 | `$displayOrder` | `?int` | no | Display order in UI (lower = first) |
+| `$validation` | `array<string, mixed>\|null` | no | Optional value constraints (type-applicable keys only): number → min/max; text/email/phone/url → min_length/max_length/pattern; date/datetime → date_min/date_max (YYYY-MM-DD or 'today'). Enforced on contact value writes. |
+| `$aiHint` | `?string` | no | What this field means and how an AI agent should use or set it (max 1000 characters). |
+| `$optionDescriptions` | `array<string, mixed>\|null` | no | select/multiselect only: {option: description} explaining each option to AI agents. Keys must be existing options; descriptions max 300 characters. |
+| `$aiAccess` | `?string` | no | What AI agents may do with this field: none (invisible, default), read (agents see it), read_write (agents see it and may update any value), fill_if_empty (agents see it and may only fill it while it is empty). location and collection fields allow only none or read. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CustomFieldDefinition`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Custom%20Fields/create_custom_field_api_v1_custom_fields_post)
+
+## getKeyReferences
+
+Get Custom Field Key References. `GET /custom-fields/key-references`
+
+Where a custom field key is still used.
+
+Flows, dynamic lists, campaign segments, campaigns, message templates, AI agent context settings and the HubSpot field mapping refer to custom fields by key. When you create a field with a key that was used by a deleted field, those references start using the new field. Use this before creating a field to show where.
+
+```php
+$result = $sendseven->customFields()->getKeyReferences(key: 'key');
+```
+
+- Scopes: `settings:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$key` | `string` | yes | Custom field key (snake_case) |
+
+Returns `CustomFieldKeyReferences`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Custom%20Fields/get_custom_field_key_references_api_v1_custom_fields_key_references_get)
 
 ## delete
 
 Delete Custom Field. `DELETE /custom-fields/{field_id}`
 
-Delete (deactivate) a custom field definition.
+Permanently delete a custom field and its values on every contact.
 
-The field is soft-deleted (marked inactive) to preserve existing data. Inactive fields are not shown in the UI and cannot be assigned new values.
+This cannot be undone. The key is freed: a field with the same key can be created again (it starts empty). Use GET /custom-fields/{field_id}/usage to show how many contacts lose a value.
 
 ```php
 $sendseven->customFields()->delete(fieldId: 'field_id');
@@ -156,7 +183,7 @@ Update Custom Field. `PUT /custom-fields/{field_id}`
 
 Update a custom field definition.
 
-Note: The key and field_type cannot be changed after creation to preserve data integrity.
+Note: The key cannot be changed after creation; field_type is changed with POST /custom-fields/{field_id}/change-type.
 
 ```php
 $result = $sendseven->customFields()->update(fieldId: 'field_id');
@@ -176,5 +203,55 @@ $result = $sendseven->customFields()->update(fieldId: 'field_id');
 | `$agentEditable` | `?bool` | no | Whether agents can edit this field |
 | `$userEditable` | `?bool` | no | Whether contacts can edit this field (self-service) |
 | `$displayOrder` | `?int` | no | Display order in UI (lower = first) |
+| `$validation` | `array<string, mixed>\|null` | no | Optional value constraints (type-applicable keys only): number → min/max; text/email/phone/url → min_length/max_length/pattern; date/datetime → date_min/date_max (YYYY-MM-DD or 'today'). Enforced on contact value writes. Send null to clear; omit to keep. |
+| `$aiHint` | `?string` | no | What this field means and how an AI agent should use or set it (max 1000 characters). Send null to clear; omit to keep. |
+| `$optionDescriptions` | `array<string, mixed>\|null` | no | select/multiselect only: {option: description} for AI agents. Keys must be existing options (after this update); descriptions max 300 characters. Replaces the whole map; null clears; omit to keep. |
+| `$aiAccess` | `?string` | no | What AI agents may do with this field: none (invisible, default), read (agents see it), read_write (agents see it and may update any value), fill_if_empty (agents see it and may only fill it while it is empty). location and collection fields allow only none or read. Omit to keep; null resets to none. |
 
 Returns `CustomFieldDefinition`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Custom%20Fields/update_custom_field_api_v1_custom_fields__field_id__put)
+
+## changeType
+
+Change Custom Field Type. `POST /custom-fields/{field_id}/change-type`
+
+Change a custom field's type and convert every stored value.
+
+The field keeps its id, key, name, display order and every reference. Send dry_run: true first to preview: counts, converted samples (lossy ones first, e.g. 00123 -> 123 or a date-time losing its time), values that do not fit the new type, AI access / validation / option changes and references that may need review (reference_warnings).
+
+```php
+$result = $sendseven->customFields()->changeType(fieldId: 'field_id', fieldType: 'field_type');
+```
+
+- Scopes: `settings:admin`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$fieldId` | `string` | yes |  |
+| `$fieldType` | `FieldType\|string` | yes | The new type (must differ from the current one) |
+| `$options` | `list<string>\|null` | no | select/multiselect target: the options. Required unless the field already is select/multiselect (then the current options are kept when omitted). Ignored for other targets (options are cleared). |
+| `$optionDescriptions` | `array<string, mixed>\|null` | no | select/multiselect target: {option: description} for AI agents (replaces the map; null clears; omit to keep the descriptions of options that still exist). |
+| `$incompatibleValues` | `?string` | no | What to do with stored values that do not fit the new type: fail (409, nothing changes), remove (delete them) or keep (leave them stored as they are). |
+| `$dryRun` | `?bool` | no | Preview only: nothing is changed |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `CustomFieldTypeChangeResult`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Custom%20Fields/change_custom_field_type_api_v1_custom_fields__field_id__change_type_post)
+
+## getUsage
+
+Get Custom Field Usage. `GET /custom-fields/{field_id}/usage`
+
+How many contacts hold a value for this custom field.
+
+Shown in the delete confirmation: deleting the field deletes these values.
+
+```php
+$result = $sendseven->customFields()->getUsage(fieldId: 'field_id');
+```
+
+- Scopes: `contacts:read`, `settings:admin`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$fieldId` | `string` | yes |  |
+
+Returns `CustomFieldUsage`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Custom%20Fields/get_custom_field_usage_api_v1_custom_fields__field_id__usage_get)

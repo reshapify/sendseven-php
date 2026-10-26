@@ -72,7 +72,7 @@ Preview Layout. `POST /email-templates/preview`
 
 Preview MJML template without saving (with variable replacement)
 
-- Accepts MJML source with {{variable}} placeholders - Replaces variables with example values - Brand variables are auto-filled from tenant settings - Compiles MJML to HTML - Returns HTML for preview - Does not save to database
+- Accepts MJML source with {{variable}} placeholders - Replaces variables with example values - Company variables are auto-filled from your company profile and branding - Compiles MJML to HTML - Returns HTML for preview - Does not save to database
 
 ```php
 $result = $sendseven->emailTemplates()->previewLayout(body: []);

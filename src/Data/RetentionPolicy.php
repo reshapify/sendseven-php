@@ -10,11 +10,13 @@ namespace Reshapify\SendSeven\Data;
 use Reshapify\SendSeven\Support\Attributes;
 
 /**
- * Current retention policy + value for the caller's tenant.
+ * Current retention policy + values for the caller's tenant.
  *
- * Drives the settings UI without the frontend re-deriving product rules. allowed_options is an
- * ordered list of selectable values where 0 represents "unlimited"; the frontend maps each integer
- * to an i18n label.
+ * Drives the settings UI without the frontend re-deriving product rules. allowed_options is the
+ * ordered list of message presets valid on the plan (0 = Never): API Only [30, 60, 90] (an
+ * uncapped API Only plan: [30, 60] + the unlimited list); unlimited plans [90, 180, 365, 730,
+ * 1095, 1825, 3650, 0]; a finite cap > 90 the ladder values below the cap plus the cap. floor is
+ * the plan's message floor (30 on API Only, else 90). The frontend maps each integer to a label.
  *
  * @see https://api.sendseven.com/api/v1/docs (schema RetentionPolicyResponse)
  */
@@ -33,6 +35,19 @@ final readonly class RetentionPolicy extends Data
         public bool $isConfigurable,
         public array $allowedOptions,
         public ?int $effectiveDays,
+        public ?int $contactRetentionDays,
+        public ?int $contactEffectiveDays,
+        public ?int $contactFloor,
+        public ?int $contactMax,
+        public ?bool $contactIsConfigurable,
+        public ?int $contactRetentionPendingDays,
+        public ?string $contactRetentionPendingEffectiveAt,
+        public ?int $contactRetentionGraceDays,
+        public ?bool $canTightenContactRetention,
+        public ?int $messageRetentionPendingDays,
+        public ?string $messageRetentionPendingEffectiveAt,
+        public ?int $messageRetentionGraceDays,
+        public ?bool $canTightenMessageRetention,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,6 +69,19 @@ final readonly class RetentionPolicy extends Data
             isConfigurable: $attributes->bool('is_configurable'),
             allowedOptions: $attributes->ints('allowed_options'),
             effectiveDays: $attributes->nullableInt('effective_days'),
+            contactRetentionDays: $attributes->nullableInt('contact_retention_days'),
+            contactEffectiveDays: $attributes->nullableInt('contact_effective_days'),
+            contactFloor: $attributes->nullableInt('contact_floor'),
+            contactMax: $attributes->nullableInt('contact_max'),
+            contactIsConfigurable: $attributes->nullableBool('contact_is_configurable'),
+            contactRetentionPendingDays: $attributes->nullableInt('contact_retention_pending_days'),
+            contactRetentionPendingEffectiveAt: $attributes->nullableString('contact_retention_pending_effective_at'),
+            contactRetentionGraceDays: $attributes->nullableInt('contact_retention_grace_days'),
+            canTightenContactRetention: $attributes->nullableBool('can_tighten_contact_retention'),
+            messageRetentionPendingDays: $attributes->nullableInt('message_retention_pending_days'),
+            messageRetentionPendingEffectiveAt: $attributes->nullableString('message_retention_pending_effective_at'),
+            messageRetentionGraceDays: $attributes->nullableInt('message_retention_grace_days'),
+            canTightenMessageRetention: $attributes->nullableBool('can_tighten_message_retention'),
             raw: $data,
         );
     }

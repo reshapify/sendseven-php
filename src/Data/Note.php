@@ -28,6 +28,7 @@ final readonly class Note extends Data
      * @param  string  $content  Note content
      * @param  ?string  $userName  Name of user who created the note
      * @param  ?string  $userEmail  Email of user who created the note
+     * @param  ?string  $messageId  ID of the internal-note message that shows this note in the conversation timeline (null for older notes created before notes and internal notes were unified).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -40,6 +41,7 @@ final readonly class Note extends Data
         public string $content,
         public ?string $userName,
         public ?string $userEmail,
+        public ?string $messageId,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -62,6 +64,7 @@ final readonly class Note extends Data
             content: $attributes->string('content'),
             userName: $attributes->nullableString('user_name'),
             userEmail: $attributes->nullableString('user_email'),
+            messageId: $attributes->nullableString('message_id'),
             raw: $data,
         );
     }

@@ -28,6 +28,7 @@ $result = $sendseven->chatTranslation()->translateEmailMessage(emailMessageId: '
 |---|---|---|---|
 | `$emailMessageId` | `string` | yes |  |
 | `$targetLanguage` | `string` | yes | ISO 639-1 language code (e.g. 'en', 'de') |
+| `$source` | `mixed` | no | 'sent' (default: the message as sent) or 'original'. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `TranslateMessage`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_email_message_api_v1_email_messages__email_message_id__translate_post)
@@ -50,9 +51,10 @@ $result = $sendseven->chatTranslation()->translateMessage(messageId: 'message_id
 |---|---|---|---|
 | `$messageId` | `string` | yes |  |
 | `$targetLanguage` | `string` | yes | ISO 639-1 language code (e.g. 'en', 'de') |
+| `$source` | `mixed` | no | 'sent' (default: the message as sent) or 'original'. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
-Returns `TranslateMessage`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_message_api_v1_messages__message_id__translate_post)
+Returns `array<array-key, mixed>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_message_api_v1_messages__message_id__translate_post)
 
 ## translateText
 

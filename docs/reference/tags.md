@@ -104,7 +104,7 @@ List Tags. `GET /tags`
 
 List all tags for the tenant with pagination.
 
-Returns a paginated list of tags, optionally filtered by search term.
+Returns a paginated list of tags, optionally filtered by search term. With include_usage=true every item also carries contact_count and conversation_count (computed for the returned page only).
 
 ```php
 $result = $sendseven->tags()->list();
@@ -117,8 +117,9 @@ $result = $sendseven->tags()->list();
 | `$page` | `?int` | no | Page number (1-indexed) |
 | `$pageSize` | `?int` | no | Items per page |
 | `$search` | `?string` | no | Search by tag name |
+| `$includeUsage` | `?bool` | no | When true, each tag also returns contact_count and conversation_count (how many contacts / conversations carry it; 0 when unused). Off by default to keep the list fast. |
 
-Returns `Page<Tag>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tags/list_tags_api_v1_tags_get)
+Returns `array<array-key, mixed>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Tags/list_tags_api_v1_tags_get)
 
 ## create
 
@@ -132,7 +133,7 @@ Tags are used to categorize contacts and conversations. Each tag must have a uni
 $result = $sendseven->tags()->create(name: 'name');
 ```
 
-- Scopes: `contacts:update`, `conversations:update`
+- Scopes: `tags:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -155,7 +156,7 @@ This will also remove the tag from all contacts and conversations.
 $result = $sendseven->tags()->delete(tagId: 'tag_id');
 ```
 
-- Scopes: `contacts:update`, `conversations:update`
+- Scopes: `tags:delete`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -193,7 +194,7 @@ All fields are optional. Only provided fields will be updated.
 $result = $sendseven->tags()->update(tagId: 'tag_id');
 ```
 
-- Scopes: `contacts:update`, `conversations:update`
+- Scopes: `tags:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|

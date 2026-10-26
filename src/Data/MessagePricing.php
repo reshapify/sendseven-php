@@ -10,19 +10,22 @@ namespace Reshapify\SendSeven\Data;
 use Reshapify\SendSeven\Support\Attributes;
 
 /**
- * Estimated retail price for an outbound SMS.
+ * Estimated price for one outbound SMS.
  *
- * Used by the frontend to show "this campaign will cost ~X EUR" before the customer clicks Send.
- * platform_fee_eur is seven.io's per-segment cost (min across networks for the destination
- * country); sendseven_fee_eur is our flat margin on top. total_per_segment_eur = platform + margin
- * and is also returned as the legacy price_per_message_eur field for backward compatibility with
- * older frontend builds.
+ * An SMS has two charges with different units:
  *
  * @see https://api.sendseven.com/api/v1/docs (schema MessagePricingResponse)
  */
 final readonly class MessagePricing extends Data
 {
     /**
+     * @param  string  $platformFeeEur  Carrier fee per SMS segment, deducted from the prepaid SMS balance.
+     * @param  string  $sendsevenFeeEur  SendSeven fee per message (not per segment), counted against the plan's message pool.
+     * @param  string  $totalPerSegmentEur  Deprecated. platform_fee_eur + sendseven_fee_eur, i.e. the price of a one-segment SMS. Do not multiply by segments; use total_eur.
+     * @param  string  $pricePerMessageEur  Deprecated alias of total_per_segment_eur (price of a one-segment SMS).
+     * @param  ?string  $carrierFeeTotalEur  platform_fee_eur x segments: what this message takes from the prepaid SMS balance.
+     * @param  ?string  $sendsevenFeeTotalEur  SendSeven fee for this message (charged once, whatever the segment count).
+     * @param  string  $totalEur  Estimated total for this message: platform_fee_eur x segments + sendseven_fee_eur. Without text, segments is 1.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -38,6 +41,8 @@ final readonly class MessagePricing extends Data
         public ?int $segments,
         public ?string $encoding,
         public ?int $charCount,
+        public ?string $carrierFeeTotalEur,
+        public ?string $sendsevenFeeTotalEur,
         public string $totalEur,
         public string $source,
         public ?bool $isSupported,
@@ -67,6 +72,8 @@ final readonly class MessagePricing extends Data
             segments: $attributes->nullableInt('segments'),
             encoding: $attributes->nullableString('encoding'),
             charCount: $attributes->nullableInt('char_count'),
+            carrierFeeTotalEur: $attributes->nullableString('carrier_fee_total_eur'),
+            sendsevenFeeTotalEur: $attributes->nullableString('sendseven_fee_total_eur'),
             totalEur: $attributes->string('total_eur'),
             source: $attributes->string('source'),
             isSupported: $attributes->nullableBool('is_supported'),

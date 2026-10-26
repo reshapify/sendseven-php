@@ -2,39 +2,44 @@
 
 # API reference
 
-Every SendSeven endpoint (712), generated from SendSeven's OpenAPI spec (version 20260930.0936) with our verified corrections in `openapi/patches`.
+Every SendSeven endpoint (882), generated from SendSeven's OpenAPI spec (version 20261026.1136) with our verified corrections in `openapi/patches`.
 
 | Resource | Accessor | Endpoints |
 |---|---|---|
+| [AI Agents](ai-agents.md) | `$sendseven->aiAgents()` | 44 |
 | [AI Answers](ai-answers.md) | `$sendseven->aiAnswers()` | 4 |
+| [AI Skills](ai-skills.md) | `$sendseven->aiSkills()` | 11 |
 | [API Tokens](api-tokens.md) | `$sendseven->apiTokens()` | 7 |
 | [Agent Suggestions](agent-suggestions.md) | `$sendseven->agentSuggestions()` | 4 |
 | [Alerts](alerts.md) | `$sendseven->alerts()` | 10 |
 | [Analytics](analytics.md) | `$sendseven->analytics()` | 15 |
-| [Attachments](attachments.md) | `$sendseven->attachments()` | 6 |
+| [Attachments](attachments.md) | `$sendseven->attachments()` | 8 |
 | [Audit Log](audit-log.md) | `$sendseven->auditLog()` | 1 |
-| [Automation](automation.md) | `$sendseven->automation()` | 29 |
+| [Automation](automation.md) | `$sendseven->automation()` | 33 |
 | [Bounce Handling](bounce-handling.md) | `$sendseven->bounceHandling()` | 4 |
 | [Campaigns](campaigns.md) | `$sendseven->campaigns()` | 29 |
 | [Canned Responses](canned-responses.md) | `$sendseven->cannedResponses()` | 7 |
 | [Channel Connect](channel-connect.md) | `$sendseven->channelConnect()` | 6 |
-| [Channels](channels.md) | `$sendseven->channels()` | 21 |
+| [Channels](channels.md) | `$sendseven->channels()` | 24 |
 | [Chat Translation](chat-translation.md) | `$sendseven->chatTranslation()` | 3 |
 | [Comment Rules](comment-rules.md) | `$sendseven->commentRules()` | 5 |
 | [Comments](comments.md) | `$sendseven->comments()` | 13 |
 | [Company Profile](company-profile.md) | `$sendseven->companyProfile()` | 2 |
-| [Contact Bulk Actions](contact-bulk-actions.md) | `$sendseven->contactBulkActions()` | 4 |
-| [Contacts](contacts.md) | `$sendseven->contacts()` | 31 |
-| [Conversations](conversations.md) | `$sendseven->conversations()` | 29 |
-| [Custom Fields](custom-fields.md) | `$sendseven->customFields()` | 7 |
+| [Contact Bulk Actions](contact-bulk-actions.md) | `$sendseven->contactBulkActions()` | 5 |
+| [Contact Tokens](contact-tokens.md) | `$sendseven->contactTokens()` | 3 |
+| [Contact Verification](contact-verification.md) | `$sendseven->contactVerification()` | 12 |
+| [Contacts](contacts.md) | `$sendseven->contacts()` | 32 |
+| [Context Endpoints](context-endpoints.md) | `$sendseven->contextEndpoints()` | 7 |
+| [Conversations](conversations.md) | `$sendseven->conversations()` | 34 |
+| [Custom Fields](custom-fields.md) | `$sendseven->customFields()` | 10 |
 | [Custom Inboxes](custom-inboxes.md) | `$sendseven->customInboxes()` | 7 |
 | [Double Opt-In](double-opt-in.md) | `$sendseven->doubleOptIn()` | 3 |
 | [Double Opt-In Templates](double-opt-in-templates.md) | `$sendseven->doubleOptInTemplates()` | 7 |
 | [Email Campaigns](email-campaigns.md) | `$sendseven->emailCampaigns()` | 25 |
 | [Email Connections](email-connections.md) | `$sendseven->emailConnections()` | 7 |
-| [Email Contacts](email-contacts.md) | `$sendseven->emailContacts()` | 8 |
-| [Email Contents](email-contents.md) | `$sendseven->emailContents()` | 8 |
-| [Email Integrations](email-integrations.md) | `$sendseven->emailIntegrations()` | 35 |
+| [Email Contacts](email-contacts.md) | `$sendseven->emailContacts()` | 10 |
+| [Email Contents](email-contents.md) | `$sendseven->emailContents()` | 9 |
+| [Email Integrations](email-integrations.md) | `$sendseven->emailIntegrations()` | 29 |
 | [Email Mailboxes](email-mailboxes.md) | `$sendseven->emailMailboxes()` | 5 |
 | [Email Providers](email-providers.md) | `$sendseven->emailProviders()` | 11 |
 | [Email Settings](email-settings.md) | `$sendseven->emailSettings()` | 4 |
@@ -42,22 +47,22 @@ Every SendSeven endpoint (712), generated from SendSeven's OpenAPI spec (version
 | [Email Templates](email-templates.md) | `$sendseven->emailTemplates()` | 7 |
 | [FAQ Management](faq-management.md) | `$sendseven->faqManagement()` | 17 |
 | [FAQ Migration](faq-migration.md) | `$sendseven->faqMigration()` | 3 |
-| [Flows](flows.md) | `$sendseven->flows()` | 29 |
+| [Flows](flows.md) | `$sendseven->flows()` | 33 |
 | [HubSpot Integration](hubspot-integration.md) | `$sendseven->hubSpotIntegration()` | 15 |
 | [Integrations](integrations.md) | `$sendseven->integrations()` | 1 |
-| [Invitations](invitations.md) | `$sendseven->invitations()` | 6 |
+| [Invitations](invitations.md) | `$sendseven->invitations()` | 7 |
 | [Invoices](invoices.md) | `$sendseven->invoices()` | 3 |
-| [KB Corrections](kb-corrections.md) | `$sendseven->kbCorrections()` | 7 |
+| [KB Corrections](kb-corrections.md) | `$sendseven->kbCorrections()` | 8 |
 | [KB Folders](kb-folders.md) | `$sendseven->kbFolders()` | 10 |
 | [KB Health](kb-health.md) | `$sendseven->kbHealth()` | 1 |
-| [Knowledge Base](knowledge-base.md) | `$sendseven->knowledgeBase()` | 23 |
+| [Knowledge Base](knowledge-base.md) | `$sendseven->knowledgeBase()` | 27 |
 | [Link Tracking](link-tracking.md) | `$sendseven->linkTracking()` | 11 |
 | [Link Tracking Settings](link-tracking-settings.md) | `$sendseven->linkTrackingSettings()` | 4 |
 | [Lists](lists.md) | `$sendseven->lists()` | 14 |
 | [Live Chat](live-chat.md) | `$sendseven->liveChat()` | 5 |
 | [Media Gallery](media-gallery.md) | `$sendseven->mediaGallery()` | 7 |
-| [Messages](messages.md) | `$sendseven->messages()` | 11 |
-| [Notes](notes.md) | `$sendseven->notes()` | 6 |
+| [Messages](messages.md) | `$sendseven->messages()` | 12 |
+| [Notes](notes.md) | `$sendseven->notes()` | 7 |
 | [OAuth2 Apps](oauth2-apps.md) | `$sendseven->oAuth2Apps()` | 8 |
 | [RCS Wallet](rcs-wallet.md) | `$sendseven->rcsWallet()` | 2 |
 | [Roles & Permissions](roles-permissions.md) | `$sendseven->rolesPermissions()` | 17 |
@@ -68,12 +73,13 @@ Every SendSeven endpoint (712), generated from SendSeven's OpenAPI spec (version
 | [Subscriptions](subscriptions.md) | `$sendseven->subscriptions()` | 7 |
 | [Tags](tags.md) | `$sendseven->tags()` | 9 |
 | [Tenant Email Settings](tenant-email-settings.md) | `$sendseven->tenantEmailSettings()` | 3 |
-| [Tenants](tenants.md) | `$sendseven->tenants()` | 11 |
+| [Tenants](tenants.md) | `$sendseven->tenants()` | 16 |
 | [Unsubscribe](unsubscribe.md) | `$sendseven->unsubscribe()` | 2 |
-| [User Inbox Access](user-inbox-access.md) | `$sendseven->userInboxAccess()` | 2 |
-| [Users](users.md) | `$sendseven->users()` | 14 |
+| [User Inbox Access](user-inbox-access.md) | `$sendseven->userInboxAccess()` | 4 |
+| [Users](users.md) | `$sendseven->users()` | 32 |
 | [Webhooks](webhooks.md) | `$sendseven->webhooks()` | 11 |
-| [WhatsApp](whatsapp.md) | `$sendseven->whatsApp()` | 8 |
+| [WhatsApp](whatsapp.md) | `$sendseven->whatsApp()` | 9 |
 | [WhatsApp Catalogue](whatsapp-catalogue.md) | `$sendseven->whatsAppCatalogue()` | 7 |
-| [WhatsApp Templates](whatsapp-templates.md) | `$sendseven->whatsAppTemplates()` | 15 |
+| [WhatsApp Flows](whatsapp-flows.md) | `$sendseven->whatsAppFlows()` | 37 |
+| [WhatsApp Templates](whatsapp-templates.md) | `$sendseven->whatsAppTemplates()` | 17 |
 | [Widgets](widgets.md) | `$sendseven->widgets()` | 11 |

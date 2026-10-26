@@ -21,7 +21,7 @@ use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Invitations: 6 endpoints.
+ * Invitations: 7 endpoints.
  *
  * Reach it with $sendseven->invitations().
  *
@@ -60,8 +60,10 @@ final readonly class Invitations
      * Scopes: team:create.
      *
      * @param  string  $email  Email address to invite
+     * @param  list<string>|null  $roleIds  RBAC Role UUIDs to assign on accept (1-20, system OR this tenant's custom roles; duplicates are ignored). The first one is the primary role. Takes precedence over `role_id` and `role`.
      * @param  ?string  $roleId  RBAC Role UUID to assign (system OR this tenant's custom role). Get valid ids from GET /roles. Preferred over the legacy `role` field.
      * @param  InvitationRoleEnum|string|null  $role  DEPRECATED legacy role slug (owner, admin, marketing_agent, support_agent, viewer, billing_admin, developer, analyst, content_manager, designer). Ignored when `role_id` is set.
+     * @param  array<string, mixed>|null  $memberSettings  Optional access settings applied to the member when they accept (inbox access, contact history, member tags, AI suggestions, account-wide usage access). Omit for the defaults.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -70,14 +72,22 @@ final readonly class Invitations
      */
     public function create(
         string $email,
+        ?array $roleIds = null,
         ?string $roleId = null,
         InvitationRoleEnum|string|null $role = null,
+        ?array $memberSettings = null,
         ?string $idempotencyKey = null,
     ): Invitation {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/invitations',
-            body: Payload::body(['email' => $email, 'role_id' => $roleId, 'role' => $role]),
+            body: Payload::body([
+                'email' => $email,
+                'role_ids' => $roleIds,
+                'role_id' => $roleId,
+                'role' => $role,
+                'member_settings' => $memberSettings,
+            ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -107,9 +117,49 @@ final readonly class Invitations
     }
 
     /**
+     * Update invitation.
+     *
+     * Change the roles and/or the member access settings of a pending or expired invitation. Settings
+     * are merged: only the fields you send change. The token, expiry date and email stay the same and
+     * no email is sent.
+     *
+     * Scopes: team:create.
+     *
+     * @param  list<string>|null  $roleIds
+     * @param  array<string, mixed>|null  $memberSettings
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Invitations/update_invitation_api_v1_invitations__invitation_id__patch
+     */
+    public function update(
+        string $invitationId,
+        ?array $roleIds = null,
+        ?string $roleId = null,
+        ?array $memberSettings = null,
+        ?string $idempotencyKey = null,
+    ): Invitation {
+        $response = $this->connector->send(new Request(
+            Method::Patch,
+            '/invitations/'.Payload::segment($invitationId),
+            body: Payload::body([
+                'role_ids' => $roleIds,
+                'role_id' => $roleId,
+                'member_settings' => $memberSettings,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return Invitation::fromArray($response->data());
+    }
+
+    /**
      * Resend invitation.
      *
-     * Resend an invitation with a new token and expiry (requires ADMIN or OWNER)
+     * Resend a pending or expired invitation with a new token and expiry. The invited roles must be
+     * within your own permissions, exactly as when creating an invitation. Access settings are kept as
+     * they are.
      *
      * Scopes: team:create.
      *

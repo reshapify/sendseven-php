@@ -23,6 +23,7 @@ final readonly class InboxOut extends Data
      * @param  list<string>  $tagIds
      * @param  list<FieldFilterRule>  $fieldFilters
      * @param  list<string>  $allowedUserIds
+     * @param  list<string>  $accessTagIds
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -41,6 +42,8 @@ final readonly class InboxOut extends Data
         public array $tagIds,
         public array $fieldFilters,
         public array $allowedUserIds,
+        public ?bool $allChannels,
+        public array $accessTagIds,
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
         array $raw = [],
@@ -71,6 +74,8 @@ final readonly class InboxOut extends Data
             tagIds: $attributes->strings('tag_ids'),
             fieldFilters: $attributes->list('field_filters', FieldFilterRule::fromArray(...)),
             allowedUserIds: $attributes->strings('allowed_user_ids'),
+            allChannels: $attributes->nullableBool('all_channels'),
+            accessTagIds: $attributes->strings('access_tag_ids'),
             createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,

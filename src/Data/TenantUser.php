@@ -32,6 +32,12 @@ final readonly class TenantUser extends Data
      * @param  list<RoleAssignmentInfo>  $rbacRoles  RBAC role assignments
      * @param  ?bool  $isBillingAccountOwner  True if this member is the OWNER of the billing account owning the current workspace (owner always has account-wide usage access; frontend renders the access toggle as checked+disabled)
      * @param  ?bool  $accountBillingReadGranted  True if this member holds a DIRECT `account:billing_read` grant (the account-wide-usage checkbox state for non-owners)
+     * @param  ?bool  $aiSuggestionsEnabled  Whether this member may use AI suggestions in Conversations in this workspace (per-member setting, default true; change it with PATCH /users/{user_id}/membership)
+     * @param  ?string  $availabilityState  on_shift | off_hours | absent | inactive (work hours + out of office); null if unknown
+     * @param  ?string  $absentUntil  End of the running out-of-office (null = open-ended or not absent)
+     * @param  array<array-key, mixed>  $substitute  Running out-of-office substitute {mode, user_id, inbox_id, tag_id}
+     * @param  ?bool  $hasWorkHours  True when the member has at least one usable work-hours range. availability_state=on_shift with has_work_hours=false means no work hours are set
+     * @param  ?string  $nextShiftStart  Start of the member's next work-hours window (UTC). Null when on shift, no work hours are set, or unknown
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -46,6 +52,12 @@ final readonly class TenantUser extends Data
         public array $rbacRoles,
         public ?bool $isBillingAccountOwner,
         public ?bool $accountBillingReadGranted,
+        public ?bool $aiSuggestionsEnabled,
+        public ?string $availabilityState,
+        public ?string $absentUntil,
+        public array $substitute,
+        public ?bool $hasWorkHours,
+        public ?string $nextShiftStart,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -70,6 +82,12 @@ final readonly class TenantUser extends Data
             rbacRoles: $attributes->list('rbac_roles', RoleAssignmentInfo::fromArray(...)),
             isBillingAccountOwner: $attributes->nullableBool('is_billing_account_owner'),
             accountBillingReadGranted: $attributes->nullableBool('account_billing_read_granted'),
+            aiSuggestionsEnabled: $attributes->nullableBool('ai_suggestions_enabled'),
+            availabilityState: $attributes->nullableString('availability_state'),
+            absentUntil: $attributes->nullableString('absent_until'),
+            substitute: $attributes->array('substitute'),
+            hasWorkHours: $attributes->nullableBool('has_work_hours'),
+            nextShiftStart: $attributes->nullableString('next_shift_start'),
             raw: $data,
         );
     }

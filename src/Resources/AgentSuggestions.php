@@ -8,7 +8,6 @@ namespace Reshapify\SendSeven\Resources;
 // change the generator or openapi/patches, then regenerate.
 
 use Reshapify\SendSeven\Data\AgentSuggestion;
-use Reshapify\SendSeven\Data\SimilarTickets;
 use Reshapify\SendSeven\Data\SuggestionAccept;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
@@ -30,35 +29,28 @@ final readonly class AgentSuggestions
     /**
      * Search Similar Tickets For Conversation.
      *
-     * Search for similar tickets using the current conversation context.
+     * Retired. Always returns 410 Gone.
      *
-     * Automatically builds the query from the conversation, then searches ONLY the ticket-summary
-     * folders (documents would otherwise crowd out ticket matches).
-     *
-     * Args: conversation_id: Conversation ID
+     * Similar ticket search was retired in October 2026 (conversation summaries are no longer indexed
+     * for search). Summaries are still stored on each conversation; list them with GET
+     * /api/v1/knowledge-base/tickets.
      *
      * Scopes: conversations:read.
      *
-     * @param  array<string, mixed>|null  $body  The request body
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Agent%20Suggestions/search_similar_tickets_for_conversation_api_v1_conversations__conversation_id__search_similar_tickets_post
+     * @deprecated SendSeven marks this endpoint as deprecated.
      */
-    public function searchSimilarTicketsForConversation(
-        string $conversationId,
-        ?array $body = null,
-        ?string $idempotencyKey = null,
-    ): SimilarTickets {
-        $response = $this->connector->send(new Request(
+    public function searchSimilarTicketsForConversation(string $conversationId, ?string $idempotencyKey = null): void
+    {
+        $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/search-similar-tickets',
-            body: $body,
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
-
-        return SimilarTickets::fromArray($response->data());
     }
 
     /**

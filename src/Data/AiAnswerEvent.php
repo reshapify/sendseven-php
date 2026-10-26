@@ -20,6 +20,9 @@ final readonly class AiAnswerEvent extends Data
     /**
      * @param  string  $surface  suggest | bot | flow | team_chat | auto_reply
      * @param  ?string  $outcome  shown | accepted | sent | discarded
+     * @param  ?string  $agentId  ai_agents id when a Conversational Agent wrote the answer
+     * @param  ?string  $agentTurnId  Agent turn trace id (GET /automation/agents/{id}/turns)
+     * @param  array<array-key, mixed>  $agentContext  model, model_tier, outcome, skills[{slug, title, version, version_id, skill_id, via}], tools
      * @param  list<AiAnswerSource>  $sources
      * @param  ?AiAnswerRatingSummary  $myRating  The requesting user's own verdict, if they rated it
      * @param  array<array-key, mixed>  $ratingCounts  e.g. {"up": 3, "down": 1, "wrong": 0}
@@ -42,6 +45,9 @@ final readonly class AiAnswerEvent extends Data
         public ?string $outcome,
         public ?bool $flagged,
         public DateTimeImmutable $createdAt,
+        public ?string $agentId,
+        public ?string $agentTurnId,
+        public array $agentContext,
         public array $sources,
         public ?AiAnswerRatingSummary $myRating,
         public array $ratingCounts,
@@ -74,6 +80,9 @@ final readonly class AiAnswerEvent extends Data
             outcome: $attributes->nullableString('outcome'),
             flagged: $attributes->nullableBool('flagged'),
             createdAt: $attributes->dateTime('created_at'),
+            agentId: $attributes->nullableString('agent_id'),
+            agentTurnId: $attributes->nullableString('agent_turn_id'),
+            agentContext: $attributes->array('agent_context'),
             sources: $attributes->list('sources', AiAnswerSource::fromArray(...)),
             myRating: $attributes->nullableObject('my_rating', AiAnswerRatingSummary::fromArray(...)),
             ratingCounts: $attributes->array('rating_counts'),

@@ -14,8 +14,6 @@ use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
-use Reshapify\SendSeven\Pagination\Page;
-use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
@@ -133,28 +131,40 @@ final readonly class Tags
      *
      * List all tags for the tenant with pagination.
      *
-     * Returns a paginated list of tags, optionally filtered by search term.
+     * Returns a paginated list of tags, optionally filtered by search term. With include_usage=true
+     * every item also carries contact_count and conversation_count (computed for the returned page
+     * only).
      *
      * Scopes: contacts:read, conversations:read.
      *
      * @param  ?int  $page  Page number (1-indexed)
      * @param  ?int  $pageSize  Items per page
      * @param  ?string  $search  Search by tag name
-     * @return Page<Tag>
+     * @param  ?bool  $includeUsage  When true, each tag also returns `contact_count` and `conversation_count` (how many contacts / conversations carry it; 0 when unused). Off by default to keep the list fast.
+     * @return array<array-key, mixed>
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Tags/list_tags_api_v1_tags_get
      */
-    public function list(?int $page = null, ?int $pageSize = null, ?string $search = null): Page
-    {
+    public function list(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $search = null,
+        ?bool $includeUsage = null,
+    ): array {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/tags',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'search' => $search]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'search' => $search,
+                'include_usage' => $includeUsage,
+            ]),
         ));
 
-        return Hydrate::page($response->data(), Tag::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, search: $search));
+        return $response->data();
     }
 
     /**
@@ -165,7 +175,7 @@ final readonly class Tags
      * Tags are used to categorize contacts and conversations. Each tag must have a unique name within
      * the tenant.
      *
-     * Scopes: contacts:update, conversations:update.
+     * Scopes: tags:create.
      *
      * @param  string  $name  Tag name
      * @param  ?string  $color  Hex color code (e.g., #FF0000)
@@ -199,7 +209,11 @@ final readonly class Tags
      *
      * This will also remove the tag from all contacts and conversations.
      *
-     * Scopes: contacts:update, conversations:update.
+     * Returns 409 (code: TAG_IN_USE_BY_INBOX, details.inboxes) while a Custom Inbox filter rule uses
+     * the tag: deleting it would silently drop the rule and widen that inbox to every conversation on
+     * its channels.
+     *
+     * Scopes: tags:delete.
      *
      *
      * @throws ApiException
@@ -245,7 +259,7 @@ final readonly class Tags
      *
      * All fields are optional. Only provided fields will be updated.
      *
-     * Scopes: contacts:update, conversations:update.
+     * Scopes: tags:update.
      *
      * @param  ?string  $name  Tag name
      * @param  ?string  $color  Hex color code (e.g., #FF0000)

@@ -22,6 +22,8 @@ final readonly class AppSchemasWhatsAppFlowFlow extends Data
      * @param  string  $status  Flow status: DRAFT, PUBLISHED, etc.
      * @param  list<string>  $categories  Flow categories
      * @param  list<mixed>  $validationErrors  Validation errors if any
+     * @param  ?string  $definitionId  SendSeven WhatsApp Flow id when built in SendSeven
+     * @param  ?string  $definitionStatus  SendSeven WhatsApp Flow status: active | archived
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -30,6 +32,8 @@ final readonly class AppSchemasWhatsAppFlowFlow extends Data
         public string $status,
         public array $categories,
         public array $validationErrors,
+        public ?string $definitionId,
+        public ?string $definitionStatus,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,6 +52,8 @@ final readonly class AppSchemasWhatsAppFlowFlow extends Data
             status: $attributes->string('status'),
             categories: $attributes->strings('categories'),
             validationErrors: array_values($attributes->array('validation_errors')),
+            definitionId: $attributes->nullableString('definition_id'),
+            definitionStatus: $attributes->nullableString('definition_status'),
             raw: $data,
         );
     }

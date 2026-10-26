@@ -226,8 +226,10 @@ final readonly class EmailSignatures
      *
      * Preview a signature template with resolved placeholders.
      *
-     * If content_html is not provided in the request, uses the current tenant template. Optionally
-     * override placeholder values for preview.
+     * If content_html is not provided in the request, uses the current tenant template. The content is
+     * cleaned exactly as saving would store it, and placeholders resolve exactly as in a sent email:
+     * your real details, the real company logo, and empty fields stay empty. Per-field overrides
+     * replace single values; use_sample_values: true fills empty values with sample data.
      *
      * Scopes: email_signatures:read.
      *
@@ -239,6 +241,7 @@ final readonly class EmailSignatures
      * @param  ?string  $companyName  Override company name
      * @param  ?string  $companyLogo  Override company logo URL
      * @param  ?string  $companyWebsite  Override company website
+     * @param  ?bool  $useSampleValues  Fill placeholders whose real value is empty with sample values (e.g. 'Support Agent'). Default false: the preview resolves exactly like a sent email (your real details, real company logo, empty fields stay empty).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -254,6 +257,7 @@ final readonly class EmailSignatures
         ?string $companyName = null,
         ?string $companyLogo = null,
         ?string $companyWebsite = null,
+        ?bool $useSampleValues = null,
         ?string $idempotencyKey = null,
     ): SignaturePreview {
         $response = $this->connector->send(new Request(
@@ -268,6 +272,7 @@ final readonly class EmailSignatures
                 'company_name' => $companyName,
                 'company_logo' => $companyLogo,
                 'company_website' => $companyWebsite,
+                'use_sample_values' => $useSampleValues,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));

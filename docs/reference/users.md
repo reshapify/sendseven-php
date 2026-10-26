@@ -2,15 +2,24 @@
 
 # Users
 
-`$sendseven->users()` — 14 endpoints.
+`$sendseven->users()` — 32 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
+| [`getAutoAssignmentSettings()`](#getautoassignmentsettings) | `GET /settings/auto-assignment` | Get Auto Assignment Settings |
+| [`putAutoAssignmentSettings()`](#putautoassignmentsettings) | `PUT /settings/auto-assignment` | Put Auto Assignment Settings |
 | [`listTeamMembers()`](#listteammembers) | `GET /users` | List Team Members |
 | [`invite()`](#invite) | `POST /users/invite` | Invite User |
 | [`deleteMyAccount()`](#deletemyaccount) | `DELETE /users/me` | Delete my account |
 | [`getCurrentProfile()`](#getcurrentprofile) | `GET /users/me` | Get Current User Profile |
 | [`updateCurrent()`](#updatecurrent) | `PATCH /users/me` | Update Current User |
+| [`listMyAbsences()`](#listmyabsences) | `GET /users/me/absences` | List My Absences |
+| [`createMyAbsence()`](#createmyabsence) | `POST /users/me/absences` | Create My Absence |
+| [`endMyAbsencesNow()`](#endmyabsencesnow) | `POST /users/me/absences/end-now` | End My Absences Now |
+| [`deleteMyAbsence()`](#deletemyabsence) | `DELETE /users/me/absences/{absence_id}` | Delete My Absence |
+| [`updateMyAbsence()`](#updatemyabsence) | `PATCH /users/me/absences/{absence_id}` | Update My Absence |
+| [`getMyAvailability()`](#getmyavailability) | `GET /users/me/availability` | Get My Availability |
+| [`putMyAvailability()`](#putmyavailability) | `PUT /users/me/availability` | Put My Availability |
 | [`deleteAvatar()`](#deleteavatar) | `DELETE /users/me/avatar` | Delete User Avatar |
 | [`uploadAvatar()`](#uploadavatar) | `POST /users/me/avatar` | Upload User Avatar |
 | [`updateCurrentProfile()`](#updatecurrentprofile) | `PATCH /users/me/profile` | Update Current User Profile |
@@ -18,8 +27,52 @@
 | [`removeFromTenant()`](#removefromtenant) | `DELETE /users/{user_id}` | Remove User From Tenant |
 | [`get()`](#get) | `GET /users/{user_id}` | Get User |
 | [`update()`](#update) | `PUT /users/{user_id}` | Update User |
+| [`listMemberAbsences()`](#listmemberabsences) | `GET /users/{user_id}/absences` | List Member Absences |
+| [`createMemberAbsence()`](#creatememberabsence) | `POST /users/{user_id}/absences` | Create Member Absence |
+| [`endMemberAbsencesNow()`](#endmemberabsencesnow) | `POST /users/{user_id}/absences/end-now` | End Member Absences Now |
+| [`deleteMemberAbsence()`](#deletememberabsence) | `DELETE /users/{user_id}/absences/{absence_id}` | Delete Member Absence |
+| [`updateMemberAbsence()`](#updatememberabsence) | `PATCH /users/{user_id}/absences/{absence_id}` | Update Member Absence |
 | [`setAccountBillingAccess()`](#setaccountbillingaccess) | `PUT /users/{user_id}/account-billing-access` | Set Account Billing Access |
+| [`getMemberAvailability()`](#getmemberavailability) | `GET /users/{user_id}/availability` | Get Member Availability |
+| [`putMemberAvailability()`](#putmemberavailability) | `PUT /users/{user_id}/availability` | Put Member Availability |
+| [`updateTeamMembership()`](#updateteammembership) | `PATCH /users/{user_id}/membership` | Update Team Membership |
+| [`getRemovalImpact()`](#getremovalimpact) | `GET /users/{user_id}/removal-impact` | Get Removal Impact |
 | [`updateRole()`](#updaterole) | `PATCH /users/{user_id}/role` | Update User Role |
+
+## getAutoAssignmentSettings
+
+Get Auto Assignment Settings. `GET /settings/auto-assignment`
+
+Workspace auto-assignment settings: contact owner on new conversations, what happens when the owner is off hours, routing when nobody is on shift, and absent assignees without a substitute.
+
+```php
+$result = $sendseven->users()->getAutoAssignmentSettings();
+```
+
+- Scopes: `settings:read`
+
+Returns `AutoAssignmentSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/get_auto_assignment_settings_api_v1_settings_auto_assignment_get)
+
+## putAutoAssignmentSettings
+
+Put Auto Assignment Settings. `PUT /settings/auto-assignment`
+
+Update the workspace auto-assignment settings (partial; omitted keys stay).
+
+```php
+$result = $sendseven->users()->putAutoAssignmentSettings();
+```
+
+- Scopes: `settings:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$assignContactOwnerOnNewConversation` | `?bool` | no |  |
+| `$ownerOffHours` | `?string` | no |  |
+| `$routingWhenNobodyOnShift` | `?string` | no |  |
+| `$absentWithoutSubstitute` | `?string` | no |  |
+
+Returns `AutoAssignmentSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/put_auto_assignment_settings_api_v1_settings_auto_assignment_put)
 
 ## listTeamMembers
 
@@ -27,7 +80,7 @@ List Team Members. `GET /users`
 
 List all users in the tenant with their RBAC roles.
 
-Returns a paginated list of team members with their roles and permissions. Each member also carries account-wide-usage access flags for the /settings/team access toggle: is_billing_account_owner (owner always has usage access → render the toggle checked+disabled) and account_billing_read_granted (whether the member holds a direct account:billing_read grant → checkbox state for non-owners). Both default False and are fail-closed.
+Returns a paginated list of team members with their roles and permissions. Each member also carries account-wide-usage access flags for the /settings/team access toggle: is_billing_account_owner (owner always has usage access → render the toggle checked+disabled) and account_billing_read_granted (whether the member holds a direct account:billing_read grant → checkbox state for non-owners). Both default False and are fail-closed. ai_suggestions_enabled is the per-member "Can use AI suggestions in Conversations" setting (default true; change it with PATCH /users/{user_id}/membership).
 
 ```php
 $result = $sendseven->users()->listTeamMembers();
@@ -86,7 +139,7 @@ Get Current User Profile. `GET /users/me`
 
 Get current user's profile with optional tenant context.
 
-If X-Tenant-ID header is provided, includes: - User's role in that tenant - Tenant's multi_agent_mode setting
+If X-Tenant-ID header is provided, includes: - User's role in that tenant - Tenant's multi_agent_mode setting - ai_suggestions_enabled: whether the user may use AI suggestions in Conversations in that workspace (set by a team admin; false when no X-Tenant-ID is sent or the user is not a member)
 
 ```php
 $result = $sendseven->users()->getCurrentProfile();
@@ -114,7 +167,7 @@ $result = $sendseven->users()->updateCurrent();
 | `$personalPhone` | `?string` | no | Personal phone for receiving notifications (user-global) |
 | `$preferredLanguage` | `?string` | no | Preferred UI language code (e.g., en, de, fr) |
 | `$preferredTranslationLanguage` | `?string` | no | Preferred language for chat translations (e.g., en, de, fr, es) |
-| `$autoTranslateEnabled` | `?bool` | no | Enable automatic translation of incoming messages (user-global). Omit or null to leave unchanged. |
+| `$autoTranslateEnabled` | `?bool` | no | Auto-activate translation of the user's OUTGOING replies (user-global); incoming messages are never translated automatically. Omit or null to leave unchanged. |
 | `$shoutboxHidden` | `?bool` | no | Hide/deactivate the team-chat Shoutbox widget across all devices (user-global). Omit or null to leave unchanged. |
 | `$spokenLanguages` | `?string` | no | Comma-separated ISO 639-1 codes the user speaks (e.g., 'de,en'). Empty string clears the value; omit or null to leave unchanged. |
 | `$phone` | `?string` | no | Agent's phone number for email signatures (per-tenant) |
@@ -125,6 +178,143 @@ $result = $sendseven->users()->updateCurrent();
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CurrentUser`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_current_user_api_v1_users_me_patch)
+
+## listMyAbsences
+
+List My Absences. `GET /users/me/absences`
+
+Your current and upcoming out-of-office periods (include_past=true adds ended / cancelled ones).
+
+```php
+$sendseven->users()->listMyAbsences();
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$includePast` | `?bool` | no |  |
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/list_my_absences_api_v1_users_me_absences_get)
+
+## createMyAbsence
+
+Create My Absence. `POST /users/me/absences`
+
+Start or schedule an out-of-office period with an optional substitute.
+
+```php
+$result = $sendseven->users()->createMyAbsence();
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$substituteMode` | `?string` | no |  |
+| `$substituteUserId` | `?string` | no |  |
+| `$substituteInboxId` | `?string` | no |  |
+| `$substituteTagId` | `?string` | no |  |
+| `$startsAt` | `DateTimeInterface\|string\|null` | no | Default: now |
+| `$endsAt` | `DateTimeInterface\|string\|null` | no | null = until switched off |
+| `$note` | `?string` | no | Internal reason, never sent to customers |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/create_my_absence_api_v1_users_me_absences_post)
+
+## endMyAbsencesNow
+
+End My Absences Now. `POST /users/me/absences/end-now`
+
+End your running out-of-office now ("I'm back").
+
+```php
+$result = $sendseven->users()->endMyAbsencesNow();
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `EndAbsences`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/end_my_absences_now_api_v1_users_me_absences_end_now_post)
+
+## deleteMyAbsence
+
+Delete My Absence. `DELETE /users/me/absences/{absence_id}`
+
+Cancel an upcoming out-of-office period, or end a running one now.
+
+```php
+$sendseven->users()->deleteMyAbsence(absenceId: 'absence_id');
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$absenceId` | `string` | yes |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/delete_my_absence_api_v1_users_me_absences__absence_id__delete)
+
+## updateMyAbsence
+
+Update My Absence. `PATCH /users/me/absences/{absence_id}`
+
+Change one of your out-of-office periods.
+
+```php
+$result = $sendseven->users()->updateMyAbsence(absenceId: 'absence_id');
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$absenceId` | `string` | yes |  |
+| `$startsAt` | `DateTimeInterface\|string\|null` | no |  |
+| `$endsAt` | `DateTimeInterface\|string\|null` | no |  |
+| `$substituteMode` | `?string` | no |  |
+| `$substituteUserId` | `?string` | no |  |
+| `$substituteInboxId` | `?string` | no |  |
+| `$substituteTagId` | `?string` | no |  |
+| `$note` | `?string` | no |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_my_absence_api_v1_users_me_absences__absence_id__patch)
+
+## getMyAvailability
+
+Get My Availability. `GET /users/me/availability`
+
+Your work hours, time zone, auto-replies and current availability state.
+
+```php
+$result = $sendseven->users()->getMyAvailability();
+```
+
+Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/get_my_availability_api_v1_users_me_availability_get)
+
+## putMyAvailability
+
+Put My Availability. `PUT /users/me/availability`
+
+Update your work hours, time zone and auto-replies (partial update).
+
+OAuth token that changes the auto-reply fields (auto_reply_*) also needs messages:create: auto-replies are messages sent to customers in your name.
+
+```php
+$result = $sendseven->users()->putMyAvailability();
+```
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$timezone` | `?string` | no |  |
+| `$workScheduleEnabled` | `?bool` | no |  |
+| `$workSchedule` | `array<string, mixed>\|null` | no |  |
+| `$autoReplyAbsenceEnabled` | `?bool` | no |  |
+| `$autoReplyAbsenceText` | `?string` | no | Auto-reply text. Variables: {{agent.name}}, {{agent.first_name}}, {{agent.substitute_name}}, {{agent.return_date}}, {{agent.next_shift}} and the standard contact variables ({{contact.first_name}}, {{contact.custom.<key>}}, ...). Unresolved variables render empty. |
+| `$autoReplyAbsenceTranslations` | `array<string, mixed>\|null` | no |  |
+| `$autoReplyOffHoursEnabled` | `?bool` | no |  |
+| `$autoReplyOffHoursText` | `?string` | no | Auto-reply text. Variables: {{agent.name}}, {{agent.first_name}}, {{agent.substitute_name}}, {{agent.return_date}}, {{agent.next_shift}} and the standard contact variables ({{contact.first_name}}, {{contact.custom.<key>}}, ...). Unresolved variables render empty. |
+| `$autoReplyOffHoursTranslations` | `array<string, mixed>\|null` | no |  |
+| `$autoReplyExcludedChannelTypes` | `list<string>\|null` | no |  |
+| `$defaultSubstitute` | `array<string, mixed>\|null` | no |  |
+
+Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/put_my_availability_api_v1_users_me_availability_put)
 
 ## deleteAvatar
 
@@ -165,7 +355,7 @@ Update Current User Profile. `PATCH /users/me/profile`
 
 Update current user's profile.
 
-Updatable fields: - display_name: User-editable name (takes precedence over Auth0 name in UI) - chat_nickname: Display name in chat - live_chat_available: Availability for live chat assignment - personal_phone: Personal phone for receiving SMS/WhatsApp notifications (user-global) - preferred_language: UI language code (en, de, fr, es, pt, it, ru, hr, tr, ar) - auto_translate_enabled: Enable automatic translation of incoming messages (user-global) - shoutbox_hidden: Hide/deactivate the team-chat Shoutbox widget across all devices (user-global) - spoken_languages: Comma-separated ISO 639-1 codes the user speaks, e.g. "de,en" (user-global; empty string clears) - phone: Agent's phone number for email signatures (per-tenant, requires X-Tenant-ID header) - title: Agent's job title for email signatures (per-tenant, requires X-Tenant-ID header)
+Updatable fields: - display_name: User-editable name (takes precedence over Auth0 name in UI) - chat_nickname: Display name in chat - live_chat_available: Availability for live chat assignment - personal_phone: Personal phone for receiving SMS/WhatsApp notifications (user-global) - preferred_language: UI language code (en, de, fr, es, pt, it, ru, hr, tr, pl, ar) - auto_translate_enabled: Auto-activate translation of the user's OUTGOING replies (user-global). Incoming messages are never translated automatically - shoutbox_hidden: Hide/deactivate the team-chat Shoutbox widget across all devices (user-global) - spoken_languages: Comma-separated ISO 639-1 codes the user speaks, e.g. "de,en" (user-global; empty string clears) - phone: Agent's phone number for email signatures (per-tenant, requires X-Tenant-ID header) - title: Agent's job title for email signatures (per-tenant, requires X-Tenant-ID header)
 
 ```php
 $result = $sendseven->users()->updateCurrentProfile();
@@ -179,7 +369,7 @@ $result = $sendseven->users()->updateCurrentProfile();
 | `$personalPhone` | `?string` | no | Personal phone for receiving notifications (user-global) |
 | `$preferredLanguage` | `?string` | no | Preferred UI language code (e.g., en, de, fr) |
 | `$preferredTranslationLanguage` | `?string` | no | Preferred language for chat translations (e.g., en, de, fr, es) |
-| `$autoTranslateEnabled` | `?bool` | no | Enable automatic translation of incoming messages (user-global). Omit or null to leave unchanged. |
+| `$autoTranslateEnabled` | `?bool` | no | Auto-activate translation of the user's OUTGOING replies (user-global); incoming messages are never translated automatically. Omit or null to leave unchanged. |
 | `$shoutboxHidden` | `?bool` | no | Hide/deactivate the team-chat Shoutbox widget across all devices (user-global). Omit or null to leave unchanged. |
 | `$spokenLanguages` | `?string` | no | Comma-separated ISO 639-1 codes the user speaks (e.g., 'de,en'). Empty string clears the value; omit or null to leave unchanged. |
 | `$phone` | `?string` | no | Agent's phone number for email signatures (per-tenant) |
@@ -211,7 +401,7 @@ Remove User From Tenant. `DELETE /users/{user_id}`
 
 Remove user from tenant.
 
-Only OWNER and ADMIN roles can remove users. Only OWNER can remove another OWNER. Users cannot remove themselves.
+Only OWNER and ADMIN roles can remove users. Only OWNER can remove another OWNER. Users cannot remove themselves. The last permanent OWNER cannot be removed (403); temporary Support Login owners do not count as another owner.
 
 ```php
 $sendseven->users()->removeFromTenant(userId: 'user_id');
@@ -222,6 +412,7 @@ $sendseven->users()->removeFromTenant(userId: 'user_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$userId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/remove_user_from_tenant_api_v1_users__user_id__delete)
 
@@ -269,6 +460,118 @@ $result = $sendseven->users()->update(userId: 'user_id');
 
 Returns `User`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_user_api_v1_users__user_id__put)
 
+## listMemberAbsences
+
+List Member Absences. `GET /users/{user_id}/absences`
+
+A team member's out-of-office periods. The internal note is only returned to callers with team:update.
+
+```php
+$sendseven->users()->listMemberAbsences(userId: 'user_id');
+```
+
+- Scopes: `team:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$includePast` | `?bool` | no |  |
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/list_member_absences_api_v1_users__user_id__absences_get)
+
+## createMemberAbsence
+
+Create Member Absence. `POST /users/{user_id}/absences`
+
+Put a team member out of office (e.g. sick leave), with an optional substitute. Only an Owner can do this for another Owner.
+
+```php
+$result = $sendseven->users()->createMemberAbsence(userId: 'user_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$substituteMode` | `?string` | no |  |
+| `$substituteUserId` | `?string` | no |  |
+| `$substituteInboxId` | `?string` | no |  |
+| `$substituteTagId` | `?string` | no |  |
+| `$startsAt` | `DateTimeInterface\|string\|null` | no | Default: now |
+| `$endsAt` | `DateTimeInterface\|string\|null` | no | null = until switched off |
+| `$note` | `?string` | no | Internal reason, never sent to customers |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/create_member_absence_api_v1_users__user_id__absences_post)
+
+## endMemberAbsencesNow
+
+End Member Absences Now. `POST /users/{user_id}/absences/end-now`
+
+End a team member's running out-of-office now.
+
+```php
+$result = $sendseven->users()->endMemberAbsencesNow(userId: 'user_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `EndAbsences`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/end_member_absences_now_api_v1_users__user_id__absences_end_now_post)
+
+## deleteMemberAbsence
+
+Delete Member Absence. `DELETE /users/{user_id}/absences/{absence_id}`
+
+Cancel (upcoming) or end (running) a team member's out-of-office period.
+
+```php
+$sendseven->users()->deleteMemberAbsence(userId: 'user_id', absenceId: 'absence_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$absenceId` | `string` | yes |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/delete_member_absence_api_v1_users__user_id__absences__absence_id__delete)
+
+## updateMemberAbsence
+
+Update Member Absence. `PATCH /users/{user_id}/absences/{absence_id}`
+
+Change a team member's out-of-office period.
+
+```php
+$result = $sendseven->users()->updateMemberAbsence(userId: 'user_id', absenceId: 'absence_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$absenceId` | `string` | yes |  |
+| `$startsAt` | `DateTimeInterface\|string\|null` | no |  |
+| `$endsAt` | `DateTimeInterface\|string\|null` | no |  |
+| `$substituteMode` | `?string` | no |  |
+| `$substituteUserId` | `?string` | no |  |
+| `$substituteInboxId` | `?string` | no |  |
+| `$substituteTagId` | `?string` | no |  |
+| `$note` | `?string` | no |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_member_absence_api_v1_users__user_id__absences__absence_id__patch)
+
 ## setAccountBillingAccess
 
 Set Account Billing Access. `PUT /users/{user_id}/account-billing-access`
@@ -289,6 +592,93 @@ $result = $sendseven->users()->setAccountBillingAccess(userId: 'user_id', enable
 | `$enabled` | `bool` | yes | True grants the member a direct account:billing_read scope; False revokes it |
 
 Returns `AccountBillingAccess`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/set_account_billing_access_api_v1_users__user_id__account_billing_access_put)
+
+## getMemberAvailability
+
+Get Member Availability. `GET /users/{user_id}/availability`
+
+A team member's work hours, auto-replies and availability state. The running absence's internal note is only returned to callers with team:update.
+
+```php
+$result = $sendseven->users()->getMemberAvailability(userId: 'user_id');
+```
+
+- Scopes: `team:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+
+Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/get_member_availability_api_v1_users__user_id__availability_get)
+
+## putMemberAvailability
+
+Put Member Availability. `PUT /users/{user_id}/availability`
+
+Update a team member's work hours and auto-replies (admin). Only an Owner can change another Owner's.
+
+```php
+$result = $sendseven->users()->putMemberAvailability(userId: 'user_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$timezone` | `?string` | no |  |
+| `$workScheduleEnabled` | `?bool` | no |  |
+| `$workSchedule` | `array<string, mixed>\|null` | no |  |
+| `$autoReplyAbsenceEnabled` | `?bool` | no |  |
+| `$autoReplyAbsenceText` | `?string` | no | Auto-reply text. Variables: {{agent.name}}, {{agent.first_name}}, {{agent.substitute_name}}, {{agent.return_date}}, {{agent.next_shift}} and the standard contact variables ({{contact.first_name}}, {{contact.custom.<key>}}, ...). Unresolved variables render empty. |
+| `$autoReplyAbsenceTranslations` | `array<string, mixed>\|null` | no |  |
+| `$autoReplyOffHoursEnabled` | `?bool` | no |  |
+| `$autoReplyOffHoursText` | `?string` | no | Auto-reply text. Variables: {{agent.name}}, {{agent.first_name}}, {{agent.substitute_name}}, {{agent.return_date}}, {{agent.next_shift}} and the standard contact variables ({{contact.first_name}}, {{contact.custom.<key>}}, ...). Unresolved variables render empty. |
+| `$autoReplyOffHoursTranslations` | `array<string, mixed>\|null` | no |  |
+| `$autoReplyExcludedChannelTypes` | `list<string>\|null` | no |  |
+| `$defaultSubstitute` | `array<string, mixed>\|null` | no |  |
+
+Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/put_member_availability_api_v1_users__user_id__availability_put)
+
+## updateTeamMembership
+
+Update Team Membership. `PATCH /users/{user_id}/membership`
+
+Update a team member's per-workspace settings.
+
+Currently one setting: ai_suggestions_enabled ("Can use AI suggestions in Conversations"). When false, the member cannot use AI drafting, AI suggestions, AI instructions or manual summaries in Conversations in this workspace. Translation stays available. Default is true for every member.
+
+```php
+$result = $sendseven->users()->updateTeamMembership(userId: 'user_id');
+```
+
+- Scopes: `team:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+| `$aiSuggestionsEnabled` | `?bool` | no | Allow (true) or block (false) this member from using AI suggestions in Conversations in this workspace |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `TeamMembership`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_team_membership_api_v1_users__user_id__membership_patch)
+
+## getRemovalImpact
+
+Get Removal Impact. `GET /users/{user_id}/removal-impact`
+
+What removing this member affects: owned contacts, open conversations assigned to them, colleagues whose out-of-office names them as substitute, and flows that reference them.
+
+```php
+$result = $sendseven->users()->getRemovalImpact(userId: 'user_id');
+```
+
+- Scopes: `team:delete`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$userId` | `string` | yes |  |
+
+Returns `RemovalImpact`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/get_removal_impact_api_v1_users__user_id__removal_impact_get)
 
 ## updateRole
 

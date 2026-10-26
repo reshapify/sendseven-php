@@ -27,7 +27,7 @@ final readonly class EmailConnection extends Data
      * @param  string  $tenantId  Tenant ID
      * @param  string  $name  User-friendly name
      * @param  SourceType|string  $sourceType  Which table this connection came from (provider or integration)
-     * @param  ConnectionType|string  $connectionType  Type of connection (sendgrid, mailgun, gmail, smtp_imap, ses_managed, proxy)
+     * @param  ConnectionType|string  $connectionType  Type of connection (sendgrid, mailgun, gmail, smtp_imap, proxy; legacy ses_managed rows are listed as disconnected)
      * @param  bool  $isActive  Whether the connection is active
      * @param  string  $connectionStatus  Connection status (connected, disconnected, error, pending_verification, pending_dns)
      * @param  bool  $canSendCampaigns  Whether this connection can send bulk email campaigns

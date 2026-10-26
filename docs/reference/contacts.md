@@ -2,7 +2,7 @@
 
 # Contacts
 
-`$sendseven->contacts()` — 31 endpoints.
+`$sendseven->contacts()` — 32 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -35,6 +35,7 @@
 | [`createMethod()`](#createmethod) | `POST /contacts/{contact_id}/methods` | Create Contact Method |
 | [`deleteMethod()`](#deletemethod) | `DELETE /contacts/{contact_id}/methods/{method_id}` | Delete Contact Method |
 | [`updateMethod()`](#updatemethod) | `PUT /contacts/{contact_id}/methods/{method_id}` | Update Contact Method |
+| [`updateMethodVerification()`](#updatemethodverification) | `PATCH /contacts/{contact_id}/methods/{method_id}/verification` | Update Contact Method Verification |
 | [`unblock()`](#unblock) | `POST /contacts/{contact_id}/unblock` | Unblock Contact |
 | [`listConversationMergeSuggestions()`](#listconversationmergesuggestions) | `GET /conversations/{conversation_id}/contact-merge-suggestions` | List Conversation Contact Merge Suggestions |
 
@@ -111,6 +112,9 @@ $result = $sendseven->contacts()->list();
 | `$listSubscriptionStatus` | `?string` | no | Subscription status to match for list_id. Defaults to 'subscribed'. 'any' = a subscription row in ANY status; 'not_subscribed' = NOT currently subscribed (includes contacts with no row at all). Requires list_id (422). |
 | `$listSubscriptionChannel` | `SubscriptionChannelType\|string\|null` | no | Optionally narrow the list filter to one subscription channel (subscription rows are per channel). Requires list_id (422). |
 | `$tagId` | `list<string>\|null` | no | tags.id — filter to contacts carrying that tag. Repeatable (?tag_id=a&tag_id=b) to match contacts carrying ANY of the given tags (OR). Filters by tag id, NOT tag name; this is distinct from search (which never matches tags). Each id must belong to the tenant (422 if not). Combinable with search and the other filters (all AND-ed). |
+| `$isBlocked` | `?bool` | no | Blocked-state filter: true = only blocked contacts, false = only unblocked contacts, omitted = all. Uses the contact's blocked flag. Combinable with every other filter. |
+| `$ownerUserId` | `?string` | no | Contact-owner filter: a team member's user id, me (contacts you own) or none (contacts without an owner). |
+| `$include` | `?string` | no | Comma-separated optional extras to embed in each item: subscriptions (active list subscriptions), conversation_stats (conversation_count + last_conversation_at). Unknown tokens return 422. |
 
 Returns `Page<Contact>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/list_contacts_api_v1_contacts_get)
 
@@ -137,8 +141,9 @@ $result = $sendseven->contacts()->create();
 | `$email` | `?string` | no | Email address |
 | `$languages` | `?string` | no | Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr'). Auto-inferred from phone country if omitted. |
 | `$birthday` | `?string` | no | Contact's date of birth (ISO 8601 YYYY-MM-DD) |
+| `$ownerUserId` | `?string` | no | Contact owner (team member user id). Must be an active member of this workspace (422 invalid_contact_owner otherwise). When an auto_merge match returns an existing contact, the owner is only set if that contact has none and the caller holds contacts:update. |
 | `$contactMethods` | `list<array<string, mixed>>\|null` | no | Contact methods to create alongside the contact |
-| `$duplicateMode` | `DuplicateMode\|string\|null` | no | Optional per-request override for duplicate-contact handling. If omitted, the tenant's duplicate_contact_mode setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates. |
+| `$duplicateMode` | `DuplicateMode\|string\|null` | no | Optional per-request override for duplicate-contact handling. If omitted, the tenant's duplicate_contact_mode setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates. allow_duplicates cannot loosen a workspace set to dont_allow_duplicates: it is then ignored and a collision returns 409 with override_ignored=true. |
 | `$customFields` | `array<string, mixed>\|null` | no | Custom field values keyed by custom field definition ID (preferred, stable across renames) or by the field key. Each value is validated and coerced to the field's type (see GET /custom-fields). On create, null / "" / [] entries are ignored. In auto_merge mode the given values overwrite the matched contact's values. Unknown or inactive fields are rejected with 422 unknown_field and nothing is written. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
@@ -213,6 +218,8 @@ $result = $sendseven->contacts()->export();
 | `$listId` | `?string` | no | lists.id — filter by list subscription (same as GET /contacts). |
 | `$listSubscriptionStatus` | `?string` | no | Subscription status for list_id, default 'subscribed' (same semantics as GET /contacts). Requires list_id. |
 | `$listSubscriptionChannel` | `SubscriptionChannelType\|string\|null` | no | Narrow the list filter to one subscription channel (same as GET /contacts). Requires list_id. |
+| `$isBlocked` | `?bool` | no | true = only blocked contacts, false = only unblocked (same as GET /contacts). |
+| `$ownerUserId` | `?string` | no | Contact-owner filter: a team member's user id, me (contacts you own) or none (contacts without an owner). |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ContactExportStart`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/export_contacts_api_v1_contacts_export_post)
@@ -323,6 +330,7 @@ $result = $sendseven->contacts()->partialUpdate(contactId: 'contact_id');
 | `$avatarUrl` | `?string` | no |  |
 | `$languages` | `?string` | no | Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr'). |
 | `$birthday` | `?string` | no | Contact's date of birth (ISO 8601 YYYY-MM-DD) |
+| `$ownerUserId` | `?string` | no | Contact owner (team member user id). null clears the owner. The owner must be an active member of this workspace; setting it also assigns the contact's open unassigned conversations to them. |
 | `$customFields` | `array<string, mixed>\|null` | no | Custom field values to MERGE, keyed by custom field definition ID (preferred) or field key. Only the given fields are touched; null / "" / [] clears that field. Omitting custom_fields (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
@@ -353,6 +361,7 @@ $result = $sendseven->contacts()->update(contactId: 'contact_id');
 | `$avatarUrl` | `?string` | no |  |
 | `$languages` | `?string` | no | Comma-separated ISO 639-1 language codes (e.g. 'en,de,fr'). |
 | `$birthday` | `?string` | no | Contact's date of birth (ISO 8601 YYYY-MM-DD) |
+| `$ownerUserId` | `?string` | no | Contact owner (team member user id). null clears the owner. The owner must be an active member of this workspace; setting it also assigns the contact's open unassigned conversations to them. |
 | `$customFields` | `array<string, mixed>\|null` | no | Custom field values to MERGE, keyed by custom field definition ID (preferred) or field key. Only the given fields are touched; null / "" / [] clears that field. Omitting custom_fields (or sending null for the whole map) changes nothing. Validated per field_type; any invalid entry rejects the whole request with 422 and nothing is written. |
 
 Returns `Contact`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/update_contact_api_v1_contacts__contact_id__put)
@@ -448,7 +457,7 @@ Block Contact. `POST /contacts/{contact_id}/block`
 
 Block a contact across all channels.
 
-Blocked contacts will have their inbound messages silently dropped and will not trigger bot responses. If the contact has an email address, it is also added to the email sender blacklist.
+Blocks the contact and its identifiers. Incoming messages from any of the contact's phone numbers, email addresses and channel ids are dropped (and counted in blocked_inbound_count) and outgoing sends are refused with 409 CONTACT_BLOCKED while the contact is blocked. Verified and channel-native identifiers (the channel account the contact messaged from, verified email addresses) stay blocked even if the contact is deleted and later re-created; unverified, manually entered details are covered only while the contact exists and is blocked. Idempotent.
 
 ```php
 $sendseven->contacts()->block(contactId: 'contact_id');
@@ -480,7 +489,7 @@ $result = $sendseven->contacts()->listHistory(contactId: 'contact_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$contactId` | `string` | yes |  |
-| `$types` | `list<string>\|null` | no | Filter by event_type. Repeatable. Allowed values: conversation, flow_run, flow_message, message, scheduler, ticket_summary. Omit to include all known types (current FE behavior). Use message for the flat all-messages stream that powers the Messages view mode; use scheduler for pending/fired scheduled sends; use ticket_summary for the contact's AI conversation summaries (editable KB documents). |
+| `$types` | `list<string>\|null` | no | Filter by event_type. Repeatable. Allowed values: conversation, flow_run, flow_message, message, scheduler, ticket_summary, conversation_deleted. Omit to include all known types (current FE behavior). Use message for the flat all-messages stream that powers the Messages view mode; use scheduler for pending/fired scheduled sends; use ticket_summary for the contact's AI conversation summaries (editable KB documents); conversation_deleted lists the contact's permanently deleted conversations with who deleted them and when. |
 | `$dateFrom` | `?string` | no | ISO8601 lower bound on each source's sort column. |
 | `$dateTo` | `?string` | no | ISO8601 upper bound on each source's sort column. |
 | `$q` | `?string` | no | Substring filter (LIKE %q%). Ignored when shorter than 2 chars. Matches conversation.subject + last message text, flow.name, and message.text depending on the event_type. |
@@ -665,7 +674,8 @@ $result = $sendseven->contacts()->createMethod(contactId: 'contact_id', methodTy
 | `$displayName` | `?string` | no | Display name like @username or custom label for social_other |
 | `$phoneType` | `?string` | no | Phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown. Auto-inferred from value if omitted. |
 | `$isPrimary` | `?bool` | no | Set as primary for this method type |
-| `$duplicateMode` | `DuplicateMode\|string\|null` | no | Optional per-request override for duplicate-contact handling. If omitted, the tenant's duplicate_contact_mode setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates. |
+| `$verified` | `?bool` | no | Mark this identifier as verified (you have confirmed the contact controls it). Recorded with verified_source='api'. Channel-native platform IDs (telegram_id, messenger_id, instagram_id, whatsapp_bsuid) are always verified. |
+| `$duplicateMode` | `DuplicateMode\|string\|null` | no | Optional per-request override for duplicate-contact handling. If omitted, the tenant's duplicate_contact_mode setting applies. Values: auto_merge, allow_duplicates, dont_allow_duplicates. allow_duplicates cannot loosen a workspace set to dont_allow_duplicates: it is then ignored and a collision returns 409 with override_ignored=true. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ContactMethod`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/create_contact_method_api_v1_contacts__contact_id__methods_post)
@@ -695,7 +705,9 @@ Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Con
 
 Update Contact Method. `PUT /contacts/{contact_id}/methods/{method_id}`
 
-Update a contact method (value, display_name, is_primary).
+Update a contact method (value, display_name, is_primary, verified).
+
+verified: true marks the identifier as verified (verified_source api), false clears it; omit it to keep the current state. Changing value without verified: true resets the method to unverified (a new value is a new claim). Changing verified is not allowed for OAuth apps (403 verification_not_allowed).
 
 ```php
 $result = $sendseven->contacts()->updateMethod(contactId: 'contact_id', methodId: 'method_id');
@@ -712,8 +724,32 @@ $result = $sendseven->contacts()->updateMethod(contactId: 'contact_id', methodId
 | `$displayName` | `?string` | no |  |
 | `$phoneType` | `?string` | no | Override phone line type (only meaningful when method_type=phone). One of: mobile, fixed_line, fixed_line_or_mobile, voip, unknown. |
 | `$isPrimary` | `?bool` | no |  |
+| `$verified` | `?bool` | no | true marks the identifier as verified (verified_source='api'); false clears it. Omit to keep it unchanged. Changing value without sending verified=true resets the method to unverified. |
 
 Returns `ContactMethod`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/update_contact_method_api_v1_contacts__contact_id__methods__method_id__put)
+
+## updateMethodVerification
+
+Update Contact Method Verification. `PATCH /contacts/{contact_id}/methods/{method_id}/verification`
+
+Mark a contact method as verified or unverified.
+
+Verified identifiers are trusted by AI agents and by automatic duplicate handling; unverified ones are treated as claims. Sets verified_source to manual and records who changed it. Marking a method verified also confirms any pending "typed by a live chat visitor" record for that identifier. Unmarking keeps that history.
+
+```php
+$result = $sendseven->contacts()->updateMethodVerification(contactId: 'contact_id', methodId: 'method_id', verified: true);
+```
+
+- Scopes: `contacts:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$contactId` | `string` | yes |  |
+| `$methodId` | `string` | yes |  |
+| `$verified` | `bool` | yes | true marks the identifier as verified, false marks it unverified. |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ContactMethod`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/update_contact_method_verification_api_v1_contacts__contact_id__methods__method_id__verification_patch)
 
 ## unblock
 
@@ -721,7 +757,7 @@ Unblock Contact. `POST /contacts/{contact_id}/unblock`
 
 Unblock a contact across all channels.
 
-Removes the contact block and also removes the email sender blacklist entry if the contact has an email address.
+Clears the contact block and removes the blocks on all of its identifiers (every channel), including its email addresses on the email sender block list. Idempotent.
 
 ```php
 $sendseven->contacts()->unblock(contactId: 'contact_id');
