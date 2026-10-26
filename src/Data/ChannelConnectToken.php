@@ -39,6 +39,7 @@ final readonly class ChannelConnectToken extends Data
      * @param  string  $createdAt  When token was created
      * @param  ?string  $revokedAt  When token was revoked
      * @param  ?string  $createdByUserId  User who created the token
+     * @param  ?string  $partnerRedirectMode  `button` or `auto_after_first`. Null when no partner_redirect_url is set; legacy links with a URL but no stored mode report `button`.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -62,6 +63,7 @@ final readonly class ChannelConnectToken extends Data
         public string $createdAt,
         public ?string $revokedAt,
         public ?string $createdByUserId,
+        public ?string $partnerRedirectMode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -95,6 +97,7 @@ final readonly class ChannelConnectToken extends Data
             createdAt: $attributes->string('created_at'),
             revokedAt: $attributes->nullableString('revoked_at'),
             createdByUserId: $attributes->nullableString('created_by_user_id'),
+            partnerRedirectMode: $attributes->nullableString('partner_redirect_mode'),
             raw: $data,
         );
     }

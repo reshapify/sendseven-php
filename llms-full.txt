@@ -36,6 +36,17 @@ $message = $sendseven->messages()->send(
 echo $message->id;
 ```
 
+`send()` returns the message even when SendSeven reports it `failed` (e.g. outside WhatsApp's 24-hour window). `sendText()` throws `MessageFailed` instead. For WhatsApp buttons and lists, `sendButtons()` and `sendList()` trim everything to WhatsApp's limits and, if SendSeven refuses them, send the options as a numbered text the customer can answer:
+
+```php
+$contact = $sendseven->contacts()->findOrCreateByPhone('+18765550123');
+
+$sendseven->messages()->sendButtons('ch_whatsapp', $contact->id, 'Is the shelf stocked?', [
+    'yes' => 'Yes',
+    'no' => 'No',
+]);
+```
+
 Every area of the API is a method on the client: `contacts()`, `channels()`, `whatsAppTemplates()`, `conversations()`, `campaigns()`, `webhooks()` and [65 more](docs/reference/README.md). Arguments are named and typed; optional ones are left out of the request.
 
 ## Lists
@@ -259,7 +270,10 @@ Where SendSeven's live behaviour differs from its OpenAPI spec or its prose docs
 | Webhook signature | `sha256=HMAC(secret, "{X-SendSeven-Timestamp}.{raw body}")` in `X-SendSeven-Signature`. Not a body-only HMAC, and not `X-Webhook-Signature` (sendseven.com's own guide uses that name) | `WebhookVerifier` | Live deliveries, Sep 2026; docs.sendseven.com |
 | Inbound message fields | The sender is `message.from_id` and the type `message.message_type`; files are in `message.attachments[]` (`signed_url`, `url`, `content_type`) | `Webhooks\Data\Message` | Live capture (`tests/Fixtures/webhooks/live-contract.json`) |
 | Failure reasons | Under `message.meta.error` and `message.meta.error_code`, not top-level fields | `Message::errorCode()`, `errorMessage()` | docs.sendseven.com, Oct 2026 |
-| Button replies | Arrive as `meta.button`, a `button_reply` attachment, or `interactive.list_reply` | `Message::buttonReply()` | TradeOps payloads, Sep 2026 |
+| Button replies | Arrive as `interactive.*_reply`, `meta.interactive.*_reply`, `meta.button` (`payload` for template quick replies, else `id`), or a `button_reply`/`list_reply` attachment (`button_id`, `row_id`, `payload` or `id`) | `Message::buttonReply()` | TradeOps and promo-next payloads, Sep–Oct 2026 |
+| Image attachments | Usually typed `image`, but sometimes `photo`, or untyped on an `image` message | `Message::images()` | TradeOps payloads, Oct 2026 |
+| Summarised text | For reactions, stickers, locations and shared contacts, `text` is SendSeven's summary, not customer input | `Message::typedText()` | TradeOps payloads, Oct 2026 |
+| Failed sends | `POST /messages` and `/messages/send/interactive` can answer 2xx with `status: failed` | `sendText()`, `sendButtons()`, `sendList()` throw `MessageFailed` | TradeOps, Sep 2026 |
 | `contact.subscribed` and `contact.unsubscribed` | List (newsletter) subscriptions, not browser push. No field-level payload is documented | Parsed as `UnknownEvent` | docs.sendseven.com, Oct 2026 |
 | `POST /whatsapp-templates/translate` | Exists, but missing from the spec. Requires `body_text` and `target_language` | `openapi/patches/undocumented-endpoints.json` | Live 422, 1 Oct 2026 |
 | `POST /messages/proxy` | Exists, but missing from the spec. Passes a request to the channel's platform API (e.g. WhatsApp read receipts) | Patch; `messages()->markWhatsAppMessageAsRead()` | Live 422, 1 Oct 2026 |
@@ -719,9 +733,10 @@ Every event has `id` (unique per event: use it to ignore redeliveries), `eventId
 
 - `message->fromId` is the sender: a phone number on WhatsApp, SMS and RCS, or the channel's ID for the person on Telegram, Messenger and Instagram.
 - `message->type` is SendSeven's `message_type`: `text`, `image`, `video`, `audio`, `document`, `sticker`, `location`, `contact`, `interactive`, `button`, `reaction`…
-- `message->text` is the text, or a media caption (`""` when there is none).
-- `message->attachment()` gives the first file. Use `downloadUrl()`: the signed URL needs no token but expires 24 hours after the event; `url` needs the API token and never expires.
-- `message->buttonReply()` gives the button or list row tapped. SendSeven reports it in three ways (`meta.button`, a `button_reply` attachment, or `interactive.list_reply`), and this checks all three.
+- `message->text` is the text, or a media caption (`""` when there is none). For `reaction`, `sticker`, `location` and `contact` messages SendSeven writes its own summary there; `message->typedText()` gives only what the customer typed (or captioned), and null otherwise.
+- `message->attachment()` gives the first file and `message->images()` every image (including attachments typed `photo`, and untyped ones on an image message). Use `downloadUrl()`: the signed URL needs no token but expires 24 hours after the event; `url` needs the API token and never expires.
+- `message->location()` gives a shared location: `latitude`, `longitude`, `name` and `address`.
+- `message->buttonReply()` gives the button or list row tapped. SendSeven reports it in several ways (`interactive.button_reply` or `list_reply`, the same under `meta.interactive`, `meta.button` with a template quick reply's `payload` or an `id`, or a `button_reply` or `list_reply` attachment), and this checks them all.
 - `message->errorCode()` and `errorMessage()` explain a failure: Meta's codes such as `131047` (outside the 24-hour window), or SendSeven's such as `rcs_not_reachable`.
 - `message->contactInfo()` holds sender details SendSeven sometimes adds: name, phone, WhatsApp username and business-scoped ID.
 
@@ -3660,6 +3675,7 @@ $result = $sendseven->channelConnect()->createToken(allowedChannelTypes: []);
 | `$allowedChannelModes` | `array<string, mixed>\|null` | no | Optional per-channel connect-mode restrictions. Shape: {"instagram": ["messaging","social"], "messenger": ["business_messaging","business_social","personal_social"], "whatsapp": ["classic","coexistence"]}. An ABSENT channel key (or a null value) means ALL modes are allowed for that channel (backwards compatible). A channel key MUST list at least one mode — to allow every mode, omit the key rather than passing []. Enforcement is the intersection of these modes with the tenant's feature gating, fail-closed. |
 | `$partnerName` | `?string` | no | Partner/client name to display on connect page |
 | `$partnerRedirectUrl` | `?string` | no | URL to redirect to after successful connection |
+| `$partnerRedirectMode` | `?string` | no | How the partner redirect is offered after a successful connection: button (default when a redirect URL is set) shows a 'Return to {partner}' button; auto_after_first redirects automatically after the first successful connection. Ignored (stored as null) when no partner_redirect_url is given. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ChannelConnectTokenCreated`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channel%20Connect/create_token_api_v1_channel_connect_tokens_post)

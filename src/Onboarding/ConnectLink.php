@@ -17,7 +17,7 @@ use Reshapify\SendSeven\Enums\ChannelType;
  *         ConnectLink::for(ChannelType::WhatsApp)
  *             ->modes(whatsapp: [WhatsAppMode::Classic])
  *             ->brandedAs('Acme')
- *             ->redirectTo('https://app.acme.test/channels/connected')
+ *             ->redirectTo('https://app.acme.test/channels/connected', RedirectMode::AutoAfterFirst)
  *             ->singleUse()
  *             ->expiresIn(hours: 48),
  *     );
@@ -46,6 +46,7 @@ final readonly class ConnectLink
         public ?int $maxUses = null,
         public ?int $expiresInHours = null,
         public ?int $useWindowMinutes = null,
+        public ?RedirectMode $redirectMode = null,
     ) {}
 
     /**
@@ -94,7 +95,7 @@ final readonly class ConnectLink
             $modes[$channel] = array_map(static fn (WhatsAppMode|InstagramMode|MessengerMode $mode): string => $mode->value, $chosen);
         }
 
-        return new self($this->channelTypes, $modes, $this->name, $this->partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes);
+        return new self($this->channelTypes, $modes, $this->name, $this->partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes, $this->redirectMode);
     }
 
     /**
@@ -102,15 +103,21 @@ final readonly class ConnectLink
      */
     public function brandedAs(string $partnerName): self
     {
-        return new self($this->channelTypes, $this->modes, $this->name, $partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes);
+        return new self($this->channelTypes, $this->modes, $this->name, $partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes, $this->redirectMode);
     }
 
     /**
-     * Where the customer goes after connecting.
+     * Where the customer goes after connecting. By default SendSeven shows a
+     * button back to you after each connection; RedirectMode::AutoAfterFirst
+     * sends them back by itself after the first one.
+     *
+     * SendSeven adds status (success, error or cancelled), channel_type,
+     * channel_id and connect_token_id to the URL. They aren't signed: check
+     * the channel through the API or the channel.created webhook.
      */
-    public function redirectTo(string $url): self
+    public function redirectTo(string $url, ?RedirectMode $mode = null): self
     {
-        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $url, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes);
+        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $url, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes, $mode);
     }
 
     /**
@@ -118,7 +125,7 @@ final readonly class ConnectLink
      */
     public function named(string $name): self
     {
-        return new self($this->channelTypes, $this->modes, $name, $this->partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes);
+        return new self($this->channelTypes, $this->modes, $name, $this->partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $this->useWindowMinutes, $this->redirectMode);
     }
 
     /**
@@ -135,7 +142,7 @@ final readonly class ConnectLink
             throw new InvalidArgumentException('A connect link allows 1 to 100 connections.');
         }
 
-        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $this->redirectUrl, $uses, $this->expiresInHours, $this->useWindowMinutes);
+        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $this->redirectUrl, $uses, $this->expiresInHours, $this->useWindowMinutes, $this->redirectMode);
     }
 
     public function expiresIn(int $hours): self
@@ -144,7 +151,7 @@ final readonly class ConnectLink
             throw new InvalidArgumentException('A connect link lasts 1 to 168 hours (a week).');
         }
 
-        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $this->redirectUrl, $this->maxUses, $hours, $this->useWindowMinutes);
+        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $this->redirectUrl, $this->maxUses, $hours, $this->useWindowMinutes, $this->redirectMode);
     }
 
     /**
@@ -156,6 +163,6 @@ final readonly class ConnectLink
             throw new InvalidArgumentException('The window after first use is 5 to 1440 minutes.');
         }
 
-        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $minutes);
+        return new self($this->channelTypes, $this->modes, $this->name, $this->partnerName, $this->redirectUrl, $this->maxUses, $this->expiresInHours, $minutes, $this->redirectMode);
     }
 }
