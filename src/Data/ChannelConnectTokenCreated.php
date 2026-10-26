@@ -42,6 +42,7 @@ final readonly class ChannelConnectTokenCreated extends Data
      * @param  ?string  $createdByUserId  User who created the token
      * @param  string  $token  Raw token (shown only once!) - format: s7_cc_xxxxx...
      * @param  ?string  $warning  Security warning
+     * @param  ?string  $partnerRedirectMode  `button` or `auto_after_first`. Null when no partner_redirect_url is set; legacy links with a URL but no stored mode report `button`.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -67,6 +68,7 @@ final readonly class ChannelConnectTokenCreated extends Data
         public ?string $createdByUserId,
         public string $token,
         public ?string $warning,
+        public ?string $partnerRedirectMode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -102,6 +104,7 @@ final readonly class ChannelConnectTokenCreated extends Data
             createdByUserId: $attributes->nullableString('created_by_user_id'),
             token: $attributes->string('token'),
             warning: $attributes->nullableString('warning'),
+            partnerRedirectMode: $attributes->nullableString('partner_redirect_mode'),
             raw: $data,
         );
     }

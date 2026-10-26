@@ -3660,6 +3660,7 @@ $result = $sendseven->channelConnect()->createToken(allowedChannelTypes: []);
 | `$allowedChannelModes` | `array<string, mixed>\|null` | no | Optional per-channel connect-mode restrictions. Shape: {"instagram": ["messaging","social"], "messenger": ["business_messaging","business_social","personal_social"], "whatsapp": ["classic","coexistence"]}. An ABSENT channel key (or a null value) means ALL modes are allowed for that channel (backwards compatible). A channel key MUST list at least one mode — to allow every mode, omit the key rather than passing []. Enforcement is the intersection of these modes with the tenant's feature gating, fail-closed. |
 | `$partnerName` | `?string` | no | Partner/client name to display on connect page |
 | `$partnerRedirectUrl` | `?string` | no | URL to redirect to after successful connection |
+| `$partnerRedirectMode` | `?string` | no | How the partner redirect is offered after a successful connection: button (default when a redirect URL is set) shows a 'Return to {partner}' button; auto_after_first redirects automatically after the first successful connection. Ignored (stored as null) when no partner_redirect_url is given. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ChannelConnectTokenCreated`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channel%20Connect/create_token_api_v1_channel_connect_tokens_post)

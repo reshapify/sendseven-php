@@ -6,6 +6,7 @@ use Reshapify\SendSeven\Enums\ChannelType;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Onboarding\ConnectLink;
 use Reshapify\SendSeven\Onboarding\InstagramMode;
+use Reshapify\SendSeven\Onboarding\RedirectMode;
 use Reshapify\SendSeven\Onboarding\WhatsAppMode;
 use Reshapify\SendSeven\SendSeven;
 
@@ -46,6 +47,32 @@ it('creates a branded, single-use WhatsApp link without Coexistence', function (
         'partner_name' => 'Renotify',
         'partner_redirect_url' => 'https://app.test/done',
     ]);
+});
+
+it('sends the customer back automatically after the first connection when asked', function (): void {
+    $fake = SendSeven::fake(['POST /channel-connect-tokens' => connectTokenResponse(['partner_redirect_mode' => 'auto_after_first'])]);
+
+    $link = $fake->client->connectLinks()->create(
+        ConnectLink::for(ChannelType::WhatsApp)
+            ->redirectTo('https://app.test/done', RedirectMode::AutoAfterFirst)
+            // Later steps keep the mode.
+            ->brandedAs('Renotify')
+            ->singleUse(),
+    );
+
+    expect($link->partnerRedirectMode)->toBe('auto_after_first');
+
+    $fake->assertSent('POST /channel-connect-tokens', fn (Request $request): bool => $request->body['partner_redirect_url'] === 'https://app.test/done'
+        && $request->body['partner_redirect_mode'] === 'auto_after_first');
+});
+
+it("leaves the redirect mode to SendSeven's default when none is chosen", function (): void {
+    $fake = SendSeven::fake(['POST /channel-connect-tokens' => connectTokenResponse()]);
+
+    $link = $fake->client->connectLinks()->create(ConnectLink::for(ChannelType::WhatsApp)->redirectTo('https://app.test/done'));
+
+    expect($link->partnerRedirectMode)->toBeNull();
+    $fake->assertSent('POST /channel-connect-tokens', fn (Request $request): bool => ! array_key_exists('partner_redirect_mode', $request->body));
 });
 
 it("creates the link in a customer's sub-account", function (): void {

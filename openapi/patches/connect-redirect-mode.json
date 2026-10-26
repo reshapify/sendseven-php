@@ -1,0 +1,33 @@
+{
+    "description": "partner_redirect_mode on connect links, added by SendSeven after the vendored spec. Copied from the live spec until it is vendored; remove this patch then.",
+    "x-source": "Live spec 20261026.1840 (https://api.sendseven.com/api/v1/openapi.json) and docs.sendseven.com/multi-tenancy/channel-connect-links (26 Oct 2026).",
+    "schemas": {
+        "ChannelConnectTokenCreate": {
+            "properties": {
+                "partner_redirect_mode": {
+                    "anyOf": [{"type": "string", "enum": ["button", "auto_after_first"]}, {"type": "null"}],
+                    "title": "Partner Redirect Mode",
+                    "description": "How the partner redirect is offered after a successful connection: `button` (default when a redirect URL is set) shows a 'Return to {partner}' button; `auto_after_first` redirects automatically after the first successful connection. Ignored (stored as null) when no partner_redirect_url is given."
+                }
+            }
+        },
+        "ChannelConnectTokenCreatedResponse": {
+            "properties": {
+                "partner_redirect_mode": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Partner Redirect Mode",
+                    "description": "`button` or `auto_after_first`. Null when no partner_redirect_url is set; legacy links with a URL but no stored mode report `button`."
+                }
+            }
+        },
+        "ChannelConnectTokenResponse": {
+            "properties": {
+                "partner_redirect_mode": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Partner Redirect Mode",
+                    "description": "`button` or `auto_after_first`. Null when no partner_redirect_url is set; legacy links with a URL but no stored mode report `button`."
+                }
+            }
+        }
+    }
+}

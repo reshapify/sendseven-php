@@ -29,6 +29,7 @@ trait ChannelConnectHelpers
             allowedChannelModes: $link->modes === [] ? null : $link->modes,
             partnerName: $link->partnerName,
             partnerRedirectUrl: $link->redirectUrl,
+            partnerRedirectMode: $link->redirectMode?->value,
             idempotencyKey: $idempotencyKey,
         );
     }

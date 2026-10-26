@@ -94,6 +94,7 @@ final readonly class ChannelConnect
      * @param  array<string, mixed>|null  $allowedChannelModes  Optional per-channel connect-mode restrictions. Shape: {"instagram": ["messaging","social"], "messenger": ["business_messaging","business_social","personal_social"], "whatsapp": ["classic","coexistence"]}. An ABSENT channel key (or a null value) means ALL modes are allowed for that channel (backwards compatible). A channel key MUST list at least one mode — to allow every mode, omit the key rather than passing []. Enforcement is the intersection of these modes with the tenant's feature gating, fail-closed.
      * @param  ?string  $partnerName  Partner/client name to display on connect page
      * @param  ?string  $partnerRedirectUrl  URL to redirect to after successful connection
+     * @param  ?string  $partnerRedirectMode  How the partner redirect is offered after a successful connection: `button` (default when a redirect URL is set) shows a 'Return to {partner}' button; `auto_after_first` redirects automatically after the first successful connection. Ignored (stored as null) when no partner_redirect_url is given.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -109,6 +110,7 @@ final readonly class ChannelConnect
         ?array $allowedChannelModes = null,
         ?string $partnerName = null,
         ?string $partnerRedirectUrl = null,
+        ?string $partnerRedirectMode = null,
         ?string $idempotencyKey = null,
     ): ChannelConnectTokenCreated {
         $response = $this->connector->send(new Request(
@@ -123,6 +125,7 @@ final readonly class ChannelConnect
                 'allowed_channel_modes' => $allowedChannelModes,
                 'partner_name' => $partnerName,
                 'partner_redirect_url' => $partnerRedirectUrl,
+                'partner_redirect_mode' => $partnerRedirectMode,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));

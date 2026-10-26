@@ -3,6 +3,10 @@
 All notable changes to `sendseven` will be documented in this file.
 
 
+## 0.1.3 - 2026-10-26
+
+- Connect links can send the customer back by themselves: `ConnectLink::redirectTo($url, RedirectMode::AutoAfterFirst)`, or `partnerRedirectMode` on `createToken()`. Without a mode SendSeven shows a "Continue" button, as before. Connect tokens report `partnerRedirectMode`.
+
 ## 0.1.2 - 2026-10-01
 
 - A successful response with no body (204, or an empty 200) reads as an empty object instead of throwing.

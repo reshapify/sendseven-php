@@ -4939,6 +4939,13 @@
                     "required": false
                 },
                 {
+                    "name": "partnerRedirectMode",
+                    "wire": "partner_redirect_mode",
+                    "in": "body",
+                    "type": "?string",
+                    "required": false
+                },
+                {
                     "name": "idempotencyKey",
                     "wire": "idempotency_key",
                     "in": "idempotency",
