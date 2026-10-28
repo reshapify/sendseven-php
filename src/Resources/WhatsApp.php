@@ -11,6 +11,7 @@ use Reshapify\SendSeven\Data\CoexistenceStatus;
 use Reshapify\SendSeven\Data\FetchFlows;
 use Reshapify\SendSeven\Data\FlowDetails;
 use Reshapify\SendSeven\Data\SendFlow;
+use Reshapify\SendSeven\Data\WhatsAppSendingLimit;
 use Reshapify\SendSeven\Data\WhatsAppWindowStatusResponse;
 use Reshapify\SendSeven\Enums\FlowMode;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -162,12 +163,14 @@ final readonly class WhatsApp
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/get_whatsapp_sending_limit_api_v1_whatsapp_channels__channel_id__sending_limit_get
      */
-    public function getSendingLimit(string $channelId): void
+    public function getSendingLimit(string $channelId): WhatsAppSendingLimit
     {
-        $this->connector->send(new Request(
+        $response = $this->connector->send(new Request(
             Method::Get,
             '/whatsapp/channels/'.Payload::segment($channelId).'/sending-limit',
         ));
+
+        return WhatsAppSendingLimit::fromArray($response->data());
     }
 
     /**

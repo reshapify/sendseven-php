@@ -3,6 +3,10 @@
 All notable changes to `sendseven` will be documented in this file.
 
 
+## 0.1.4 - 2026-10-28
+
+- `whatsApp()->getSendingLimit()` returns a `WhatsAppSendingLimit`: the number's quality rating, messaging tier, throughput and phone status, which SendSeven refreshes from Meta once a day. It returned nothing before.
+
 ## 0.1.3 - 2026-10-26
 
 - Connect links can send the customer back by themselves: `ConnectLink::redirectTo($url, RedirectMode::AutoAfterFirst)`, or `partnerRedirectMode` on `createToken()`. Without a mode SendSeven shows a "Continue" button, as before. Connect tokens report `partnerRedirectMode`.

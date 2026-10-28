@@ -1,0 +1,32 @@
+{
+    "description": "The response of a WhatsApp channel's sending limit, which the spec leaves untyped. Remove once SendSeven documents it.",
+    "x-source": "Live: GET /whatsapp/channels/{id}/sending-limit for a connected number (28 Oct 2026); Renotify shows numbers' quality ratings from it.",
+    "paths": {
+        "/api/v1/whatsapp/channels/{channel_id}/sending-limit": {
+            "get": {
+                "responses": {"200": {"content": {"application/json": {"schema": {"$ref": "#/components/schemas/WhatsAppSendingLimit"}}}}}
+            }
+        }
+    },
+    "schemas": {
+        "WhatsAppSendingLimit": {
+            "type": "object",
+            "title": "WhatsAppSendingLimit",
+            "description": "A WhatsApp number's standing with Meta, refreshed by SendSeven at most once a day.",
+            "required": ["channel_id", "supported", "stale"],
+            "properties": {
+                "channel_id": {"type": "string"},
+                "channel_type": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                "messaging_limit_tier": {"anyOf": [{"type": "string"}, {"type": "null"}], "description": "Meta's messaging tier, e.g. TIER_250, TIER_1K, TIER_10K, TIER_100K, TIER_UNLIMITED: how many people the number may start conversations with a day."},
+                "quality_rating": {"anyOf": [{"type": "string"}, {"type": "null"}], "description": "Meta's quality rating: GREEN, YELLOW, RED, or UNKNOWN for a new number."},
+                "throughput_level": {"anyOf": [{"type": "string"}, {"type": "null"}], "description": "STANDARD or HIGH."},
+                "phone_status": {"anyOf": [{"type": "string"}, {"type": "null"}], "description": "Meta's status for the number, e.g. CONNECTED, FLAGGED, RESTRICTED, BANNED."},
+                "refreshed_at": {"anyOf": [{"type": "string"}, {"type": "null"}], "description": "When SendSeven last read it from Meta."},
+                "last_checked_at": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                "stale": {"type": "boolean", "description": "True when Meta couldn't be reached and this is the last known value."},
+                "supported": {"type": "boolean", "description": "False for channels without a sending limit."},
+                "error": {"anyOf": [{"type": "string"}, {"type": "null"}]}
+            }
+        }
+    }
+}
