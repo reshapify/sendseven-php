@@ -16946,7 +16946,7 @@ Get a WhatsApp channel's persisted *sending limit* (messaging tier).
 Lean replacement for the live-fetching /account-status endpoint on the Settings → Channels page. Instead of hitting Meta on every page open, this endpoint serves a value persisted onto the channel's encrypted config and re-queries the provider at most once per 24h per channel (server-side, authoritative gate). Safe to call on every page load: it is idempotent and cheap, and it NEVER 500s the page — a provider/token failure degrades to the last-known value with stale=True and a soft error.
 
 ```php
-$sendseven->whatsApp()->getSendingLimit(channelId: 'channel_id');
+$result = $sendseven->whatsApp()->getSendingLimit(channelId: 'channel_id');
 ```
 
 - Scopes: `channels:read`
@@ -16955,7 +16955,7 @@ $sendseven->whatsApp()->getSendingLimit(channelId: 'channel_id');
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
 
-Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp/get_whatsapp_sending_limit_api_v1_whatsapp_channels__channel_id__sending_limit_get)
+Returns `WhatsAppSendingLimit`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp/get_whatsapp_sending_limit_api_v1_whatsapp_channels__channel_id__sending_limit_get)
 
 ## getCallWindow
 

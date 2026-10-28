@@ -5,6 +5,7 @@ All notable changes to `sendseven` will be documented in this file.
 
 ## Unreleased
 
+- `whatsApp()->getSendingLimit()` returns a `WhatsAppSendingLimit`: the number's quality rating, messaging tier, throughput and phone status, which SendSeven refreshes from Meta once a day. It returned nothing before.
 - Connect links can send the customer back by themselves: `ConnectLink::redirectTo($url, RedirectMode::AutoAfterFirst)`, or `partnerRedirectMode` on `createToken()`. Without a mode SendSeven shows a "Continue" button, as before. Connect tokens report `partnerRedirectMode`.
 
 ## 0.2.0 - 2026-10-13
@@ -14,6 +15,10 @@ All notable changes to `sendseven` will be documented in this file.
 - `contacts()->findByPhone()` and `findOrCreateByPhone()`: an exact match on the digits, never a fuzzy search hit.
 - Webhook messages: `images()` (every image, including `photo` and untyped ones), `location()`, and `typedText()` (null for SendSeven's own summaries of reactions, stickers, locations and contacts).
 - `buttonReply()` also reads `meta.interactive`, template quick-reply payloads (`meta.button.payload`), `list_reply` attachments and `row_id`/`payload`/`id`, and ignores blank ids. Interactive replies are now checked before `meta.button`.
+
+## 0.1.4 - 2026-10-28
+
+- `whatsApp()->getSendingLimit()` returns a `WhatsAppSendingLimit`: the number's quality rating, messaging tier, throughput and phone status, which SendSeven refreshes from Meta once a day. It returned nothing before. (0.1 line.)
 
 ## 0.1.3 - 2026-10-26
 

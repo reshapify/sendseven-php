@@ -26155,7 +26155,7 @@
             "scopes": [
                 "channels:read"
             ],
-            "returns": "void",
+            "returns": "WhatsAppSendingLimit",
             "parameters": [
                 {
                     "name": "channelId",
