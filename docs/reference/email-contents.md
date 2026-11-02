@@ -2,7 +2,7 @@
 
 # Email Contents
 
-`$sendseven->emailContents()` — 8 endpoints.
+`$sendseven->emailContents()` — 9 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -14,6 +14,7 @@
 | [`update()`](#update) | `PATCH /email-contents/{content_id}` | Update Email Content |
 | [`duplicate()`](#duplicate) | `POST /email-contents/{content_id}/duplicate` | Duplicate Email Content |
 | [`preview()`](#preview) | `POST /email-contents/{content_id}/preview` | Preview Email Content |
+| [`render()`](#render) | `POST /email-contents/{content_id}/render` | Render Email Content |
 
 ## list
 
@@ -21,7 +22,7 @@ List Email Contents. `GET /email-contents`
 
 List email contents for the tenant with pagination.
 
-- Can filter by layout template ID (optional reference) - By default excludes hidden contents (use include_hidden=true to include) - Returns list without full MJML source (for performance) - Includes basic layout template info
+- Can filter by layout template ID (optional reference) - Can filter by content_type (html, plain_text, simple) - By default excludes hidden contents (use include_hidden=true to include) - Returns list without full MJML source (for performance) - Includes basic layout template info
 
 ```php
 $result = $sendseven->emailContents()->list();
@@ -38,6 +39,7 @@ $result = $sendseven->emailContents()->list();
 | `$excludeSystem` | `?bool` | no | Exclude system templates |
 | `$excludeDoi` | `?bool` | no | Exclude double opt-in templates (they have their own page) |
 | `$search` | `?string` | no | Case-insensitive search across name and subject_line |
+| `$contentType` | `EmailContentTypeEnum\|string\|null` | no | Filter by content type: html, plain_text or simple |
 
 Returns `Page<EmailContentListItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contents/list_email_contents_api_v1_email_contents_get)
 
@@ -59,7 +61,7 @@ $result = $sendseven->emailContents()->create(name: 'name');
 |---|---|---|---|
 | `$name` | `string` | yes | Content name |
 | `$description` | `?string` | no | Content description |
-| `$contentType` | `EmailContentTypeEnum\|string\|null` | no | Content type: 'html' for MJML-based or 'plain_text' for text-only templates |
+| `$contentType` | `EmailContentTypeEnum\|string\|null` | no | Content type: 'html' for MJML/Stripo designs, 'plain_text' for text-only templates, or 'simple' for a personal-looking email (formatted text + links, body in compiled_html, text part derived by the server) |
 | `$templateId` | `?string` | no | ID of email template used as base (analytics only, HTML type only) |
 | `$subjectLine` | `?string` | no | Subject line with {{variable}} support |
 | `$previewText` | `?string` | no | Email preview text (appears in inbox) |
@@ -68,10 +70,11 @@ $result = $sendseven->emailContents()->create(name: 'name');
 | `$editorType` | `?string` | no | Editor type: 'stripo' (default for new content) or 'mjml' (legacy GrapesJS) |
 | `$mjmlSource` | `?string` | no | Full MJML content with {{variable}} placeholders (required for html type with mjml editor) |
 | `$stripoDesignJson` | `?string` | no | Stripo editor design JSON for re-opening designs (stripo editor type only) |
-| `$compiledHtml` | `?string` | no | Pre-compiled HTML from Stripo export (stripo editor type only) |
+| `$compiledHtml` | `?string` | no | Pre-compiled HTML from Stripo export (stripo editor type), or the rich-text fragment for simple (required, max 200 KB, sanitised on save) |
 | `$textBody` | `?string` | no | Plain text template content with {{variable}} placeholders (required for plain_text type) |
 | `$variableValues` | `array<string, mixed>\|null` | no | Template variable values (not contact/company/system) |
 | `$footerMode` | `?string` | no | Compliance footer override for this email: inherit (default — use the account setting), both (unsubscribe + manage preferences), unsubscribe_only, or none (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless. |
+| `$autoAttachSignature` | `?bool` | no | Automatically attach the sending user's email signature when this content is loaded into a conversation composer in the SendSeven inbox (web and mobile). Only applies to 'simple' and 'plain_text' content; always false for 'html'. Has no effect on campaign sends. |
 | `$aiGenerated` | `?bool` | no | Whether content was AI-generated |
 | `$aiPrompt` | `?string` | no | AI prompt used for generation |
 | `$aiModelUsed` | `?string` | no | AI model used |
@@ -161,10 +164,11 @@ $result = $sendseven->emailContents()->update(contentId: 'content_id');
 | `$editorType` | `?string` | no | Editor type: 'stripo' or 'mjml' |
 | `$mjmlSource` | `?string` | no |  |
 | `$stripoDesignJson` | `?string` | no | Stripo editor design JSON |
-| `$compiledHtml` | `?string` | no | Pre-compiled HTML from Stripo export |
-| `$textBody` | `?string` | no | Plain text template content with {{variable}} placeholders |
+| `$compiledHtml` | `?string` | no | Pre-compiled HTML from Stripo export, or the rich-text fragment for simple (max 200 KB) |
+| `$textBody` | `?string` | no | Plain text template content with {{variable}} placeholders (plain_text only; ignored for simple) |
 | `$variableValues` | `array<string, mixed>\|null` | no |  |
 | `$footerMode` | `?string` | no | Compliance footer override for this email: inherit (default — use the account setting), both (unsubscribe + manage preferences), unsubscribe_only, or none (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless. |
+| `$autoAttachSignature` | `?bool` | no | Automatically attach the sending user's email signature when this content is loaded into a conversation composer in the SendSeven inbox (web and mobile). Only applies to 'simple' and 'plain_text' content; always false for 'html'. Has no effect on campaign sends. Omit to leave unchanged; ignored for 'html'. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `EmailContent`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contents/update_email_content_api_v1_email_contents__content_id__patch)
@@ -212,3 +216,27 @@ $result = $sendseven->emailContents()->preview(contentId: 'content_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `EmailContentPreview`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contents/preview_email_content_api_v1_email_contents__content_id__preview_post)
+
+## render
+
+Render Email Content. `POST /email-contents/{content_id}/render`
+
+Render email content for a real recipient (conversation reply / new email).
+
+The server resolves every variable:
+
+```php
+$result = $sendseven->emailContents()->render(contentId: 'content_id');
+```
+
+- Scopes: `email:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$contentId` | `string` | yes |  |
+| `$contactId` | `?string` | no | Contact to personalise for (must belong to the workspace) |
+| `$conversationId` | `?string` | no | Conversation whose contact is used when contact_id is not given |
+| `$variables` | `array<string, mixed>\|null` | no | Template variable fills (plain names such as hero_title). Namespaced values (contact.*, company.*, agent.*, campaign.*, system.*) are always resolved by the server and ignored here. |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `EmailContentRender`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contents/render_email_content_api_v1_email_contents__content_id__render_post)

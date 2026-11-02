@@ -82,6 +82,10 @@ final readonly class EmailMailboxes
      * Either email_integration_id or email_provider_config_id must be set (but not both). If
      * is_default is True the previous default mailbox for the tenant is unset.
      *
+     * Returns 409 when the same connection (integration or provider config) already has an ACTIVE
+     * mailbox with this address (case-insensitive). The same address on a different connection is
+     * allowed.
+     *
      * Scopes: channels:create.
      *
      * @param  string  $name  Display name for the mailbox (e.g. 'Support', 'Sales')
@@ -188,6 +192,9 @@ final readonly class EmailMailboxes
      *
      * When setting is_default=true, the previous default mailbox for the tenant is automatically
      * unset.
+     *
+     * Returns 409 when an address change or a reactivation would give this mailbox's connection a
+     * second ACTIVE mailbox with the same address.
      *
      * Scopes: channels:update.
      *

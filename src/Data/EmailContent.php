@@ -22,20 +22,21 @@ final readonly class EmailContent extends Data
      * @param  string  $tenantId  Tenant this resource belongs to
      * @param  string  $name  Content name
      * @param  ?string  $description  Content description
-     * @param  ?string  $contentType  Content type: 'html' or 'plain_text'
+     * @param  ?string  $contentType  Content type: 'html' | 'plain_text' | 'simple'
      * @param  ?string  $templateId  Email template ID
      * @param  ?string  $subjectLine  Email subject line
      * @param  ?string  $previewText  Preview text
      * @param  ?string  $fromName  Sender name
      * @param  ?string  $fromEmail  Sender email
-     * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml' (legacy)
+     * @param  ?string  $editorType  Editor type: 'stripo', 'mjml' (legacy) or 'tiptap' (simple)
      * @param  ?string  $mjmlSource  Full MJML content (legacy, html type only)
-     * @param  ?string  $compiledHtml  Compiled HTML content from Stripo or MJML compilation
+     * @param  ?string  $compiledHtml  Compiled HTML from Stripo or MJML compilation; for simple, the sanitised rich-text fragment
      * @param  ?string  $stripoDesignJson  Stripo editor design JSON for re-opening designs
-     * @param  ?string  $textBody  Plain text template content (plain_text type only)
+     * @param  ?string  $textBody  Plain text template content (plain_text), or the server-derived text part (simple)
      * @param  array<array-key, mixed>  $variableValues  Variable values
      * @param  list<string>  $variablesUsed  Extracted variables
      * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
+     * @param  ?bool  $autoAttachSignature  Automatically attach the sending user's email signature when this content is loaded into a conversation composer in the SendSeven inbox (web and mobile). Only applies to 'simple' and 'plain_text' content; always false for 'html'. Has no effect on campaign sends.
      * @param  ?bool  $aiGenerated  AI-generated flag
      * @param  ?string  $aiPrompt  AI prompt
      * @param  ?string  $aiModelUsed  AI model
@@ -69,6 +70,7 @@ final readonly class EmailContent extends Data
         public array $variableValues,
         public array $variablesUsed,
         public ?string $footerMode,
+        public ?bool $autoAttachSignature,
         public ?bool $aiGenerated,
         public ?string $aiPrompt,
         public ?string $aiModelUsed,
@@ -112,6 +114,7 @@ final readonly class EmailContent extends Data
             variableValues: $attributes->array('variable_values'),
             variablesUsed: $attributes->strings('variables_used'),
             footerMode: $attributes->nullableString('footer_mode'),
+            autoAttachSignature: $attributes->nullableBool('auto_attach_signature'),
             aiGenerated: $attributes->nullableBool('ai_generated'),
             aiPrompt: $attributes->nullableString('ai_prompt'),
             aiModelUsed: $attributes->nullableString('ai_model_used'),

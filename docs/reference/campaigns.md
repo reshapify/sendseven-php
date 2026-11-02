@@ -81,6 +81,7 @@ $result = $sendseven->campaigns()->create(name: 'name');
 | `$targetUrl` | `?string` | no |  |
 | `$browserPushTitle` | `?string` | no |  |
 | `$listIds` | `list<string>\|null` | no |  |
+| `$audienceConditions` | `array<string, mixed>\|null` | no | Audience Builder condition tree (same format as a dynamic list's segment_conditions). Must be a top-level AND whose children include at least one positive list membership: a has_optin condition (operator: equals, value: true, list_id of a static or newsletter list of this workspace) or a group of only such conditions (OR = any of the lists, AND = all of them). Other children narrow the audience down or exclude contacts (e.g. has_optin with value: false). When set, the campaign's lists are DERIVED from the membership lists and any list_ids sent are ignored. Errors: 422 audience_list_membership_required, audience_membership_list_invalid, or a validation error for a malformed tree. A tree with no conditions counts as null. |
 | `$channelFilter` | `list<string>\|null` | no |  |
 | `$selectedChannelIds` | `list<string>\|null` | no |  |
 | `$scheduledAt` | `DateTimeInterface\|string\|null` | no |  |
@@ -200,6 +201,8 @@ Get Campaign. `GET /campaigns/{campaign_id}`
 
 Get a specific campaign
 
+failure_reason explains a failed campaign (e.g. "no_recipients"). For a scheduled campaign, preflight_warnings lists problems found now, before the send: [{"code": "no_reachable_recipients"}] when its audience currently resolves to nobody ([] = nothing found, null = could not be checked).
+
 ```php
 $result = $sendseven->campaigns()->get(campaignId: 'campaign_id');
 ```
@@ -238,6 +241,7 @@ $result = $sendseven->campaigns()->update(campaignId: 'campaign_id');
 | `$targetUrl` | `?string` | no |  |
 | `$browserPushTitle` | `?string` | no |  |
 | `$listIds` | `list<string>\|null` | no |  |
+| `$audienceConditions` | `array<string, mixed>\|null` | no | Audience Builder condition tree (same format as a dynamic list's segment_conditions). Must be a top-level AND whose children include at least one positive list membership: a has_optin condition (operator: equals, value: true, list_id of a static or newsletter list of this workspace) or a group of only such conditions (OR = any of the lists, AND = all of them). Other children narrow the audience down or exclude contacts (e.g. has_optin with value: false). When set, the campaign's lists are DERIVED from the membership lists and any list_ids sent are ignored. Errors: 422 audience_list_membership_required, audience_membership_list_invalid, or a validation error for a malformed tree. A tree with no conditions counts as null. Omit to leave unchanged; null clears it (the campaign keeps its current lists). |
 | `$channelFilter` | `list<string>\|null` | no |  |
 | `$selectedChannelIds` | `list<string>\|null` | no |  |
 | `$scheduledAt` | `DateTimeInterface\|string\|null` | no |  |
@@ -325,7 +329,7 @@ Estimate Campaign Cost. `GET /campaigns/{campaign_id}/estimate-cost`
 
 Estimate campaign cost and check balance before sending
 
-Returns: - total_cost_eur: RAW usage cost in EUR (before the included pool) - recipient_count: Number of recipients - breakdown: Cost breakdown by channel ({count, cost}) - warnings: List of warnings about variable costs - can_send: Whether campaign can be sent based on balance - balance_error: Error message if insufficient balance - current_balance_eur: Current balance in EUR
+shared_whatsapp_numbers.groups additionally need contacts:read; without it groups is [] and groups_redacted is true, counts stay)
 
 ```php
 $result = $sendseven->campaigns()->estimateCost(campaignId: 'campaign_id');
@@ -554,6 +558,7 @@ $result = $sendseven->campaigns()->schedule(campaignId: 'campaign_id', scheduled
 | `$scheduledAt` | `DateTimeInterface\|string` | yes |  |
 | `$timezone` | `string` | yes |  |
 | `$acknowledgeWarmupWarning` | `?bool` | no |  |
+| `$whatsAppPhoneOnlyAction` | `?string` | no | WhatsApp recipients with only a phone number and no WhatsApp ID. exclude (default): they are not sent the WhatsApp message. add_whatsapp_id: their phone number is saved as their WhatsApp ID first, so they are included (skipped when another contact already has that WhatsApp ID or the number is not valid). With add_whatsapp_id the IDs are saved now, at schedule time: contacts with only a phone number who join the audience later are excluded. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Campaign`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Campaigns/schedule_campaign_api_v1_campaigns__campaign_id__schedule_post)
@@ -588,7 +593,7 @@ Send Campaign. `POST /campaigns/{campaign_id}/send`
 
 Send a campaign immediately
 
-Optional body {"acknowledge_warmup_warning": true} (no body = false). A large WhatsApp campaign on a number that is still warming up is refused with HTTP 409 detail = {"code": "warmup_acknowledgement_required", "message": ..., "warmup": <warm-up assessment>} unless acknowledged or split over days (send_split_config). Nothing is prepared or sent on 409. A split plan that would run too long is refused with HTTP 422 {"code": "split_plan_too_long", "message": ...}.
+Optional body {"acknowledge_warmup_warning": true, "whatsapp_phone_only_action": "exclude" | "add_whatsapp_id"} (no body = false / "exclude"). WhatsApp is only sent to a contact's WhatsApp ID: recipients with only a phone number are left out (exclude), or with add_whatsapp_id their phone number is first saved as their WhatsApp ID (skipped when another contact already has it or it is invalid). The response always has whatsapp_ids_added: {added, skipped_conflict, skipped_invalid} (zeros for exclude). A large WhatsApp campaign on a number that is still warming up is refused with HTTP 409 detail = {"code": "warmup_acknowledgement_required", "message": ..., "warmup": <warm-up assessment>} unless acknowledged or split over days (send_split_config). Nothing is prepared or sent on 409. A split plan that would run too long is refused with HTTP 422 {"code": "split_plan_too_long", "message": ...}.
 
 ```php
 $result = $sendseven->campaigns()->send(campaignId: 'campaign_id');
@@ -653,6 +658,8 @@ Returns `SendPlan`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#
 Get Campaign Statistics. `GET /campaigns/{campaign_id}/statistics`
 
 Get campaign statistics (sent, delivered, failed, etc.)
+
+Includes delivery_warning (same shape and rules as GET /campaigns/{campaign_id}): non-null when a WhatsApp campaign got no delivery updates.
 
 ```php
 $result = $sendseven->campaigns()->getStatistics(campaignId: 'campaign_id');

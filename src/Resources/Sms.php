@@ -38,10 +38,10 @@ final readonly class Sms
     /**
      * List MSISDNs available to purchase in a country.
      *
-     * List numbers offered by seven.io for the given country.
+     * List numbers offered by our SMS provider for the given country.
      *
      * Results are cached per-tenant for 5 minutes to keep the pick-a-number picker snappy and to avoid
-     * hammering seven.io when a customer pages through options.
+     * hammering the SMS provider when a customer pages through options.
      *
      * Scopes: channels:read.
      *
@@ -65,7 +65,17 @@ final readonly class Sms
     /**
      * Current prepaid SMS balance.
      *
-     * Return the tenant's current seven.io subaccount balance.
+     * Return the workspace's prepaid SMS balance and balance settings.
+     *
+     * Besides balance_eur and the auto-top-up / low-balance-warning settings, the response carries:
+     *
+     * * pending_transfer_cents — credit from already-paid top-ups that is still on its way to the
+     * balance (usually arrives within minutes). * auto_topup_available — whether auto-top-up can
+     * currently be enabled. * auto_topup_has_payment_method — whether a card is saved for it. *
+     * auto_topup_last_attempt — the latest automatic top-up attempt (status, amount_cents,
+     * created_at, failure_code) or null. * auto_topup_min_amount_cents / auto_topup_max_amount_cents
+     * — the allowed auto-top-up amount range (net, cents). * auto_topup_can_edit — whether the
+     * caller may change auto-top-up (needs billing:update); otherwise show the settings read-only.
      *
      * Scopes: channels:read.
      *
@@ -118,23 +128,21 @@ final readonly class Sms
     }
 
     /**
-     * Estimated retail price to send one SMS to a country / number.
+     * Estimated price to send one SMS to a country / number.
      *
-     * Estimate the tenant's retail per-segment SMS price.
+     * Estimate what one SMS to a country / number costs.
      *
      * Accepts either a phone (preferred — country resolved by E.164 prefix), a country ISO-2 hint,
-     * or both. Pricing is sourced live from seven.io's GET /api/pricing (cached 24h in Redis), with a
-     * bundled fallback file used if both Redis and the live API are unreachable.
+     * or both. Carrier prices are refreshed daily; source reports whether this answer came from the
+     * live price list, the cache or the fallback list.
      *
-     * The returned platform_fee_eur is the MIN price across all networks for the destination country
-     * (a conservative estimate — actual route may cost more for a specific recipient).
-     * sendseven_fee_eur is our flat margin. total_per_segment_eur = platform_fee + sendseven_fee.
+     * Two charges with different units:
      *
      * Scopes: channels:read.
      *
      * @param  ?string  $phone  Recipient MSISDN (E.164)
      * @param  ?string  $country  ISO-3166 alpha-2 (e.g. 'DE') — alternative to phone
-     * @param  ?string  $text  Optional message body. When supplied, response includes segment count + total cost.
+     * @param  ?string  $text  Optional message body. When supplied, the response includes the segment count and total_eur = carrier fee x segments + SendSeven fee (once per message).
      * @param  ?bool  $appendOptOutLink  Price the text as a Reach campaign with the SMS opt-out link enabled: a representative ' Unsubscribe: https://c.sendseven.com/<code>' suffix (same length and encoding as the real per-recipient link) is appended before segments, char_count and total are computed.
      *
      * @throws ApiException
@@ -166,8 +174,12 @@ final readonly class Sms
      *
      * Return the full SMS pricelist as a per-country table.
      *
-     * Used by the frontend pricing page. Pricing is sourced live from seven.io (cached 24h), with a
-     * bundled fallback file as last resort. The source field reports which one served this request.
+     * Used by the frontend pricing page. Carrier prices are refreshed daily; the source field reports
+     * whether this answer came from the live price list, the cache or the fallback list.
+     *
+     * platform_fee_eur is the carrier fee per segment (prepaid SMS balance), sendseven_fee_eur the
+     * SendSeven fee per message (plan pool). total_per_segment_eur is their sum, i.e. the price of a
+     * one-segment SMS.
      *
      * Scopes: channels:read.
      *
@@ -192,8 +204,8 @@ final readonly class Sms
      *
      * The frontend cannot get this from /channels: ChannelResponse deliberately omits Channel.config
      * (it holds API tokens and secrets), so sender_type / mode / msisdn_or_alpha were invisible. This
-     * endpoint returns a hand-whitelisted projection of those non-secret facts. seven_io_subaccount_id
-     * and every other credential stay server-side.
+     * endpoint returns a hand-whitelisted projection of those non-secret facts. Provider subaccount
+     * ids and every other credential stay server-side.
      *
      * Inactive / archived senders ARE included so the UI can show them as archived, but they are never
      * is_default_for_send.
@@ -222,8 +234,8 @@ final readonly class Sms
      *
      * Register an alphanumeric sender id for outbound campaigns.
      *
-     * Enforces seven.io's 11-character upper bound. Replies are not possible for alphanumeric senders
-     * — the frontend copy communicates this.
+     * Enforces the 11-character upper bound for alphanumeric senders. Replies are not possible for
+     * alphanumeric senders — the frontend copy communicates this.
      *
      * Scopes: channels:update.
      *
@@ -248,7 +260,7 @@ final readonly class Sms
     /**
      * Confirm DTMF voice PIN and bind Channel.
      *
-     * Compare the PIN supplied by the customer to the one seven.io read aloud.
+     * Compare the PIN supplied by the customer to the one read aloud.
      *
      * On success we flip the verification row to VERIFIED and create the SMS :class:Channel. On
      * mismatch we flip to FAILED and 400.
@@ -276,10 +288,10 @@ final readonly class Sms
     /**
      * Start DTMF voice verification for an own MSISDN.
      *
-     * Kick off seven.io's DTMF voice verification.
+     * Kick off the DTMF voice verification.
      *
-     * seven.io places an outbound call that reads a PIN aloud; the customer repeats it back to our UI
-     * which POSTs it to :func:confirm_sender below.
+     * The SMS provider places an outbound call that reads a PIN aloud; the customer repeats it back to
+     * our UI which POSTs it to :func:confirm_sender below.
      *
      * Scopes: channels:update.
      *
@@ -309,13 +321,12 @@ final readonly class Sms
      *
      * Delete / release an SMS sender.
      *
-     * For dedicated senders this calls :meth:SmsProvisioningService.release_number (which talks to
-     * seven.io). For alphanumeric / verified_own senders we only archive the :class:Channel row — no
-     * seven.io resource to release.
+     * For dedicated senders this releases the number at the SMS provider. For alphanumeric /
+     * verified_own senders we only archive the :class:Channel row; there is no number to release.
      *
      * Scopes: channels:delete.
      *
-     * @param  ?bool  $immediate  If true, release seven.io number immediately
+     * @param  ?bool  $immediate  If true, release the number immediately
      *
      * @throws ApiException
      *

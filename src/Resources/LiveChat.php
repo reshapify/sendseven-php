@@ -132,6 +132,8 @@ final readonly class LiveChat
      *
      * Send a message as an agent in a live chat session
      *
+     * 409 {"error": "CONTACT_BLOCKED", ...} when the visitor's contact is blocked.
+     *
      * Scopes: conversations:update.
      *
      * @param  string  $text  Message text

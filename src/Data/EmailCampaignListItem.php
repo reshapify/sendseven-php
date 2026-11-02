@@ -21,6 +21,8 @@ final readonly class EmailCampaignListItem extends Data
 {
     /**
      * @param  ?int  $recipientCount  Estimated recipients (draft/scheduled) or actual sent count
+     * @param  ?string  $thumbnailUrl  Short-lived signed URL (about 60 minutes) of a 240x320 WebP preview of the email's top. Null when there is no preview yet or none can be rendered.
+     * @param  ?bool  $thumbnailPending  True while a preview for the current version of the email is being rendered. Re-fetch the list later to get thumbnail_url.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -40,6 +42,8 @@ final readonly class EmailCampaignListItem extends Data
         public ?DateTimeImmutable $scheduledAt,
         public ?string $timezone,
         public DateTimeImmutable $createdAt,
+        public ?string $thumbnailUrl,
+        public ?bool $thumbnailPending,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -69,6 +73,8 @@ final readonly class EmailCampaignListItem extends Data
             scheduledAt: $attributes->nullableDateTime('scheduled_at'),
             timezone: $attributes->nullableString('timezone'),
             createdAt: $attributes->dateTime('created_at'),
+            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            thumbnailPending: $attributes->nullableBool('thumbnail_pending'),
             raw: $data,
         );
     }

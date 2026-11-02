@@ -37,6 +37,14 @@ final readonly class CrawlJobStatus extends Data
      * @param  ?string  $finalizePhase  Current finalization phase: 'importing', 'cleaning_up', 'saving_history'. Only present after all pages are crawled and before job completes.
      * @param  ?int  $ragImportedFiles  Number of files imported to RAG so far (during 'importing' phase)
      * @param  ?int  $ragTotalFiles  Total number of files to import to RAG (during 'importing' phase)
+     * @param  ?int  $excludedByRules  Pages left out because they matched an exclude rule
+     * @param  ?int  $skippedTranslations  Pages skipped because a version in the chosen language is part of the crawl
+     * @param  list<mixed>  $skippedTranslationSamples  Up to 20 examples: {url, language, counterpart_url}
+     * @param  ?string  $language  Language this crawl keeps (null when no language was chosen)
+     * @param  ?string  $translationHandling  Translation handling of this crawl (null for crawls without filters)
+     * @param  ?string  $alternativeLanguage  Onboarding scan: the more complete language that was NOT imported (the workspace language was recommended and imported instead)
+     * @param  ?int  $alternativePageDifference  How many more pages alternative_language has than the imported language
+     * @param  ?bool  $filtersAutoApplied  True when the exclude rules / language were applied automatically from the language recommendation (onboarding website scan), not chosen by a user
      * @param  ?string  $startedAt  ISO datetime when job started
      * @param  ?string  $completedAt  ISO datetime when job completed
      * @param  ?string  $updatedAt  ISO datetime of last update
@@ -61,6 +69,14 @@ final readonly class CrawlJobStatus extends Data
         public ?string $finalizePhase,
         public ?int $ragImportedFiles,
         public ?int $ragTotalFiles,
+        public ?int $excludedByRules,
+        public ?int $skippedTranslations,
+        public array $skippedTranslationSamples,
+        public ?string $language,
+        public ?string $translationHandling,
+        public ?string $alternativeLanguage,
+        public ?int $alternativePageDifference,
+        public ?bool $filtersAutoApplied,
         public ?string $startedAt,
         public ?string $completedAt,
         public ?string $updatedAt,
@@ -95,6 +111,14 @@ final readonly class CrawlJobStatus extends Data
             finalizePhase: $attributes->nullableString('finalize_phase'),
             ragImportedFiles: $attributes->nullableInt('rag_imported_files'),
             ragTotalFiles: $attributes->nullableInt('rag_total_files'),
+            excludedByRules: $attributes->nullableInt('excluded_by_rules'),
+            skippedTranslations: $attributes->nullableInt('skipped_translations'),
+            skippedTranslationSamples: array_values($attributes->array('skipped_translation_samples')),
+            language: $attributes->nullableString('language'),
+            translationHandling: $attributes->nullableString('translation_handling'),
+            alternativeLanguage: $attributes->nullableString('alternative_language'),
+            alternativePageDifference: $attributes->nullableInt('alternative_page_difference'),
+            filtersAutoApplied: $attributes->nullableBool('filters_auto_applied'),
             startedAt: $attributes->nullableString('started_at'),
             completedAt: $attributes->nullableString('completed_at'),
             updatedAt: $attributes->nullableString('updated_at'),

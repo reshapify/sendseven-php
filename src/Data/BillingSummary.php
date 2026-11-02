@@ -22,18 +22,20 @@ final readonly class BillingSummary extends Data
      * @param  ?DirectionMessageSummary  $outboundMessages  Outbound message counts matching billing aggregation
      * @param  ?DirectionMessageSummary  $inboundMessages  Inbound message counts matching billing aggregation
      * @param  ?CampaignSummary  $campaigns  Campaign counts matching billing aggregation
-     * @param  ?int  $kbQueries  Knowledge base query count
+     * @param  ?int  $aiCredits  AI credits used (count) in the period
      * @param  string  $periodStart  Start of the reporting period (ISO format)
      * @param  string  $periodEnd  End of the reporting period (ISO format)
+     * @param  int  $kbQueries  Deprecated alias of ai_credits
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?DirectionMessageSummary $outboundMessages,
         public ?DirectionMessageSummary $inboundMessages,
         public ?CampaignSummary $campaigns,
-        public ?int $kbQueries,
+        public ?int $aiCredits,
         public string $periodStart,
         public string $periodEnd,
+        public int $kbQueries,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -50,9 +52,10 @@ final readonly class BillingSummary extends Data
             outboundMessages: $attributes->nullableObject('outbound_messages', DirectionMessageSummary::fromArray(...)),
             inboundMessages: $attributes->nullableObject('inbound_messages', DirectionMessageSummary::fromArray(...)),
             campaigns: $attributes->nullableObject('campaigns', CampaignSummary::fromArray(...)),
-            kbQueries: $attributes->nullableInt('kb_queries'),
+            aiCredits: $attributes->nullableInt('ai_credits'),
             periodStart: $attributes->string('period_start'),
             periodEnd: $attributes->string('period_end'),
+            kbQueries: $attributes->int('kb_queries'),
             raw: $data,
         );
     }

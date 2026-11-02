@@ -93,6 +93,8 @@ Agent Send Message. `POST /live-chat/sessions/{session_id}/messages`
 
 Send a message as an agent in a live chat session
 
+409 {"error": "CONTACT_BLOCKED", ...} when the visitor's contact is blocked.
+
 ```php
 $result = $sendseven->liveChat()->agentSendMessage(sessionId: 'session_id', text: 'text');
 ```

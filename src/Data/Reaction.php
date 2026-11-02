@@ -22,6 +22,8 @@ final readonly class Reaction extends Data
      * @param  ?string  $externalId  Platform reaction message ID
      * @param  ?string  $emoji  Emoji that was added (null for removal)
      * @param  ?string  $error  Error message if operation failed
+     * @param  ?string  $errorCode  Provider error code if the operation failed (e.g. Meta '131070')
+     * @param  ?string  $errorReason  Stable machine-readable failure reason when known, e.g. 'thread_controlled_by_other_app' (WhatsApp: another app controls this conversation thread)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -30,6 +32,8 @@ final readonly class Reaction extends Data
         public ?string $externalId,
         public ?string $emoji,
         public ?string $error,
+        public ?string $errorCode,
+        public ?string $errorReason,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,6 +52,8 @@ final readonly class Reaction extends Data
             externalId: $attributes->nullableString('external_id'),
             emoji: $attributes->nullableString('emoji'),
             error: $attributes->nullableString('error'),
+            errorCode: $attributes->nullableString('error_code'),
+            errorReason: $attributes->nullableString('error_reason'),
             raw: $data,
         );
     }

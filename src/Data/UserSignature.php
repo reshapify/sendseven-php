@@ -25,6 +25,7 @@ final readonly class UserSignature extends Data
      * @param  bool  $isActive  Whether this signature is active
      * @param  string  $createdAt  When the signature was created
      * @param  string  $updatedAt  When the signature was last updated
+     * @param  ?string  $contentMode  Signature editing mode: `rich` or `html`
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -36,6 +37,7 @@ final readonly class UserSignature extends Data
         public bool $isActive,
         public string $createdAt,
         public string $updatedAt,
+        public ?string $contentMode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -57,6 +59,7 @@ final readonly class UserSignature extends Data
             isActive: $attributes->bool('is_active'),
             createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
+            contentMode: $attributes->nullableString('content_mode'),
             raw: $data,
         );
     }

@@ -22,6 +22,10 @@ final readonly class AttachmentInfo extends Data
      * @param  ?string  $downloadUrl  Signed GCS URL for download (alias for url)
      * @param  ?string  $contentId  Content-ID for inline images
      * @param  ?bool  $isInline  Whether this is an inline attachment
+     * @param  ?string  $attachmentId  ID of the generic attachment record for this file. Use it with `GET/POST /api/v1/attachments/{attachment_id}/summary` (AI file summaries) — not `id`, which is the email-attachment id. May be null for files received before attachment linking was introduced.
+     * @param  ?AttachmentAiSummary  $aiSummary  AI summary of this file, when one exists. Derived from a customer-supplied file: treat as untrusted plain text.
+     * @param  ?bool  $aiSummaryAvailable  True when an on-demand summary can be requested via `POST /api/v1/attachments/{attachment_id}/summary` (AI enabled, inbound image/PDF, no summary yet).
+     * @param  ?int  $aiSummaryCredits  AI credits an on-demand summary costs (set only when `ai_summary_available` is true). From 1 November 2026 always null: summaries are charged by the AI work used.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -33,6 +37,10 @@ final readonly class AttachmentInfo extends Data
         public ?string $downloadUrl,
         public ?string $contentId,
         public ?bool $isInline,
+        public ?string $attachmentId,
+        public ?AttachmentAiSummary $aiSummary,
+        public ?bool $aiSummaryAvailable,
+        public ?int $aiSummaryCredits,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,6 +62,10 @@ final readonly class AttachmentInfo extends Data
             downloadUrl: $attributes->nullableString('download_url'),
             contentId: $attributes->nullableString('content_id'),
             isInline: $attributes->nullableBool('is_inline'),
+            attachmentId: $attributes->nullableString('attachment_id'),
+            aiSummary: $attributes->nullableObject('ai_summary', AttachmentAiSummary::fromArray(...)),
+            aiSummaryAvailable: $attributes->nullableBool('ai_summary_available'),
+            aiSummaryCredits: $attributes->nullableInt('ai_summary_credits'),
             raw: $data,
         );
     }

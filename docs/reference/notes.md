@@ -2,7 +2,7 @@
 
 # Notes
 
-`$sendseven->notes()` — 6 endpoints.
+`$sendseven->notes()` — 7 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -10,6 +10,7 @@
 | [`createContact()`](#createcontact) | `POST /contacts/{contact_id}/notes` | Create Contact Note |
 | [`listConversation()`](#listconversation) | `GET /conversations/{conversation_id}/notes` | List Conversation Notes |
 | [`create()`](#create) | `POST /conversations/{conversation_id}/notes` | Create Note |
+| [`getUnifiedFeed()`](#getunifiedfeed) | `GET /notes/feed` | Get Unified Notes Feed |
 | [`delete()`](#delete) | `DELETE /notes/{note_id}` | Delete Note |
 | [`update()`](#update) | `PUT /notes/{note_id}` | Update Note |
 
@@ -61,6 +62,8 @@ List Conversation Notes. `GET /conversations/{conversation_id}/notes`
 
 Get all notes for a conversation.
 
+404 when the conversation does not exist in the workspace or is not visible to the caller (custom inboxes).
+
 ```php
 $result = $sendseven->notes()->listConversation(conversationId: 'conversation_id');
 ```
@@ -97,11 +100,37 @@ $result = $sendseven->notes()->create(conversationId: 'conversation_id', content
 
 Returns `Note`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Notes/create_note_api_v1_conversations__conversation_id__notes_post)
 
+## getUnifiedFeed
+
+Get Unified Notes Feed. `GET /notes/feed`
+
+Unified notes feed: notes, internal notes from the timeline and closing notes in one list, newest first.
+
+source=internal_message, are only included when the caller also holds messages:read)
+
+```php
+$result = $sendseven->notes()->getUnifiedFeed();
+```
+
+- Scopes: `notes:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `?string` | no | Conversation to show notes for (contact is derived from it) |
+| `$contactId` | `?string` | no | Contact to show notes for (required if conversation_id is not given) |
+| `$scope` | `?string` | no | conversation = notes of this conversation; contact_conversations = notes of all conversations of the contact; contact = contact-level notes; all = both |
+| `$page` | `?int` | no | Page number (1-indexed) |
+| `$pageSize` | `?int` | no | Items per page |
+
+Returns `Page<UnifiedNoteItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Notes/get_unified_notes_feed_api_v1_notes_feed_get)
+
 ## delete
 
 Delete Note. `DELETE /notes/{note_id}`
 
 Delete a note.
+
+Only the note's author or a workspace owner/admin may delete it (403 otherwise). 404 when the note's conversation is not visible to the caller.
 
 ```php
 $result = $sendseven->notes()->delete(noteId: 'note_id');
@@ -120,6 +149,8 @@ Returns `Success`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/
 Update Note. `PUT /notes/{note_id}`
 
 Update a note.
+
+Only the note's author or a workspace owner/admin may edit it (403 otherwise). 404 when the note's conversation is not visible to the caller.
 
 ```php
 $result = $sendseven->notes()->update(noteId: 'note_id', content: 'content');

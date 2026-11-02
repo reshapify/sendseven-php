@@ -20,12 +20,14 @@ final readonly class RetryFailed extends Data
      * @param  ?bool  $success  Whether the operation succeeded
      * @param  ?string  $message  Optional success message
      * @param  int  $retriedCount  Number of failed documents re-queued for ingestion.
+     * @param  ?int  $skippedCount  Number of failed documents NOT re-queued because the file itself was rejected (last_error_code set); upload a fixed file instead.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?bool $success,
         public ?string $message,
         public int $retriedCount,
+        public ?int $skippedCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,6 +44,7 @@ final readonly class RetryFailed extends Data
             success: $attributes->nullableBool('success'),
             message: $attributes->nullableString('message'),
             retriedCount: $attributes->int('retried_count'),
+            skippedCount: $attributes->nullableInt('skipped_count'),
             raw: $data,
         );
     }

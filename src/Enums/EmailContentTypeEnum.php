@@ -16,4 +16,5 @@ enum EmailContentTypeEnum: string
 {
     case Html = 'html';
     case PlainText = 'plain_text';
+    case Simple = 'simple';
 }

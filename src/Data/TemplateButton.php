@@ -17,11 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class TemplateButton extends Data
 {
     /**
-     * @param  string  $type  Button type: QUICK_REPLY, URL, PHONE_NUMBER, COPY_CODE, REQUEST_CONTACT_INFO
+     * @param  string  $type  Button type: QUICK_REPLY, URL, PHONE_NUMBER, COPY_CODE, REQUEST_CONTACT_INFO, FLOW
      * @param  ?string  $text  Button text. Required for every type EXCEPT `REQUEST_CONTACT_INFO`, whose label is fixed by Meta and filled in automatically.
      * @param  ?string  $url  URL for URL buttons
      * @param  ?string  $phoneNumber  Phone number for PHONE_NUMBER buttons
      * @param  ?string  $example  Example value for variable URL
+     * @param  ?string  $flowId  WhatsApp Flow ID (FLOW buttons only)
+     * @param  ?string  $flowAction  Flow action as synced from Meta, e.g. `NAVIGATE` or `DATA_EXCHANGE` (FLOW buttons only)
+     * @param  ?string  $navigateScreen  First Flow screen opened by the button (FLOW buttons only)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -30,6 +33,9 @@ final readonly class TemplateButton extends Data
         public ?string $url,
         public ?string $phoneNumber,
         public ?string $example,
+        public ?string $flowId,
+        public ?string $flowAction,
+        public ?string $navigateScreen,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,6 +54,9 @@ final readonly class TemplateButton extends Data
             url: $attributes->nullableString('url'),
             phoneNumber: $attributes->nullableString('phone_number'),
             example: $attributes->nullableString('example'),
+            flowId: $attributes->nullableString('flow_id'),
+            flowAction: $attributes->nullableString('flow_action'),
+            navigateScreen: $attributes->nullableString('navigate_screen'),
             raw: $data,
         );
     }

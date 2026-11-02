@@ -20,7 +20,7 @@ final readonly class SendableDomain extends Data
      * @param  string  $domain  Domain name (e.g., example.com)
      * @param  string  $type  Domain type: 'full_domain' or 'fixed_address'
      * @param  ?string  $address  Full email address (only for fixed_address type)
-     * @param  string  $source  Integration source (sendgrid_byok, sendgrid_managed, mailgun_byok, ses_managed, gmail, smtp_imap)
+     * @param  string  $source  Integration source (sendgrid_byok, sendgrid_managed, mailgun_byok, gmail, smtp_imap, proxy)
      * @param  string  $sourceId  ID of the source integration or provider config
      * @param  bool  $campaignCapable  Whether this source can be used for email campaigns
      * @param  array<array-key, mixed>  $raw

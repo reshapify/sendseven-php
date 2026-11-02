@@ -21,6 +21,7 @@ final readonly class SenderOptionOut extends Data
      * @param  string  $sourceType  `mailbox`, `integration` or `provider` — for client-side icon hints only
      * @param  string  $name  Human-readable mailbox / connection name
      * @param  ?string  $emailAddress  The visible 'From:' address (when known)
+     * @param  ?string  $connectionName  Name of the connection this sender sends through (the email integration's name, or the provider config's name / provider). Shown next to an address that two mailboxes share. Null when unknown.
      * @param  ?bool  $isDefault  Pre-select this option in the dropdown
      * @param  ?bool  $isDefaultReplySender  True when this option is the conversation's / inbox's default reply sender (the receiving connection's outbound_provider).
      * @param  ?bool  $isAclOverride  True when this option is included ONLY because of the default-reply-sender ACL override — i.e. the caller is not directly on the underlying EmailMailbox ACL. UI may render a 'via inbox' hint.
@@ -31,6 +32,7 @@ final readonly class SenderOptionOut extends Data
         public string $sourceType,
         public string $name,
         public ?string $emailAddress,
+        public ?string $connectionName,
         public ?bool $isDefault,
         public ?bool $isDefaultReplySender,
         public ?bool $isAclOverride,
@@ -51,6 +53,7 @@ final readonly class SenderOptionOut extends Data
             sourceType: $attributes->string('source_type'),
             name: $attributes->string('name'),
             emailAddress: $attributes->nullableString('email_address'),
+            connectionName: $attributes->nullableString('connection_name'),
             isDefault: $attributes->nullableBool('is_default'),
             isDefaultReplySender: $attributes->nullableBool('is_default_reply_sender'),
             isAclOverride: $attributes->nullableBool('is_acl_override'),

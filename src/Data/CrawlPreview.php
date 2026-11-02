@@ -21,6 +21,8 @@ final readonly class CrawlPreview extends Data
 {
     /**
      * @param  ?int  $estimatedPages  Sitemap page count when a sitemap was found, else null
+     * @param  ?int  $maxPagesLimit  Your workspace's maximum pages per crawl. When estimated_pages exceeds it, only this many pages can be crawled; contact support@sendseven.com to raise it.
+     * @param  ?CrawlLanguageAnalysis  $languageAnalysis  Languages found on the website and suggested settings. Null when the URL is invalid or the analysis did not finish in time (never blocks the preview).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -35,6 +37,8 @@ final readonly class CrawlPreview extends Data
         public ?string $title,
         public ?CrawlPreviewSitemap $sitemap,
         public ?int $estimatedPages,
+        public ?int $maxPagesLimit,
+        public ?CrawlLanguageAnalysis $languageAnalysis,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,6 +63,8 @@ final readonly class CrawlPreview extends Data
             title: $attributes->nullableString('title'),
             sitemap: $attributes->nullableObject('sitemap', CrawlPreviewSitemap::fromArray(...)),
             estimatedPages: $attributes->nullableInt('estimated_pages'),
+            maxPagesLimit: $attributes->nullableInt('max_pages_limit'),
+            languageAnalysis: $attributes->nullableObject('language_analysis', CrawlLanguageAnalysis::fromArray(...)),
             raw: $data,
         );
     }

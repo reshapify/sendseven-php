@@ -18,6 +18,8 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class BotAnalytics extends Data
 {
     /**
+     * @param  ?int  $totalInputTokens  Deprecated, always null. AI usage is billed in AI credits; see GET /billing/ai-usage for credits per AI action.
+     * @param  ?int  $totalOutputTokens  Deprecated, always null. AI usage is billed in AI credits; see GET /billing/ai-usage for credits per AI action.
      * @param  array<array-key, mixed>  $escalationReasons
      * @param  array<array-key, mixed>  $raw
      */
@@ -35,6 +37,13 @@ final readonly class BotAnalytics extends Data
         public ?float $escalationRate,
         public ?float $avgMessagesPerSession,
         public ?float $avgConfidenceScore,
+        public ?int $conversations,
+        public ?int $resolvedConversations,
+        public ?int $handoffConversations,
+        public ?float $resolvedPct,
+        public ?float $handoffPct,
+        public ?bool $insufficientData,
+        public ?int $minSample,
         public ?int $totalInputTokens,
         public ?int $totalOutputTokens,
         public array $escalationReasons,
@@ -64,6 +73,13 @@ final readonly class BotAnalytics extends Data
             escalationRate: $attributes->nullableFloat('escalation_rate'),
             avgMessagesPerSession: $attributes->nullableFloat('avg_messages_per_session'),
             avgConfidenceScore: $attributes->nullableFloat('avg_confidence_score'),
+            conversations: $attributes->nullableInt('conversations'),
+            resolvedConversations: $attributes->nullableInt('resolved_conversations'),
+            handoffConversations: $attributes->nullableInt('handoff_conversations'),
+            resolvedPct: $attributes->nullableFloat('resolved_pct'),
+            handoffPct: $attributes->nullableFloat('handoff_pct'),
+            insufficientData: $attributes->nullableBool('insufficient_data'),
+            minSample: $attributes->nullableInt('min_sample'),
             totalInputTokens: $attributes->nullableInt('total_input_tokens'),
             totalOutputTokens: $attributes->nullableInt('total_output_tokens'),
             escalationReasons: $attributes->array('escalation_reasons'),

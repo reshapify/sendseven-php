@@ -9,6 +9,9 @@ namespace Reshapify\SendSeven\Resources;
 
 use Reshapify\SendSeven\Data\ContactFieldValues;
 use Reshapify\SendSeven\Data\CustomFieldDefinition;
+use Reshapify\SendSeven\Data\CustomFieldKeyReferences;
+use Reshapify\SendSeven\Data\CustomFieldTypeChangeResult;
+use Reshapify\SendSeven\Data\CustomFieldUsage;
 use Reshapify\SendSeven\Data\Success;
 use Reshapify\SendSeven\Enums\FieldType;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -20,7 +23,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Custom Fields: 7 endpoints.
+ * Custom Fields: 10 endpoints.
  *
  * Reach it with $sendseven->customFields().
  *
@@ -59,9 +62,13 @@ final readonly class CustomFields
      *
      * Set a custom field value for a contact.
      *
+     * A value that actually changes emits the contact.updated event and starts matching "Contact
+     * updated" flows (field key custom.<key>).
+     *
      * The value is validated against the field's type and options (if applicable). For
      * SELECT/MULTISELECT fields, values that don't match the defined options are rejected with 400
-     * (matching is case-insensitive; the canonical option spelling is stored).
+     * (matching is case-insensitive; the canonical option spelling is stored). If the field has
+     * validation constraints, a value outside them is rejected with 422 (code: validation_failed).
      *
      * Scopes: contacts:update.
      *
@@ -148,6 +155,10 @@ final readonly class CustomFields
      * @param  ?bool  $agentEditable  Whether agents can edit this field
      * @param  ?bool  $userEditable  Whether contacts can edit this field (self-service)
      * @param  ?int  $displayOrder  Display order in UI (lower = first)
+     * @param  array<string, mixed>|null  $validation  Optional value constraints (type-applicable keys only): number → min/max; text/email/phone/url → min_length/max_length/pattern; date/datetime → date_min/date_max (YYYY-MM-DD or 'today'). Enforced on contact value writes.
+     * @param  ?string  $aiHint  What this field means and how an AI agent should use or set it (max 1000 characters).
+     * @param  array<string, mixed>|null  $optionDescriptions  select/multiselect only: {option: description} explaining each option to AI agents. Keys must be existing options; descriptions max 300 characters.
+     * @param  ?string  $aiAccess  What AI agents may do with this field: `none` (invisible, default), `read` (agents see it), `read_write` (agents see it and may update any value), `fill_if_empty` (agents see it and may only fill it while it is empty). `location` and `collection` fields allow only `none` or `read`.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -166,6 +177,10 @@ final readonly class CustomFields
         ?bool $agentEditable = null,
         ?bool $userEditable = null,
         ?int $displayOrder = null,
+        ?array $validation = null,
+        ?string $aiHint = null,
+        ?array $optionDescriptions = null,
+        ?string $aiAccess = null,
         ?string $idempotencyKey = null,
     ): CustomFieldDefinition {
         $response = $this->connector->send(new Request(
@@ -183,6 +198,10 @@ final readonly class CustomFields
                 'agent_editable' => $agentEditable,
                 'user_editable' => $userEditable,
                 'display_order' => $displayOrder,
+                'validation' => $validation,
+                'ai_hint' => $aiHint,
+                'option_descriptions' => $optionDescriptions,
+                'ai_access' => $aiAccess,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -191,12 +210,48 @@ final readonly class CustomFields
     }
 
     /**
+     * Get Custom Field Key References.
+     *
+     * Where a custom field key is still used.
+     *
+     * Flows, dynamic lists, campaign segments, campaigns, message templates, AI agent context settings
+     * and the HubSpot field mapping refer to custom fields by key. When you create a field with a key
+     * that was used by a deleted field, those references start using the new field. Use this before
+     * creating a field to show where.
+     *
+     * Returns {key, field_exists, total, references: [ReferenceGroup]}; field_exists is true when an
+     * active field with this key already exists (creating it again returns 409). Each group: kind,
+     * code (references_key), message, count, up to 10 items (id, name) and truncated. Read-only.
+     *
+     * Scopes: settings:update.
+     *
+     * @param  string  $key  Custom field key (snake_case)
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Custom%20Fields/get_custom_field_key_references_api_v1_custom_fields_key_references_get
+     */
+    public function getKeyReferences(string $key): CustomFieldKeyReferences
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/custom-fields/key-references',
+            query: Payload::query(['key' => $key]),
+        ));
+
+        return CustomFieldKeyReferences::fromArray($response->data());
+    }
+
+    /**
      * Delete Custom Field.
      *
-     * Delete (deactivate) a custom field definition.
+     * Permanently delete a custom field and its values on every contact.
      *
-     * The field is soft-deleted (marked inactive) to preserve existing data. Inactive fields are not
-     * shown in the UI and cannot be assigned new values.
+     * This cannot be undone. The key is freed: a field with the same key can be created again (it
+     * starts empty). Use GET /custom-fields/{field_id}/usage to show how many contacts lose a value.
+     *
+     * Returns 409 (code: CUSTOM_FIELD_IN_USE_BY_INBOX, details.inboxes) while a Custom Inbox filter
+     * rule uses the field.
      *
      * Scopes: settings:admin.
      *
@@ -243,7 +298,11 @@ final readonly class CustomFields
      *
      * Update a custom field definition.
      *
-     * Note: The key and field_type cannot be changed after creation to preserve data integrity.
+     * Note: The key cannot be changed after creation; field_type is changed with POST
+     * /custom-fields/{field_id}/change-type.
+     *
+     * validation: send an object to replace the value constraints, null to clear them, or omit it to
+     * keep them (see create for the allowed keys).
      *
      * Scopes: settings:update.
      *
@@ -256,6 +315,10 @@ final readonly class CustomFields
      * @param  ?bool  $agentEditable  Whether agents can edit this field
      * @param  ?bool  $userEditable  Whether contacts can edit this field (self-service)
      * @param  ?int  $displayOrder  Display order in UI (lower = first)
+     * @param  array<string, mixed>|null  $validation  Optional value constraints (type-applicable keys only): number → min/max; text/email/phone/url → min_length/max_length/pattern; date/datetime → date_min/date_max (YYYY-MM-DD or 'today'). Enforced on contact value writes. Send null to clear; omit to keep.
+     * @param  ?string  $aiHint  What this field means and how an AI agent should use or set it (max 1000 characters). Send null to clear; omit to keep.
+     * @param  array<string, mixed>|null  $optionDescriptions  select/multiselect only: {option: description} for AI agents. Keys must be existing options (after this update); descriptions max 300 characters. Replaces the whole map; null clears; omit to keep.
+     * @param  ?string  $aiAccess  What AI agents may do with this field: `none` (invisible, default), `read` (agents see it), `read_write` (agents see it and may update any value), `fill_if_empty` (agents see it and may only fill it while it is empty). `location` and `collection` fields allow only `none` or `read`. Omit to keep; null resets to `none`.
      *
      * @throws ApiException
      *
@@ -272,6 +335,10 @@ final readonly class CustomFields
         ?bool $agentEditable = null,
         ?bool $userEditable = null,
         ?int $displayOrder = null,
+        ?array $validation = null,
+        ?string $aiHint = null,
+        ?array $optionDescriptions = null,
+        ?string $aiAccess = null,
     ): CustomFieldDefinition {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -286,9 +353,89 @@ final readonly class CustomFields
                 'agent_editable' => $agentEditable,
                 'user_editable' => $userEditable,
                 'display_order' => $displayOrder,
+                'validation' => $validation,
+                'ai_hint' => $aiHint,
+                'option_descriptions' => $optionDescriptions,
+                'ai_access' => $aiAccess,
             ]),
         ));
 
         return CustomFieldDefinition::fromArray($response->data());
+    }
+
+    /**
+     * Change Custom Field Type.
+     *
+     * Change a custom field's type and convert every stored value.
+     *
+     * The field keeps its id, key, name, display order and every reference. Send dry_run: true first
+     * to preview: counts, converted samples (lossy ones first, e.g. 00123 -> 123 or a date-time losing
+     * its time), values that do not fit the new type, AI access / validation / option changes and
+     * references that may need review (reference_warnings).
+     *
+     * Always lossless: any type -> text, select -> multiselect / collection, multiselect ->
+     * collection, text -> collection, date -> datetime, boolean -> number. Every other change checks
+     * each value against the new type.
+     *
+     * Scopes: settings:admin.
+     *
+     * @param  FieldType|string  $fieldType  The new type (must differ from the current one)
+     * @param  list<string>|null  $options  select/multiselect target: the options. Required unless the field already is select/multiselect (then the current options are kept when omitted). Ignored for other targets (options are cleared).
+     * @param  array<string, mixed>|null  $optionDescriptions  select/multiselect target: {option: description} for AI agents (replaces the map; null clears; omit to keep the descriptions of options that still exist).
+     * @param  ?string  $incompatibleValues  What to do with stored values that do not fit the new type: `fail` (409, nothing changes), `remove` (delete them) or `keep` (leave them stored as they are).
+     * @param  ?bool  $dryRun  Preview only: nothing is changed
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Custom%20Fields/change_custom_field_type_api_v1_custom_fields__field_id__change_type_post
+     */
+    public function changeType(
+        string $fieldId,
+        FieldType|string $fieldType,
+        ?array $options = null,
+        ?array $optionDescriptions = null,
+        ?string $incompatibleValues = null,
+        ?bool $dryRun = null,
+        ?string $idempotencyKey = null,
+    ): CustomFieldTypeChangeResult {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/custom-fields/'.Payload::segment($fieldId).'/change-type',
+            body: Payload::body([
+                'field_type' => $fieldType,
+                'options' => $options,
+                'option_descriptions' => $optionDescriptions,
+                'incompatible_values' => $incompatibleValues,
+                'dry_run' => $dryRun,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return CustomFieldTypeChangeResult::fromArray($response->data());
+    }
+
+    /**
+     * Get Custom Field Usage.
+     *
+     * How many contacts hold a value for this custom field.
+     *
+     * Shown in the delete confirmation: deleting the field deletes these values.
+     *
+     * Scopes: contacts:read, settings:admin.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Custom%20Fields/get_custom_field_usage_api_v1_custom_fields__field_id__usage_get
+     */
+    public function getUsage(string $fieldId): CustomFieldUsage
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/custom-fields/'.Payload::segment($fieldId).'/usage',
+        ));
+
+        return CustomFieldUsage::fromArray($response->data());
     }
 }

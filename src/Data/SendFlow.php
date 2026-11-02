@@ -21,6 +21,8 @@ final readonly class SendFlow extends Data
      * @param  ?string  $externalId  WhatsApp message ID
      * @param  string  $conversationId  Conversation ID (new or existing)
      * @param  ?string  $flowToken  Flow token for tracking
+     * @param  ?string  $screen  Screen the flow was opened on
+     * @param  ?string  $errorCode  Platform error code when the send failed
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -29,7 +31,9 @@ final readonly class SendFlow extends Data
         public ?string $externalId,
         public string $conversationId,
         public ?string $flowToken,
+        public ?string $screen,
         public ?string $error,
+        public ?string $errorCode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,7 +52,9 @@ final readonly class SendFlow extends Data
             externalId: $attributes->nullableString('external_id'),
             conversationId: $attributes->string('conversation_id'),
             flowToken: $attributes->nullableString('flow_token'),
+            screen: $attributes->nullableString('screen'),
             error: $attributes->nullableString('error'),
+            errorCode: $attributes->nullableString('error_code'),
             raw: $data,
         );
     }

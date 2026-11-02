@@ -28,7 +28,8 @@ final readonly class TranscriptExportJob extends Data
      * @param  ?string  $message  User-facing status message (optional).
      * @param  ?string  $downloadUrl  Signed download URL for the artifact. Present only when status == 'completed'.
      * @param  ?string  $storagePath  GCS storage path of the artifact (optional; present when status == 'completed').
-     * @param  ?string  $errorMessage  Failure reason. Present only when status == 'failed'.
+     * @param  ?string  $errorMessage  Generic, customer-safe failure text. Present only when status == 'failed'; internal details are never returned.
+     * @param  ?string  $errorCode  Stable machine-readable code when status == 'failed': `transcript_export_failed` or `unsupported_format`.
      * @param  string  $createdAt  When the job was created (UTC).
      * @param  ?string  $updatedAt  When the job was last updated (UTC).
      * @param  ?string  $completedAt  When the job finished (UTC); set on completed/failed.
@@ -44,6 +45,7 @@ final readonly class TranscriptExportJob extends Data
         public ?string $downloadUrl,
         public ?string $storagePath,
         public ?string $errorMessage,
+        public ?string $errorCode,
         public string $createdAt,
         public ?string $updatedAt,
         public ?string $completedAt,
@@ -69,6 +71,7 @@ final readonly class TranscriptExportJob extends Data
             downloadUrl: $attributes->nullableString('download_url'),
             storagePath: $attributes->nullableString('storage_path'),
             errorMessage: $attributes->nullableString('error_message'),
+            errorCode: $attributes->nullableString('error_code'),
             createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->nullableString('updated_at'),
             completedAt: $attributes->nullableString('completed_at'),

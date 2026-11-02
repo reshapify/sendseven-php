@@ -20,4 +20,5 @@ enum UnsubscribeMethod: string
     case Bounce = 'bounce';
     case Complaint = 'complaint';
     case Api = 'api';
+    case WhatsAppFlow = 'whatsapp_flow';
 }

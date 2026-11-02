@@ -12,8 +12,7 @@ use Reshapify\SendSeven\Support\Attributes;
 /**
  * One number offered for purchase.
  *
- * Prices are captured at list-time and are the wholesale seven.io quote (EUR net). Our markup is
- * applied server-side at provision-time.
+ * Prices are captured at list-time (EUR net).
  *
  * @see https://api.sendseven.com/api/v1/docs (schema AvailableNumberResponse)
  */

@@ -31,11 +31,12 @@ final readonly class DashboardMetrics extends Data
      * @param  string  $periodEnd  End of the reporting period (ISO format)
      * @param  ?int  $billingMessagesSent  Billing-account-wide billable messages sent for the current calendar month (matches /settings/billing 'Messages' line)
      * @param  ?int  $billingEmailCampaignSends  Billing-account-wide billable email campaign sends (managed + BYOK) for the current calendar month
-     * @param  ?int  $billingKbQueries  Billing-account-wide billable KB queries for the current calendar month
+     * @param  ?int  $billingAiCredits  Billing-account-wide billable AI credits for the current calendar month
      * @param  ?string  $billingPeriodStart  Start of the billing (calendar month) window, ISO format
      * @param  ?string  $billingPeriodEnd  End of the billing window (now), ISO format
      * @param  ?int  $rcsMonthlyActiveRecipients  This workspace's RCS monthly active recipients for the current month (Europe/Berlin) on agents billed per monthly active recipient. Null when the workspace has no such agent.
      * @param  ?string  $rcsMauPeriod  Month of rcs_monthly_active_recipients as YYYY-MM (Europe/Berlin). Null when rcs_monthly_active_recipients is null.
+     * @param  int  $billingKbQueries  Deprecated alias of billing_ai_credits
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -51,11 +52,12 @@ final readonly class DashboardMetrics extends Data
         public string $periodEnd,
         public ?int $billingMessagesSent,
         public ?int $billingEmailCampaignSends,
-        public ?int $billingKbQueries,
+        public ?int $billingAiCredits,
         public ?string $billingPeriodStart,
         public ?string $billingPeriodEnd,
         public ?int $rcsMonthlyActiveRecipients,
         public ?string $rcsMauPeriod,
+        public int $billingKbQueries,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -81,11 +83,12 @@ final readonly class DashboardMetrics extends Data
             periodEnd: $attributes->string('period_end'),
             billingMessagesSent: $attributes->nullableInt('billing_messages_sent'),
             billingEmailCampaignSends: $attributes->nullableInt('billing_email_campaign_sends'),
-            billingKbQueries: $attributes->nullableInt('billing_kb_queries'),
+            billingAiCredits: $attributes->nullableInt('billing_ai_credits'),
             billingPeriodStart: $attributes->nullableString('billing_period_start'),
             billingPeriodEnd: $attributes->nullableString('billing_period_end'),
             rcsMonthlyActiveRecipients: $attributes->nullableInt('rcs_monthly_active_recipients'),
             rcsMauPeriod: $attributes->nullableString('rcs_mau_period'),
+            billingKbQueries: $attributes->int('billing_kb_queries'),
             raw: $data,
         );
     }

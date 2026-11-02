@@ -56,7 +56,7 @@ final readonly class AiAnswers
      *
      * Withdraw your own rating. Affected entry scores are recomputed.
      *
-     * Scopes: conversations:write.
+     * Scopes: conversations:update.
      *
      *
      * @throws ApiException
@@ -78,15 +78,16 @@ final readonly class AiAnswers
      *
      * Rate an AI answer 👍 / 👎 / ✗ (upsert — re-rating replaces).
      *
-     * down and wrong REQUIRE reason_category: a verdict with no reason cannot drive the correction
-     * loop and only produces noise in the score.
+     * reason_category (factually_wrong | outdated | incomplete | off_topic | wrong_tone |
+     * policy_violation | hallucinated | other) is optional:
      *
-     * A KB correction is opened (and an analysis job enqueued) when:
+     * * down without a reason is accepted — a bare 👎 that only feeds the quality statistics. *
+     * wrong without a reason is stored as factually_wrong.
      *
-     * Scopes: conversations:write.
+     * Scopes: conversations:update.
      *
      * @param  string  $verdict  up | down | wrong
-     * @param  ?string  $reasonCategory  Required for down/wrong: factually_wrong | outdated | incomplete | off_topic | wrong_tone | policy_violation | hallucinated
+     * @param  ?string  $reasonCategory  Why the answer was bad: factually_wrong | outdated | incomplete | off_topic | wrong_tone | policy_violation | hallucinated | other. Optional for 'down' (without it the 👎 is a statistic only; with it a review-only correction is opened). For 'wrong' it defaults to 'factually_wrong'.
      * @param  ?string  $betterAnswer  What the answer should have said
      * @param  list<string>|null  $sourceAttribution  faq_items.id values the rater explicitly blames. Takes full weight with no sharing (ignored for 'up' verdicts).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.

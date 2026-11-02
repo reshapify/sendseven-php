@@ -2,7 +2,7 @@
 
 # Flows
 
-`$sendseven->flows()` — 29 endpoints.
+`$sendseven->flows()` — 33 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -21,11 +21,15 @@
 | [`get()`](#get) | `GET /flows/{flow_id}` | Get Flow |
 | [`update()`](#update) | `PATCH /flows/{flow_id}` | Update Flow |
 | [`duplicate()`](#duplicate) | `POST /flows/{flow_id}/duplicate` | Duplicate Flow |
+| [`listLoopPauses()`](#listlooppauses) | `GET /flows/{flow_id}/loop-pauses` | List Flow Loop Pauses |
+| [`resumeAllLoopPauses()`](#resumealllooppauses) | `POST /flows/{flow_id}/loop-pauses/resume-all` | Resume All Flow Loop Pauses |
+| [`resumeLoopPause()`](#resumelooppause) | `POST /flows/{flow_id}/loop-pauses/{contact_id}/resume` | Resume Flow Loop Pause |
 | [`getObservabilityChannels()`](#getobservabilitychannels) | `GET /flows/{flow_id}/observability/channels` | Get Observability Channels |
 | [`getObservabilityFunnel()`](#getobservabilityfunnel) | `GET /flows/{flow_id}/observability/funnel` | Get Observability Funnel |
 | [`pause()`](#pause) | `POST /flows/{flow_id}/pause` | Pause Flow |
 | [`deletePermanently()`](#deletepermanently) | `DELETE /flows/{flow_id}/permanent` | Delete Flow Permanently |
 | [`publish()`](#publish) | `POST /flows/{flow_id}/publish` | Publish Flow |
+| [`resumeAutoPause()`](#resumeautopause) | `POST /flows/{flow_id}/resume-auto-pause` | Resume Flow Auto Pause |
 | [`listRuns()`](#listruns) | `GET /flows/{flow_id}/runs` | List Flow Runs |
 | [`startRun()`](#startrun) | `POST /flows/{flow_id}/runs` | Start Flow Run |
 | [`getRun()`](#getrun) | `GET /flows/{flow_id}/runs/{run_id}` | Get Flow Run |
@@ -102,15 +106,18 @@ $result = $sendseven->flows()->create(name: 'name', definition: []);
 | `$definition` | `array<string, mixed>` | yes | The full flow graph: trigger + nodes[] + edges[] + entry_node_id. See fl01_create_flows.py migration docstring for the locked JSON shape. Hard-capped at 256 KB JSON-encoded; validated against the structural rules in FlowDefinitionValidator. |
 | `$description` | `?string` | no |  |
 | `$reEntryPolicy` | `?string` | no | How to behave when the same contact is triggered again while a run is already in flight. MVP only enforces block (ignore the new trigger). restart and parallel are scaffolded for Phase 3 UX. |
-| `$defaultLanguage` | `?string` | no | Per-flow fallback language used by the runtime when a contact has no resolvable locale. Typically set by the frontend to the operator's current UI language at create time. Backend defaults to 'en' (DB server_default) if omitted. Must be one of the curated ~40 SUPPORTED_TRANSLATION_LOCALES. |
+| `$defaultLanguage` | `?string` | no | Per-flow fallback language used by the runtime when a contact has no resolvable locale. If omitted it defaults to the workspace language, else the creating user's app language, else 'en' (unsupported stored values are skipped). Must be one of the curated ~40 SUPPORTED_TRANSLATION_LOCALES. |
 | `$manuallyTriggerable` | `?bool` | no | When True, the flow appears in the operator's manual-start picker and accepts POST /flows/{id}/runs requests. Automatically forced True when the trigger kind is manual. |
 | `$autoTranslateMessages` | `?bool` | no | Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language. |
 | `$languageDetectionStrategy` | `?string` | no | How this flow's runs resolve the language they speak to a contact. cascade (the default) resolves per run via the fallback chain (contact locale → inferred channel locale → default_language). fixed always speaks default_language, skipping the cascade. OMIT / null to keep the default — NULL is stored and treated as cascade by the runtime, so existing flows are unaffected. Any value other than cascade / fixed is rejected with 422. |
+| `$addDetectedLanguages` | `?bool` | no | When True (the default), each time a run of this flow switches to a language detected from the contact (a newly detected language, or the contact writing in a different one), that language code is appended to the contact's languages list. The contact's preferred language and its source never change, and neither does the language the run replies in. Default-language and fixed resolutions never add a code. null is treated as True. |
 | `$defaultChannelChain` | `list<array<string, mixed>>\|null` | no | Flow-level channel fallback chain — May 2026 this is the SINGLE source of truth for channel order (per-node channel_chain has been removed; node configs only carry content). Bare channel-type strings (["whatsapp", "live_chat"]) OR {channel_type, channel_id?} objects pinning a specific Channel row. When omitted / NULL on create, the server seeds from the tenant's active channels in a sensible order. A flow with any send/choice/collect_input node MUST have a non-empty chain to validate. |
 | `$stopOnAgentReply` | `?bool` | no | When True (the default), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Bot replies and flow-Send messages do NOT trip the hook — only operator-authored outbound messages do. Set to False for long-running drips whose cadence should be independent of agent activity. |
 | `$stopOnConversationClosed` | `?bool` | no | When True (the default), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Only runs whose recorded context.conversation_id matches the closed conversation are canceled — flows without a recorded conversation are left untouched. Set to False for long-running re-engagement drips that intentionally outlive the original conversation. |
 | `$priority` | `?int` | no | Trigger-arbitration priority among INBOUND-EVENT-triggered (entry) flows. LOWER = higher priority (evaluated FIRST). When multiple entry flows match the same inbound event they start in ascending-priority order. Default 0. Background flows (manual/api_event/schedule) ignore this field. |
 | `$exclusive` | `?bool` | no | When True, while a run of this entry-triggered flow is actively running on a conversation, NO other entry-triggered flow may start on that conversation (background manual/api/schedule flows are exempt). Default False preserves today's fire-all behaviour. |
+| `$exitOnUnsubscribe` | `?string` | no | When an active run of this flow ends because the contact unsubscribed (run cancel reason contact_unsubscribed). Only unsubscribes after the run started count. trigger_list (default): when the contact leaves the list whose subscription started the run; inert for every other trigger. any: on an unsubscribe from any list or a channel-wide opt-out. selected: on an unsubscribe from one of exit_on_unsubscribe_list_ids. off: never. |
+| `$exitOnUnsubscribeListIds` | `list<string>\|null` | no | List ids used when exit_on_unsubscribe is selected (1 to 50 lists of this workspace). Kept as stored for the other modes. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `AppSchemasFlowSchemaFlow`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/create_flow_api_v1_flows_post)
@@ -143,7 +150,7 @@ Stop Flow Run By Run Id. `POST /flows/runs/{run_id}/stop`
 
 Operator-initiated cancel of a flow run, by run_id alone.
 
-Convenience companion to POST /flows/{flow_id}/runs/{run_id}/stop for callers (notably the Conversations UI) that have the run id from the conversation's active_flow_run.run_id but no flow_id. Marks the run canceled, deletes pending waits, emits flow.run.canceled via :class:EventBus. Idempotent — already-terminal runs return their current row unchanged.
+Convenience companion to POST /flows/{flow_id}/runs/{run_id}/stop for callers (notably the Conversations UI) that have the run id from the conversation's active_flow_run.run_id but no flow_id. Marks the run canceled, deletes pending waits and cancels any flows it started and is waiting on (Start Flow node). Idempotent — already-terminal runs return their current row unchanged.
 
 ```php
 $result = $sendseven->flows()->stopRunByRunId(runId: 'run_id');
@@ -259,7 +266,7 @@ Get Flow Variables. `GET /flows/variables`
 
 Return the typed variable catalog used by the Flow Builder's Branch node "match contact field / tag / list / custom field" picker.
 
-Sections:
+custom_fields is filled only when the caller also holds contacts:read (custom-field definitions are gated by it on GET /custom-fields); without it the section is an empty list. tags is filled only with contacts:read or conversations:read (the scopes of GET /tags); without either it is an empty list. Every other section is unchanged.
 
 ```php
 $result = $sendseven->flows()->getVariables();
@@ -319,7 +326,7 @@ Update Flow. `PATCH /flows/{flow_id}`
 
 Update a flow.
 
-All fields optional. When definition is provided the API re-runs save-time structural validation. Editing a published flow is allowed — the engine snapshots definition into flow_runs.context.definition_snapshot at run-start so in-flight runs are isolated from the edit.
+Optimistic concurrency: send the version you last read (body version or header If-Match: "<n>"; the body wins). A stale value returns 409 flow_version_conflict with current_version. Without either, the write is last-write-wins.
 
 ```php
 $result = $sendseven->flows()->update(flowId: 'flow_id');
@@ -339,11 +346,15 @@ $result = $sendseven->flows()->update(flowId: 'flow_id');
 | `$manuallyTriggerable` | `?bool` | no | When True, the flow appears in the operator's manual-start picker and accepts POST /flows/{id}/runs requests. Automatically forced True when the trigger kind is changed to manual; never auto-cleared when the trigger is changed away from manual (operator preference is preserved). |
 | `$autoTranslateMessages` | `?bool` | no | Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language. |
 | `$languageDetectionStrategy` | `?string` | no | How this flow's runs resolve the language (see CreateFlowRequest). cascade \| fixed. Omit on PATCH to preserve the current value; any other value is rejected with 422. Note: because NULL means "cascade", this field cannot be explicitly reset to NULL via PATCH — send "cascade" to restore the default behaviour. |
+| `$addDetectedLanguages` | `?bool` | no | Append languages detected from the contact to the contact's languages list (see CreateFlowRequest). Omit or send null on PATCH to keep the current value. |
 | `$defaultChannelChain` | `list<array<string, mixed>>\|null` | no | Flow-level fallback channel chain — see CreateFlowRequest. Omitting this field on PATCH preserves the existing value; send an explicit empty list to clear it back to "no default" (stored as the empty list, not NULL, when explicitly cleared). |
 | `$stopOnAgentReply` | `?bool` | no | When True (the default for new flows), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Omit on PATCH to preserve the current setting. |
 | `$stopOnConversationClosed` | `?bool` | no | When True (the default for new flows), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Omit on PATCH to preserve the current setting. |
 | `$priority` | `?int` | no | Trigger-arbitration priority among entry flows (LOWER = higher priority, evaluated first). Omit on PATCH to preserve the current value. The bulk reorder endpoint writes this field. |
 | `$exclusive` | `?bool` | no | When True, a running run of this entry flow blocks all OTHER entry flows from starting on the same conversation. Omit on PATCH to preserve the current value. |
+| `$exitOnUnsubscribe` | `?string` | no | When an active run of this flow ends because the contact unsubscribed (run cancel reason contact_unsubscribed). Only unsubscribes after the run started count. trigger_list (default): when the contact leaves the list whose subscription started the run; inert for every other trigger. any: on an unsubscribe from any list or a channel-wide opt-out. selected: on an unsubscribe from one of exit_on_unsubscribe_list_ids. off: never. Omit on PATCH to preserve the current value. |
+| `$exitOnUnsubscribeListIds` | `list<string>\|null` | no | List ids used when exit_on_unsubscribe is selected (1 to 50 lists of this workspace). Kept as stored for the other modes. Omit on PATCH to preserve the current value. |
+| `$version` | `?int` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `AppSchemasFlowSchemaFlow`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/update_flow_api_v1_flows__flow_id__patch)
@@ -369,6 +380,72 @@ $result = $sendseven->flows()->duplicate(flowId: 'flow_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `AppSchemasFlowSchemaFlow`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/duplicate_flow_api_v1_flows__flow_id__duplicate_post)
+
+## listLoopPauses
+
+List Flow Loop Pauses. `GET /flows/{flow_id}/loop-pauses`
+
+List the contacts this flow is (or was) paused for by loop protection.
+
+contact_name is filled only when the caller ALSO holds contacts:read (otherwise null).
+
+```php
+$result = $sendseven->flows()->listLoopPauses(flowId: 'flow_id');
+```
+
+- Scopes: `flows:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$flowId` | `string` | yes |  |
+| `$status` | `?string` | no | active (default), resumed or all. |
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `Page<FlowLoopPause>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/list_flow_loop_pauses_api_v1_flows__flow_id__loop_pauses_get)
+
+## resumeAllLoopPauses
+
+Resume All Flow Loop Pauses. `POST /flows/{flow_id}/loop-pauses/resume-all`
+
+Resume the flow for every contact it is currently loop-paused for.
+
+Also resets those contacts' loop counters. Does not change the flow's own status (see POST /flows/{flow_id}/resume-auto-pause).
+
+```php
+$result = $sendseven->flows()->resumeAllLoopPauses(flowId: 'flow_id');
+```
+
+- Scopes: `flows:write`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$flowId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ResumeAllLoopPauses`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/resume_all_flow_loop_pauses_api_v1_flows__flow_id__loop_pauses_resume_all_post)
+
+## resumeLoopPause
+
+Resume Flow Loop Pause. `POST /flows/{flow_id}/loop-pauses/{contact_id}/resume`
+
+Resume the flow for one loop-paused contact (idempotent).
+
+Marks the pause resumed, records who resumed it and resets the contact's loop counter so the flow can start for this contact again. 404 when the flow was never paused for this contact.
+
+```php
+$result = $sendseven->flows()->resumeLoopPause(flowId: 'flow_id', contactId: 'contact_id');
+```
+
+- Scopes: `flows:write`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$flowId` | `string` | yes |  |
+| `$contactId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `FlowLoopPause`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/resume_flow_loop_pause_api_v1_flows__flow_id__loop_pauses__contact_id__resume_post)
 
 ## getObservabilityChannels
 
@@ -476,6 +553,28 @@ $result = $sendseven->flows()->publish(flowId: 'flow_id');
 
 Returns `AppSchemasFlowSchemaFlow`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/publish_flow_api_v1_flows__flow_id__publish_post)
 
+## resumeAutoPause
+
+Resume Flow Auto Pause. `POST /flows/{flow_id}/resume-auto-pause`
+
+Undo a whole-flow pause made by loop protection.
+
+Clears auto_paused_at / auto_pause_reason / auto_pause_details and sets the flow back to published (only when it is still paused). With resume_contacts: true every contact the flow is loop-paused for is resumed too. A manually paused flow is never touched: 409 flow_not_auto_paused.
+
+```php
+$result = $sendseven->flows()->resumeAutoPause(flowId: 'flow_id');
+```
+
+- Scopes: `flows:publish`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$flowId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `AppSchemasFlowSchemaFlow`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/resume_flow_auto_pause_api_v1_flows__flow_id__resume_auto_pause_post)
+
 ## listRuns
 
 List Flow Runs. `GET /flows/{flow_id}/runs`
@@ -519,6 +618,9 @@ $result = $sendseven->flows()->startRun(flowId: 'flow_id', contactId: 'contact_i
 | `$idempotencyKey` | `?string` | no | Optional caller-supplied idempotency key for at-most-once start semantics. If a run with the same (tenant_id, idempotency_key) already exists, the existing run is returned with HTTP 200 instead of creating a new one. If omitted, the engine derives a key from the request payload (e.g. manual:<flow_id>:<contact_id>:<request_id>). |
 | `$context` | `array<string, mixed>\|null` | no | Extra variables to seed flow_runs.context.vars. Hard-capped at 16 KB JSON-encoded. |
 | `$contactMethodOverrides` | `array<string, mixed>\|null` | no | Optional map of ChannelType (string value, e.g. email, sms, whatsapp, telegram, messenger, instagram, browser_push) → contact_method.id. When the flow sends on the matching channel, this specific contact_method's value is used as the destination instead of the contact's primary method. Per-channel keys are independent; omitted channels fall back to the default (primary) resolution. Each referenced contact_method must belong to the same tenant, the same contact, and have a method_type that matches the channel key. |
+| `$channelId` | `?string` | no | Optional channel the run is started on (an active channel of this workspace). It becomes the run's originating/current channel: Send steps prefer it (when the flow prefers the originating channel) and Tag & Update entries scoped to the "current channel" use it. |
+| `$contactMethodId` | `?string` | no | Optional contact method (of this contact) the run is started with. With channel_id it must be able to address that channel, and it is also applied as the contact_method_overrides pin for that channel type unless one was given explicitly. |
+| `$conversationId` | `?string` | no | Optional conversation (of this contact) the run is started from, e.g. "Run flow" in the inbox. Marks the run's origin only, so the conversation shows it as running; it does not bind the run to the conversation. |
 | `$idempotencyKeyIdempotency` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `FlowRun`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Flows/start_flow_run_api_v1_flows__flow_id__runs_post)
@@ -615,7 +717,7 @@ Stop Flow Run. `POST /flows/{flow_id}/runs/{run_id}/stop`
 
 Operator-initiated cancel of a flow run.
 
-Marks the run canceled, deletes pending waits, emits flow.run.canceled webhook. Idempotent — already-terminal runs return their current row unchanged.
+Marks the run canceled, deletes pending waits and cancels any flows it started and is waiting on (Start Flow node). Idempotent — already-terminal runs return their current row unchanged.
 
 ```php
 $result = $sendseven->flows()->stopRun(flowId: 'flow_id', runId: 'run_id');

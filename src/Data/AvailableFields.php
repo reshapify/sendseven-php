@@ -17,7 +17,7 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AvailableFields extends Data
 {
     /**
-     * @param  list<mixed>  $fields  Available fields for variable mapping
+     * @param  list<mixed>  $fields  Field paths a template variable can be mapped to, each ``{value, label, example, group}``. ``group``: contact | custom_field | workspace | agent. Exactly the paths the send-time resolver understands; ``agent.*`` is the sending team member and is empty for API-key sends.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

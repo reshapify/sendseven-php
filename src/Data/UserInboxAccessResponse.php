@@ -20,12 +20,14 @@ final readonly class UserInboxAccessResponse extends Data
 {
     /**
      * @param  list<string>  $inboxIds
+     * @param  list<string>  $ruleLessInboxNames
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $mode,
         public array $inboxIds,
         public ?string $contactHistoryVisibility,
+        public array $ruleLessInboxNames,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,6 +44,7 @@ final readonly class UserInboxAccessResponse extends Data
             mode: $attributes->string('mode'),
             inboxIds: $attributes->strings('inbox_ids'),
             contactHistoryVisibility: $attributes->nullableString('contact_history_visibility'),
+            ruleLessInboxNames: $attributes->strings('rule_less_inbox_names'),
             raw: $data,
         );
     }

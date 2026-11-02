@@ -176,7 +176,8 @@ final readonly class RolesPermissions
      * Remove a role from a user
      *
      * Security: Users cannot remove their own system or owner roles. Also prevents removing the last
-     * owner from a tenant.
+     * permanent owner from a tenant (expired or time-limited Support Login Owner grants do not count).
+     * You can only remove a role whose scopes you hold yourself (same ceiling as assigning it).
      *
      * Scopes: team:update.
      *
@@ -367,7 +368,8 @@ final readonly class RolesPermissions
      *
      * Delete custom role.
      *
-     * System roles cannot be deleted. Users with this role will lose these permissions.
+     * System roles cannot be deleted. A role assigned to users, or one that a pending or expired
+     * invitation would grant on accept, cannot be deleted (409).
      *
      * Scopes: team:admin.
      *
@@ -472,8 +474,8 @@ final readonly class RolesPermissions
      *
      * Remove scope from a custom role.
      *
-     * System roles cannot be modified. Detaching account:billing_read requires the billing-account
-     * owner.
+     * System roles cannot be modified. You can only remove a scope you hold yourself (same ceiling as
+     * adding one). Detaching account:billing_read requires the billing-account owner.
      *
      * Scopes: team:admin.
      *

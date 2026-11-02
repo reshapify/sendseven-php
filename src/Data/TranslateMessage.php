@@ -24,6 +24,7 @@ final readonly class TranslateMessage extends Data
         public string $translated,
         public string $language,
         public string $messageId,
+        public ?bool $truncated,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,6 +42,7 @@ final readonly class TranslateMessage extends Data
             translated: $attributes->string('translated'),
             language: $attributes->string('language'),
             messageId: $attributes->string('message_id'),
+            truncated: $attributes->nullableBool('truncated'),
             raw: $data,
         );
     }

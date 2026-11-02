@@ -10,6 +10,7 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\BulkActionExecute;
 use Reshapify\SendSeven\Data\BulkActionPreview;
 use Reshapify\SendSeven\Data\BulkActionStatus;
+use Reshapify\SendSeven\Data\BulkActionUndo;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
 use Reshapify\SendSeven\Http\Method;
@@ -17,7 +18,7 @@ use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Contact Bulk Actions: 4 endpoints.
+ * Contact Bulk Actions: 5 endpoints.
  *
  * Reach it with $sendseven->contactBulkActions().
  *
@@ -61,12 +62,14 @@ final readonly class ContactBulkActions
      * Requires the confirmation_token from /contacts/bulk-actions/preview together with the IDENTICAL
      * selection + actions. Errors:
      *
-     * - 400 {"detail": {"code": "TOKEN_INVALID" | "TOKEN_EXPIRED", ...}} — malformed/forged/expired
-     * token, or token minted for another tenant/user. - 409 {"detail": {"code": "PAYLOAD_MISMATCH",
-     * ...}} — the submitted selection/actions differ from what was previewed. - 409 {"detail":
-     * {"code": "AFFECTED_COUNT_DRIFT", "affected_count": N, ...}} — the match count changed since
-     * preview (any difference when the previewed count was < 100, otherwise more than ±2%).
-     * Re-preview and confirm again with the new count.
+     * - 403 {"detail": {"code": "FILTER_REQUIRES_CONTACTS_READ", ...}} — the filter uses search or a
+     * custom_field_* parameter and the caller lacks contacts:read. - 400 {"detail": {"code":
+     * "TOKEN_INVALID" | "TOKEN_EXPIRED", ...}} — malformed/forged/expired token, or token minted for
+     * another tenant/user. - 409 {"detail": {"code": "PAYLOAD_MISMATCH", ...}} — the submitted
+     * selection/actions differ from what was previewed. - 409 {"detail": {"code":
+     * "AFFECTED_COUNT_DRIFT", "affected_count": N, ...}} — the match count changed since preview
+     * (any difference when the previewed count was < 100, otherwise more than ±2%). Re-preview and
+     * confirm again with the new count.
      *
      * Scopes: contacts:update.
      *
@@ -112,8 +115,8 @@ final readonly class ContactBulkActions
      *
      * Selection modes: - {"mode": "ids", "ids": [...]} — explicit contact ids (max 10000). -
      * {"mode": "filter", "filter": {...}} — same params as GET /contacts (search, include_live_chat,
-     * custom_field_id/value/value_to/op, list_id +
-     * list_subscription_status/list_subscription_channel); {} targets ALL contacts.
+     * custom_field_id/value/value_to/op, list_id + list_subscription_status/list_subscription_channel,
+     * is_blocked, owner_user_id = user id | me | none); {} targets ALL contacts.
      *
      * Scopes: contacts:update.
      *
@@ -162,5 +165,36 @@ final readonly class ContactBulkActions
         ));
 
         return BulkActionStatus::fromArray($response->data());
+    }
+
+    /**
+     * Undo Bulk Action.
+     *
+     * Undo a completed contact bulk action that only set the contact owner.
+     *
+     * Restores each contact's previous owner, but only where the owner is still the one the bulk
+     * action set (a later change wins) and the previous owner is still an active member. Conversations
+     * already handed to the new owner stay assigned. 404 unknown run; 422 not_undoable for runs that
+     * contain other action types, are not completed or were already undone. Members limited to Custom
+     * Inboxes only undo contacts they can edit; the others are counted as skipped. The owner-change
+     * history names the user who undid it.
+     *
+     * Scopes: contacts:update.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Contact%20Bulk%20Actions/undo_bulk_action_api_v1_contacts_bulk_actions__bulk_action_id__undo_post
+     */
+    public function undo(string $bulkActionId, ?string $idempotencyKey = null): BulkActionUndo
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/contacts/bulk-actions/'.Payload::segment($bulkActionId).'/undo',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return BulkActionUndo::fromArray($response->data());
     }
 }

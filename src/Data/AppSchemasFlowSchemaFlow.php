@@ -19,6 +19,8 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
     /**
      * @param  array<array-key, mixed>  $definition
      * @param  list<mixed>  $defaultChannelChain
+     * @param  list<string>  $exitOnUnsubscribeListIds
+     * @param  array<array-key, mixed>  $autoPauseDetails
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,16 +36,24 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
         public ?bool $manuallyTriggerable,
         public ?bool $autoTranslateMessages,
         public ?string $languageDetectionStrategy,
+        public ?bool $addDetectedLanguages,
         public array $defaultChannelChain,
         public ?bool $stopOnAgentReply,
         public ?bool $stopOnConversationClosed,
         public ?int $priority,
         public ?bool $exclusive,
+        public ?string $exitOnUnsubscribe,
+        public array $exitOnUnsubscribeListIds,
+        public ?int $version,
         public ?string $createdByUserId,
         public string $createdAt,
         public string $updatedAt,
         public ?FlowValidationStatus $validation,
         public ?int $runCount,
+        public ?string $autoPausedAt,
+        public ?string $autoPauseReason,
+        public array $autoPauseDetails,
+        public ?int $activeLoopPauseCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -69,16 +79,24 @@ final readonly class AppSchemasFlowSchemaFlow extends Data
             manuallyTriggerable: $attributes->nullableBool('manually_triggerable'),
             autoTranslateMessages: $attributes->nullableBool('auto_translate_messages'),
             languageDetectionStrategy: $attributes->nullableString('language_detection_strategy'),
+            addDetectedLanguages: $attributes->nullableBool('add_detected_languages'),
             defaultChannelChain: array_values($attributes->array('default_channel_chain')),
             stopOnAgentReply: $attributes->nullableBool('stop_on_agent_reply'),
             stopOnConversationClosed: $attributes->nullableBool('stop_on_conversation_closed'),
             priority: $attributes->nullableInt('priority'),
             exclusive: $attributes->nullableBool('exclusive'),
+            exitOnUnsubscribe: $attributes->nullableString('exit_on_unsubscribe'),
+            exitOnUnsubscribeListIds: $attributes->strings('exit_on_unsubscribe_list_ids'),
+            version: $attributes->nullableInt('version'),
             createdByUserId: $attributes->nullableString('created_by_user_id'),
             createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             validation: $attributes->nullableObject('validation', FlowValidationStatus::fromArray(...)),
             runCount: $attributes->nullableInt('run_count'),
+            autoPausedAt: $attributes->nullableString('auto_paused_at'),
+            autoPauseReason: $attributes->nullableString('auto_pause_reason'),
+            autoPauseDetails: $attributes->array('auto_pause_details'),
+            activeLoopPauseCount: $attributes->nullableInt('active_loop_pause_count'),
             raw: $data,
         );
     }

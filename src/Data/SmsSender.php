@@ -17,8 +17,8 @@ use Reshapify\SendSeven\Support\Attributes;
  * excludes Channel.config because it holds API tokens, secrets and credentials that must NEVER be
  * returned via the API. This schema exists so the frontend can see the few non-secret SMS facts it
  * needs (sender_type, mode, msisdn_or_alpha) WITHOUT that ban being relaxed. Every field below is
- * named explicitly — the endpoint never dumps config, and in particular never exposes
- * seven_io_subaccount_id. Do not add a passthrough field.
+ * named explicitly — the endpoint never dumps config, and in particular never exposes the
+ * provider subaccount id. Do not add a passthrough field.
  *
  * @see https://api.sendseven.com/api/v1/docs (schema SmsSenderResponse)
  */
@@ -29,7 +29,7 @@ final readonly class SmsSender extends Data
      * @param  string  $name  Human-readable sender name (Channel.name)
      * @param  string  $senderType  dedicated | verified_own | alphanumeric | shared_pool
      * @param  string  $mode  Operating mode. Legacy rows without config.mode default to send_and_receive; alphanumeric senders are always send_only.
-     * @param  ?string  $msisdnOrAlpha  The MSISDN or alphanumeric sender id. null for shared_pool — seven.io picks a pool number per send.
+     * @param  ?string  $msisdnOrAlpha  The MSISDN or alphanumeric sender id. null for shared_pool — the provider picks a pool number per send.
      * @param  bool  $canReceive  True iff replies route back into a conversation. False for alphanumeric and for shared_pool in send_only mode.
      * @param  ?string  $inboundSmsRateEur  The tenant's per-SMS rate in EUR from their pricing model (cost_message_sms, falling back to cost_message). Populated only when can_receive is true — a routed inbound reply is billed as an ordinary SMS at this rate, NOT as a separate surcharge. null when the sender cannot receive or the rate cannot be resolved.
      * @param  bool  $isActive  False for archived / disabled senders

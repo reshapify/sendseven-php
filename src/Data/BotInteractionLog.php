@@ -19,6 +19,8 @@ final readonly class BotInteractionLog extends Data
 {
     /**
      * @param  list<mixed>  $kbSourcesUsed
+     * @param  ?int  $inputTokens  Deprecated, always null. AI usage is billed in AI credits; see GET /billing/ai-usage for credits per AI action.
+     * @param  ?int  $outputTokens  Deprecated, always null. AI usage is billed in AI credits; see GET /billing/ai-usage for credits per AI action.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

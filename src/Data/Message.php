@@ -37,6 +37,7 @@ final readonly class Message extends Data
      * @param  ?string  $headerMediaAttachmentId  Durable attachment id for an interactive image/video header
      * @param  ?string  $replyToExternalId  Platform message ID of quoted message
      * @param  ?QuotedMessage  $quotedMessage  Preview of the quoted message
+     * @param  ?string  $errorCode  Machine-readable failure code for failed messages, e.g. 'contact_blocked' (the contact is blocked) or a provider error code.
      * @param  ?CampaignInfo  $campaign  Campaign info when this message was sent via a campaign/newsletter
      * @param  ?string  $flowRunId  FlowRun UUID — set when this message was sent by an automation flow. Frontends use this (together with `flow_name`) to render a 'Sent by flow' badge in the conversation timeline.
      * @param  ?string  $flowStepId  FlowRunStep UUID — identifies the specific Send-node step inside the flow that produced this message. Optional companion to `flow_run_id`.
@@ -78,6 +79,7 @@ final readonly class Message extends Data
         public ?string $readAt,
         public ?bool $isInternal,
         public ?string $errorMessage,
+        public ?string $errorCode,
         public ?CampaignInfo $campaign,
         public ?string $flowRunId,
         public ?string $flowStepId,
@@ -129,6 +131,7 @@ final readonly class Message extends Data
             readAt: $attributes->nullableString('read_at'),
             isInternal: $attributes->nullableBool('is_internal'),
             errorMessage: $attributes->nullableString('error_message'),
+            errorCode: $attributes->nullableString('error_code'),
             campaign: $attributes->nullableObject('campaign', CampaignInfo::fromArray(...)),
             flowRunId: $attributes->nullableString('flow_run_id'),
             flowStepId: $attributes->nullableString('flow_step_id'),

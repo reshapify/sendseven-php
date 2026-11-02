@@ -15,23 +15,23 @@
 
 Search Similar Tickets For Conversation. `POST /conversations/{conversation_id}/search-similar-tickets`
 
-Search for similar tickets using the current conversation context.
+Retired. Always returns 410 Gone.
 
-Automatically builds the query from the conversation, then searches ONLY the ticket-summary folders (documents would otherwise crowd out ticket matches).
+Similar ticket search was retired in October 2026 (conversation summaries are no longer indexed for search). Summaries are still stored on each conversation; list them with GET /api/v1/knowledge-base/tickets.
 
 ```php
-$result = $sendseven->agentSuggestions()->searchSimilarTicketsForConversation(conversationId: 'conversation_id');
+$sendseven->agentSuggestions()->searchSimilarTicketsForConversation(conversationId: 'conversation_id');
 ```
 
 - Scopes: `conversations:read`
+- **Deprecated** by SendSeven
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$conversationId` | `string` | yes |  |
-| `$body` | `array<string, mixed>\|null` | no | The request body |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
-Returns `SimilarTickets`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Agent%20Suggestions/search_similar_tickets_for_conversation_api_v1_conversations__conversation_id__search_similar_tickets_post)
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Agent%20Suggestions/search_similar_tickets_for_conversation_api_v1_conversations__conversation_id__search_similar_tickets_post)
 
 ## get
 

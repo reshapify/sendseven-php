@@ -28,6 +28,8 @@ List all active (non-archived) email provider configurations for the tenant
 $result = $sendseven->emailProviders()->list();
 ```
 
+- Scopes: `settings:read`, `campaigns:read`, `widgets:read`
+
 Returns `list<EmailProviderConfig>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Providers/list_providers_api_v1_email_providers_get)
 
 ## create
@@ -36,15 +38,17 @@ Create Provider. `POST /email-providers`
 
 Create a new email provider configuration
 
-- Encrypts API key before storage - If set as default, removes default flag from other providers - Validates provider configuration
+the workspace's DOI / transcript / system-to-contact mail).
 
 ```php
 $result = $sendseven->emailProviders()->create(providerType: 'provider_type', name: 'name', apiKey: 'api_key');
 ```
 
+- Scopes: `settings:update`
+
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$providerType` | `ProviderType\|string` | yes | Provider type (sendgrid, mailgun) |
+| `$providerType` | `CreatableProviderType\|string` | yes | Provider type (sendgrid, mailgun) |
 | `$name` | `string` | yes | User-friendly name |
 | `$apiKey` | `string` | yes | API key for provider |
 | `$config` | `array<string, mixed>\|null` | no | Provider-specific settings |
@@ -146,6 +150,8 @@ Auto-configure SendGrid event webhooks via API
 $result = $sendseven->emailProviders()->configureWebhooks(providerId: 'provider_id');
 ```
 
+- Scopes: `settings:update`
+
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$providerId` | `string` | yes |  |
@@ -164,6 +170,8 @@ Fetches current verified domains and updates provider config. Supports SendGrid 
 ```php
 $result = $sendseven->emailProviders()->refreshVerifiedDomains(providerId: 'provider_id');
 ```
+
+- Scopes: `settings:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -199,11 +207,13 @@ Test Provider. `POST /email-providers/{provider_id}/test`
 
 Send a test email to verify provider configuration
 
-- Validates API credentials by actually sending an email - Returns success/failure status and provider message ID
+workspace). The body is HTML-escaped (plain text only).
 
 ```php
 $result = $sendseven->emailProviders()->test(providerId: 'provider_id', toEmail: 'to_email');
 ```
+
+- Scopes: `settings:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|

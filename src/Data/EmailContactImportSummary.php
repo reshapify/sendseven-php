@@ -33,6 +33,18 @@ final readonly class EmailContactImportSummary extends Data
      * @param  ?int  $matchedByContactMethod  Rows matched to an existing contact by email/phone/whatsapp_id and updated in place (duplicate_mode=update_existing).
      * @param  ?int  $unknownContactIdRows  Rows carrying a contact_id UUID that does not exist in this workspace. These rows are ERRORS (listed in errors[]) and never create a contact.
      * @param  array<array-key, mixed>  $postActions  Result of the optional post-import actions (apply_tag_ids / apply_custom_field), e.g. {"tagged_contacts": 12, "custom_field_set_contacts": 12, "tag_ids": [...], "field_id": "..."}. Null when no action was requested.
+     * @param  ?int  $skippedCount  Rows intentionally not written (duplicates, blocked, not accessible)
+     * @param  list<ImportRowIssue>  $rowErrors  Row-level errors (capped at 2000)
+     * @param  list<ImportRowIssue>  $rowWarnings  Row-level warnings: row written, something not applied (capped at 2000)
+     * @param  ?int  $identifierConflictsCount  identifier_owned_by_other_contact issues (uncapped): an identifier already belonged to another contact and was NOT moved
+     * @param  ?int  $tagsApplied  Contact-tag links inserted by this import
+     * @param  list<string>  $tagsCreated  Names of tags this import created
+     * @param  list<ImportSubscriptionTargetResult>  $subscriptionsByTarget
+     * @param  list<ImportPhaseProgress>  $phases  Final state of every import phase
+     * @param  ?bool  $cancelled  True when the import was stopped on request
+     * @param  ?int  $notProcessedRows  Rows never reached because the import was stopped
+     * @param  ?string  $matchPriority  Identifier tried FIRST when matching rows to existing contacts: email | phone | whatsapp_id (after the contact_id column). Null for imports from older backends (they matched email first).
+     * @param  ?bool  $orphaned  True when the import was interrupted (server restart) and ended without finishing; counts are what was saved before that.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -52,6 +64,22 @@ final readonly class EmailContactImportSummary extends Data
         public ?int $matchedByContactMethod,
         public ?int $unknownContactIdRows,
         public array $postActions,
+        public ?int $skippedCount,
+        public array $rowErrors,
+        public ?bool $rowErrorsTruncated,
+        public array $rowWarnings,
+        public ?bool $rowWarningsTruncated,
+        public ?int $identifierConflictsCount,
+        public ?int $tagsApplied,
+        public array $tagsCreated,
+        public ?int $customFieldValuesWritten,
+        public array $subscriptionsByTarget,
+        public array $phases,
+        public ?ImportLiveCounts $liveCounts,
+        public ?bool $cancelled,
+        public ?int $notProcessedRows,
+        public ?string $matchPriority,
+        public ?bool $orphaned,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -81,6 +109,22 @@ final readonly class EmailContactImportSummary extends Data
             matchedByContactMethod: $attributes->nullableInt('matched_by_contact_method'),
             unknownContactIdRows: $attributes->nullableInt('unknown_contact_id_rows'),
             postActions: $attributes->array('post_actions'),
+            skippedCount: $attributes->nullableInt('skipped_count'),
+            rowErrors: $attributes->list('row_errors', ImportRowIssue::fromArray(...)),
+            rowErrorsTruncated: $attributes->nullableBool('row_errors_truncated'),
+            rowWarnings: $attributes->list('row_warnings', ImportRowIssue::fromArray(...)),
+            rowWarningsTruncated: $attributes->nullableBool('row_warnings_truncated'),
+            identifierConflictsCount: $attributes->nullableInt('identifier_conflicts_count'),
+            tagsApplied: $attributes->nullableInt('tags_applied'),
+            tagsCreated: $attributes->strings('tags_created'),
+            customFieldValuesWritten: $attributes->nullableInt('custom_field_values_written'),
+            subscriptionsByTarget: $attributes->list('subscriptions_by_target', ImportSubscriptionTargetResult::fromArray(...)),
+            phases: $attributes->list('phases', ImportPhaseProgress::fromArray(...)),
+            liveCounts: $attributes->nullableObject('live_counts', ImportLiveCounts::fromArray(...)),
+            cancelled: $attributes->nullableBool('cancelled'),
+            notProcessedRows: $attributes->nullableInt('not_processed_rows'),
+            matchPriority: $attributes->nullableString('match_priority'),
+            orphaned: $attributes->nullableBool('orphaned'),
             raw: $data,
         );
     }

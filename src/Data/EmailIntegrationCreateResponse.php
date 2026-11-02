@@ -11,14 +11,13 @@ use DateTimeImmutable;
 use Reshapify\SendSeven\Support\Attributes;
 
 /**
- * Response for create integration - includes DNS records for SES
+ * Response for create integration
  *
  * @see https://api.sendseven.com/api/v1/docs (schema EmailIntegrationCreateResponse)
  */
 final readonly class EmailIntegrationCreateResponse extends Data
 {
     /**
-     * @param  list<SesSetupDnsRecord>  $dnsRecords
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -30,13 +29,10 @@ final readonly class EmailIntegrationCreateResponse extends Data
         public string $integrationType,
         public bool $isActive,
         public string $connectionStatus,
-        public ?string $sesTenantName,
-        public ?string $sesConfigurationSet,
-        public ?string $sesDomain,
-        public ?string $sesReputationPolicy,
-        public ?string $dnsVerificationStatus,
-        public array $dnsRecords,
-        public ?string $setupMessage,
+        public ?int $initialSyncHours,
+        public ?bool $imapMarkAsRead,
+        public ?bool $imapSyncSentFolder,
+        public ?bool $imapDeleteOnOrigin,
         public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
@@ -59,13 +55,10 @@ final readonly class EmailIntegrationCreateResponse extends Data
             integrationType: $attributes->string('integration_type'),
             isActive: $attributes->bool('is_active'),
             connectionStatus: $attributes->string('connection_status'),
-            sesTenantName: $attributes->nullableString('ses_tenant_name'),
-            sesConfigurationSet: $attributes->nullableString('ses_configuration_set'),
-            sesDomain: $attributes->nullableString('ses_domain'),
-            sesReputationPolicy: $attributes->nullableString('ses_reputation_policy'),
-            dnsVerificationStatus: $attributes->nullableString('dns_verification_status'),
-            dnsRecords: $attributes->list('dns_records', SesSetupDnsRecord::fromArray(...)),
-            setupMessage: $attributes->nullableString('setup_message'),
+            initialSyncHours: $attributes->nullableInt('initial_sync_hours'),
+            imapMarkAsRead: $attributes->nullableBool('imap_mark_as_read'),
+            imapSyncSentFolder: $attributes->nullableBool('imap_sync_sent_folder'),
+            imapDeleteOnOrigin: $attributes->nullableBool('imap_delete_on_origin'),
             createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );

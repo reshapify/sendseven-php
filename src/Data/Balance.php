@@ -24,6 +24,13 @@ final readonly class Balance extends Data
     /**
      * @param  string  $lowBalanceWarnEur  Effective low-balance warning threshold in EUR: the per-workspace override when set, otherwise the platform default.
      * @param  ?bool  $lowBalanceWarnIsDefault  True when no per-workspace override is set (platform default applies).
+     * @param  ?int  $pendingTransferCents  Credit (net, cents) from already-paid top-ups that is still on its way to the SMS balance. 0 when everything has landed.
+     * @param  ?bool  $autoTopupAvailable  False while auto-top-up is switched off platform-wide (it cannot be enabled).
+     * @param  ?bool  $autoTopupHasPaymentMethod  True when a card for auto-top-up is saved on this workspace.
+     * @param  ?AutoTopupAttemptSummary  $autoTopupLastAttempt  The most recent automatic top-up attempt, if any.
+     * @param  ?int  $autoTopupMinAmountCents  Smallest allowed auto-top-up amount (net, cents).
+     * @param  ?int  $autoTopupMaxAmountCents  Largest allowed auto-top-up amount (net, cents). The threshold must also stay below the amount.
+     * @param  ?bool  $autoTopupCanEdit  True when the caller may change the auto-top-up settings (requires the billing:update scope). When False, show them read-only.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,6 +41,13 @@ final readonly class Balance extends Data
         public ?DateTimeImmutable $lastCheckedAt,
         public string $lowBalanceWarnEur,
         public ?bool $lowBalanceWarnIsDefault,
+        public ?int $pendingTransferCents,
+        public ?bool $autoTopupAvailable,
+        public ?bool $autoTopupHasPaymentMethod,
+        public ?AutoTopupAttemptSummary $autoTopupLastAttempt,
+        public ?int $autoTopupMinAmountCents,
+        public ?int $autoTopupMaxAmountCents,
+        public ?bool $autoTopupCanEdit,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,6 +68,13 @@ final readonly class Balance extends Data
             lastCheckedAt: $attributes->nullableDateTime('last_checked_at'),
             lowBalanceWarnEur: $attributes->string('low_balance_warn_eur'),
             lowBalanceWarnIsDefault: $attributes->nullableBool('low_balance_warn_is_default'),
+            pendingTransferCents: $attributes->nullableInt('pending_transfer_cents'),
+            autoTopupAvailable: $attributes->nullableBool('auto_topup_available'),
+            autoTopupHasPaymentMethod: $attributes->nullableBool('auto_topup_has_payment_method'),
+            autoTopupLastAttempt: $attributes->nullableObject('auto_topup_last_attempt', AutoTopupAttemptSummary::fromArray(...)),
+            autoTopupMinAmountCents: $attributes->nullableInt('auto_topup_min_amount_cents'),
+            autoTopupMaxAmountCents: $attributes->nullableInt('auto_topup_max_amount_cents'),
+            autoTopupCanEdit: $attributes->nullableBool('auto_topup_can_edit'),
             raw: $data,
         );
     }

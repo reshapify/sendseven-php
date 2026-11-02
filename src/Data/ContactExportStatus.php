@@ -26,8 +26,11 @@ final readonly class ContactExportStatus extends Data
      * @param  ?string  $filename  Download filename; present once status == completed
      * @param  ?int  $totalContacts  Contacts in the finished file; present when completed
      * @param  list<string>  $columns  Ordered export column headers; present when completed
-     * @param  ?string  $downloadUrl  Relative download URL (302 to a signed URL); present when completed
-     * @param  ?string  $errorMessage  Present when status == failed
+     * @param  ?string  $downloadUrl  Relative download URL (302 to a signed URL); present when completed and not expired
+     * @param  ?bool  $expired  true once the export file was deleted (7 days after completion); the download endpoint then returns 410 Gone
+     * @param  ?string  $expiresAt  When the export file is deleted (ISO 8601 UTC); present when completed
+     * @param  ?string  $errorMessage  Present when status == failed. Generic, customer-safe text ('Export failed. Please try again.'); never internal error detail.
+     * @param  ?string  $errorCode  Stable machine-readable code when status == failed: `export_failed`.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -42,7 +45,10 @@ final readonly class ContactExportStatus extends Data
         public ?int $totalContacts,
         public array $columns,
         public ?string $downloadUrl,
+        public ?bool $expired,
+        public ?string $expiresAt,
         public ?string $errorMessage,
+        public ?string $errorCode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -67,7 +73,10 @@ final readonly class ContactExportStatus extends Data
             totalContacts: $attributes->nullableInt('total_contacts'),
             columns: $attributes->strings('columns'),
             downloadUrl: $attributes->nullableString('download_url'),
+            expired: $attributes->nullableBool('expired'),
+            expiresAt: $attributes->nullableString('expires_at'),
             errorMessage: $attributes->nullableString('error_message'),
+            errorCode: $attributes->nullableString('error_code'),
             raw: $data,
         );
     }

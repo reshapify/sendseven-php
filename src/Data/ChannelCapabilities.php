@@ -19,6 +19,7 @@ final readonly class ChannelCapabilities extends Data
     /**
      * @param  array<array-key, mixed>  $reactions
      * @param  array<array-key, mixed>  $reply
+     * @param  ?SenderActionSupportInfo  $senderActions  Which sender actions (read receipts, typing indicators) this channel supports.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -28,6 +29,7 @@ final readonly class ChannelCapabilities extends Data
         public ChannelFeatures $features,
         public array $reactions,
         public array $reply,
+        public ?SenderActionSupportInfo $senderActions,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,6 +49,7 @@ final readonly class ChannelCapabilities extends Data
             features: $attributes->object('features', ChannelFeatures::fromArray(...)),
             reactions: $attributes->array('reactions'),
             reply: $attributes->array('reply'),
+            senderActions: $attributes->nullableObject('sender_actions', SenderActionSupportInfo::fromArray(...)),
             raw: $data,
         );
     }

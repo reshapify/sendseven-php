@@ -24,6 +24,7 @@ final readonly class SignatureTemplate extends Data
      * @param  ?string  $createdByUserId  User who created the template
      * @param  string  $createdAt  When the template was created
      * @param  string  $updatedAt  When the template was last updated
+     * @param  ?string  $contentMode  Signature editing mode: `rich` or `html`
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,6 +35,7 @@ final readonly class SignatureTemplate extends Data
         public ?string $createdByUserId,
         public string $createdAt,
         public string $updatedAt,
+        public ?string $contentMode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,6 +56,7 @@ final readonly class SignatureTemplate extends Data
             createdByUserId: $attributes->nullableString('created_by_user_id'),
             createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
+            contentMode: $attributes->nullableString('content_mode'),
             raw: $data,
         );
     }
