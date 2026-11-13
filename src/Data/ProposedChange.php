@@ -17,8 +17,8 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ProposedChange extends Data
 {
     /**
-     * @param  string  $action  update_entry | delete_entry | create_entry | flag_document
-     * @param  ?string  $targetType  faq_item | document
+     * @param  string  $action  update_entry | delete_entry | create_entry | flag_document | append_bot_rule
+     * @param  ?string  $targetType  faq_item | document | bot
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -28,6 +28,10 @@ final readonly class ProposedChange extends Data
         public ?string $currentText,
         public ?string $proposedText,
         public ?string $rationale,
+        public ?bool $applied,
+        public ?string $blockedReason,
+        public ?bool $editedByReviewer,
+        public ?string $originalProposedText,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,6 +51,10 @@ final readonly class ProposedChange extends Data
             currentText: $attributes->nullableString('current_text'),
             proposedText: $attributes->nullableString('proposed_text'),
             rationale: $attributes->nullableString('rationale'),
+            applied: $attributes->nullableBool('applied'),
+            blockedReason: $attributes->nullableString('blocked_reason'),
+            editedByReviewer: $attributes->nullableBool('edited_by_reviewer'),
+            originalProposedText: $attributes->nullableString('original_proposed_text'),
             raw: $data,
         );
     }

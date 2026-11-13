@@ -19,7 +19,7 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailVariables extends Data
 {
     /**
-     * @param  array<array-key, mixed>  $categories  Variable categories (contact, company, campaign, system, custom_fields)
+     * @param  array<array-key, mixed>  $categories  Variable categories in picker order: contact, custom_fields (only when the workspace has custom fields), company, agent, campaign, system
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

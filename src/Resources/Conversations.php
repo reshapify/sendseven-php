@@ -12,13 +12,17 @@ use Reshapify\SendSeven\Data\BulkClose;
 use Reshapify\SendSeven\Data\ChannelSwitch;
 use Reshapify\SendSeven\Data\CheckExistingConversation;
 use Reshapify\SendSeven\Data\Conversation;
+use Reshapify\SendSeven\Data\ConversationDashboardCounts;
 use Reshapify\SendSeven\Data\ConversationSummaryDetail;
+use Reshapify\SendSeven\Data\Delete;
 use Reshapify\SendSeven\Data\EmailTranscript;
 use Reshapify\SendSeven\Data\InitiateConversation;
 use Reshapify\SendSeven\Data\OpenOrCreateConversation;
 use Reshapify\SendSeven\Data\PreviousConversations;
+use Reshapify\SendSeven\Data\SenderAction;
 use Reshapify\SendSeven\Data\SenderOptions;
 use Reshapify\SendSeven\Data\SwitchableChannels;
+use Reshapify\SendSeven\Data\ThreadControlState;
 use Reshapify\SendSeven\Data\TranscriptExportJob;
 use Reshapify\SendSeven\Enums\ConversationStatus;
 use Reshapify\SendSeven\Enums\InitiateMessageType;
@@ -31,7 +35,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Conversations: 29 endpoints.
+ * Conversations: 42 endpoints.
  *
  * Reach it with $sendseven->conversations().
  *
@@ -55,14 +59,16 @@ final readonly class Conversations
      *
      * @param  ?int  $page  Page number (1-indexed)
      * @param  ?int  $pageSize  Items per page
-     * @param  ?string  $status  Filter by tab/status: 'open' (excludes snoozed), 'snoozed', 'closed'
+     * @param  ?string  $status  Filter by tab/status: 'open' (excludes snoozed), 'snoozed', 'closed', or 'all' (no status filter)
      * @param  ?string  $assignedTo  Filter by assignment: 'me', 'unassigned', 'me_and_unassigned', or user_id
      * @param  ?bool  $needsReply  Filter for conversations needing a reply
      * @param  ?string  $filter  Alias: 'unanswered' sets needs_reply=True
      * @param  ?string  $contactId  Filter by contact ID
-     * @param  ?string  $search  Search by contact name, phone, email, or subject
+     * @param  ?string  $search  Search by contact name, phone, email, or subject. When the `message_search` feature is enabled for the workspace (see GET /tenants/features) and the term has at least 3 characters, message text from the last 90 days is searched too (OR).
      * @param  ?string  $inboxId  Filter to conversations in this custom inbox
      * @param  ?string  $channelType  Filter by channel type (e.g. whatsapp, telegram, sms, email, messenger, instagram, live_chat)
+     * @param  list<string>|null  $tagId  tags.id — filter to conversations carrying the tag on the conversation OR on its contact. Repeatable (?tag_id=a&tag_id=b, max 20); combine with `tag_mode`. Each id must belong to the workspace (422 if not). AND-ed with all other filters.
+     * @param  ?string  $tagMode  How several `tag_id` values combine: `any` (default) = at least one of the tags, `all` = every tag.
      * @return Page<Conversation>
      *
      * @throws ApiException
@@ -80,6 +86,8 @@ final readonly class Conversations
         ?string $search = null,
         ?string $inboxId = null,
         ?string $channelType = null,
+        ?array $tagId = null,
+        ?string $tagMode = null,
     ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -95,10 +103,12 @@ final readonly class Conversations
                 'search' => $search,
                 'inbox_id' => $inboxId,
                 'channel_type' => $channelType,
+                'tag_id' => $tagId,
+                'tag_mode' => $tagMode,
             ]),
         ));
 
-        return Hydrate::page($response->data(), Conversation::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, status: $status, assignedTo: $assignedTo, needsReply: $needsReply, filter: $filter, contactId: $contactId, search: $search, inboxId: $inboxId, channelType: $channelType));
+        return Hydrate::page($response->data(), Conversation::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, status: $status, assignedTo: $assignedTo, needsReply: $needsReply, filter: $filter, contactId: $contactId, search: $search, inboxId: $inboxId, channelType: $channelType, tagId: $tagId, tagMode: $tagMode));
     }
 
     /**
@@ -166,31 +176,183 @@ final readonly class Conversations
     }
 
     /**
+     * Bulk Assign Conversations.
+     *
+     * Assign or unassign up to 100 conversations at once
+     *
+     * user_id is the workspace member to assign the conversations to; send null to unassign them. Each
+     * conversation is changed exactly like PATCH /conversations/{conversation_id} with
+     * assigned_user_id: the new assignee is notified (not when you assign yourself) and the
+     * conversation.assigned webhook fires. Conversations already assigned to that member (or already
+     * unassigned) count as successful and are left unchanged.
+     *
+     * Returns 400 when user_id is not an active member of this workspace. When members may not act on
+     * each other's conversations, only admins and owners can reassign or unassign a conversation
+     * assigned to another member; those, and conversations that do not exist in this workspace or that
+     * you cannot access, are returned in failed_ids.
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  list<string>  $conversationIds  List of conversation UUIDs (1 to 100)
+     * @param  ?string  $userId  Workspace member to assign the conversations to. Send null to unassign them. Required (send null explicitly to unassign).
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/bulk_assign_conversations_api_v1_conversations_bulk_assign_post
+     */
+    public function bulkAssign(array $conversationIds, ?string $userId, ?string $idempotencyKey = null): BulkClose
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/bulk-assign',
+            body: Payload::body(['conversation_ids' => $conversationIds, 'user_id' => $userId]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return BulkClose::fromArray($response->data());
+    }
+
+    /**
      * Bulk Close Conversations.
      *
-     * Bulk close multiple conversations without triggering ticket summarization.
+     * Close up to 100 conversations at once
      *
-     * This endpoint is intended for closing spam, duplicates, or other conversations that do not need
-     * AI summarization or knowledge base entries.
+     * Without summarize (or with summarize: false) the conversations are closed without an AI summary,
+     * which suits spam and duplicates.
      *
-     * Args: request_body: Request body containing conversation_ids and optional reason
+     * With summarize: true an AI summary is queued for every conversation this call closes, exactly as
+     * summarize: true on POST /conversations/{conversation_id}/close does: it follows the workspace's
+     * "summarize on close" setting (always, or ask plus your true; never means no summary) and needs a
+     * plan that includes AI summaries. Otherwise the conversations are still closed, without a
+     * summary. Summaries are generated in the background.
      *
      * Scopes: conversations:update.
      *
      * @param  list<string>  $conversationIds  List of conversation UUIDs to close
      * @param  ?string  $reason  Optional close reason (e.g., 'spam', 'duplicate')
+     * @param  ?bool  $summarize  Request an AI summary for each conversation this call closes, the same as `summarize` on `POST /conversations/{id}/close`. Omitted or false: no summary (spam / duplicate clean-up). true: a summary is queued per closed conversation when the workspace setting allows it ('always', or 'ask' with true) and the plan includes AI summaries; otherwise the conversations are closed without one. Summaries are generated in the background.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/bulk_close_conversations_api_v1_conversations_bulk_close_post
      */
-    public function bulkClose(array $conversationIds, ?string $reason = null, ?string $idempotencyKey = null): BulkClose
-    {
+    public function bulkClose(
+        array $conversationIds,
+        ?string $reason = null,
+        ?bool $summarize = null,
+        ?string $idempotencyKey = null,
+    ): BulkClose {
         $response = $this->connector->send(new Request(
             Method::Post,
             '/conversations/bulk-close',
-            body: Payload::body(['conversation_ids' => $conversationIds, 'reason' => $reason]),
+            body: Payload::body([
+                'conversation_ids' => $conversationIds,
+                'reason' => $reason,
+                'summarize' => $summarize,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return BulkClose::fromArray($response->data());
+    }
+
+    /**
+     * Bulk Delete Conversations.
+     *
+     * Permanently delete up to 100 conversations at once
+     *
+     * Each conversation is deleted exactly like DELETE /conversations/{conversation_id}: its messages,
+     * email messages, attachments and stored files, notes, tags on the conversation, drafts, live-chat
+     * sessions, flow runs and the notifications that link to it are removed. The contacts are kept.
+     * This cannot be undone.
+     *
+     * Billable usage that was already sent from these conversations stays on your invoice. Every
+     * delete is logged (who and when) and appears as a conversation_deleted event in the contact's
+     * history.
+     *
+     * Scopes: conversations:delete.
+     *
+     * @param  list<string>  $conversationIds  List of conversation UUIDs (1 to 100)
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/bulk_delete_conversations_api_v1_conversations_bulk_delete_post
+     */
+    public function bulkDelete(array $conversationIds, ?string $idempotencyKey = null): BulkClose
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/bulk-delete',
+            body: Payload::body(['conversation_ids' => $conversationIds]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return BulkClose::fromArray($response->data());
+    }
+
+    /**
+     * Bulk Reopen Conversations.
+     *
+     * Reopen up to 100 closed conversations at once
+     *
+     * Each conversation is reopened exactly like POST /conversations/{conversation_id}/reopen
+     * (assigned conversations go back to assigned, others to open; the conversation.reopened webhook
+     * fires). Conversations that are already open count as successful and are left unchanged.
+     * Conversations that do not exist in this workspace or that you cannot access are returned in
+     * failed_ids.
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  list<string>  $conversationIds  List of conversation UUIDs (1 to 100)
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/bulk_reopen_conversations_api_v1_conversations_bulk_reopen_post
+     */
+    public function bulkReopen(array $conversationIds, ?string $idempotencyKey = null): BulkClose
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/bulk-reopen',
+            body: Payload::body(['conversation_ids' => $conversationIds]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return BulkClose::fromArray($response->data());
+    }
+
+    /**
+     * Bulk Tag Conversations.
+     *
+     * Add tags to up to 100 conversations at once
+     *
+     * Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same
+     * as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a
+     * conversation stay as they are; nothing is removed.
+     *
+     * Returns 422 when a tag_ids entry is not a tag of this workspace. Conversations that do not exist
+     * in this workspace or that you cannot access are returned in failed_ids.
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  list<string>  $conversationIds  List of conversation UUIDs (1 to 100)
+     * @param  list<string>  $tagIds  Tag UUIDs to add to every conversation (1 to 20)
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/bulk_tag_conversations_api_v1_conversations_bulk_tag_post
+     */
+    public function bulkTag(array $conversationIds, array $tagIds, ?string $idempotencyKey = null): BulkClose
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/bulk-tag',
+            body: Payload::body(['conversation_ids' => $conversationIds, 'tag_ids' => $tagIds]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
@@ -230,6 +392,41 @@ final readonly class Conversations
         ));
 
         return CheckExistingConversation::fromArray($response->data());
+    }
+
+    /**
+     * Get Dashboard Counts.
+     *
+     * Dashboard conversation counts: your own number and the number across everything you can see, per
+     * metric
+     *
+     * Each metric (open, needs_reply, urgent, closed_today, unassigned) is {"mine": int|null, "all":
+     * int|null}: - mine: conversations assigned to you (closed_today: assigned to you or closed by
+     * you). Always null for unassigned. - all: every conversation you can see, with the same
+     * visibility as GET /conversations without inbox_id (Custom Inbox access, the conversations
+     * assigned to you, single-agent mode). Admins and owners see the whole workspace. Null when
+     * can_see_all is false (you can only see conversations assigned to you).
+     *
+     * scope says what all covers: all (whole workspace), visible (only what you can see) or mine (all
+     * is null).
+     *
+     * Scopes: conversations:read.
+     *
+     * @param  ?string  $timezone  IANA timezone that defines 'today' for `closed_today` (e.g. `Europe/Berlin`). Defaults to the workspace timezone, else UTC.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/get_dashboard_counts_api_v1_conversations_dashboard_counts_get
+     */
+    public function getDashboardCounts(?string $timezone = null): ConversationDashboardCounts
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/conversations/dashboard-counts',
+            query: Payload::query(['timezone' => $timezone]),
+        ));
+
+        return ConversationDashboardCounts::fromArray($response->data());
     }
 
     /**
@@ -300,7 +497,7 @@ final readonly class Conversations
      *
      * @param  string  $contactId  Contact UUID to start conversation with
      * @param  string  $channelId  Channel UUID to use for this conversation
-     * @param  ?string  $contactMethodId  Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the recipient via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). For email the synthetic 'email_mailbox_<uuid>' / 'email_integration_<uuid>' channel_id is validated as an EMAIL method type. When a NEW conversation is created both contact_method_id and active_contact_method_id are set to this value; when an existing conversation is reused only active_contact_method_id is updated. When omitted, behavior is unchanged (recipient resolved via the channel's primary method).
+     * @param  ?string  $contactMethodId  Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the recipient via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). For email the synthetic 'email_mailbox_<uuid>' / 'email_integration_<uuid>' channel_id is validated as an EMAIL method type. When a NEW conversation is created both contact_method_id and active_contact_method_id are set to this value. On chat channels (WhatsApp, SMS, RCS, Telegram, Messenger, Instagram) a conversation belongs to one contact method: an open conversation is reused only when it belongs to this method (or the same number / WhatsApp user), otherwise a new conversation is created for it. For email, a reused conversation gets its active_contact_method_id updated. When omitted, behavior is unchanged (recipient resolved via the channel's primary method).
      * @param  ?string  $action  Action to take: 'create_new', 'reopen_existing', or 'auto' (default). When using two-phase API, specify action explicitly to control webhook behavior.
      * @param  ?bool  $reopenExisting  DEPRECATED: Use action='reopen_existing' instead. If True and a closed conversation exists, reopen it. If False, always create new.
      * @param  ?string  $useConversationId  For email: specify an existing conversation ID to use instead of creating new. This allows continuing an existing email thread.
@@ -339,27 +536,57 @@ final readonly class Conversations
     /**
      * Search Similar Conversations.
      *
-     * Search for similar conversations based on query text using Vertex AI RAG.
+     * Retired. Always returns 410 Gone.
      *
-     * Request body: {"query_text": "...", "limit": 5}
+     * Similar ticket search was retired in October 2026. Conversation summaries are still stored on
+     * each conversation; list them with GET /api/v1/knowledge-base/tickets.
      *
      * Scopes: conversations:read.
      *
-     * @param  array<string, mixed>  $body  The request body
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Conversations/search_similar_conversations_api_v1_conversations_search_similar_post
+     * @deprecated SendSeven marks this endpoint as deprecated.
      */
-    public function searchSimilar(array $body, ?string $idempotencyKey = null): void
+    public function searchSimilar(?string $idempotencyKey = null): void
     {
         $this->connector->send(new Request(
             Method::Post,
             '/conversations/search-similar',
-            body: $body,
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
+    }
+
+    /**
+     * Delete Conversation.
+     *
+     * Permanently delete a conversation
+     *
+     * Deletes the conversation and everything that belongs to it: all of its messages (including
+     * reactions, replies and edit history), email messages, attachments and their stored files,
+     * internal notes, tags on the conversation, drafts, live-chat sessions, automation and flow runs
+     * that ran in it, and notifications that link to it. This cannot be undone.
+     *
+     * The contact is kept, together with its other conversations. To delete a contact and all of its
+     * conversations use DELETE /contacts/{contact_id}.
+     *
+     * Scopes: conversations:delete.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/delete_conversation_api_v1_conversations__conversation_id__delete
+     */
+    public function delete(string $conversationId): Delete
+    {
+        $response = $this->connector->send(new Request(
+            Method::Delete,
+            '/conversations/'.Payload::segment($conversationId),
+        ));
+
+        return Delete::fromArray($response->data());
     }
 
     /**
@@ -449,6 +676,36 @@ final readonly class Conversations
     }
 
     /**
+     * Turn Off Conversation Automation.
+     *
+     * Turn off all automation on this conversation (full human handover).
+     *
+     * Ends the active bot session (Auto or Assist) with reason AGENT_DISABLED (on email conversations
+     * the persistent email mode is set to off) and cancels every active flow run on the conversation,
+     * whatever its trigger. Idempotent: with nothing active it returns 200 with zero counts.
+     *
+     * Returns: - success: always true - bot_session_ended: whether an active bot session was ended -
+     * flow_runs_cancelled: number of flow runs cancelled - bot_session: the GET /bot-session body
+     * after the change
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/turn_off_conversation_automation_api_v1_conversations__conversation_id__automation_turn_off_post
+     */
+    public function turnOffAutomation(string $conversationId, ?string $idempotencyKey = null): void
+    {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/'.Payload::segment($conversationId).'/automation/turn-off',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+    }
+
+    /**
      * Get Available Bots.
      *
      * Get list of available bots that can handle this conversation.
@@ -479,7 +736,21 @@ final readonly class Conversations
      *
      * Returns: - bot_active: Whether a bot is currently handling this conversation - bot_session_id:
      * The ID of the active bot session (if any) - bot_name: The name of the bot handling the
-     * conversation (if any) - bot_id: The ID of the bot (if any)
+     * conversation (if any) - bot_id: The ID of the bot (if any) - mode: "auto" | "assist" (null when
+     * no active session) - bot_type: the bot's type (e.g. "agent") - assist_available: whether Assist
+     * mode can be selected - channel_type: the conversation's channel type - email_mode: email
+     * conversations only: "off" | "assist" | "auto" (effective; default "auto"), null otherwise -
+     * email_mode_explicit: whether someone chose the email mode - email_mode_options: ["off",
+     * "assist", "auto"] on email, else null - email_agent: {bot_id, bot_name, reply_mode,
+     * confidence_threshold} of the Conversational Agent handling this email conversation, or null -
+     * email_behavior: "off" | "draft_only" | "send_above_threshold" (what the effective mode does with
+     * the agent's settings), or null - status: "auto" | "assist_auto_draft" (Assist, nobody active:
+     * drafts new customer messages) | "assist_on_request" (Assist, a teammate is active: drafts only
+     * on request) | "paused_by_human" (the last session ended because a teammate replied) | "off" -
+     * paused: {bot_id, bot_name, previous_mode, by_user_id, by_user_name, at} when status is
+     * "paused_by_human", else null - assist_idle_minutes: the workspace's Assist idle window (minutes)
+     * - human_active_until: while "assist_on_request", when the conversation counts as inactive again
+     * (ISO 8601), else null
      *
      * Scopes: conversations:read.
      *
@@ -493,6 +764,32 @@ final readonly class Conversations
         $this->connector->send(new Request(
             Method::Get,
             '/conversations/'.Payload::segment($conversationId).'/bot-session',
+        ));
+    }
+
+    /**
+     * Patch Bot Session Mode.
+     *
+     * Switch the active bot session between Auto and Assist without restarting it.
+     *
+     * Body {"mode": "auto"|"assist"}. Returns the GET /bot-session shape.
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  array<string, mixed>  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/patch_bot_session_mode_api_v1_conversations__conversation_id__bot_session_patch
+     */
+    public function patchBotSessionMode(string $conversationId, array $body, ?string $idempotencyKey = null): void
+    {
+        $this->connector->send(new Request(
+            Method::Patch,
+            '/conversations/'.Payload::segment($conversationId).'/bot-session',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }
 
@@ -531,7 +828,8 @@ final readonly class Conversations
      * If bot_id is provided, enables that specific bot. If bot_id is not provided, finds the best
      * matching bot based on activation rules.
      *
-     * Args: bot_id: Optional specific bot ID to enable
+     * Args: bot_id: Optional specific bot ID to enable mode: "auto" (default) or "assist" (the agent
+     * drafts into the shared draft instead of replying; needs a Conversational Agent)
      *
      * Scopes: conversations:update.
      *
@@ -544,12 +842,13 @@ final readonly class Conversations
     public function enableBotSession(
         string $conversationId,
         ?string $botId = null,
+        ?string $mode = null,
         ?string $idempotencyKey = null,
     ): void {
         $this->connector->send(new Request(
             Method::Post,
             '/conversations/'.Payload::segment($conversationId).'/bot-session/enable',
-            query: Payload::query(['bot_id' => $botId]),
+            query: Payload::query(['bot_id' => $botId, 'mode' => $mode]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
     }
@@ -592,6 +891,31 @@ final readonly class Conversations
     }
 
     /**
+     * Get Conversation Contact Context.
+     *
+     * Get the contact context an AI agent sees for this conversation
+     *
+     * Returns assurance, the active contact-token grant (or null), fields (key, name, value, source,
+     * verified), methods (type, value, verified), tags (name, verified; ALL of the contact's tags,
+     * always verified: false) and subscriptions (list, channel_type, status, opt_in_method, verified).
+     * tags / subscriptions are [] when unavailable.
+     *
+     * Scopes: conversations:read, contacts:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/get_conversation_contact_context_api_v1_conversations__conversation_id__contact_context_get
+     */
+    public function getContactContext(string $conversationId): void
+    {
+        $this->connector->send(new Request(
+            Method::Get,
+            '/conversations/'.Payload::segment($conversationId).'/contact-context',
+        ));
+    }
+
+    /**
      * Email Conversation Transcript.
      *
      * Email the conversation transcript to the contact (or any address).
@@ -603,7 +927,8 @@ final readonly class Conversations
      * EmailMailbox.
      *
      * Errors: 404 unknown conversation/mailbox (tenant-scoped), 400 invalid email address / mailbox
-     * not sendable, 422 request validation, 502 the email provider rejected the send.
+     * not sendable, 409 CONTACT_BLOCKED (contact or recipient address blocked), 422 request
+     * validation, 502 the email provider rejected the send.
      *
      * Scopes: conversations:update.
      *
@@ -844,6 +1169,12 @@ final readonly class Conversations
      *
      * Manually trigger AI summary generation for a conversation.
      *
+     * Costs 1 AI credit per successful summary. Free trials that used their AI credits get 403
+     * trial_ai_credits_exhausted.
+     *
+     * 403 ai_suggestions_disabled when an admin turned AI suggestions off for the calling member
+     * (Settings > Team); API tokens are not affected.
+     *
      * Scopes: conversations:update, ai_features.
      *
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -1016,5 +1347,144 @@ final readonly class Conversations
         ));
 
         return TranscriptExportJob::fromArray($response->data());
+    }
+
+    /**
+     * Show or clear a typing indicator.
+     *
+     * Show (or clear) a typing indicator to the contact in a conversation.
+     *
+     * Use it while a reply is being prepared, e.g. by your own bot. The body is optional; an empty
+     * body means {"state": "on"}.
+     *
+     * ## Channel behavior - WhatsApp: the indicator also marks the contact's latest message as read
+     * (implied_read: true) and lasts up to 25 seconds or until you reply. state: "off" is accepted but
+     * has no effect. - Telegram: lasts about 5 seconds; call again to keep it visible. - Check GET
+     * /channels/sender-actions for every channel's support and timeout (typing_ttl_seconds).
+     * Unsupported channels return 422 sender_action_not_supported.
+     *
+     * Scopes: messages:create.
+     *
+     * @param  array<string, mixed>|null  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/send_typing_indicator_api_v1_conversations__conversation_id__typing_post
+     */
+    public function sendTypingIndicator(
+        string $conversationId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): SenderAction {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/'.Payload::segment($conversationId).'/typing',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return SenderAction::fromArray($response->data());
+    }
+
+    /**
+     * Hand a WhatsApp conversation back.
+     *
+     * Give up control of this WhatsApp conversation.
+     *
+     * mode: "pass" (default) passes it to the app with target_role (default customer_service). mode:
+     * "release" makes the conversation idle, so your normal routing in Meta Business Suite picks the
+     * next owner.
+     *
+     * Errors (detail.code): not_whatsapp_conversation (422), invalid_target_role (422),
+     * not_thread_owner (409), conversation_routing_not_enabled (409), channel_unavailable (409),
+     * rate_limited (429), provider_error (502).
+     *
+     * Scopes: conversations:update.
+     *
+     * @param  array<string, mixed>|null  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/hand_back_whatsapp_conversation_api_v1_conversations__conversation_id__whatsapp_hand_back_post
+     */
+    public function handBackWhatsApp(
+        string $conversationId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): ThreadControlState {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/'.Payload::segment($conversationId).'/whatsapp/hand-back',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return ThreadControlState::fromArray($response->data());
+    }
+
+    /**
+     * Take over a WhatsApp conversation.
+     *
+     * Take control of this WhatsApp conversation from another app.
+     *
+     * Works only when SendSeven is the escalation partner for the number in Meta Business Suite
+     * (Conversation routing). Afterwards the other app can't reply until you hand the conversation
+     * back, or until the customer has been inactive for 24 hours.
+     *
+     * Errors (detail.code): not_whatsapp_conversation (422), not_escalation_partner (409),
+     * conversation_routing_not_enabled (409), channel_unavailable (409), rate_limited (429),
+     * provider_error (502).
+     *
+     * Scopes: conversations:update, messages:create.
+     *
+     * @param  array<string, mixed>|null  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/take_over_whatsapp_conversation_api_v1_conversations__conversation_id__whatsapp_take_over_post
+     */
+    public function takeOverWhatsApp(
+        string $conversationId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): ThreadControlState {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/conversations/'.Payload::segment($conversationId).'/whatsapp/take-over',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return ThreadControlState::fromArray($response->data());
+    }
+
+    /**
+     * Get WhatsApp thread control.
+     *
+     * Who controls this WhatsApp conversation under Meta's Conversation routing.
+     *
+     * Returns whether another app (provider) controls the conversation, whether SendSeven controls it,
+     * whether SendSeven can take it over (only as the escalation partner) and the number's
+     * conversation routing status. A WhatsApp conversation without any recorded control change returns
+     * all flags false. Non-WhatsApp conversations return 422 not_whatsapp_conversation.
+     *
+     * Scopes: conversations:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Conversations/get_whatsapp_thread_control_api_v1_conversations__conversation_id__whatsapp_thread_control_get
+     */
+    public function getWhatsAppThreadControl(string $conversationId): ThreadControlState
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/conversations/'.Payload::segment($conversationId).'/whatsapp/thread-control',
+        ));
+
+        return ThreadControlState::fromArray($response->data());
     }
 }

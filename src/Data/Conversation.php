@@ -36,6 +36,7 @@ final readonly class Conversation extends Data
      * @param  ?bool  $isLiveChat  Is this from a live chat session
      * @param  ?bool  $isEmail  Is this an email conversation
      * @param  ?bool  $needsReply  True when last message is from customer
+     * @param  ?ReplyWindowInfo  $replyWindow  Instagram / Messenger reply window: {type, standard_expires_at, human_agent_expires_at}. Always present; all null for other channels and for accounts without the Human Agent replies beta.
      * @param  list<TagInfo>  $tags
      * @param  ?string  $liveChatSessionStatus  Live chat session status: waiting, active, closed
      * @param  ?string  $liveChatLastActivityAt  Last activity timestamp from the live chat session
@@ -45,6 +46,7 @@ final readonly class Conversation extends Data
      * @param  ?bool  $visitorFocused  Whether the chat input is currently focused (real-time only, may be null)
      * @param  ?string  $visitorLastVisibleAt  Last time visitor's tab was visible
      * @param  ?string  $visitorLastFocusAt  Last time visitor focused the chat input
+     * @param  ?LiveChatConversationSettings  $liveChat  Live Chat only (null for every other channel; only set by GET /conversations/{id}): effective widget settings such as `allow_reactions`.
      * @param  ?string  $botSessionId  Active bot session ID if bot is handling this conversation
      * @param  array<array-key, mixed>  $activeFlowRun  Currently active flow run on this conversation. Shape: ``{run_id, flow_id, flow_name, trigger_kind, trigger_class, started_at, current_node_id, current_node_display_name}``. ``trigger_kind`` is the raw flow trigger type (e.g. ``incoming_message``/``manual``/``schedule``) and ``trigger_class`` is the derived ``"inbound" | "background"`` bucket (background = manual/api_event/schedule); both are null when the trigger can't be resolved (frontend then fails open). None when no flow run is active for the contact+conversation.
      * @param  ?string  $snoozedUntil  When the snooze expires (timezone-aware ISO, 'Z' suffix). NULL when not snoozed. Conversation is currently snoozed when status=='open' AND this is in the future.
@@ -58,6 +60,10 @@ final readonly class Conversation extends Data
      * @param  list<string>  $aiTags  AI-generated tags/categories
      * @param  ?string  $summarizedAt  When AI summary was generated
      * @param  ?ConversationDraftMarker  $myDraft  The requesting user's unsent draft: {snippet, mode, has_attachments, updated_at}; null when none.
+     * @param  ?AiDraftingMarker  $aiDrafting  Set while an AI agent is drafting a reply here: {bot_id, bot_name, started_at}; null otherwise.
+     * @param  ?SharedDraftMarker  $draft  The conversation's shared draft marker: {snippet, mode, has_attachments, updated_at, author_type, editor_user_id, editor_name, bot_name}; null when none.
+     * @param  ?string  $customerLanguage  Language replies are sent in: the conversation's reply-language override, else the contact's detected/preferred language; null when unknown.
+     * @param  ?string  $replyLanguage  Per-conversation "Send in" language override; null when not set.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -84,6 +90,7 @@ final readonly class Conversation extends Data
         public ?bool $needsReply,
         public ?string $lastCustomerMessageAt,
         public ?string $lastAgentReplyAt,
+        public ?ReplyWindowInfo $replyWindow,
         public array $tags,
         public ?string $liveChatSessionStatus,
         public ?string $liveChatLastActivityAt,
@@ -93,6 +100,7 @@ final readonly class Conversation extends Data
         public ?bool $visitorFocused,
         public ?string $visitorLastVisibleAt,
         public ?string $visitorLastFocusAt,
+        public ?LiveChatConversationSettings $liveChat,
         public ?string $botSessionId,
         public array $activeFlowRun,
         public ?string $snoozedUntil,
@@ -106,6 +114,10 @@ final readonly class Conversation extends Data
         public array $aiTags,
         public ?string $summarizedAt,
         public ?ConversationDraftMarker $myDraft,
+        public ?AiDraftingMarker $aiDrafting,
+        public ?SharedDraftMarker $draft,
+        public ?string $customerLanguage,
+        public ?string $replyLanguage,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -142,6 +154,7 @@ final readonly class Conversation extends Data
             needsReply: $attributes->nullableBool('needs_reply'),
             lastCustomerMessageAt: $attributes->nullableString('last_customer_message_at'),
             lastAgentReplyAt: $attributes->nullableString('last_agent_reply_at'),
+            replyWindow: $attributes->nullableObject('reply_window', ReplyWindowInfo::fromArray(...)),
             tags: $attributes->list('tags', TagInfo::fromArray(...)),
             liveChatSessionStatus: $attributes->nullableString('live_chat_session_status'),
             liveChatLastActivityAt: $attributes->nullableString('live_chat_last_activity_at'),
@@ -151,6 +164,7 @@ final readonly class Conversation extends Data
             visitorFocused: $attributes->nullableBool('visitor_focused'),
             visitorLastVisibleAt: $attributes->nullableString('visitor_last_visible_at'),
             visitorLastFocusAt: $attributes->nullableString('visitor_last_focus_at'),
+            liveChat: $attributes->nullableObject('live_chat', LiveChatConversationSettings::fromArray(...)),
             botSessionId: $attributes->nullableString('bot_session_id'),
             activeFlowRun: $attributes->array('active_flow_run'),
             snoozedUntil: $attributes->nullableString('snoozed_until'),
@@ -164,6 +178,10 @@ final readonly class Conversation extends Data
             aiTags: $attributes->strings('ai_tags'),
             summarizedAt: $attributes->nullableString('summarized_at'),
             myDraft: $attributes->nullableObject('my_draft', ConversationDraftMarker::fromArray(...)),
+            aiDrafting: $attributes->nullableObject('ai_drafting', AiDraftingMarker::fromArray(...)),
+            draft: $attributes->nullableObject('draft', SharedDraftMarker::fromArray(...)),
+            customerLanguage: $attributes->nullableString('customer_language'),
+            replyLanguage: $attributes->nullableString('reply_language'),
             raw: $data,
         );
     }

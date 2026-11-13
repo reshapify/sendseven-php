@@ -35,6 +35,10 @@ final readonly class CustomFieldDefinition extends Data
      * @param  bool  $userEditable  Editable by contacts
      * @param  int  $displayOrder  Display order
      * @param  bool  $isActive  Whether field is active
+     * @param  array<array-key, mixed>  $validation  Value constraints (min/max, min_length/max_length/pattern, date_min/date_max) or null
+     * @param  ?string  $aiHint  Guidance for AI agents on what the field means and how to use it, or null
+     * @param  array<array-key, mixed>  $optionDescriptions  {option: description} for select/multiselect fields, or null
+     * @param  ?string  $aiAccess  What AI agents may do with this field: `none` (invisible, default), `read` (agents see it), `read_write` (agents see it and may update any value), `fill_if_empty` (agents see it and may only fill it while it is empty). `location` and `collection` fields allow only `none` or `read`.
      * @param  DateTimeImmutable  $createdAt  Creation timestamp
      * @param  array<array-key, mixed>  $raw
      */
@@ -53,6 +57,10 @@ final readonly class CustomFieldDefinition extends Data
         public bool $userEditable,
         public int $displayOrder,
         public bool $isActive,
+        public array $validation,
+        public ?string $aiHint,
+        public array $optionDescriptions,
+        public ?string $aiAccess,
         public DateTimeImmutable $createdAt,
         array $raw = [],
     ) {
@@ -81,6 +89,10 @@ final readonly class CustomFieldDefinition extends Data
             userEditable: $attributes->bool('user_editable'),
             displayOrder: $attributes->int('display_order'),
             isActive: $attributes->bool('is_active'),
+            validation: $attributes->array('validation'),
+            aiHint: $attributes->nullableString('ai_hint'),
+            optionDescriptions: $attributes->array('option_descriptions'),
+            aiAccess: $attributes->nullableString('ai_access'),
             createdAt: $attributes->dateTime('created_at'),
             raw: $data,
         );

@@ -13,9 +13,10 @@ use Reshapify\SendSeven\Support\Attributes;
 /**
  * A single media item exchanged with a contact.
  *
- * One item per message-attached file (the message's primary/featured attachment). Powers the
- * WhatsApp-profile-style media gallery on the contact-detail page. Covers ALL media categories
- * including documents.
+ * One item per file: a message's primary/featured attachment, its interactive/template header
+ * media, each file attachment of an email message (source="email"), or each WhatsApp Flow upload
+ * (source="whatsapp_flow"). Powers the WhatsApp-profile-style media gallery on the contact-detail
+ * page. Covers ALL media categories including documents.
  *
  * @see https://api.sendseven.com/api/v1/docs (schema ContactAttachmentItem)
  */
@@ -36,6 +37,8 @@ final readonly class ContactAttachmentItem extends Data
      * @param  DateTimeImmutable  $createdAt  Message time (when exchanged)
      * @param  ?string  $conversationId  Conversation the attachment belongs to (for jump-to)
      * @param  string  $messageId  Message the attachment belongs to
+     * @param  ?string  $source  Where the file came from. `message` = chat/media message attachment (incl. interactive/template header media); `email` = an email file attachment (`message_id` is the email's message; one item per file, so an email with N files yields N items); `whatsapp_flow` = a photo/document the contact uploaded in a WhatsApp Flow (`message_id` is the flow reply message; one item per file).
+     * @param  ?bool  $deletable  Whether `DELETE /contacts/{contact_id}/attachments/{attachment_id}` may delete this file. `false` for reusable library files (template/interactive header media, Media library assets, files reused by other messages, campaigns or templates); those are managed where they are reused.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -53,6 +56,8 @@ final readonly class ContactAttachmentItem extends Data
         public DateTimeImmutable $createdAt,
         public ?string $conversationId,
         public string $messageId,
+        public ?string $source,
+        public ?bool $deletable,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -80,6 +85,8 @@ final readonly class ContactAttachmentItem extends Data
             createdAt: $attributes->dateTime('created_at'),
             conversationId: $attributes->nullableString('conversation_id'),
             messageId: $attributes->string('message_id'),
+            source: $attributes->nullableString('source'),
+            deletable: $attributes->nullableBool('deletable'),
             raw: $data,
         );
     }

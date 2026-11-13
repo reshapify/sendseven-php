@@ -23,6 +23,7 @@ final readonly class EmailIntegration extends Data
      * @param  string  $id  Unique identifier (UUID)
      * @param  string  $tenantId  Tenant this resource belongs to
      * @param  list<string>  $acceptedAliases
+     * @param  ?string  $imapSentFolderName  Read-only. The IMAP Sent folder SendSeven resolved for this mailbox (null until resolved).
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -46,11 +47,6 @@ final readonly class EmailIntegration extends Data
         public ?int $imapPort,
         public ?string $imapUsername,
         public ?bool $imapUseSsl,
-        public ?string $sesTenantName,
-        public ?string $sesDomain,
-        public ?string $sesSendingStatus,
-        public ?string $sesReputationPolicy,
-        public ?string $dnsVerificationStatus,
         public ?string $proxyAddress,
         public ?string $proxyForwardTo,
         public ?string $outboundMailboxId,
@@ -63,6 +59,10 @@ final readonly class EmailIntegration extends Data
         public ?bool $syncEnabled,
         public ?DateTimeImmutable $lastSyncAt,
         public ?int $initialSyncHours,
+        public ?bool $imapMarkAsRead,
+        public ?bool $imapSyncSentFolder,
+        public ?bool $imapDeleteOnOrigin,
+        public ?string $imapSentFolderName,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -96,11 +96,6 @@ final readonly class EmailIntegration extends Data
             imapPort: $attributes->nullableInt('imap_port'),
             imapUsername: $attributes->nullableString('imap_username'),
             imapUseSsl: $attributes->nullableBool('imap_use_ssl'),
-            sesTenantName: $attributes->nullableString('ses_tenant_name'),
-            sesDomain: $attributes->nullableString('ses_domain'),
-            sesSendingStatus: $attributes->nullableString('ses_sending_status'),
-            sesReputationPolicy: $attributes->nullableString('ses_reputation_policy'),
-            dnsVerificationStatus: $attributes->nullableString('dns_verification_status'),
             proxyAddress: $attributes->nullableString('proxy_address'),
             proxyForwardTo: $attributes->nullableString('proxy_forward_to'),
             outboundMailboxId: $attributes->nullableString('outbound_mailbox_id'),
@@ -113,6 +108,10 @@ final readonly class EmailIntegration extends Data
             syncEnabled: $attributes->nullableBool('sync_enabled'),
             lastSyncAt: $attributes->nullableDateTime('last_sync_at'),
             initialSyncHours: $attributes->nullableInt('initial_sync_hours'),
+            imapMarkAsRead: $attributes->nullableBool('imap_mark_as_read'),
+            imapSyncSentFolder: $attributes->nullableBool('imap_sync_sent_folder'),
+            imapDeleteOnOrigin: $attributes->nullableBool('imap_delete_on_origin'),
+            imapSentFolderName: $attributes->nullableString('imap_sent_folder_name'),
             raw: $data,
         );
     }

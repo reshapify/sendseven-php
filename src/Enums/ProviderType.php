@@ -8,7 +8,7 @@ namespace Reshapify\SendSeven\Enums;
 // change the generator or openapi/patches, then regenerate.
 
 /**
- * Email provider types
+ * Email provider types (response side: every value a stored row may hold).
  *
  * SendSeven may add values: responses carry unknown ones as plain strings.
  */

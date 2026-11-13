@@ -20,12 +20,14 @@ final readonly class MyScopes extends Data
      * @param  string  $tenantId  Tenant UUID
      * @param  list<string>  $scopes  List of effective scopes
      * @param  int  $total  Total number of scopes
+     * @param  ?bool  $supportSession  True while the signed-in user is SendSeven staff in this workspace through Support Login (live, unexpired grant). Always false for API keys and OAuth apps.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $tenantId,
         public array $scopes,
         public int $total,
+        public ?bool $supportSession,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,6 +44,7 @@ final readonly class MyScopes extends Data
             tenantId: $attributes->string('tenant_id'),
             scopes: $attributes->strings('scopes'),
             total: $attributes->int('total'),
+            supportSession: $attributes->nullableBool('support_session'),
             raw: $data,
         );
     }

@@ -32,6 +32,7 @@ final readonly class KnowledgeBaseDocument extends Data
      * @param  KbDocumentStatus|string|null  $status  Async lifecycle status. Clients should treat a document as usable only when ``status == 'ready'``.
      * @param  ?string  $jobId  ID of the currently in-flight async job (ingestion/deletion), if any.
      * @param  ?string  $lastError  Last error message if a previous async job failed (status='failed').
+     * @param  ?string  $lastErrorCode  Stable reason code when the file itself could not be imported (empty, no_text, pdf_encrypted, pdf_damaged, not_utf8, too_large, unsupported, unknown). Retrying the same file cannot succeed; the customer must upload a fixed file. Null for any other error.
      * @param  string  $createdAt  ISO datetime when created
      * @param  string  $updatedAt  ISO datetime when last updated
      * @param  array<array-key, mixed>  $raw
@@ -49,6 +50,7 @@ final readonly class KnowledgeBaseDocument extends Data
         public KbDocumentStatus|string|null $status,
         public ?string $jobId,
         public ?string $lastError,
+        public ?string $lastErrorCode,
         public string $createdAt,
         public string $updatedAt,
         array $raw = [],
@@ -76,6 +78,7 @@ final readonly class KnowledgeBaseDocument extends Data
             status: $attributes->nullableEnum('status', KbDocumentStatus::class),
             jobId: $attributes->nullableString('job_id'),
             lastError: $attributes->nullableString('last_error'),
+            lastErrorCode: $attributes->nullableString('last_error_code'),
             createdAt: $attributes->string('created_at'),
             updatedAt: $attributes->string('updated_at'),
             raw: $data,

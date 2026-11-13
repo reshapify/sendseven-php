@@ -25,6 +25,8 @@ final readonly class AvailableChannel extends Data
      * @param  ChannelStatus|string  $status  Channel availability status
      * @param  ?WhatsAppChannelWindowStatus  $windowStatus  WhatsApp window status (WhatsApp channels only)
      * @param  ?EmailMailboxInfo  $emailMailbox  Email mailbox info (email channels only, when using mailbox-based routing)
+     * @param  ?string  $contactMethodId  WhatsApp entries: the contact method (whatsapp_id, or whatsapp_bsuid when the contact has no whatsapp_id) to pass as `contact_method_id` when starting the conversation. Null for other channels and when the contact has no WhatsApp method.
+     * @param  ?string  $disabledReason  Informational. Null for normal entries. `no_whatsapp_id`: a WhatsApp entry whose identifier comes only from the contact's phone number (no WhatsApp contact method yet). The SendSeven app shows such an entry disabled; API sends are not affected.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -35,6 +37,8 @@ final readonly class AvailableChannel extends Data
         public ChannelStatus|string $status,
         public ?WhatsAppChannelWindowStatus $windowStatus,
         public ?EmailMailboxInfo $emailMailbox,
+        public ?string $contactMethodId,
+        public ?string $disabledReason,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -55,6 +59,8 @@ final readonly class AvailableChannel extends Data
             status: $attributes->enum('status', ChannelStatus::class),
             windowStatus: $attributes->nullableObject('window_status', WhatsAppChannelWindowStatus::fromArray(...)),
             emailMailbox: $attributes->nullableObject('email_mailbox', EmailMailboxInfo::fromArray(...)),
+            contactMethodId: $attributes->nullableString('contact_method_id'),
+            disabledReason: $attributes->nullableString('disabled_reason'),
             raw: $data,
         );
     }

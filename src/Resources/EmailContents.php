@@ -10,6 +10,7 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\EmailContent;
 use Reshapify\SendSeven\Data\EmailContentListItem;
 use Reshapify\SendSeven\Data\EmailContentPreview;
+use Reshapify\SendSeven\Data\EmailContentRender;
 use Reshapify\SendSeven\Data\EmailVariables;
 use Reshapify\SendSeven\Enums\EmailContentTypeEnum;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -21,7 +22,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Email Contents: 8 endpoints.
+ * Email Contents: 9 endpoints.
  *
  * Reach it with $sendseven->emailContents().
  *
@@ -36,9 +37,9 @@ final readonly class EmailContents
      *
      * List email contents for the tenant with pagination.
      *
-     * - Can filter by layout template ID (optional reference) - By default excludes hidden contents
-     * (use include_hidden=true to include) - Returns list without full MJML source (for performance) -
-     * Includes basic layout template info
+     * - Can filter by layout template ID (optional reference) - Can filter by content_type (html,
+     * plain_text, simple) - By default excludes hidden contents (use include_hidden=true to include) -
+     * Returns list without full MJML source (for performance) - Includes basic layout template info
      *
      * Scopes: email:read.
      *
@@ -49,6 +50,7 @@ final readonly class EmailContents
      * @param  ?bool  $excludeSystem  Exclude system templates
      * @param  ?bool  $excludeDoi  Exclude double opt-in templates (they have their own page)
      * @param  ?string  $search  Case-insensitive search across name and subject_line
+     * @param  EmailContentTypeEnum|string|null  $contentType  Filter by content type: html, plain_text or simple
      * @return Page<EmailContentListItem>
      *
      * @throws ApiException
@@ -63,6 +65,7 @@ final readonly class EmailContents
         ?bool $excludeSystem = null,
         ?bool $excludeDoi = null,
         ?string $search = null,
+        EmailContentTypeEnum|string|null $contentType = null,
     ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
@@ -75,10 +78,11 @@ final readonly class EmailContents
                 'exclude_system' => $excludeSystem,
                 'exclude_doi' => $excludeDoi,
                 'search' => $search,
+                'content_type' => $contentType,
             ]),
         ));
 
-        return Hydrate::page($response->data(), EmailContentListItem::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, layoutId: $layoutId, includeHidden: $includeHidden, excludeSystem: $excludeSystem, excludeDoi: $excludeDoi, search: $search));
+        return Hydrate::page($response->data(), EmailContentListItem::fromArray(...), fn (int $page): Page => $this->list(page: $page, pageSize: $pageSize, layoutId: $layoutId, includeHidden: $includeHidden, excludeSystem: $excludeSystem, excludeDoi: $excludeDoi, search: $search, contentType: $contentType));
     }
 
     /**
@@ -99,7 +103,7 @@ final readonly class EmailContents
      *
      * @param  string  $name  Content name
      * @param  ?string  $description  Content description
-     * @param  EmailContentTypeEnum|string|null  $contentType  Content type: 'html' for MJML-based or 'plain_text' for text-only templates
+     * @param  EmailContentTypeEnum|string|null  $contentType  Content type: 'html' for MJML/Stripo designs, 'plain_text' for text-only templates, or 'simple' for a personal-looking email (formatted text + links, body in compiled_html, text part derived by the server)
      * @param  ?string  $templateId  ID of email template used as base (analytics only, HTML type only)
      * @param  ?string  $subjectLine  Subject line with {{variable}} support
      * @param  ?string  $previewText  Email preview text (appears in inbox)
@@ -108,10 +112,11 @@ final readonly class EmailContents
      * @param  ?string  $editorType  Editor type: 'stripo' (default for new content) or 'mjml' (legacy GrapesJS)
      * @param  ?string  $mjmlSource  Full MJML content with {{variable}} placeholders (required for html type with mjml editor)
      * @param  ?string  $stripoDesignJson  Stripo editor design JSON for re-opening designs (stripo editor type only)
-     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export (stripo editor type only)
+     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export (stripo editor type), or the rich-text fragment for simple (required, max 200 KB, sanitised on save)
      * @param  ?string  $textBody  Plain text template content with {{variable}} placeholders (required for plain_text type)
      * @param  array<string, mixed>|null  $variableValues  Template variable values (not contact/company/system)
      * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
+     * @param  ?bool  $autoAttachSignature  Automatically attach the sending user's email signature when this content is loaded into a conversation composer in the SendSeven inbox (web and mobile). Only applies to 'simple' and 'plain_text' content; always false for 'html'. Has no effect on campaign sends.
      * @param  ?bool  $aiGenerated  Whether content was AI-generated
      * @param  ?string  $aiPrompt  AI prompt used for generation
      * @param  ?string  $aiModelUsed  AI model used
@@ -138,6 +143,7 @@ final readonly class EmailContents
         ?string $textBody = null,
         ?array $variableValues = null,
         ?string $footerMode = null,
+        ?bool $autoAttachSignature = null,
         ?bool $aiGenerated = null,
         ?string $aiPrompt = null,
         ?string $aiModelUsed = null,
@@ -163,6 +169,7 @@ final readonly class EmailContents
                 'text_body' => $textBody,
                 'variable_values' => $variableValues,
                 'footer_mode' => $footerMode,
+                'auto_attach_signature' => $autoAttachSignature,
                 'ai_generated' => $aiGenerated,
                 'ai_prompt' => $aiPrompt,
                 'ai_model_used' => $aiModelUsed,
@@ -181,10 +188,11 @@ final readonly class EmailContents
      *
      * Returns a comprehensive list of variables that can be used in email templates:
      *
-     * - contact: Recipient contact information (name, email, phone, etc.) - company: Your
-     * company/organization details (including brand colors) - campaign: Auto-filled campaign variables
-     * (unsubscribe link, etc.) - system: System variables (current year, date, etc.) - custom_fields:
-     * Your tenant's custom contact fields
+     * - contact: Recipient contact information (name, email, phone, birthday) - custom_fields: Your
+     * workspace's custom contact fields (contact.custom.<key>) - company: Your company profile and
+     * branding (name, address, logo, colors, ...) - agent: The team member who sends the email (name,
+     * email, phone, job title, role) - campaign: Auto-filled campaign variables (unsubscribe link,
+     * etc.) - system: System variables (current year, date)
      *
      * Scopes: email:read.
      *
@@ -256,18 +264,19 @@ final readonly class EmailContents
      * Contact: {{contact.name}} -> Actual contact's name at send time - Company: {{company.name}} ->
      * Actual company name at send time - System: {{system.year}} -> Current year (e.g., 2025)
      *
-     * Features: - Update MJML source, variable values, subject, etc. - Creates new version (increments
-     * version number) - Variables are automatically re-extracted and validated - Content changes will
-     * affect future campaigns using this content
+     * For simple content send the new fragment in compiled_html: it is sanitised and text_body is
+     * re-derived (same 422 codes as create). text_body / mjml_source / editor_type are ignored for
+     * simple.
      *
      * Scopes: email:create.
      *
      * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml'
      * @param  ?string  $stripoDesignJson  Stripo editor design JSON
-     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export
-     * @param  ?string  $textBody  Plain text template content with {{variable}} placeholders
+     * @param  ?string  $compiledHtml  Pre-compiled HTML from Stripo export, or the rich-text fragment for simple (max 200 KB)
+     * @param  ?string  $textBody  Plain text template content with {{variable}} placeholders (plain_text only; ignored for simple)
      * @param  array<string, mixed>|null  $variableValues
      * @param  ?string  $footerMode  Compliance footer override for this email: `inherit` (default — use the account setting), `both` (unsubscribe + manage preferences), `unsubscribe_only`, or `none` (no visible footer, for transactional mail). RFC 8058 List-Unsubscribe headers are sent regardless.
+     * @param  ?bool  $autoAttachSignature  Automatically attach the sending user's email signature when this content is loaded into a conversation composer in the SendSeven inbox (web and mobile). Only applies to 'simple' and 'plain_text' content; always false for 'html'. Has no effect on campaign sends. Omit to leave unchanged; ignored for 'html'.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -290,6 +299,7 @@ final readonly class EmailContents
         ?string $textBody = null,
         ?array $variableValues = null,
         ?string $footerMode = null,
+        ?bool $autoAttachSignature = null,
         ?string $idempotencyKey = null,
     ): EmailContent {
         $response = $this->connector->send(new Request(
@@ -310,6 +320,7 @@ final readonly class EmailContents
                 'text_body' => $textBody,
                 'variable_values' => $variableValues,
                 'footer_mode' => $footerMode,
+                'auto_attach_signature' => $autoAttachSignature,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -379,5 +390,48 @@ final readonly class EmailContents
         ));
 
         return EmailContentPreview::fromArray($response->data());
+    }
+
+    /**
+     * Render Email Content.
+     *
+     * Render email content for a real recipient (conversation reply / new email).
+     *
+     * The server resolves every variable:
+     *
+     * - contact.* / contact.custom.*: the contact contact_id, or the contact of conversation_id (must
+     * belong to your workspace, else 404) - company.*: your company profile and branding - agent.*:
+     * you (the requesting user), while an active workspace member - system.*: current year / date
+     *
+     * Scopes: email:read.
+     *
+     * @param  ?string  $contactId  Contact to personalise for (must belong to the workspace)
+     * @param  ?string  $conversationId  Conversation whose contact is used when contact_id is not given
+     * @param  array<string, mixed>|null  $variables  Template variable fills (plain names such as hero_title). Namespaced values (contact.*, company.*, agent.*, campaign.*, system.*) are always resolved by the server and ignored here.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Email%20Contents/render_email_content_api_v1_email_contents__content_id__render_post
+     */
+    public function render(
+        string $contentId,
+        ?string $contactId = null,
+        ?string $conversationId = null,
+        ?array $variables = null,
+        ?string $idempotencyKey = null,
+    ): EmailContentRender {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/email-contents/'.Payload::segment($contentId).'/render',
+            body: Payload::body([
+                'contact_id' => $contactId,
+                'conversation_id' => $conversationId,
+                'variables' => $variables,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return EmailContentRender::fromArray($response->data());
     }
 }

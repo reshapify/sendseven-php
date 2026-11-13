@@ -285,10 +285,16 @@ final readonly class FaqManagement
     /**
      * Batch Create Faq Items.
      *
-     * Create multiple FAQ items in a single request.
+     * Create up to 50 FAQ entries in a single request.
      *
-     * All items must belong to the same document. Triggers ONE background sync after all items are
-     * saved.
+     * Same two shapes as POST /faq-items, decided per batch:
+     *
+     * - standalone (default) - omit document_id on every item. Each entry goes to its folder_id
+     * (default: the *Managed FAQ* system folder) and honours status, language and allow_duplicate.
+     * All-or-nothing: a near-duplicate (allow_duplicate: false) returns 409 with item_index and
+     * nothing is saved. Published entries are indexed in the background. - document-scoped (legacy) -
+     * pass the same document_id on every item; they are appended to that managed FAQ document, then
+     * ONE re-sync runs.
      *
      * Scopes: knowledge_base:create.
      *

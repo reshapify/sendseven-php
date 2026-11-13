@@ -16,19 +16,23 @@ use Reshapify\SendSeven\Support\Attributes;
  * "contact.first_name", "contact.custom.vip", or a flow-scoped output_var like
  * "flow.vars.user_email"). * label — human-readable name shown in the picker dropdown. * type
  * — best-effort type hint (e.g. "string", "number", "string[]"). Used by the FE to pick the
- * right operator set.
+ * right operator set. * key — same value as path. The frontend contract
+ * (frontend/src/features/flows/api.ts FlowVariableEntry) reads key; path stays for existing API
+ * clients. Always equal.
  *
  * @see https://api.sendseven.com/api/v1/docs (schema FlowVariableEntry)
  */
 final readonly class FlowVariableEntry extends Data
 {
     /**
+     * @param  ?string  $key  Alias of `path` (always equal); the field the Flow Builder reads.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $path,
         public string $label,
         public ?string $type,
+        public ?string $key,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,6 +49,7 @@ final readonly class FlowVariableEntry extends Data
             path: $attributes->string('path'),
             label: $attributes->string('label'),
             type: $attributes->nullableString('type'),
+            key: $attributes->nullableString('key'),
             raw: $data,
         );
     }

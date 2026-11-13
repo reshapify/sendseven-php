@@ -17,11 +17,11 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailContentPreview extends Data
 {
     /**
-     * @param  ?string  $htmlContent  Compiled and rendered HTML (html type)
-     * @param  ?string  $textContent  Rendered plain text (plain_text type)
+     * @param  ?string  $htmlContent  Rendered HTML (html type). For simple: preview returns the full minimal email document, render returns the rendered fragment only (no wrapper)
+     * @param  ?string  $textContent  Rendered plain text (plain_text and simple types)
      * @param  string  $subjectLine  Rendered subject line
      * @param  list<string>  $variablesUsed  Variables found in content
-     * @param  ?string  $contentType  Content type of the previewed content
+     * @param  ?string  $contentType  Content type of the previewed content: 'html' | 'plain_text' | 'simple'
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

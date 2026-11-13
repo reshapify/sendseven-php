@@ -22,6 +22,7 @@ final readonly class WhatsAppTemplateSync extends Data
      * @param  int  $updated  Existing templates updated
      * @param  int  $removed  Templates removed (no longer in WhatsApp)
      * @param  list<string>  $errors  Any errors during sync
+     * @param  list<string>  $channelIds  Every WhatsApp channel whose templates were refreshed. Templates belong to the WhatsApp Business Account, so one sync refreshes all of your numbers in that account (the requested channel first). The counts above describe the requested channel.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -30,6 +31,7 @@ final readonly class WhatsAppTemplateSync extends Data
         public int $updated,
         public int $removed,
         public array $errors,
+        public array $channelIds,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -48,6 +50,7 @@ final readonly class WhatsAppTemplateSync extends Data
             updated: $attributes->int('updated'),
             removed: $attributes->int('removed'),
             errors: $attributes->strings('errors'),
+            channelIds: $attributes->strings('channel_ids'),
             raw: $data,
         );
     }

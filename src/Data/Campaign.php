@@ -21,12 +21,15 @@ final readonly class Campaign extends Data
     /**
      * @param  array<array-key, mixed>  $channelContent
      * @param  list<string>  $listIds
+     * @param  array<array-key, mixed>  $audienceConditions
      * @param  list<string>  $channelFilter
      * @param  list<string>  $selectedChannelIds
+     * @param  list<CampaignPreflightWarning>  $preflightWarnings
      * @param  array<array-key, mixed>  $whatsAppTemplateVariableMapping
      * @param  array<array-key, mixed>  $sendSplitConfig
      * @param  array<array-key, mixed>  $sendSplitState
      * @param  array<array-key, mixed>  $warmupAssessment
+     * @param  array<array-key, mixed>  $whatsAppIdsAdded
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -41,10 +44,14 @@ final readonly class Campaign extends Data
         public ?string $targetUrl,
         public ?string $browserPushTitle,
         public array $listIds,
+        public array $audienceConditions,
         public array $channelFilter,
         public array $selectedChannelIds,
         public CampaignStatus|string $status,
         public ?string $throttleReason,
+        public ?string $failureReason,
+        public array $preflightWarnings,
+        public ?CampaignDeliveryWarning $deliveryWarning,
         public ?DateTimeImmutable $scheduledAt,
         public ?string $timezone,
         public ?DateTimeImmutable $startedAt,
@@ -72,6 +79,7 @@ final readonly class Campaign extends Data
         public ?string $warmupAcknowledgedByUserId,
         public array $warmupAssessment,
         public ?bool $smsOptoutLinkEnabled,
+        public array $whatsAppIdsAdded,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -96,10 +104,14 @@ final readonly class Campaign extends Data
             targetUrl: $attributes->nullableString('target_url'),
             browserPushTitle: $attributes->nullableString('browser_push_title'),
             listIds: $attributes->strings('list_ids'),
+            audienceConditions: $attributes->array('audience_conditions'),
             channelFilter: $attributes->strings('channel_filter'),
             selectedChannelIds: $attributes->strings('selected_channel_ids'),
             status: $attributes->enum('status', CampaignStatus::class),
             throttleReason: $attributes->nullableString('throttle_reason'),
+            failureReason: $attributes->nullableString('failure_reason'),
+            preflightWarnings: $attributes->list('preflight_warnings', CampaignPreflightWarning::fromArray(...)),
+            deliveryWarning: $attributes->nullableObject('delivery_warning', CampaignDeliveryWarning::fromArray(...)),
             scheduledAt: $attributes->nullableDateTime('scheduled_at'),
             timezone: $attributes->nullableString('timezone'),
             startedAt: $attributes->nullableDateTime('started_at'),
@@ -127,6 +139,7 @@ final readonly class Campaign extends Data
             warmupAcknowledgedByUserId: $attributes->nullableString('warmup_acknowledged_by_user_id'),
             warmupAssessment: $attributes->array('warmup_assessment'),
             smsOptoutLinkEnabled: $attributes->nullableBool('sms_optout_link_enabled'),
+            whatsAppIdsAdded: $attributes->array('whatsapp_ids_added'),
             raw: $data,
         );
     }

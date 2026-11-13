@@ -21,6 +21,8 @@ final readonly class ReplayEvent extends Data
 {
     /**
      * @param  ?string  $nodeName  Human-readable label of the executed node, resolved from the run's snapshotted definition (``context.definition_snapshot``) so a post-run rename doesn't change historical replays. Falls back to ``node_id`` when the snapshot lacks the node (e.g. it was added after this run). Emitted alongside ``node_type`` so the observability tab identifies WHICH node ran, not just its type.
+     * @param  ?string  $branch  Branch label the step took (``None`` when it did not branch or is still waiting).
+     * @param  array<array-key, mixed>  $variables  Flow variables this step set or changed, secrets redacted, long values shortened.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -31,6 +33,8 @@ final readonly class ReplayEvent extends Data
         public ?string $nodeType,
         public ?string $summary,
         public ?string $status,
+        public ?string $branch,
+        public array $variables,
         public ?string $channel,
         public ?string $body,
         public ?string $messageId,
@@ -54,6 +58,8 @@ final readonly class ReplayEvent extends Data
             nodeType: $attributes->nullableString('node_type'),
             summary: $attributes->nullableString('summary'),
             status: $attributes->nullableString('status'),
+            branch: $attributes->nullableString('branch'),
+            variables: $attributes->array('variables'),
             channel: $attributes->nullableString('channel'),
             body: $attributes->nullableString('body'),
             messageId: $attributes->nullableString('message_id'),

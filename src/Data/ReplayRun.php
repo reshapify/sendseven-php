@@ -26,6 +26,7 @@ final readonly class ReplayRun extends Data
         public ?string $completedAt,
         public string $status,
         public ?string $currentNodeId,
+        public ?string $canceledReason,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,6 +46,7 @@ final readonly class ReplayRun extends Data
             completedAt: $attributes->nullableString('completed_at'),
             status: $attributes->string('status'),
             currentNodeId: $attributes->nullableString('current_node_id'),
+            canceledReason: $attributes->nullableString('canceled_reason'),
             raw: $data,
         );
     }

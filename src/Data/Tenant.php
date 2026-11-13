@@ -18,6 +18,7 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Tenant extends Data
 {
     /**
+     * @param  bool  $autoSummarizeLiveChat  Deprecated and ignored: live chats follow auto_summarize_on_close. Still accepted and returned for older clients.
      * @param  array<array-key, mixed>  $brandColors
      * @param  array<array-key, mixed>  $logoVariants
      * @param  array<array-key, mixed>  $raw

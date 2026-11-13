@@ -21,11 +21,15 @@ final readonly class KbFolderTree extends Data
     /**
      * @param  list<KbFolder>  $items  Root-level folders with nested children
      * @param  int  $total  Total number of folders
+     * @param  ?int  $faqEntryTotal  All FAQ entries of the workspace, including entries in no folder. Equals the total of GET /faq-entries without a folder filter.
+     * @param  ?int  $documentTotal  All documents of the workspace, including documents in no folder or in folders not shown in the tree. Equals the total of GET /documents without a folder filter.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public array $items,
         public int $total,
+        public ?int $faqEntryTotal,
+        public ?int $documentTotal,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -41,6 +45,8 @@ final readonly class KbFolderTree extends Data
         return new self(
             items: $attributes->list('items', KbFolder::fromArray(...)),
             total: $attributes->int('total'),
+            faqEntryTotal: $attributes->nullableInt('faq_entry_total'),
+            documentTotal: $attributes->nullableInt('document_total'),
             raw: $data,
         );
     }

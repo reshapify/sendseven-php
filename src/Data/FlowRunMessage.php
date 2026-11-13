@@ -32,6 +32,7 @@ final readonly class FlowRunMessage extends Data
      * @param  ?string  $conversationId  Conversation the message belongs to. Null for flow messages that were sent before any conversation existed (e.g. test runs, or runs the contact never replied to).
      * @param  array<array-key, mixed>  $contactInfo  Provider-echoed sender profile captured from the inbound channel webhook at receipt time (inbound message.received only; not a DB lookup). Fields vary by channel: WhatsApp {name, phone}, Telegram {name, username, profile_picture}, Messenger {name, profile_picture}, Instagram {name?, username, profile_picture}. NOTE: `phone` (WhatsApp-only) is deprecated — use `data.contact_method.value` for the authoritative DB-sourced identifier of the method actually used.
      * @param  list<AppSchemasMessageAttachment>  $attachments
+     * @param  ?bool  $attachmentDeleted  True when this message had a file that has since been deleted (for example from the contact's Files). The message itself is kept; render a "file deleted" placeholder instead of the media. Always false for messages that never had a file.
      * @param  list<string>  $relatedMessageIds  IDs of the additional messages created by the same send request, in delivery order. Non-empty only when a send carried several attachments on a channel that delivers one attachment per message — the response body itself is the FIRST message (it holds the caption and `attachments[0]`), and each id here is a further message carrying the next attachment. Each has its own status and its own delivery webhooks, so poll them individually via `GET /api/v1/messages/{id}`. Empty array for every other message.
      * @param  array<array-key, mixed>  $meta
      * @param  ?string  $contentFormat  How this message's body is formatted for the send pipeline: `markdown` (canonical markdown, rendered per-channel) or `plain` (human text, passed through untouched). Derived from `meta.content_format`; defaults to `plain` for every message that did not explicitly opt into markdown.
@@ -40,6 +41,7 @@ final readonly class FlowRunMessage extends Data
      * @param  ?string  $headerMediaAttachmentId  Durable attachment id for an interactive image/video header
      * @param  ?string  $replyToExternalId  Platform message ID of quoted message
      * @param  ?QuotedMessage  $quotedMessage  Preview of the quoted message
+     * @param  ?string  $errorCode  Machine-readable failure code for failed messages, e.g. 'contact_blocked' (the contact is blocked) or a provider error code.
      * @param  ?CampaignInfo  $campaign  Campaign info when this message was sent via a campaign/newsletter
      * @param  ?string  $flowRunId  FlowRun UUID — set when this message was sent by an automation flow. Frontends use this (together with `flow_name`) to render a 'Sent by flow' badge in the conversation timeline.
      * @param  ?string  $flowStepId  FlowRunStep UUID — identifies the specific Send-node step inside the flow that produced this message. Optional companion to `flow_run_id`.
@@ -66,6 +68,7 @@ final readonly class FlowRunMessage extends Data
         public ?string $text,
         public MessageStatus|string $status,
         public array $attachments,
+        public ?bool $attachmentDeleted,
         public array $relatedMessageIds,
         public array $meta,
         public ?string $contentFormat,
@@ -81,6 +84,7 @@ final readonly class FlowRunMessage extends Data
         public ?string $readAt,
         public ?bool $isInternal,
         public ?string $errorMessage,
+        public ?string $errorCode,
         public ?CampaignInfo $campaign,
         public ?string $flowRunId,
         public ?string $flowStepId,
@@ -117,6 +121,7 @@ final readonly class FlowRunMessage extends Data
             text: $attributes->nullableString('text'),
             status: $attributes->enum('status', MessageStatus::class),
             attachments: $attributes->list('attachments', AppSchemasMessageAttachment::fromArray(...)),
+            attachmentDeleted: $attributes->nullableBool('attachment_deleted'),
             relatedMessageIds: $attributes->strings('related_message_ids'),
             meta: $attributes->array('meta'),
             contentFormat: $attributes->nullableString('content_format'),
@@ -132,6 +137,7 @@ final readonly class FlowRunMessage extends Data
             readAt: $attributes->nullableString('read_at'),
             isInternal: $attributes->nullableBool('is_internal'),
             errorMessage: $attributes->nullableString('error_message'),
+            errorCode: $attributes->nullableString('error_code'),
             campaign: $attributes->nullableObject('campaign', CampaignInfo::fromArray(...)),
             flowRunId: $attributes->nullableString('flow_run_id'),
             flowStepId: $attributes->nullableString('flow_step_id'),

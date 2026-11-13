@@ -60,18 +60,26 @@ final readonly class EmailSignatures
      * The signature HTML can include placeholders which will be resolved when emails are sent.
      * However, users typically personalize the signature with their actual values.
      *
+     * content_mode: rich or html (pasted HTML, max 60,000 characters -> 422 signature_too_large).
+     * Omitted keeps the stored mode (rich on create).
+     *
      * Scopes: email_signatures:update.
      *
      * @param  string  $contentHtml  HTML content of the personalized signature
      * @param  ?string  $contentText  Plain text version for non-HTML emails
      * @param  ?bool  $isActive  Whether the signature is active. When ``False``, effective-signature resolution will skip this user signature (and the auto-insert effect in the composer will not pre-fill it). Optional on PUT — omitting it leaves the existing flag unchanged.
+     * @param  ?string  $contentMode  Signature editing mode. `rich`: visual editor content. `html`: pasted HTML (tables, inline CSS), stored exactly as sanitized and never reformatted; max 60,000 characters (422 `signature_too_large`). Omit on update to keep the stored mode (`rich` on create).
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Signatures/update_my_signature_api_v1_email_signatures_me_put
      */
-    public function updateMy(string $contentHtml, ?string $contentText = null, ?bool $isActive = null): UserSignature
-    {
+    public function updateMy(
+        string $contentHtml,
+        ?string $contentText = null,
+        ?bool $isActive = null,
+        ?string $contentMode = null,
+    ): UserSignature {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/email-signatures/me',
@@ -79,6 +87,7 @@ final readonly class EmailSignatures
                 'content_html' => $contentHtml,
                 'content_text' => $contentText,
                 'is_active' => $isActive,
+                'content_mode' => $contentMode,
             ]),
         ));
 
@@ -91,7 +100,8 @@ final readonly class EmailSignatures
      * Copy the tenant's signature template to the current user's signature.
      *
      * This creates a personalized copy of the tenant template that the user can then customize. The
-     * template's placeholders are copied as-is and will be resolved when emails are sent.
+     * template's placeholders are copied as-is and will be resolved when emails are sent. The
+     * template's content_mode is copied too.
      *
      * Returns 404 if no tenant template exists.
      *
@@ -196,26 +206,32 @@ final readonly class EmailSignatures
      * This template serves as the master/default signature for the tenant. Agents can copy this
      * template to customize their own signatures.
      *
-     * Supported placeholders: - {agent_name} - Agent's display name - {agent_email} - Agent's email
-     * address - {agent_phone} - Agent's phone number (from TenantUser) - {agent_title} - Agent's job
-     * title (from TenantUser) - {company_name} - Company name (from Tenant) - {company_logo} - Company
-     * logo URL - {company_website} - Company website URL
+     * content_mode: rich (visual editor) or html (pasted HTML, stored exactly as sanitized, max 60,000
+     * characters -> 422 signature_too_large). Omitted keeps the stored mode (rich on create).
      *
      * Scopes: email_signatures:settings.
      *
      * @param  string  $contentHtml  HTML content of the signature template with placeholders
      * @param  ?string  $contentText  Plain text version for non-HTML emails
+     * @param  ?string  $contentMode  Signature editing mode. `rich`: visual editor content. `html`: pasted HTML (tables, inline CSS), stored exactly as sanitized and never reformatted; max 60,000 characters (422 `signature_too_large`). Omit on update to keep the stored mode (`rich` on create).
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Signatures/update_tenant_template_api_v1_email_signatures_template_put
      */
-    public function updateTenantTemplate(string $contentHtml, ?string $contentText = null): SignatureTemplate
-    {
+    public function updateTenantTemplate(
+        string $contentHtml,
+        ?string $contentText = null,
+        ?string $contentMode = null,
+    ): SignatureTemplate {
         $response = $this->connector->send(new Request(
             Method::Put,
             '/email-signatures/template',
-            body: Payload::body(['content_html' => $contentHtml, 'content_text' => $contentText]),
+            body: Payload::body([
+                'content_html' => $contentHtml,
+                'content_text' => $contentText,
+                'content_mode' => $contentMode,
+            ]),
         ));
 
         return SignatureTemplate::fromArray($response->data());
@@ -226,8 +242,12 @@ final readonly class EmailSignatures
      *
      * Preview a signature template with resolved placeholders.
      *
-     * If content_html is not provided in the request, uses the current tenant template. Optionally
-     * override placeholder values for preview.
+     * If content_html is not provided in the request, uses the current tenant template. The content is
+     * cleaned exactly as saving would store it, and placeholders resolve exactly as in a sent email:
+     * your real details, the real company logo, and empty fields stay empty. Per-field overrides
+     * replace single values; use_sample_values: true fills empty values with sample data. content_mode
+     * (rich | html) selects the sanitizer exactly like saving; omitted = the stored template's mode
+     * when previewing the stored template, else rich. html mode is never reformatted.
      *
      * Scopes: email_signatures:read.
      *
@@ -239,6 +259,8 @@ final readonly class EmailSignatures
      * @param  ?string  $companyName  Override company name
      * @param  ?string  $companyLogo  Override company logo URL
      * @param  ?string  $companyWebsite  Override company website
+     * @param  ?string  $contentMode  Mode of `content_html` (`rich` | `html`). Omitted: the stored template's mode when previewing the stored template, else `rich`.
+     * @param  ?bool  $useSampleValues  Fill placeholders whose real value is empty with sample values (e.g. 'Support Agent'). Default false: the preview resolves exactly like a sent email (your real details, real company logo, empty fields stay empty).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -254,6 +276,8 @@ final readonly class EmailSignatures
         ?string $companyName = null,
         ?string $companyLogo = null,
         ?string $companyWebsite = null,
+        ?string $contentMode = null,
+        ?bool $useSampleValues = null,
         ?string $idempotencyKey = null,
     ): SignaturePreview {
         $response = $this->connector->send(new Request(
@@ -268,6 +292,8 @@ final readonly class EmailSignatures
                 'company_name' => $companyName,
                 'company_logo' => $companyLogo,
                 'company_website' => $companyWebsite,
+                'content_mode' => $contentMode,
+                'use_sample_values' => $useSampleValues,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));

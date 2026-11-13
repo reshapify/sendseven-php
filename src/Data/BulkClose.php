@@ -10,16 +10,16 @@ namespace Reshapify\SendSeven\Data;
 use Reshapify\SendSeven\Support\Attributes;
 
 /**
- * Response for bulk close operation
+ * Response for every bulk conversation action (close, reopen, delete, assign, tag).
  *
  * @see https://api.sendseven.com/api/v1/docs (schema BulkCloseResponse)
  */
 final readonly class BulkClose extends Data
 {
     /**
-     * @param  int  $successCount  Number of successfully closed conversations
-     * @param  int  $failedCount  Number of failed closures
-     * @param  list<string>  $failedIds  IDs of conversations that failed to close
+     * @param  int  $successCount  Number of conversations the action succeeded for
+     * @param  int  $failedCount  Number of conversations the action failed for
+     * @param  list<string>  $failedIds  IDs the action failed for: not found, not accessible to you, blocked by a workspace rule, or an error
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

@@ -22,4 +22,5 @@ enum OptInMethod: string
     case DoubleOptIn = 'double_opt_in';
     case Keyword = 'keyword';
     case Conversation = 'conversation';
+    case WhatsAppFlow = 'whatsapp_flow';
 }

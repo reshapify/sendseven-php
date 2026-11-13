@@ -22,13 +22,14 @@ final readonly class EmailContentListItem extends Data
      * @param  string  $tenantId  Tenant this resource belongs to
      * @param  string  $name  Content name
      * @param  ?string  $description  Content description
-     * @param  ?string  $contentType  Content type: 'html' or 'plain_text'
-     * @param  ?string  $editorType  Editor type: 'stripo' or 'mjml'
+     * @param  ?string  $contentType  Content type: 'html' | 'plain_text' | 'simple'
+     * @param  ?string  $editorType  Editor type: 'stripo', 'mjml' or 'tiptap' (simple)
      * @param  ?string  $templateId  Email template ID
      * @param  ?string  $subjectLine  Email subject line
      * @param  ?string  $previewText  Preview text
      * @param  ?string  $fromName  Sender name
      * @param  ?string  $fromEmail  Sender email
+     * @param  ?bool  $autoAttachSignature  Automatically attach the sending user's email signature when this content is loaded into a conversation composer in the SendSeven inbox (web and mobile). Only applies to 'simple' and 'plain_text' content; always false for 'html'. Has no effect on campaign sends.
      * @param  ?bool  $aiGenerated  AI-generated flag
      * @param  ?bool  $isSystem  System template flag
      * @param  ?bool  $isHidden  Hidden/archived flag
@@ -51,6 +52,7 @@ final readonly class EmailContentListItem extends Data
         public ?string $previewText,
         public ?string $fromName,
         public ?string $fromEmail,
+        public ?bool $autoAttachSignature,
         public ?bool $aiGenerated,
         public ?bool $isSystem,
         public ?bool $isHidden,
@@ -83,6 +85,7 @@ final readonly class EmailContentListItem extends Data
             previewText: $attributes->nullableString('preview_text'),
             fromName: $attributes->nullableString('from_name'),
             fromEmail: $attributes->nullableString('from_email'),
+            autoAttachSignature: $attributes->nullableBool('auto_attach_signature'),
             aiGenerated: $attributes->nullableBool('ai_generated'),
             isSystem: $attributes->nullableBool('is_system'),
             isHidden: $attributes->nullableBool('is_hidden'),

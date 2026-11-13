@@ -23,6 +23,8 @@ final readonly class CoexistenceStatus extends Data
     /**
      * @param  ?string  $historySyncStatus  One of: not_started, requested, in_progress, completed, declined, failed, unavailable (Meta's one-time 24h-from-onboarding sync window closed before history could be requested)
      * @param  ?string  $contactsSyncStatus  One of: not_started, requested, completed, failed, unavailable (24h sync window closed before the address book could be requested)
+     * @param  ?string  $historySyncUnavailableReason  Set only when history_sync_status is unavailable. One of: sync_window_expired (Meta's one-time 24h import window closed), meta_permission_denied (Meta refused the import for this number, error #10)
+     * @param  ?string  $contactsSyncUnavailableReason  Set only when contacts_sync_status is unavailable. Same values as history_sync_unavailable_reason
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -35,6 +37,8 @@ final readonly class CoexistenceStatus extends Data
         public ?int $historySyncProgress,
         public ?int $historySyncPhase,
         public ?string $contactsSyncStatus,
+        public ?string $historySyncUnavailableReason,
+        public ?string $contactsSyncUnavailableReason,
         public ?DateTimeImmutable $disconnectedAt,
         public ?string $disconnectionReason,
         public ?DateTimeImmutable $reconnectedAt,
@@ -60,6 +64,8 @@ final readonly class CoexistenceStatus extends Data
             historySyncProgress: $attributes->nullableInt('history_sync_progress'),
             historySyncPhase: $attributes->nullableInt('history_sync_phase'),
             contactsSyncStatus: $attributes->nullableString('contacts_sync_status'),
+            historySyncUnavailableReason: $attributes->nullableString('history_sync_unavailable_reason'),
+            contactsSyncUnavailableReason: $attributes->nullableString('contacts_sync_unavailable_reason'),
             disconnectedAt: $attributes->nullableDateTime('disconnected_at'),
             disconnectionReason: $attributes->nullableString('disconnection_reason'),
             reconnectedAt: $attributes->nullableDateTime('reconnected_at'),

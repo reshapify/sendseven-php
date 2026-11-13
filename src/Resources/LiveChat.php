@@ -33,6 +33,9 @@ final readonly class LiveChat
      *
      * List active live chat sessions for the tenant Optionally filter by agent_id
      *
+     * Only sessions whose conversation the caller can open are listed (same Custom Inbox / assignment
+     * rules as the conversation list).
+     *
      * Scopes: conversations:read.
      *
      * @return list<LiveChatSession>
@@ -79,6 +82,12 @@ final readonly class LiveChat
      *
      * Assign an agent to a live chat session Creates conversation if it doesn't exist
      *
+     * Same access as assigning the conversation (PATCH /conversations/{id}): 404 "Session not found"
+     * when the session is unknown, belongs to another workspace or its conversation is hidden from the
+     * caller; 403 when the workspace forbids acting on other agents' conversations and the caller (not
+     * admin/owner) reassigns a conversation assigned to someone else. Assigning yourself is always
+     * allowed.
+     *
      * Scopes: conversations:update.
      *
      * @param  string  $agentId  User ID of the agent to assign
@@ -106,7 +115,15 @@ final readonly class LiveChat
     /**
      * Agent End Session.
      *
-     * End a live chat session (agent side)
+     * End a live chat session (agent side).
+     *
+     * Ending the session also closes its conversation with the normal close routine, so the caller
+     * needs the same access as POST /conversations/{id}/close.
+     *
+     * - 404 "Session not found" when the session is unknown, belongs to another workspace, or its
+     * conversation is not visible to the caller (Custom Inbox / assignment rules). - 403 when the
+     * workspace does not allow acting on other agents' conversations and the conversation is assigned
+     * to another agent (admins and owners may always end it).
      *
      * Scopes: conversations:update.
      *
@@ -131,6 +148,8 @@ final readonly class LiveChat
      * Agent Send Message.
      *
      * Send a message as an agent in a live chat session
+     *
+     * 409 {"error": "CONTACT_BLOCKED", ...} when the visitor's contact is blocked.
      *
      * Scopes: conversations:update.
      *

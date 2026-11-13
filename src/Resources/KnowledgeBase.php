@@ -11,7 +11,9 @@ use Reshapify\SendSeven\Data\ActiveCrawlJobs;
 use Reshapify\SendSeven\Data\BulkDelete;
 use Reshapify\SendSeven\Data\CrawledDomains;
 use Reshapify\SendSeven\Data\CrawlJobStatus;
+use Reshapify\SendSeven\Data\CrawlLimits;
 use Reshapify\SendSeven\Data\CrawlPreview;
+use Reshapify\SendSeven\Data\Delete;
 use Reshapify\SendSeven\Data\FolderDelete;
 use Reshapify\SendSeven\Data\JobStatus;
 use Reshapify\SendSeven\Data\KbDocumentRaw;
@@ -20,13 +22,14 @@ use Reshapify\SendSeven\Data\KnowledgeBaseDocument;
 use Reshapify\SendSeven\Data\MultiFileUpload;
 use Reshapify\SendSeven\Data\RefreshDocument;
 use Reshapify\SendSeven\Data\RetryFailed;
+use Reshapify\SendSeven\Data\ReviewQueueItem;
+use Reshapify\SendSeven\Data\ReviewQueueSummary;
 use Reshapify\SendSeven\Data\SearchKnowledge;
 use Reshapify\SendSeven\Data\Success;
 use Reshapify\SendSeven\Data\TicketSummary;
 use Reshapify\SendSeven\Data\WebsiteCrawlJob;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
-use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -34,7 +37,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Knowledge Base: 23 endpoints.
+ * Knowledge Base: 27 endpoints.
  *
  * Reach it with $sendseven->knowledgeBase().
  *
@@ -43,6 +46,32 @@ use Reshapify\SendSeven\Support\Payload;
 final readonly class KnowledgeBase
 {
     public function __construct(private Connector $connector) {}
+
+    /**
+     * Get Crawl Limits Endpoint.
+     *
+     * Get the website-crawl page limit for the current workspace.
+     *
+     * max_pages is the most pages a single crawl or re-crawl may request (page_limit). Requests above
+     * it are rejected with 422 crawl_page_limit_exceeded. The limit is 2000 pages by default
+     * (default_max_pages); is_custom=true means it was raised for this workspace. Contact
+     * support_email to request a higher limit.
+     *
+     * Scopes: knowledge_base:create.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_crawl_limits_endpoint_api_v1_knowledge_base_crawl_limits_get
+     */
+    public function getCrawlLimitsEndpoint(): CrawlLimits
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/knowledge-base/crawl/limits',
+        ));
+
+        return CrawlLimits::fromArray($response->data());
+    }
 
     /**
      * List Documents.
@@ -175,15 +204,19 @@ final readonly class KnowledgeBase
      *
      * Use GET /documents/crawl/{job_id}/status to check progress.
      *
-     * Scopes: knowledge_base:admin.
+     * Scopes: knowledge_base:create, knowledge_base:admin.
      *
      * @param  string  $url  URL to crawl
      * @param  ?bool  $followLinks  If true, follow links and crawl multiple pages. If false, only crawl the single URL provided.
      * @param  ?string  $titlePrefix  Optional prefix for document titles
-     * @param  ?int  $pageLimit  Maximum pages to crawl when follow_links=True (1-2000, default 200). Smart safeguards prevent duplicate content pages.
+     * @param  ?int  $pageLimit  Maximum pages to crawl when follow_links=True (default 200). Must not exceed your workspace crawl limit (2000 pages unless raised for your workspace; see GET /knowledge-base/crawl/limits). Larger values are rejected with 422 `crawl_page_limit_exceeded` - contact support@sendseven.com to raise the limit. Smart safeguards prevent duplicate content pages.
      * @param  ?int  $maxDepth  Maximum crawl depth when follow_links=True (default from settings)
      * @param  float|int|null  $rateLimit  Seconds between requests (default from settings)
      * @param  ?bool  $refresh  If true, delete existing documents from this domain before crawling
+     * @param  list<string>|null  $excludePaths  Paths to leave out of the crawl (max 50, each starting with '/', max 200 chars). Matching is case-insensitive on whole path segments: '/en' excludes '/en' and '/en/pricing' but not '/enterprise'. '/' alone is rejected. Example for a site whose main language is at the root and other languages under /en, /fr: ["/en", "/fr"]. Invalid rules return 422 `invalid_exclude_rule`.
+     * @param  list<string>|null  $excludeQueryParams  Query parameters to leave out (max 20): 'name' excludes every URL carrying that parameter, 'name=value' only that value (case-insensitive), e.g. ["lang=en"].
+     * @param  ?string  $language  Content language to keep, e.g. 'de', 'en' or 'pt-br'. Used with translation_handling='skip_translations'.
+     * @param  ?string  $translationHandling  'keep_all' (default) imports every language version. 'skip_translations' skips a page only when its own language differs from `language` AND the page links a version in `language` (hreflang) that is part of this crawl. Pages without such a version are kept, so no unique content is lost.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -198,6 +231,10 @@ final readonly class KnowledgeBase
         ?int $maxDepth = null,
         float|int|null $rateLimit = null,
         ?bool $refresh = null,
+        ?array $excludePaths = null,
+        ?array $excludeQueryParams = null,
+        ?string $language = null,
+        ?string $translationHandling = null,
         ?string $idempotencyKey = null,
     ): WebsiteCrawlJob {
         $response = $this->connector->send(new Request(
@@ -211,6 +248,10 @@ final readonly class KnowledgeBase
                 'max_depth' => $maxDepth,
                 'rate_limit' => $rateLimit,
                 'refresh' => $refresh,
+                'exclude_paths' => $excludePaths,
+                'exclude_query_params' => $excludeQueryParams,
+                'language' => $language,
+                'translation_handling' => $translationHandling,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -255,7 +296,7 @@ final readonly class KnowledgeBase
      * unreachable, timeout, http_error. The same checks run server-side on every crawl start; this
      * endpoint only lets the UI show the outcome early.
      *
-     * Scopes: knowledge_base:admin.
+     * Scopes: knowledge_base:create, knowledge_base:admin.
      *
      * @param  string  $url  Raw URL as typed by the user
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -284,7 +325,7 @@ final readonly class KnowledgeBase
      * Only jobs in QUEUED, DISCOVERING, or UPLOADING status can be cancelled. The worker will
      * cooperatively check for CANCELLED status and stop processing.
      *
-     * Scopes: knowledge_base:admin.
+     * Scopes: knowledge_base:create, knowledge_base:admin.
      *
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
@@ -373,8 +414,12 @@ final readonly class KnowledgeBase
      * @param  string  $historyId  ID of the crawl history record to use for re-crawling
      * @param  ?string  $mode  Recrawl mode. Defaults to 'full_rescan', which re-discovers pages from scratch via sitemap/BFS and picks up newly added pages. 'existing_pages' re-crawls only the URLs stored from the previous crawl.
      * @param  ?string  $titlePrefix  Optional prefix for document titles
-     * @param  ?int  $pageLimit  Maximum pages to crawl (1-2000). If omitted, the coordinator falls back to its default page limit.
+     * @param  ?int  $pageLimit  Maximum pages to crawl. Must not exceed your workspace crawl limit (2000 pages unless raised for your workspace; see GET /knowledge-base/crawl/limits); larger values are rejected with 422 `crawl_page_limit_exceeded`. If omitted, the default page limit applies (capped at your workspace limit).
      * @param  ?bool  $clearExisting  Hard reset. When True, the existing documents for this domain (and their RAG corpus files) are deleted BEFORE the re-crawl runs, then pages are re-discovered and re-imported from scratch. When False (default), the re-crawl is non-destructive: existing documents are updated in-place and orphaned documents are cleaned up only after a successful crawl (crawl-then-reconcile).
+     * @param  list<string>|null  $excludePaths  Paths to leave out of the crawl (max 50, each starting with '/', max 200 chars). Matching is case-insensitive on whole path segments: '/en' excludes '/en' and '/en/pricing' but not '/enterprise'. '/' alone is rejected. Example for a site whose main language is at the root and other languages under /en, /fr: ["/en", "/fr"]. Invalid rules return 422 `invalid_exclude_rule`. Omit to reuse the rules of the last crawl; [] clears them.
+     * @param  list<string>|null  $excludeQueryParams  Query parameters to leave out (max 20): 'name' excludes every URL carrying that parameter, 'name=value' only that value (case-insensitive), e.g. ["lang=en"]. Omit to reuse the last crawl's rules; [] clears them.
+     * @param  ?string  $language  Content language to keep, e.g. 'de', 'en' or 'pt-br'. Used with translation_handling='skip_translations'. Omit to reuse the last crawl's language.
+     * @param  ?string  $translationHandling  'keep_all' (default) imports every language version. 'skip_translations' skips a page only when its own language differs from `language` AND the page links a version in `language` (hreflang) that is part of this crawl. Pages without such a version are kept, so no unique content is lost. Omit to reuse the last crawl's setting.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -387,6 +432,10 @@ final readonly class KnowledgeBase
         ?string $titlePrefix = null,
         ?int $pageLimit = null,
         ?bool $clearExisting = null,
+        ?array $excludePaths = null,
+        ?array $excludeQueryParams = null,
+        ?string $language = null,
+        ?string $translationHandling = null,
         ?string $idempotencyKey = null,
     ): WebsiteCrawlJob {
         $response = $this->connector->send(new Request(
@@ -398,6 +447,10 @@ final readonly class KnowledgeBase
                 'title_prefix' => $titlePrefix,
                 'page_limit' => $pageLimit,
                 'clear_existing' => $clearExisting,
+                'exclude_paths' => $excludePaths,
+                'exclude_query_params' => $excludeQueryParams,
+                'language' => $language,
+                'translation_handling' => $translationHandling,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -427,7 +480,7 @@ final readonly class KnowledgeBase
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/upload_document_file_api_v1_knowledge_base_documents_upload_post
      */
     public function uploadDocumentFile(
-        FilePart $file,
+        string $file,
         string $title,
         ?string $documentType = null,
         ?string $folderId = null,
@@ -462,7 +515,7 @@ final readonly class KnowledgeBase
      *
      * Scopes: knowledge_base:create.
      *
-     * @param  list<FilePart>  $files  Files to upload (max 200 files)
+     * @param  list<string>  $files  Files to upload (max 200 files)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -512,6 +565,33 @@ final readonly class KnowledgeBase
     }
 
     /**
+     * Get Document.
+     *
+     * Get a single knowledge base document.
+     *
+     * Same shape as the items of GET /knowledge-base/documents. Used to deep-link an AI answer's
+     * source to its document. Returns 404 when the document does not exist, belongs to another
+     * workspace, or is being deleted (status == deleting), since the source no longer exists.
+     * Conversation summaries are not part of the Knowledge Base and also return 404.
+     *
+     * Scopes: knowledge_base:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_document_api_v1_knowledge_base_documents__document_id__get
+     */
+    public function getDocument(string $documentId): KnowledgeBaseDocument
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/knowledge-base/documents/'.Payload::segment($documentId),
+        ));
+
+        return KnowledgeBaseDocument::fromArray($response->data());
+    }
+
+    /**
      * Get Document Raw.
      *
      * Stream the raw UTF-8 text content of an editable KB document from GCS.
@@ -544,14 +624,14 @@ final readonly class KnowledgeBase
      *
      * Replace the raw text content of an editable KB document.
      *
-     * Behaviour: 1. Validates size (≤ 1 MB) — returns 413 otherwise. 2. Validates that the
-     * document type + extension are editable (otherwise 400, same rules as GET /raw). 3. Uploads the
-     * new bytes to GCS (same path pattern as upload_to_gcs() —
-     * rag_uploads/{tenant_id}/doc_{id}_{uuid}.{ext}). 4. Updates the DB row: gemini_file_name /
-     * upload_metadata.gcs_uri point at the new blob, status → pending_ingestion, a fresh job_id is
-     * set, updated_at = utc_now(). 5. Publishes a kb_add_file message to
-     * PUBSUB_TOPIC_KB_ADMINISTRATION so the KB administration worker performs the Vertex AI RAG
-     * import. When ingestion completes, status transitions back to ready.
+     * Behaviour: 1. Rejects empty / whitespace-only content with 422 and validates size (≤ 1 MB, 413
+     * otherwise), both before any read or write. 2. Validates that the document type + extension are
+     * editable (otherwise 400, same rules as GET /raw). 3. Uploads the new bytes to GCS (same path
+     * pattern as upload_to_gcs() — rag_uploads/{tenant_id}/doc_{id}_{uuid}.{ext}). 4. Updates the DB
+     * row: gemini_file_name / upload_metadata.gcs_uri point at the new blob, status →
+     * pending_ingestion, a fresh job_id is set, updated_at = utc_now(). 5. Publishes a kb_add_file
+     * message to PUBSUB_TOPIC_KB_ADMINISTRATION so the KB administration worker performs the Vertex AI
+     * RAG import. When ingestion completes, status transitions back to ready.
      *
      * HTML is stored as-is — no sanitization (user controls the content).
      *
@@ -611,10 +691,11 @@ final readonly class KnowledgeBase
      * Retryable documents are either status='failed' OR a *stuck* status='pending_ingestion' row —
      * one left un-imported under a crawl/ ingestion job that has since finished (see
      * _pending_ingestion_is_stuck: old enough and owned by no still-running job). Any other status —
-     * including a pending_ingestion row whose ingestion job is still running — returns 409. The GCS
-     * object already exists from the original upload, so this does NOT re-upload the file bytes — it
-     * re-derives the gcs_uri + folder corpus from the stored metadata, flips the row to
-     * status='pending_ingestion' with a fresh job_id and last_error=NULL, and re-publishes the
+     * including a pending_ingestion row whose ingestion job is still running — returns 409. A failed
+     * document whose file itself was rejected (last_error_code set) returns 422: upload a fixed file
+     * instead. The GCS object already exists from the original upload, so this does NOT re-upload the
+     * file bytes — it re-derives the gcs_uri + folder corpus from the stored metadata, flips the row
+     * to status='pending_ingestion' with a fresh job_id and last_error=NULL, and re-publishes the
      * kb_add_file Pub/Sub message. Returns the updated document (202).
      *
      * Scopes: knowledge_base:create.
@@ -676,7 +757,9 @@ final readonly class KnowledgeBase
      * _pending_ingestion_is_stuck). A pending_ingestion row still owned by a running job is skipped,
      * never re-queued. A folder with nothing to retry is not an error — it returns retried_count: 0.
      *
-     * Returns {"success": true, "retried_count": N}.
+     * Failed documents whose file itself was rejected (last_error_code set: scanned image,
+     * password-protected, damaged, ...) are NOT re-queued, since the same file fails the same way;
+     * they are counted in skipped_count.
      *
      * Scopes: knowledge_base:create.
      *
@@ -724,6 +807,60 @@ final readonly class KnowledgeBase
     }
 
     /**
+     * Get Review Queue.
+     *
+     * The ordered KB review queue (one card at a time).
+     *
+     * Order: corrections (oldest first) → flagged entries (most flags first) → needs_review →
+     * drafts (oldest first) → failed documents (oldest first). Item ids are <type>:<uuid>.
+     * pagination.total == summary.total.
+     *
+     * Scopes: knowledge_base:read.
+     *
+     * @return Page<ReviewQueueItem>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_review_queue_api_v1_knowledge_base_review_queue_get
+     */
+    public function getReviewQueue(?int $page = null, ?int $pageSize = null): Page
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/knowledge-base/review-queue',
+            query: Payload::query(['page' => $page, 'page_size' => $pageSize]),
+        ));
+
+        return Hydrate::page($response->data(), ReviewQueueItem::fromArray(...), fn (int $page): Page => $this->getReviewQueue(page: $page, pageSize: $pageSize));
+    }
+
+    /**
+     * Get Review Queue Summary.
+     *
+     * Counts for the KB review queue — badge and summary card read THIS.
+     *
+     * entries is the same DISTINCT union as GET /faq-entries/review-count (status IN (draft,
+     * needs_review) OR flagged_count > 0, ledger rows excluded); breakdown overlaps. corrections =
+     * proposed + failed + stalled (open/analyzing untouched for an hour). total = corrections +
+     * entries + failed_documents.
+     *
+     * Scopes: knowledge_base:read.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_review_queue_summary_api_v1_knowledge_base_review_queue_summary_get
+     */
+    public function getReviewQueueSummary(): ReviewQueueSummary
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/knowledge-base/review-queue/summary',
+        ));
+
+        return ReviewQueueSummary::fromArray($response->data());
+    }
+
+    /**
      * Search Knowledge Base.
      *
      * Search the knowledge base using Vertex AI RAG.
@@ -731,7 +868,8 @@ final readonly class KnowledgeBase
      * Requires AI Features: This endpoint requires AI features to be enabled in the billing account
      * settings.
      *
-     * Returns AI-generated answer with citations and sources.
+     * Rate limited to 60 requests/minute. Free trials: 403 trial_ai_credits_exhausted once the trial's
+     * AI credits are used up.
      *
      * Scopes: knowledge_base:read.
      *
@@ -770,9 +908,11 @@ final readonly class KnowledgeBase
     /**
      * List Ticket Summaries.
      *
-     * List all conversation summaries stored in the knowledge base.
+     * List stored conversation summaries.
      *
-     * Returns conversations that have been AI-summarized.
+     * Returns conversations that have been AI-summarized. Summaries are a record for the team, not
+     * part of the Knowledge Base: they never appear in the KB documents list, folder tree, counts or
+     * document detail.
      *
      * Scopes: knowledge_base:read.
      *
@@ -798,10 +938,14 @@ final readonly class KnowledgeBase
     /**
      * Delete Ticket From Kb.
      *
-     * Remove a conversation/ticket summary from the knowledge base.
+     * Delete a conversation's AI ticket summary.
      *
-     * The ticket_id parameter can be either a conversation ID (new) or legacy ticket ID. This removes
-     * the document from Vertex AI RAG Corpus and clears the gemini_document_name field.
+     * ticket_id is the conversation ID. Clears the summary fields on the conversation (summary,
+     * intent, resolution, sentiment, AI tags, summary timestamp) and deletes the summary's knowledge
+     * base document (hidden "Conversation History" folder) and its stored file. The conversation and
+     * its messages are kept.
+     *
+     * Returns 404 when the conversation does not exist or has no summary.
      *
      * Scopes: knowledge_base:delete.
      *
@@ -810,13 +954,13 @@ final readonly class KnowledgeBase
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/delete_ticket_from_kb_api_v1_knowledge_base_tickets__ticket_id__delete
      */
-    public function deleteTicketFromKb(string $ticketId): KnowledgeBaseDelete
+    public function deleteTicketFromKb(string $ticketId): Delete
     {
         $response = $this->connector->send(new Request(
             Method::Delete,
             '/knowledge-base/tickets/'.Payload::segment($ticketId),
         ));
 
-        return KnowledgeBaseDelete::fromArray($response->data());
+        return Delete::fromArray($response->data());
     }
 }

@@ -108,7 +108,7 @@ List Folders. `GET /knowledge-base/folders`
 
 List all folders as a tree structure.
 
-Returns hierarchical folder structure with document counts. System folders (General, Websites, Ticket Summaries) are auto-created.
+Returns hierarchical folder structure with per-folder document_count and faq_entry_count (rows directly in the folder), plus workspace-wide document_total and faq_entry_total (including rows in no folder). System folders (General, Websites, Ticket Summaries) are auto-created.
 
 ```php
 $result = $sendseven->kbFolders()->list();
@@ -217,12 +217,16 @@ Only applicable to folders under "Websites" that have documents with source URLs
 $result = $sendseven->kbFolders()->recrawlWebsite(folderId: 'folder_id');
 ```
 
-- Scopes: `knowledge_base:admin`
+- Scopes: `knowledge_base:create`, `knowledge_base:admin`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$folderId` | `string` | yes |  |
 | `$clearExisting` | `?bool` | no | If true, delete all existing documents before re-crawling |
+| `$excludePaths` | `list<string>\|null` | no | Paths to leave out ('/en' excludes '/en/...' but not '/enterprise'). Omit to reuse the last crawl's rules; [] clears them. |
+| `$excludeQueryParams` | `list<string>\|null` | no | 'name' or 'name=value' query parameters to leave out. Omit to reuse; [] clears. |
+| `$language` | `?string` | no | Content language to keep (e.g. 'de'). Omit to reuse. |
+| `$translationHandling` | `?string` | no | 'keep_all' or 'skip_translations'. Omit to reuse the last crawl's setting. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `WebsiteCrawlJob`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/KB%20Folders/recrawl_website_folder_api_v1_knowledge_base_folders__folder_id__recrawl_post)

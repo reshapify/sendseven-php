@@ -170,9 +170,9 @@ Returns `FaqItem`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/
 
 Batch Create Faq Items. `POST /knowledge-base/faq-items/batch`
 
-Create multiple FAQ items in a single request.
+Create up to 50 FAQ entries in a single request.
 
-All items must belong to the same document. Triggers ONE background sync after all items are saved.
+Same two shapes as POST /faq-items, decided per batch:
 
 ```php
 $result = $sendseven->faqManagement()->batchCreateItems(items: []);

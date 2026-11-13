@@ -26,6 +26,7 @@ final readonly class ChannelConnectToken extends Data
      * @param  array<array-key, mixed>  $allowedChannelModes  Per-channel connect-mode restrictions as authored by the admin. Null (or an absent channel key) means all modes are allowed for that channel.
      * @param  ?string  $partnerName  Partner name
      * @param  ?string  $partnerRedirectUrl  Redirect URL after connection
+     * @param  ?string  $partnerRedirectMode  `button` or `auto_after_first`. Null when no partner_redirect_url is set; legacy links with a URL but no stored mode report `button`.
      * @param  ?string  $connectUrl  Full connect URL for sharing
      * @param  int  $maxUses  Maximum allowed uses
      * @param  int  $currentUses  Current number of successful connections
@@ -39,7 +40,6 @@ final readonly class ChannelConnectToken extends Data
      * @param  string  $createdAt  When token was created
      * @param  ?string  $revokedAt  When token was revoked
      * @param  ?string  $createdByUserId  User who created the token
-     * @param  ?string  $partnerRedirectMode  `button` or `auto_after_first`. Null when no partner_redirect_url is set; legacy links with a URL but no stored mode report `button`.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -50,6 +50,7 @@ final readonly class ChannelConnectToken extends Data
         public array $allowedChannelModes,
         public ?string $partnerName,
         public ?string $partnerRedirectUrl,
+        public ?string $partnerRedirectMode,
         public ?string $connectUrl,
         public int $maxUses,
         public int $currentUses,
@@ -63,7 +64,6 @@ final readonly class ChannelConnectToken extends Data
         public string $createdAt,
         public ?string $revokedAt,
         public ?string $createdByUserId,
-        public ?string $partnerRedirectMode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -84,6 +84,7 @@ final readonly class ChannelConnectToken extends Data
             allowedChannelModes: $attributes->array('allowed_channel_modes'),
             partnerName: $attributes->nullableString('partner_name'),
             partnerRedirectUrl: $attributes->nullableString('partner_redirect_url'),
+            partnerRedirectMode: $attributes->nullableString('partner_redirect_mode'),
             connectUrl: $attributes->nullableString('connect_url'),
             maxUses: $attributes->int('max_uses'),
             currentUses: $attributes->int('current_uses'),
@@ -97,7 +98,6 @@ final readonly class ChannelConnectToken extends Data
             createdAt: $attributes->string('created_at'),
             revokedAt: $attributes->nullableString('revoked_at'),
             createdByUserId: $attributes->nullableString('created_by_user_id'),
-            partnerRedirectMode: $attributes->nullableString('partner_redirect_mode'),
             raw: $data,
         );
     }

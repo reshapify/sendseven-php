@@ -54,7 +54,7 @@ $result = $sendseven->webhooks()->createEndpoint(name: 'name', url: 'url', subsc
 | `$authorizationHeader` | `?string` | no | Authorization header value to send with each webhook (e.g., 'Bearer token123') |
 | `$retryStrategy` | `RetryStrategy\|string\|null` | no | Retry strategy for failed deliveries |
 | `$maxRetries` | `?int` | no | Maximum number of retry attempts (default: 8, covers ~2 hours with exponential backoff) |
-| `$timeoutSeconds` | `?int` | no | Request timeout in seconds |
+| `$timeoutSeconds` | `?int` | no | Per-attempt request timeout in seconds (default 10). Deliveries are capped at 10 seconds; larger values are accepted for backwards compatibility but have no effect. |
 | `$sourceFilterMode` | `?string` | no | Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations |
 | `$filteredChannelIds` | `list<string>\|null` | no | Channel IDs to filter events by (only used when source_filter_mode='selected') |
 | `$filteredEmailIntegrationIds` | `list<string>\|null` | no | Email integration IDs to filter events by (only used when source_filter_mode='selected') |
@@ -140,7 +140,7 @@ $result = $sendseven->webhooks()->updateEndpoint(webhookId: 'webhook_id');
 | `$isActive` | `?bool` | no | Enable or disable the webhook |
 | `$retryStrategy` | `RetryStrategy\|string\|null` | no | Retry strategy for failed deliveries |
 | `$maxRetries` | `?int` | no | Maximum number of retry attempts (max: 15, covers ~2 hours with exponential backoff) |
-| `$timeoutSeconds` | `?int` | no | Request timeout in seconds |
+| `$timeoutSeconds` | `?int` | no | Per-attempt request timeout in seconds. Deliveries are capped at 10 seconds; larger values are accepted for backwards compatibility but have no effect. |
 | `$sourceFilterMode` | `?string` | no | Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations |
 | `$filteredChannelIds` | `list<string>\|null` | no | Channel IDs to filter events by (only used when source_filter_mode='selected'). Set to empty list to clear. |
 | `$filteredEmailIntegrationIds` | `list<string>\|null` | no | Email integration IDs to filter events by (only used when source_filter_mode='selected'). Set to empty list to clear. |

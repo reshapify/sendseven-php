@@ -20,6 +20,7 @@ final readonly class AgentSuggestion extends Data
      * @param  string  $suggestionId  Unique ID to track this suggestion
      * @param  ?string  $aiAnswerEventId  AI answer event id (Managed FAQ telemetry). Pass it to POST /ai-answers/{event_id}/rate and to /suggestions/{id}/accept. NULL when telemetry recording failed — never treat that as an error.
      * @param  string  $answer  AI-generated suggested response
+     * @param  ?bool  $noAnswer  True when the knowledge base had no answer (``answer`` is then "" and the call was not charged). Clients show "No suggestion" and never fill the input.
      * @param  list<SuggestionSource>  $sources  Source documents used
      * @param  list<mixed>  $citations  In-text citations
      * @param  string  $query  Query text used for search
@@ -31,6 +32,7 @@ final readonly class AgentSuggestion extends Data
         public string $suggestionId,
         public ?string $aiAnswerEventId,
         public string $answer,
+        public ?bool $noAnswer,
         public array $sources,
         public array $citations,
         public string $query,
@@ -52,6 +54,7 @@ final readonly class AgentSuggestion extends Data
             suggestionId: $attributes->string('suggestion_id'),
             aiAnswerEventId: $attributes->nullableString('ai_answer_event_id'),
             answer: $attributes->string('answer'),
+            noAnswer: $attributes->nullableBool('no_answer'),
             sources: $attributes->list('sources', SuggestionSource::fromArray(...)),
             citations: array_values($attributes->array('citations')),
             query: $attributes->string('query'),

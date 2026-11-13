@@ -10,7 +10,10 @@ namespace Reshapify\SendSeven\Resources;
 use Reshapify\SendSeven\Data\CoexistenceStatus;
 use Reshapify\SendSeven\Data\FetchFlows;
 use Reshapify\SendSeven\Data\FlowDetails;
+use Reshapify\SendSeven\Data\FlowSendTranslationContext;
+use Reshapify\SendSeven\Data\FlowSendTranslationPreview;
 use Reshapify\SendSeven\Data\SendFlow;
+use Reshapify\SendSeven\Data\UpdateFlowDefaults;
 use Reshapify\SendSeven\Data\WhatsAppSendingLimit;
 use Reshapify\SendSeven\Data\WhatsAppWindowStatusResponse;
 use Reshapify\SendSeven\Enums\FlowMode;
@@ -21,7 +24,7 @@ use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * WhatsApp: 8 endpoints.
+ * WhatsApp: 12 endpoints.
  *
  * Reach it with $sendseven->whatsApp().
  *
@@ -87,28 +90,61 @@ final readonly class WhatsApp
     }
 
     /**
+     * Get Whatsapp Conversation Routing.
+     *
+     * WhatsApp Conversation Routing status of a channel.
+     *
+     * When the number is shared with other providers (Conversation Routing in Meta Business Suite),
+     * this shows which routing roles SendSeven holds (e.g. customer_service, escalation) and whether
+     * it receives messages in standby. Returns the stored value; refresh=true checks live with
+     * WhatsApp at most once per minute per channel and otherwise returns the stored value.
+     *
+     * Returns: {status: enabled|not_enabled|unknown|error, roles: [...], is_standby,
+     * is_escalation_partner, checked_at}
+     *
+     * Scopes: channels:read.
+     *
+     * @param  ?bool  $refresh  Check live with WhatsApp (at most once per minute per channel)
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/get_whatsapp_conversation_routing_api_v1_whatsapp_channels__channel_id__conversation_routing_get
+     */
+    public function getConversationRouting(string $channelId, ?bool $refresh = null): void
+    {
+        $this->connector->send(new Request(
+            Method::Get,
+            '/whatsapp/channels/'.Payload::segment($channelId).'/conversation-routing',
+            query: Payload::query(['refresh' => $refresh]),
+        ));
+    }
+
+    /**
      * List Whatsapp Flows.
      *
      * List available WhatsApp Flows for a channel
      *
-     * WhatsApp Flows must be created in Meta Business Manager before they can be used. This endpoint
-     * retrieves all flows associated with the channel's WhatsApp Business Account.
+     * Retrieves the flows of the channel's WhatsApp Business Account from Meta. Flows built in
+     * SendSeven carry definition_id / definition_status. Flows of ARCHIVED SendSeven WhatsApp Flows
+     * are hidden unless include_archived=true; Meta flows superseded by "publish changes" are always
+     * hidden (they no longer serve new sends).
      *
-     * Args: channel_id: The channel ID to fetch flows for tenant_id: Tenant ID from authentication
-     * (automatic)
+     * Raises: 404: Channel not found or access denied 400: Channel is not a WhatsApp channel
      *
      * Scopes: channels:read.
      *
+     * @param  ?bool  $includeArchived  Also list Meta flows whose SendSeven WhatsApp Flow is archived
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/list_whatsapp_flows_api_v1_whatsapp_channels__channel_id__flows_get
      */
-    public function listFlows(string $channelId): FetchFlows
+    public function listFlows(string $channelId, ?bool $includeArchived = null): FetchFlows
     {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/whatsapp/channels/'.Payload::segment($channelId).'/flows',
+            query: Payload::query(['include_archived' => $includeArchived]),
         ));
 
         return FetchFlows::fromArray($response->data());
@@ -119,27 +155,65 @@ final readonly class WhatsApp
      *
      * Get detailed information about a specific WhatsApp Flow
      *
-     * This endpoint retrieves the flow's structure including screens, input fields, and variables that
-     * can be pre-populated when sending the flow.
+     * Returns the flow's screens (with input fields, the raw data declaration as data_schema, and
+     * whether the screen is terminal), the entry screen, whether the flow is static (no data endpoint
+     * — first-screen data must be sent with the message), and the saved default data per screen.
      *
-     * Args: channel_id: The channel ID (for authentication/authorization) flow_id: The WhatsApp Flow
-     * ID tenant_id: Tenant ID from authentication (automatic)
+     * The flow JSON is cached for a few minutes; pass refresh=true to re-read it.
      *
      * Scopes: channels:read.
      *
+     * @param  ?bool  $refresh  Bypass the cached flow JSON and re-download it from Meta
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/get_whatsapp_flow_details_api_v1_whatsapp_channels__channel_id__flows__flow_id__get
      */
-    public function getFlowDetails(string $channelId, string $flowId): FlowDetails
+    public function getFlowDetails(string $channelId, string $flowId, ?bool $refresh = null): FlowDetails
     {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/whatsapp/channels/'.Payload::segment($channelId).'/flows/'.Payload::segment($flowId),
+            query: Payload::query(['refresh' => $refresh]),
         ));
 
         return FlowDetails::fromArray($response->data());
+    }
+
+    /**
+     * Update Whatsapp Flow Defaults.
+     *
+     * Save the default data for one screen of a WhatsApp Flow.
+     *
+     * The saved data is used whenever this flow is sent without explicit data (from the conversation
+     * composer or as a template FLOW button). Send data: null to remove the saved default for that
+     * screen.
+     *
+     * Raises: 404: Channel not found or access denied 400: Channel is not a WhatsApp channel 422:
+     * {"code": "invalid_defaults", "message": ...} (too large / not an object / too many flows)
+     *
+     * Scopes: channels:update.
+     *
+     * @param  string  $screen  Screen id
+     * @param  array<string, mixed>|null  $data  Default data for the screen; null removes the saved default
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/update_whatsapp_flow_defaults_api_v1_whatsapp_channels__channel_id__flows__flow_id__defaults_put
+     */
+    public function updateFlowDefaults(
+        string $channelId,
+        string $flowId,
+        string $screen,
+        ?array $data = null,
+    ): UpdateFlowDefaults {
+        $response = $this->connector->send(new Request(
+            Method::Put,
+            '/whatsapp/channels/'.Payload::segment($channelId).'/flows/'.Payload::segment($flowId).'/defaults',
+            body: Payload::body(['screen' => $screen, 'data' => $data]),
+        ));
+
+        return UpdateFlowDefaults::fromArray($response->data());
     }
 
     /**
@@ -221,14 +295,10 @@ final readonly class WhatsApp
      * customer message. This endpoint returns the current window status so the UI can gate free-form
      * vs template composition.
      *
-     * Two window kinds: - customer_service (default): standard 24-hour window measured from the last
-     * inbound customer message. Once expired only template messages may be sent (requires_template
-     * true). - free_entry_point: a 72-hour Free Entry Point (FEP) window for Click-to-WhatsApp /
-     * Page-CTA conversations (flagged at ingestion via custom_data.ctwa.is_free_entry_point). Per
-     * Meta, the FEP conversation "is opened as soon as your reply message is delivered and lasts 72
-     * hours", so we anchor it at the business's first outbound message after the referral (the closest
-     * signal we have to delivery time). While open, any message type (free-form OR template) is
-     * allowed and is free.
+     * Window: window_type is always customer_service: the 24-hour customer service window measured
+     * from the last inbound customer message and reset by every new one. Once it has expired, only
+     * template messages may be sent (requires_template true). This is the same check the send
+     * endpoints apply.
      *
      * Scopes: conversations:read.
      *
@@ -250,29 +320,34 @@ final readonly class WhatsApp
     /**
      * Send Whatsapp Flow.
      *
-     * Send a WhatsApp Flow message to a contact
+     * Send a WhatsApp Flow message (free-form, inside the 24-hour window)
      *
-     * WhatsApp Flows allow businesses to create rich, interactive experiences within WhatsApp
-     * conversations. The flow must exist and be published (or in draft mode for testing).
+     * The recipient is resolved from conversation_id (preferred), contact_id or recipient (phone
+     * number). Contacts without a phone number that are reachable via a WhatsApp business-scoped user
+     * ID are supported.
      *
-     * Args: request: SendFlowRequest with flow details tenant_id: Tenant ID from authentication
-     * (automatic)
+     * First-screen data is merged per key: values in data win, then the saved default data for
+     * (flow_id, screen), then (for flows built in SendSeven) the flow's send-time data sources such as
+     * the contact profile, then the flow's example data. When screen is omitted the flow's entry
+     * screen is used.
      *
      * Scopes: messages:create.
      *
      * @param  string  $channelId  Channel ID to send from
      * @param  string  $flowId  WhatsApp Flow ID
-     * @param  string  $flowCta  Button text to trigger flow (max 20 chars)
+     * @param  string  $flowCta  Button text to trigger flow (max 30 chars)
      * @param  ?string  $contactId  Contact ID to send to
      * @param  ?string  $recipient  Recipient phone number (alternative to contact_id)
      * @param  ?string  $body  Message body text
      * @param  ?string  $header  Optional header text
      * @param  ?string  $footer  Optional footer text
      * @param  ?string  $screen  Initial screen to navigate to
-     * @param  array<string, mixed>|null  $data  Data to pre-populate flow fields
+     * @param  array<string, mixed>|null  $data  Data for the first screen. When omitted, the saved default data for (flow_id, screen) is used. String values may contain contact variables such as {{contact.first_name}} or {{contact.custom.<key>}}; they are rendered per recipient.
      * @param  FlowMode|string|null  $mode  Flow mode: draft or published
-     * @param  ?string  $conversationId  Link to existing conversation (creates new if not provided)
+     * @param  ?string  $conversationId  Conversation to send into. Resolves the recipient and channel context; takes precedence over contact_id / recipient.
      * @param  ?string  $flowToken  Optional tracking token (auto-generated if not provided)
+     * @param  ?bool  $translate  Translate the button text, body, header and footer into the recipient's language before sending. Omitted: decided by the sending user's personal auto-translate setting (API tokens are never translated automatically). true: translate (403 `translation_not_available` when the plan has no translation, 422 `recipient_language_unknown` when no target language is known). false: never translate.
+     * @param  ?string  $targetLanguage  ISO 639-1 language to translate into (default: the recipient's language).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -293,6 +368,8 @@ final readonly class WhatsApp
         FlowMode|string|null $mode = null,
         ?string $conversationId = null,
         ?string $flowToken = null,
+        ?bool $translate = null,
+        ?string $targetLanguage = null,
         ?string $idempotencyKey = null,
     ): SendFlow {
         $response = $this->connector->send(new Request(
@@ -312,10 +389,96 @@ final readonly class WhatsApp
                 'mode' => $mode,
                 'conversation_id' => $conversationId,
                 'flow_token' => $flowToken,
+                'translate' => $translate,
+                'target_language' => $targetLanguage,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
 
         return SendFlow::fromArray($response->data());
+    }
+
+    /**
+     * Whatsapp Flow Send Translation Context.
+     *
+     * Languages for sending a WhatsApp Flow: the sender's app language (default texts), the
+     * recipient's language and whether the send would be translated automatically.
+     *
+     * With neither conversation_id nor contact_id the recipient language is unknown (needs_translation
+     * false). When translation is not available on the workspace only sender_language is filled.
+     * Inbound messages are never translated.
+     *
+     * Raises: 404: Conversation or contact not found
+     *
+     * Scopes: messages:create.
+     *
+     * @param  ?string  $conversationId  Conversation the Flow is sent into
+     * @param  ?string  $contactId  Contact the Flow is sent to (no conversation)
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/whatsapp_flow_send_translation_context_api_v1_whatsapp_flows_send_translation_context_get
+     */
+    public function flowSendTranslationContext(
+        ?string $conversationId = null,
+        ?string $contactId = null,
+    ): FlowSendTranslationContext {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/whatsapp/flows/send/translation-context',
+            query: Payload::query(['conversation_id' => $conversationId, 'contact_id' => $contactId]),
+        ));
+
+        return FlowSendTranslationContext::fromArray($response->data());
+    }
+
+    /**
+     * Whatsapp Flow Send Translation Preview.
+     *
+     * Preview the button text, body, header and footer of a WhatsApp Flow message translated into the
+     * recipient's language, exactly as POST /whatsapp/flows/send with translate: true would send them.
+     * An empty body becomes the default body. A field whose translation fails or is too long keeps its
+     * original text and is listed in fallback_fields.
+     *
+     * Billed as an AI translation; sending the same texts within about 15 minutes reuses this
+     * translation at no extra charge.
+     *
+     * Raises: 403: translation_not_available 404: Conversation or contact not found 422:
+     * recipient_language_unknown 429: rate_limited
+     *
+     * Scopes: messages:create.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/WhatsApp/whatsapp_flow_send_translation_preview_api_v1_whatsapp_flows_send_translation_preview_post
+     */
+    public function flowSendTranslationPreview(
+        string $flowCta,
+        ?string $conversationId = null,
+        ?string $contactId = null,
+        ?string $body = null,
+        ?string $header = null,
+        ?string $footer = null,
+        ?string $targetLanguage = null,
+        ?string $idempotencyKey = null,
+    ): FlowSendTranslationPreview {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/whatsapp/flows/send/translation-preview',
+            body: Payload::body([
+                'flow_cta' => $flowCta,
+                'conversation_id' => $conversationId,
+                'contact_id' => $contactId,
+                'body' => $body,
+                'header' => $header,
+                'footer' => $footer,
+                'target_language' => $targetLanguage,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowSendTranslationPreview::fromArray($response->data());
     }
 }

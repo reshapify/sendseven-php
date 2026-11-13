@@ -18,7 +18,7 @@ List Email Mailboxes. `GET /email-mailboxes`
 
 List email mailboxes for the tenant.
 
-Returns active mailboxes by default. Set active_only=false to include deactivated mailboxes.
+Returns active mailboxes by default: the mailbox is active AND its linked connection (email integration or provider config) is active and not archived. Set active_only=false to include deactivated mailboxes and mailboxes whose connection is switched off; each item's connection_active says whether its connection can currently send.
 
 ```php
 $result = $sendseven->emailMailboxes()->list();

@@ -33,7 +33,10 @@ final readonly class EmailMailboxes
      *
      * List email mailboxes for the tenant.
      *
-     * Returns active mailboxes by default. Set active_only=false to include deactivated mailboxes.
+     * Returns active mailboxes by default: the mailbox is active AND its linked connection (email
+     * integration or provider config) is active and not archived. Set active_only=false to include
+     * deactivated mailboxes and mailboxes whose connection is switched off; each item's
+     * connection_active says whether its connection can currently send.
      *
      * Optional filters: - purpose=campaign - only mailboxes with can_send_campaigns=True -
      * purpose=support - only mailboxes with can_send_support=True - for_user_id - only mailboxes the
@@ -81,6 +84,10 @@ final readonly class EmailMailboxes
      *
      * Either email_integration_id or email_provider_config_id must be set (but not both). If
      * is_default is True the previous default mailbox for the tenant is unset.
+     *
+     * Returns 409 when the same connection (integration or provider config) already has an ACTIVE
+     * mailbox with this address (case-insensitive). The same address on a different connection is
+     * allowed.
      *
      * Scopes: channels:create.
      *
@@ -188,6 +195,9 @@ final readonly class EmailMailboxes
      *
      * When setting is_default=true, the previous default mailbox for the tenant is automatically
      * unset.
+     *
+     * Returns 409 when an address change or a reactivation would give this mailbox's connection a
+     * second ACTIVE mailbox with the same address.
      *
      * Scopes: channels:update.
      *

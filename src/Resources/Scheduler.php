@@ -406,6 +406,9 @@ final readonly class Scheduler
      * The send fires once at send_at (UTC) and transitions to completed, unless recurrence_rule is set
      * — in which case the row stays in scheduled and next_run_at advances per the rule.
      *
+     * A pinned channel_id that cannot send right now is refused with 409 CHANNEL_DISCONNECTED
+     * (reconnect it) or CHANNEL_UNAVAILABLE (Meta blocked the WhatsApp account); nothing is scheduled.
+     *
      * Scopes: scheduler:write.
      *
      * @param  string  $contactId  Contact UUID on the tenant's shard

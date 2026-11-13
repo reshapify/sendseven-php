@@ -23,13 +23,16 @@ final readonly class FlowValidationStatus extends Data
 {
     /**
      * @param  list<FlowValidationError>  $errors
-     * @param  list<FlowValidationError>  $warnings
+     * @param  list<FlowValidationWarning>  $warnings
+     * @param  list<FlowValidationWarning>  $ignoredWarnings
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public bool $canActivate,
         public array $errors,
         public array $warnings,
+        public ?int $ignoredWarningsCount,
+        public array $ignoredWarnings,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,7 +48,9 @@ final readonly class FlowValidationStatus extends Data
         return new self(
             canActivate: $attributes->bool('can_activate'),
             errors: $attributes->list('errors', FlowValidationError::fromArray(...)),
-            warnings: $attributes->list('warnings', FlowValidationError::fromArray(...)),
+            warnings: $attributes->list('warnings', FlowValidationWarning::fromArray(...)),
+            ignoredWarningsCount: $attributes->nullableInt('ignored_warnings_count'),
+            ignoredWarnings: $attributes->list('ignored_warnings', FlowValidationWarning::fromArray(...)),
             raw: $data,
         );
     }

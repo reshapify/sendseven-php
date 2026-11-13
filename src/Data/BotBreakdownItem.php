@@ -27,6 +27,12 @@ final readonly class BotBreakdownItem extends Data
         public ?int $sessions,
         public ?int $escalations,
         public ?float $resolutionRate,
+        public ?int $conversations,
+        public ?int $resolvedConversations,
+        public ?int $handoffConversations,
+        public ?float $resolvedPct,
+        public ?float $handoffPct,
+        public ?bool $insufficientData,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -47,6 +53,12 @@ final readonly class BotBreakdownItem extends Data
             sessions: $attributes->nullableInt('sessions'),
             escalations: $attributes->nullableInt('escalations'),
             resolutionRate: $attributes->nullableFloat('resolution_rate'),
+            conversations: $attributes->nullableInt('conversations'),
+            resolvedConversations: $attributes->nullableInt('resolved_conversations'),
+            handoffConversations: $attributes->nullableInt('handoff_conversations'),
+            resolvedPct: $attributes->nullableFloat('resolved_pct'),
+            handoffPct: $attributes->nullableFloat('handoff_pct'),
+            insufficientData: $attributes->nullableBool('insufficient_data'),
             raw: $data,
         );
     }

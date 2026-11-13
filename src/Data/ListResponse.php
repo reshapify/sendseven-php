@@ -30,6 +30,7 @@ final readonly class ListResponse extends Data
      * @param  ListType|string  $listType  Type of list
      * @param  array<array-key, mixed>  $segmentConditions  Segment conditions for dynamic lists
      * @param  ?string  $contactCount  Number of contacts in the list (computed for dynamic lists)
+     * @param  ?int  $visibleContactCount  How many of the list's contacts the caller can see. null when the caller sees every contact. `contact_count` stays the true total (campaigns send to every contact in the list).
      * @param  ?string  $slug  URL-safe slug for newsletter lists
      * @param  ?string  $newsletterConfig  Newsletter configuration JSON (messages, keywords and the `welcome_buttons` / `goodbye_buttons` lists — see ListCreate)
      * @param  ?bool  $showInPreferenceCenter  Whether this newsletter list is offered in the hosted email preference center. null = created before this setting existed and is treated as visible.
@@ -50,6 +51,7 @@ final readonly class ListResponse extends Data
         public ListType|string $listType,
         public array $segmentConditions,
         public ?string $contactCount,
+        public ?int $visibleContactCount,
         public ?string $slug,
         public ?string $newsletterConfig,
         public ?bool $showInPreferenceCenter,
@@ -80,6 +82,7 @@ final readonly class ListResponse extends Data
             listType: $attributes->enum('list_type', ListType::class),
             segmentConditions: $attributes->array('segment_conditions'),
             contactCount: $attributes->nullableString('contact_count'),
+            visibleContactCount: $attributes->nullableInt('visible_contact_count'),
             slug: $attributes->nullableString('slug'),
             newsletterConfig: $attributes->nullableString('newsletter_config'),
             showInPreferenceCenter: $attributes->nullableBool('show_in_preference_center'),

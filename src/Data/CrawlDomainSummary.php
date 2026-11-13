@@ -24,6 +24,7 @@ final readonly class CrawlDomainSummary extends Data
      * @param  string  $crawledAt  ISO datetime when crawl completed
      * @param  ?int  $daysSinceCrawl  Days since last crawl
      * @param  ?bool  $isEligibleForRecrawl  Whether this domain is eligible for bulk re-crawl (must be 14+ days old)
+     * @param  ?CrawlFiltersModel  $crawlFilters  Exclude rules + language settings of the last crawl (reused by re-crawls); null = none
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,6 +35,7 @@ final readonly class CrawlDomainSummary extends Data
         public string $crawledAt,
         public ?int $daysSinceCrawl,
         public ?bool $isEligibleForRecrawl,
+        public ?CrawlFiltersModel $crawlFilters,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,6 +56,7 @@ final readonly class CrawlDomainSummary extends Data
             crawledAt: $attributes->string('crawled_at'),
             daysSinceCrawl: $attributes->nullableInt('days_since_crawl'),
             isEligibleForRecrawl: $attributes->nullableBool('is_eligible_for_recrawl'),
+            crawlFilters: $attributes->nullableObject('crawl_filters', CrawlFiltersModel::fromArray(...)),
             raw: $data,
         );
     }

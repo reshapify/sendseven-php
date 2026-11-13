@@ -50,6 +50,7 @@ $result = $sendseven->emailSignatures()->updateMy(contentHtml: 'content_html');
 | `$contentHtml` | `string` | yes | HTML content of the personalized signature |
 | `$contentText` | `?string` | no | Plain text version for non-HTML emails |
 | `$isActive` | `?bool` | no | Whether the signature is active. When False, effective-signature resolution will skip this user signature (and the auto-insert effect in the composer will not pre-fill it). Optional on PUT — omitting it leaves the existing flag unchanged. |
+| `$contentMode` | `?string` | no | Signature editing mode. rich: visual editor content. html: pasted HTML (tables, inline CSS), stored exactly as sanitized and never reformatted; max 60,000 characters (422 signature_too_large). Omit on update to keep the stored mode (rich on create). |
 
 Returns `UserSignature`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Signatures/update_my_signature_api_v1_email_signatures_me_put)
 
@@ -59,7 +60,7 @@ Copy Template To My Signature. `POST /email-signatures/me/copy-from-template`
 
 Copy the tenant's signature template to the current user's signature.
 
-This creates a personalized copy of the tenant template that the user can then customize. The template's placeholders are copied as-is and will be resolved when emails are sent.
+This creates a personalized copy of the tenant template that the user can then customize. The template's placeholders are copied as-is and will be resolved when emails are sent. The template's content_mode is copied too.
 
 ```php
 $result = $sendseven->emailSignatures()->copyTemplateToMy();
@@ -139,6 +140,7 @@ $result = $sendseven->emailSignatures()->updateTenantTemplate(contentHtml: 'cont
 |---|---|---|---|
 | `$contentHtml` | `string` | yes | HTML content of the signature template with placeholders |
 | `$contentText` | `?string` | no | Plain text version for non-HTML emails |
+| `$contentMode` | `?string` | no | Signature editing mode. rich: visual editor content. html: pasted HTML (tables, inline CSS), stored exactly as sanitized and never reformatted; max 60,000 characters (422 signature_too_large). Omit on update to keep the stored mode (rich on create). |
 
 Returns `SignatureTemplate`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Signatures/update_tenant_template_api_v1_email_signatures_template_put)
 
@@ -148,7 +150,7 @@ Preview Template. `POST /email-signatures/template/preview`
 
 Preview a signature template with resolved placeholders.
 
-If content_html is not provided in the request, uses the current tenant template. Optionally override placeholder values for preview.
+If content_html is not provided in the request, uses the current tenant template. The content is cleaned exactly as saving would store it, and placeholders resolve exactly as in a sent email: your real details, the real company logo, and empty fields stay empty. Per-field overrides replace single values; use_sample_values: true fills empty values with sample data. content_mode (rich | html) selects the sanitizer exactly like saving; omitted = the stored template's mode when previewing the stored template, else rich. html mode is never reformatted.
 
 ```php
 $result = $sendseven->emailSignatures()->previewTemplate();
@@ -166,6 +168,8 @@ $result = $sendseven->emailSignatures()->previewTemplate();
 | `$companyName` | `?string` | no | Override company name |
 | `$companyLogo` | `?string` | no | Override company logo URL |
 | `$companyWebsite` | `?string` | no | Override company website |
+| `$contentMode` | `?string` | no | Mode of content_html (rich \| html). Omitted: the stored template's mode when previewing the stored template, else rich. |
+| `$useSampleValues` | `?bool` | no | Fill placeholders whose real value is empty with sample values (e.g. 'Support Agent'). Default false: the preview resolves exactly like a sent email (your real details, real company logo, empty fields stay empty). |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `SignaturePreview`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Signatures/preview_template_api_v1_email_signatures_template_preview_post)

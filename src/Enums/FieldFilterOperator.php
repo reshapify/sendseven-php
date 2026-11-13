@@ -21,4 +21,6 @@ enum FieldFilterOperator: string
     case IsSet = 'is_set';
     case IsNotSet = 'is_not_set';
     case Contains = 'contains';
+    case NotContains = 'not_contains';
+    case NotIn = 'not_in';
 }

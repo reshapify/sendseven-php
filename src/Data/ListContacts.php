@@ -26,6 +26,7 @@ final readonly class ListContacts extends Data
         public string $listType,
         public int $totalContacts,
         public array $contacts,
+        public ?int $visibleContactCount,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,6 +45,7 @@ final readonly class ListContacts extends Data
             listType: $attributes->string('list_type'),
             totalContacts: $attributes->int('total_contacts'),
             contacts: $attributes->list('contacts', ListContactInfo::fromArray(...)),
+            visibleContactCount: $attributes->nullableInt('visible_contact_count'),
             raw: $data,
         );
     }

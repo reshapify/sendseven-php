@@ -16,7 +16,7 @@ Translate Email Message. `POST /email-messages/{email_message_id}/translate`
 
 Translate an email message body and cache the result in email metadata.
 
-Cached translations are stored in email_metadata.translations so repeated requests for the same language return instantly.
+Works for received and sent emails (the newest message only: quoted history and the signature are left out). Cached translations are stored in email_metadata.translations so repeated requests for the same language return instantly (cached: true, not billed again).
 
 ```php
 $result = $sendseven->chatTranslation()->translateEmailMessage(emailMessageId: 'email_message_id', targetLanguage: 'target_language');
@@ -28,9 +28,10 @@ $result = $sendseven->chatTranslation()->translateEmailMessage(emailMessageId: '
 |---|---|---|---|
 | `$emailMessageId` | `string` | yes |  |
 | `$targetLanguage` | `string` | yes | ISO 639-1 language code (e.g. 'en', 'de') |
+| `$source` | `mixed` | no | 'sent' (default: the message as sent), 'original' or 'transcript'. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
-Returns `TranslateMessage`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_email_message_api_v1_email_messages__email_message_id__translate_post)
+Returns `array<array-key, mixed>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_email_message_api_v1_email_messages__email_message_id__translate_post)
 
 ## translateMessage
 
@@ -50,9 +51,10 @@ $result = $sendseven->chatTranslation()->translateMessage(messageId: 'message_id
 |---|---|---|---|
 | `$messageId` | `string` | yes |  |
 | `$targetLanguage` | `string` | yes | ISO 639-1 language code (e.g. 'en', 'de') |
+| `$source` | `mixed` | no | 'sent' (default: the message as sent), 'original' or 'transcript'. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
-Returns `TranslateMessage`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_message_api_v1_messages__message_id__translate_post)
+Returns `array<array-key, mixed>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Chat%20Translation/translate_message_api_v1_messages__message_id__translate_post)
 
 ## translateText
 

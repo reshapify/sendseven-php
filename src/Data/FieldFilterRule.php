@@ -11,26 +11,29 @@ use Reshapify\SendSeven\Enums\FieldFilterOperator;
 use Reshapify\SendSeven\Support\Attributes;
 
 /**
- * A single custom-field rule on an inbox.
+ * A single contact-field rule on an inbox.
  *
- * value shape depends on operator: - eq / ne : scalar (str / int / float / bool) - in : list of
- * scalars - between : {"min": <scalar>, "max": <scalar>} - is_set / is_not_set : value is ignored
- * (should be omitted / None)
+ * The rule targets EXACTLY ONE of custom_field_id (a contact custom field) or builtin_field (a
+ * built-in contact attribute; today only language). Setting both or neither is a 422.
  *
  * @see https://api.sendseven.com/api/v1/docs (schema FieldFilterRule)
  */
 final readonly class FieldFilterRule extends Data
 {
     /**
-     * @param  string  $customFieldId  ID of the contact custom-field definition this rule applies to
+     * @param  ?string  $customFieldId  ID of the contact custom-field definition this rule applies to. Exactly one of custom_field_id / builtin_field must be set.
+     * @param  ?string  $builtinField  Built-in contact attribute this rule applies to ('language' = the contact's preferred language). Exactly one of custom_field_id / builtin_field must be set.
      * @param  FieldFilterOperator|string  $operator  Comparison operator
-     * @param  mixed  $value  Operator-dependent value. Scalar for eq/ne, list for in, {'min':..., 'max':...} for between, omitted for is_set/is_not_set.
+     * @param  mixed  $value  Operator-dependent value. Scalar for eq/ne, non-empty string for contains/not_contains, list for in/not_in, {'min':..., 'max':...} for between, omitted for is_set/is_not_set. Language rules: a language code for eq/ne, a list of codes for in/not_in.
+     * @param  ?bool  $includeUnidentified  Language rules only: treat 'No language identified' (no contact or no language set) as one of the selected values. Always false for custom-field rules and for is_set / is_not_set.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
-        public string $customFieldId,
+        public ?string $customFieldId,
+        public ?string $builtinField,
         public FieldFilterOperator|string $operator,
         public mixed $value,
+        public ?bool $includeUnidentified,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -44,9 +47,11 @@ final readonly class FieldFilterRule extends Data
         $attributes = new Attributes($data, $path);
 
         return new self(
-            customFieldId: $attributes->string('custom_field_id'),
+            customFieldId: $attributes->nullableString('custom_field_id'),
+            builtinField: $attributes->nullableString('builtin_field'),
             operator: $attributes->enum('operator', FieldFilterOperator::class),
             value: $data['value'] ?? null,
+            includeUnidentified: $attributes->nullableBool('include_unidentified'),
             raw: $data,
         );
     }

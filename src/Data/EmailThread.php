@@ -22,6 +22,7 @@ final readonly class EmailThread extends Data
      * @param  ?int  $totalMessages  Total number of messages in thread
      * @param  list<EmailAddress>  $originalTo
      * @param  list<EmailAddress>  $originalCc
+     * @param  list<Message>  $internalItems  Team-only timeline items of this conversation (internal notes and timeline events: message_type 'system' with meta.system_event), oldest first, same shape as GET /messages items. Never part of the email thread sent to the customer. Empty without messages:read.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -33,6 +34,7 @@ final readonly class EmailThread extends Data
         public ?EmailAddress $originalFrom,
         public array $originalTo,
         public array $originalCc,
+        public array $internalItems,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -54,6 +56,7 @@ final readonly class EmailThread extends Data
             originalFrom: $attributes->nullableObject('original_from', EmailAddress::fromArray(...)),
             originalTo: $attributes->list('original_to', EmailAddress::fromArray(...)),
             originalCc: $attributes->list('original_cc', EmailAddress::fromArray(...)),
+            internalItems: $attributes->list('internal_items', Message::fromArray(...)),
             raw: $data,
         );
     }

@@ -21,6 +21,9 @@ final readonly class KbCorrection extends Data
      * @param  string  $status  open | analyzing | proposed | applied | rejected | failed
      * @param  list<ProposedChange>  $proposedChanges
      * @param  list<EntryScoreUpdate>  $affectedEntries
+     * @param  ?string  $correctionKind  fact | policy (null = legacy, treated as fact)
+     * @param  ?string  $skillSuggestionId  Set when a policy correction was routed to an agent skill suggestion; decide it there
+     * @param  array<array-key, mixed>  $policyTarget  Policy corrections only: {"type": "skill"|"bot"|null, "id", "name", "agent_id"}
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -46,6 +49,11 @@ final readonly class KbCorrection extends Data
         public ?string $answerText,
         public ?string $queryText,
         public array $affectedEntries,
+        public ?string $correctionKind,
+        public ?string $policyRule,
+        public ?string $skillSuggestionId,
+        public array $policyTarget,
+        public ?string $policyNote,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -81,6 +89,11 @@ final readonly class KbCorrection extends Data
             answerText: $attributes->nullableString('answer_text'),
             queryText: $attributes->nullableString('query_text'),
             affectedEntries: $attributes->list('affected_entries', EntryScoreUpdate::fromArray(...)),
+            correctionKind: $attributes->nullableString('correction_kind'),
+            policyRule: $attributes->nullableString('policy_rule'),
+            skillSuggestionId: $attributes->nullableString('skill_suggestion_id'),
+            policyTarget: $attributes->array('policy_target'),
+            policyNote: $attributes->nullableString('policy_note'),
             raw: $data,
         );
     }

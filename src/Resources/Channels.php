@@ -13,11 +13,15 @@ use Reshapify\SendSeven\Data\ChannelCapabilities;
 use Reshapify\SendSeven\Data\ChannelCommentCapabilities;
 use Reshapify\SendSeven\Data\ChannelCommentCapability;
 use Reshapify\SendSeven\Data\ChannelHealth;
+use Reshapify\SendSeven\Data\ChannelHealthCheck;
 use Reshapify\SendSeven\Data\ChannelProfile;
 use Reshapify\SendSeven\Data\ChannelProfileUpdate;
+use Reshapify\SendSeven\Data\ChannelSenderActionSupport;
 use Reshapify\SendSeven\Data\ChannelTypes;
+use Reshapify\SendSeven\Data\CoexistenceReminder;
 use Reshapify\SendSeven\Data\FacebookPagePostItem;
 use Reshapify\SendSeven\Data\InstagramMediaItem;
+use Reshapify\SendSeven\Data\LiveChatSettings;
 use Reshapify\SendSeven\Data\ProfilePhotoUpload;
 use Reshapify\SendSeven\Data\RcsCapability;
 use Reshapify\SendSeven\Data\WebhookRefresh;
@@ -28,7 +32,6 @@ use Reshapify\SendSeven\Enums\ChannelType;
 use Reshapify\SendSeven\Enums\WhatsAppVertical;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
-use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -36,7 +39,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Channels: 21 endpoints.
+ * Channels: 27 endpoints.
  *
  * Reach it with $sendseven->channels().
  *
@@ -120,6 +123,62 @@ final readonly class Channels
     }
 
     /**
+     * Get Coexistence Reminder.
+     *
+     * WhatsApp Coexistence keep-alive reminder for the calling user.
+     *
+     * Meta requires the WhatsApp Business app to be opened with a Coexistence number at least once
+     * every 14 days, or the connection can drop. due is true when the reminder should be shown now
+     * (every 10 days, after a 1 hour snooze, never when disabled or without Coexistence numbers).
+     *
+     * Scopes: channels:update.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/get_coexistence_reminder_api_v1_channels_coexistence_reminder_get
+     */
+    public function getCoexistenceReminder(): CoexistenceReminder
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/channels/coexistence-reminder',
+        ));
+
+        return CoexistenceReminder::fromArray($response->data());
+    }
+
+    /**
+     * Update Coexistence Reminder.
+     *
+     * Acknowledge, snooze (1 hour), disable or re-enable the Coexistence keep-alive reminder for the
+     * calling user in this workspace.
+     *
+     * disable requires "confirm": true (422 otherwise).
+     *
+     * Scopes: channels:update.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/update_coexistence_reminder_api_v1_channels_coexistence_reminder_post
+     */
+    public function updateCoexistenceReminder(
+        string $action,
+        ?bool $confirm = null,
+        ?string $idempotencyKey = null,
+    ): CoexistenceReminder {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/channels/coexistence-reminder',
+            body: Payload::body(['action' => $action, 'confirm' => $confirm]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return CoexistenceReminder::fromArray($response->data());
+    }
+
+    /**
      * Get Comment Capabilities.
      *
      * Can these channels receive comments? ("Comments -> Private Reply" beta)
@@ -161,7 +220,23 @@ final readonly class Channels
      * (Messenger / Instagram) whose access token was invalidated (Graph API code=190) and need
      * reconnecting. These appear with channel_type = the messaging type ("messenger", "instagram",
      * ...), connection_status = "disconnected", last_error = the disconnection_reason
-     * ("token_invalidated"), and last_error_at = when the channel was disconnected.
+     * ("token_invalidated"), and last_error_at = when the channel was disconnected. - Messaging
+     * channels flagged webhook_removed (Telegram bot whose webhook was removed outside SendSeven),
+     * same shape, last_error = "webhook_removed". - WhatsApp / Messenger / Instagram channels that are
+     * still connected but DEGRADED: several recent messages to different recipients failed with a Meta
+     * permission error (#10 / #200). These appear with connection_status = "degraded", last_error =
+     * "meta_permission_denied", last_error_at = the latest such failure and degraded_error_code = 10
+     * or 200. The channel stays active; the item disappears after the next successfully sent message.
+     * - WhatsApp channels in the other two degraded states, same shape: last_error = "webhooks_silent"
+     * (Meta accepted our messages but sent no webhooks, no replies and no receipts, for over 24 hours;
+     * clears when webhooks arrive again) or "token_scope_missing" (the connection lost its WhatsApp
+     * permissions; degraded_error_code = 100 when Meta reported it as a Graph error, else null; clears
+     * after a reconnect or the next successful permission check). last_error_at = when the state was
+     * last confirmed. - WhatsApp channels that lost access and must be reconnected: connection_status
+     * = "disconnected", last_error = "access_revoked", "app_unsubscribed" or "phone_deregistered". -
+     * WhatsApp channels Meta blocked from sending (payment method, verification, account locked):
+     * connection_status = "unavailable", last_error = "meta_account_blocked". Fixed in Meta Business
+     * Suite; the channel resumes on its own after the next passing health check.
      *
      * Scopes: channels:read.
      *
@@ -177,6 +252,39 @@ final readonly class Channels
         ));
 
         return ChannelHealth::fromArray($response->data());
+    }
+
+    /**
+     * List read-receipt and typing-indicator support per channel type.
+     *
+     * Which channel types support read receipts and typing indicators.
+     *
+     * Returns one item for every channel type (unsupported ones report false), so you can decide
+     * before calling POST /messages/{message_id}/read or POST /conversations/{conversation_id}/typing.
+     *
+     * - read: the contact can be shown that their message was read. - typing: the contact can be shown
+     * a typing indicator. - typing_off: the indicator can be cleared explicitly (otherwise state:
+     * "off" is a no-op and the indicator ends on its own). - typing_ttl_seconds: how long one typing
+     * call is shown; null means until cleared or until you reply. - typing_requires_message: the
+     * platform ties typing to a received message (the latest inbound message is used when you pass
+     * none).
+     *
+     * Scopes: channels:read.
+     *
+     * @return Page<ChannelSenderActionSupport>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/list_sender_action_support_api_v1_channels_sender_actions_get
+     */
+    public function listSenderActionSupport(): Page
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/channels/sender-actions',
+        ));
+
+        return Hydrate::page($response->data(), ChannelSenderActionSupport::fromArray(...), null);
     }
 
     /**
@@ -410,6 +518,37 @@ final readonly class Channels
     }
 
     /**
+     * Run Channel Health Check.
+     *
+     * Check now whether a WhatsApp number can send.
+     *
+     * Asks Meta (read-only) whether SendSeven still has access to the number, receives its webhooks,
+     * and whether the account may send. A failed check can mark the channel disconnected /
+     * unavailable; a passing check clears an automatic block. Returns the channel's availability.
+     *
+     * At most one live check per channel every 60 seconds: within that window the stored result is
+     * returned with checked: false.
+     *
+     * Scopes: channels:update.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/run_channel_health_check_api_v1_channels__channel_id__health_check_post
+     */
+    public function runHealthCheck(string $channelId, ?string $idempotencyKey = null): ChannelHealthCheck
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/channels/'.Payload::segment($channelId).'/health-check',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return ChannelHealthCheck::fromArray($response->data());
+    }
+
+    /**
      * List Instagram Media.
      *
      * List media (posts, reels, carousels) for an Instagram channel.
@@ -440,6 +579,54 @@ final readonly class Channels
         ));
 
         return Hydrate::page($response->data(), InstagramMediaItem::fromArray(...), null);
+    }
+
+    /**
+     * Get Live Chat Settings.
+     *
+     * Get the Live Chat settings of a live_chat channel: which attachment categories (images, audio,
+     * video, documents) website visitors may send.
+     *
+     * Scopes: channels:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/get_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_get
+     */
+    public function getLiveChatSettings(string $channelId): LiveChatSettings
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/channels/'.Payload::segment($channelId).'/live-chat-settings',
+        ));
+
+        return LiveChatSettings::fromArray($response->data());
+    }
+
+    /**
+     * Update Live Chat Settings.
+     *
+     * Update which attachment categories Live Chat visitors may send. Partial: only the categories in
+     * the body change; the full settings are returned.
+     *
+     * Scopes: channels:update.
+     *
+     * @param  array<string, mixed>  $attachments
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Channels/update_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_put
+     */
+    public function updateLiveChatSettings(string $channelId, array $attachments): LiveChatSettings
+    {
+        $response = $this->connector->send(new Request(
+            Method::Put,
+            '/channels/'.Payload::segment($channelId).'/live-chat-settings',
+            body: Payload::body(['attachments' => $attachments]),
+        ));
+
+        return LiveChatSettings::fromArray($response->data());
     }
 
     /**
@@ -548,7 +735,7 @@ final readonly class Channels
      */
     public function uploadProfilePhoto(
         string $channelId,
-        FilePart $file,
+        string $file,
         ?string $idempotencyKey = null,
     ): ProfilePhotoUpload {
         $response = $this->connector->send(new Request(
@@ -631,7 +818,7 @@ final readonly class Channels
      * WhatsApp does not return a released handle to the pool immediately, so someone else may not be
      * able to claim it right away — and neither can you. Treat this as destructive.
      *
-     * Scopes: channels:write.
+     * Scopes: channels:update.
      *
      *
      * @throws ApiException
@@ -691,7 +878,7 @@ final readonly class Channels
      * portfolio, WhatsApp answers with error 147005. Repeat the request with force_transfer: true to
      * move it to this number.
      *
-     * Scopes: channels:write.
+     * Scopes: channels:update.
      *
      * @param  string  $username  3-35 characters of lowercase letters, numbers, periods and underscores; must contain a letter, may not start/end with a period, contain '..', start with 'www' or end with a domain suffix
      * @param  ?bool  $forceTransfer  Only for retrying after error 147005: moves the username off another phone number in the same Meta portfolio

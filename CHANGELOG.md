@@ -3,8 +3,13 @@
 All notable changes to `sendseven` will be documented in this file.
 
 
-## Unreleased
+## 0.3.0 - 2026-11-13
 
+- Generated from SendSeven's spec of 13 Nov 2026 (`20261113.1448`).
+- `messages()->send(channelOptions: ['tag' => 'HUMAN_AGENT'])`: replies written by a person on Messenger and Instagram can go out 24 hours to 7 days after the customer's last message, with Meta's Human Agent tag. Never for automation, bots or AI. SendSeven refuses it on other channels with 422 `channel_option_not_supported`.
+- `Conversation::$replyWindow` (`ReplyWindowInfo`): which Messenger or Instagram reply window is open (`standard`, `human_agent` or `closed`) and when each closes.
+- `channels()->getCapabilities()` reports sender actions (read receipts, typing indicators).
+- Removed response objects SendSeven no longer returns: `ContactMergeSuggestionContactRef`, `DnsRecord`, `DnsVerificationCheck`, `DomainDnsRecord`, `DomainVerification`, `DuplicateRef`, `EmailSettingsResponse`, `SendingStatus`, `SesSetupDnsRecord`, `SimilarTicketItem`, `SimilarTickets` and `TranslateMessage`.
 - `whatsApp()->getSendingLimit()` returns a `WhatsAppSendingLimit`: the number's quality rating, messaging tier, throughput and phone status, which SendSeven refreshes from Meta once a day. It returned nothing before.
 - Connect links can send the customer back by themselves: `ConnectLink::redirectTo($url, RedirectMode::AutoAfterFirst)`, or `partnerRedirectMode` on `createToken()`. Without a mode SendSeven shows a "Continue" button, as before. Connect tokens report `partnerRedirectMode`.
 

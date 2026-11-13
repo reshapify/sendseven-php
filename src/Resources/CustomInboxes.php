@@ -67,11 +67,14 @@ final readonly class CustomInboxes
      * @param  ?string  $color  #RRGGBB hex color
      * @param  AccessMode|string|null  $accessMode  'all' (any team member) or 'specific' (whitelisted users)
      * @param  TagFilterMode|string|null  $tagFilterMode  How tag rules are combined: any (has at least one), all (has every), none (has none of them). Ignored when tag_ids is empty.
+     * @param  ?string  $ruleMatchMode  How the content rules combine: 'all' = every rule must match (AND), 'any' = at least one rule must match (OR). The tag rule (tag_ids with tag_filter_mode) counts as ONE rule and each field_filters entry is one rule. Channel / email-connection membership is always required in both modes.
      * @param  list<string>|null  $channelIds  Non-email channel IDs that belong to this inbox. Email connections are listed separately under ``email_connections``.
      * @param  list<array<string, mixed>>|null  $emailConnections  Email connections (EmailIntegration rows with can_receive_support=True) routed to this inbox, each with an optional alias-subset filter.
      * @param  list<string>|null  $tagIds  Tag IDs used by the tag rule (interpreted via tag_filter_mode)
-     * @param  list<array<string, mixed>>|null  $fieldFilters  Custom-field rules (AND-combined)
+     * @param  list<array<string, mixed>>|null  $fieldFilters  Custom-field rules, combined with the tag rule per rule_match_mode
      * @param  list<string>|null  $allowedUserIds  Whitelisted user IDs (only used when access_mode='specific')
+     * @param  ?bool  $allChannels  True = the inbox covers every channel and email connection of the workspace (channel_ids / email_connections are ignored). False = only the listed ones; with none listed the inbox shows nothing.
+     * @param  list<string>|null  $accessTagIds  Team-member tag IDs that grant access (only used when access_mode='specific'): members holding ANY of these tags see the conversations matching this inbox's full filter. Separate from tag_ids, which filter conversations.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -85,11 +88,14 @@ final readonly class CustomInboxes
         ?string $color = null,
         AccessMode|string|null $accessMode = null,
         TagFilterMode|string|null $tagFilterMode = null,
+        ?string $ruleMatchMode = null,
         ?array $channelIds = null,
         ?array $emailConnections = null,
         ?array $tagIds = null,
         ?array $fieldFilters = null,
         ?array $allowedUserIds = null,
+        ?bool $allChannels = null,
+        ?array $accessTagIds = null,
         ?bool $isActive = null,
         ?int $sortOrder = null,
         ?string $idempotencyKey = null,
@@ -104,11 +110,14 @@ final readonly class CustomInboxes
                 'color' => $color,
                 'access_mode' => $accessMode,
                 'tag_filter_mode' => $tagFilterMode,
+                'rule_match_mode' => $ruleMatchMode,
                 'channel_ids' => $channelIds,
                 'email_connections' => $emailConnections,
                 'tag_ids' => $tagIds,
                 'field_filters' => $fieldFilters,
                 'allowed_user_ids' => $allowedUserIds,
+                'all_channels' => $allChannels,
+                'access_tag_ids' => $accessTagIds,
                 'is_active' => $isActive,
                 'sort_order' => $sortOrder,
             ]),
@@ -171,11 +180,13 @@ final readonly class CustomInboxes
      *
      * Scopes: inboxes:update,  (+ plan feature , custom_inboxes.
      *
+     * @param  ?string  $ruleMatchMode  'all' (AND) or 'any' (OR) of the content rules; None = unchanged
      * @param  list<string>|null  $channelIds
      * @param  list<array<string, mixed>>|null  $emailConnections  Replace-style: full list of email connections routed to this inbox. None = leave unchanged; empty list = clear.
      * @param  list<string>|null  $tagIds
      * @param  list<array<string, mixed>>|null  $fieldFilters
      * @param  list<string>|null  $allowedUserIds
+     * @param  list<string>|null  $accessTagIds
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -190,11 +201,14 @@ final readonly class CustomInboxes
         ?string $color = null,
         AccessMode|string|null $accessMode = null,
         TagFilterMode|string|null $tagFilterMode = null,
+        ?string $ruleMatchMode = null,
         ?array $channelIds = null,
         ?array $emailConnections = null,
         ?array $tagIds = null,
         ?array $fieldFilters = null,
         ?array $allowedUserIds = null,
+        ?bool $allChannels = null,
+        ?array $accessTagIds = null,
         ?bool $isActive = null,
         ?int $sortOrder = null,
         ?string $idempotencyKey = null,
@@ -209,11 +223,14 @@ final readonly class CustomInboxes
                 'color' => $color,
                 'access_mode' => $accessMode,
                 'tag_filter_mode' => $tagFilterMode,
+                'rule_match_mode' => $ruleMatchMode,
                 'channel_ids' => $channelIds,
                 'email_connections' => $emailConnections,
                 'tag_ids' => $tagIds,
                 'field_filters' => $fieldFilters,
                 'allowed_user_ids' => $allowedUserIds,
+                'all_channels' => $allChannels,
+                'access_tag_ids' => $accessTagIds,
                 'is_active' => $isActive,
                 'sort_order' => $sortOrder,
             ]),

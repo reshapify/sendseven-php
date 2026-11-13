@@ -75,7 +75,7 @@ final readonly class Webhooks
      * @param  ?string  $authorizationHeader  Authorization header value to send with each webhook (e.g., 'Bearer token123')
      * @param  RetryStrategy|string|null  $retryStrategy  Retry strategy for failed deliveries
      * @param  ?int  $maxRetries  Maximum number of retry attempts (default: 8, covers ~2 hours with exponential backoff)
-     * @param  ?int  $timeoutSeconds  Request timeout in seconds
+     * @param  ?int  $timeoutSeconds  Per-attempt request timeout in seconds (default 10). Deliveries are capped at 10 seconds; larger values are accepted for backwards compatibility but have no effect.
      * @param  ?string  $sourceFilterMode  Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations
      * @param  list<string>|null  $filteredChannelIds  Channel IDs to filter events by (only used when source_filter_mode='selected')
      * @param  list<string>|null  $filteredEmailIntegrationIds  Email integration IDs to filter events by (only used when source_filter_mode='selected')
@@ -208,7 +208,7 @@ final readonly class Webhooks
      * @param  ?bool  $isActive  Enable or disable the webhook
      * @param  RetryStrategy|string|null  $retryStrategy  Retry strategy for failed deliveries
      * @param  ?int  $maxRetries  Maximum number of retry attempts (max: 15, covers ~2 hours with exponential backoff)
-     * @param  ?int  $timeoutSeconds  Request timeout in seconds
+     * @param  ?int  $timeoutSeconds  Per-attempt request timeout in seconds. Deliveries are capped at 10 seconds; larger values are accepted for backwards compatibility but have no effect.
      * @param  ?string  $sourceFilterMode  Source filtering mode: 'all' receives events from all channels, 'selected' only receives events from specified channels/integrations
      * @param  list<string>|null  $filteredChannelIds  Channel IDs to filter events by (only used when source_filter_mode='selected'). Set to empty list to clear.
      * @param  list<string>|null  $filteredEmailIntegrationIds  Email integration IDs to filter events by (only used when source_filter_mode='selected'). Set to empty list to clear.

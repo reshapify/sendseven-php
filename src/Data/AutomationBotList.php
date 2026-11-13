@@ -33,6 +33,10 @@ final readonly class AutomationBotList extends Data
         public ?int $totalEscalations,
         public ?int $activationRulesCount,
         public DateTimeImmutable $createdAt,
+        public ?string $agentId,
+        public ?string $escalationTagId,
+        public ?string $escalationRoutingStrategy,
+        public ?int $escalationFallbackMinutes,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -57,6 +61,10 @@ final readonly class AutomationBotList extends Data
             totalEscalations: $attributes->nullableInt('total_escalations'),
             activationRulesCount: $attributes->nullableInt('activation_rules_count'),
             createdAt: $attributes->dateTime('created_at'),
+            agentId: $attributes->nullableString('agent_id'),
+            escalationTagId: $attributes->nullableString('escalation_tag_id'),
+            escalationRoutingStrategy: $attributes->nullableString('escalation_routing_strategy'),
+            escalationFallbackMinutes: $attributes->nullableInt('escalation_fallback_minutes'),
             raw: $data,
         );
     }

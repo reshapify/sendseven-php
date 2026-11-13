@@ -20,12 +20,14 @@ final readonly class SignaturePreview extends Data
      * @param  string  $resolvedHtml  HTML with placeholders resolved
      * @param  ?string  $resolvedText  Plain text with placeholders resolved
      * @param  list<string>  $placeholdersUsed  List of placeholders found in the template
+     * @param  ?string  $contentMode  Mode the preview was resolved in
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public string $resolvedHtml,
         public ?string $resolvedText,
         public array $placeholdersUsed,
+        public ?string $contentMode,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,6 +44,7 @@ final readonly class SignaturePreview extends Data
             resolvedHtml: $attributes->string('resolved_html'),
             resolvedText: $attributes->nullableString('resolved_text'),
             placeholdersUsed: $attributes->strings('placeholders_used'),
+            contentMode: $attributes->nullableString('content_mode'),
             raw: $data,
         );
     }

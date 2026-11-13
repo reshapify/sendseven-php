@@ -18,6 +18,9 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ContactMethod extends Data
 {
     /**
+     * @param  ?bool  $verified  True when the identifier is verified: a channel-native platform ID, an identifier the contact has messaged you from, or one marked as verified manually, via the API, by an import or a contact token.
+     * @param  ?DateTimeImmutable  $verifiedAt  When the identifier was verified (UTC).
+     * @param  ?string  $verifiedSource  How it was verified: channel_native, inbound, manual, import, api, token or backfill. Null when unverified.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,6 +37,9 @@ final readonly class ContactMethod extends Data
         public ?DateTimeImmutable $lastBounceAt,
         public ?DateTimeImmutable $lastUsedAt,
         public ?DateTimeImmutable $createdAt,
+        public ?bool $verified,
+        public ?DateTimeImmutable $verifiedAt,
+        public ?string $verifiedSource,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -60,6 +66,9 @@ final readonly class ContactMethod extends Data
             lastBounceAt: $attributes->nullableDateTime('last_bounce_at'),
             lastUsedAt: $attributes->nullableDateTime('last_used_at'),
             createdAt: $attributes->nullableDateTime('created_at'),
+            verified: $attributes->nullableBool('verified'),
+            verifiedAt: $attributes->nullableDateTime('verified_at'),
+            verifiedSource: $attributes->nullableString('verified_source'),
             raw: $data,
         );
     }

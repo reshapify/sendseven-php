@@ -27,6 +27,7 @@ final readonly class KbFolder extends Data
      * @param  bool  $isSystem  Whether this is a system folder
      * @param  int  $sortOrder  Display order within parent
      * @param  ?int  $documentCount  Number of documents directly in this folder
+     * @param  ?int  $faqEntryCount  Number of FAQ entries stored directly in this folder (all statuses; not including subfolders). Only populated by GET /folders.
      * @param  ?bool  $hasCorpus  Whether a Vertex AI corpus exists for this folder
      * @param  ?bool  $isAiSearchable  Whether this folder is included in AI agent suggestions (/ai, /suggest)
      * @param  list<KbFolder>  $children  Child folders (for tree structure)
@@ -43,6 +44,7 @@ final readonly class KbFolder extends Data
         public bool $isSystem,
         public int $sortOrder,
         public ?int $documentCount,
+        public ?int $faqEntryCount,
         public ?bool $hasCorpus,
         public ?bool $isAiSearchable,
         public array $children,
@@ -69,6 +71,7 @@ final readonly class KbFolder extends Data
             isSystem: $attributes->bool('is_system'),
             sortOrder: $attributes->int('sort_order'),
             documentCount: $attributes->nullableInt('document_count'),
+            faqEntryCount: $attributes->nullableInt('faq_entry_count'),
             hasCorpus: $attributes->nullableBool('has_corpus'),
             isAiSearchable: $attributes->nullableBool('is_ai_searchable'),
             children: $attributes->list('children', KbFolder::fromArray(...)),

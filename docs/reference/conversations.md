@@ -2,26 +2,35 @@
 
 # Conversations
 
-`$sendseven->conversations()` — 29 endpoints.
+`$sendseven->conversations()` — 42 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`list()`](#list) | `GET /conversations` | List Conversations |
 | [`create()`](#create) | `POST /conversations` | Create Conversation |
 | [`getTrendingTags()`](#gettrendingtags) | `GET /conversations/analytics/trending-tags` | Get Trending Tags |
+| [`bulkAssign()`](#bulkassign) | `POST /conversations/bulk-assign` | Bulk Assign Conversations |
 | [`bulkClose()`](#bulkclose) | `POST /conversations/bulk-close` | Bulk Close Conversations |
+| [`bulkDelete()`](#bulkdelete) | `POST /conversations/bulk-delete` | Bulk Delete Conversations |
+| [`bulkReopen()`](#bulkreopen) | `POST /conversations/bulk-reopen` | Bulk Reopen Conversations |
+| [`bulkTag()`](#bulktag) | `POST /conversations/bulk-tag` | Bulk Tag Conversations |
 | [`checkExisting()`](#checkexisting) | `POST /conversations/check-existing` | Check Existing Conversation |
+| [`getDashboardCounts()`](#getdashboardcounts) | `GET /conversations/dashboard-counts` | Get Dashboard Counts |
 | [`initiate()`](#initiate) | `POST /conversations/initiate` | Initiate Conversation |
 | [`openOrCreate()`](#openorcreate) | `POST /conversations/open-or-create` | Open Or Create Conversation |
 | [`searchSimilar()`](#searchsimilar) | `POST /conversations/search-similar` | Search Similar Conversations |
+| [`delete()`](#delete) | `DELETE /conversations/{conversation_id}` | Delete Conversation |
 | [`get()`](#get) | `GET /conversations/{conversation_id}` | Get Conversation |
 | [`update()`](#update) | `PATCH /conversations/{conversation_id}` | Update Conversation |
 | [`assign()`](#assign) | `POST /conversations/{conversation_id}/assign/{user_id}` | Assign Conversation |
+| [`turnOffAutomation()`](#turnoffautomation) | `POST /conversations/{conversation_id}/automation/turn-off` | Turn Off Conversation Automation |
 | [`getAvailableBots()`](#getavailablebots) | `GET /conversations/{conversation_id}/available-bots` | Get Available Bots |
 | [`getBotSessionStatus()`](#getbotsessionstatus) | `GET /conversations/{conversation_id}/bot-session` | Get Bot Session Status |
+| [`patchBotSessionMode()`](#patchbotsessionmode) | `PATCH /conversations/{conversation_id}/bot-session` | Patch Bot Session Mode |
 | [`disableBotSession()`](#disablebotsession) | `POST /conversations/{conversation_id}/bot-session/disable` | Disable Bot Session |
 | [`enableBotSession()`](#enablebotsession) | `POST /conversations/{conversation_id}/bot-session/enable` | Enable Bot Session |
 | [`close()`](#close) | `POST /conversations/{conversation_id}/close` | Close Conversation |
+| [`getContactContext()`](#getcontactcontext) | `GET /conversations/{conversation_id}/contact-context` | Get Conversation Contact Context |
 | [`emailTranscript()`](#emailtranscript) | `POST /conversations/{conversation_id}/email-transcript` | Email Conversation Transcript |
 | [`merge()`](#merge) | `POST /conversations/{conversation_id}/merge` | Merge Conversation |
 | [`getPrevious()`](#getprevious) | `GET /conversations/{conversation_id}/previous` | Get Previous Conversations |
@@ -35,6 +44,10 @@
 | [`getSwitchableChannels()`](#getswitchablechannels) | `GET /conversations/{conversation_id}/switchable-channels` | Get Switchable Channels |
 | [`createTranscriptExport()`](#createtranscriptexport) | `POST /conversations/{conversation_id}/transcript` | Create Transcript Export |
 | [`getTranscriptExport()`](#gettranscriptexport) | `GET /conversations/{conversation_id}/transcript/{job_id}` | Get Transcript Export |
+| [`sendTypingIndicator()`](#sendtypingindicator) | `POST /conversations/{conversation_id}/typing` | Show or clear a typing indicator |
+| [`handBackWhatsApp()`](#handbackwhatsapp) | `POST /conversations/{conversation_id}/whatsapp/hand-back` | Hand a WhatsApp conversation back |
+| [`takeOverWhatsApp()`](#takeoverwhatsapp) | `POST /conversations/{conversation_id}/whatsapp/take-over` | Take over a WhatsApp conversation |
+| [`getWhatsAppThreadControl()`](#getwhatsappthreadcontrol) | `GET /conversations/{conversation_id}/whatsapp/thread-control` | Get WhatsApp thread control |
 
 ## list
 
@@ -54,14 +67,16 @@ $result = $sendseven->conversations()->list();
 |---|---|---|---|
 | `$page` | `?int` | no | Page number (1-indexed) |
 | `$pageSize` | `?int` | no | Items per page |
-| `$status` | `?string` | no | Filter by tab/status: 'open' (excludes snoozed), 'snoozed', 'closed' |
+| `$status` | `?string` | no | Filter by tab/status: 'open' (excludes snoozed), 'snoozed', 'closed', or 'all' (no status filter) |
 | `$assignedTo` | `?string` | no | Filter by assignment: 'me', 'unassigned', 'me_and_unassigned', or user_id |
 | `$needsReply` | `?bool` | no | Filter for conversations needing a reply |
 | `$filter` | `?string` | no | Alias: 'unanswered' sets needs_reply=True |
 | `$contactId` | `?string` | no | Filter by contact ID |
-| `$search` | `?string` | no | Search by contact name, phone, email, or subject |
+| `$search` | `?string` | no | Search by contact name, phone, email, or subject. When the message_search feature is enabled for the workspace (see GET /tenants/features) and the term has at least 3 characters, message text from the last 90 days is searched too (OR). |
 | `$inboxId` | `?string` | no | Filter to conversations in this custom inbox |
 | `$channelType` | `?string` | no | Filter by channel type (e.g. whatsapp, telegram, sms, email, messenger, instagram, live_chat) |
+| `$tagId` | `list<string>\|null` | no | tags.id — filter to conversations carrying the tag on the conversation OR on its contact. Repeatable (?tag_id=a&tag_id=b, max 20); combine with tag_mode. Each id must belong to the workspace (422 if not). AND-ed with all other filters. |
+| `$tagMode` | `?string` | no | How several tag_id values combine: any (default) = at least one of the tags, all = every tag. |
 
 Returns `Page<Conversation>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/list_conversations_api_v1_conversations_get)
 
@@ -107,13 +122,35 @@ $sendseven->conversations()->getTrendingTags();
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_trending_tags_api_v1_conversations_analytics_trending_tags_get)
 
+## bulkAssign
+
+Bulk Assign Conversations. `POST /conversations/bulk-assign`
+
+Assign or unassign up to 100 conversations at once
+
+user_id is the workspace member to assign the conversations to; send null to unassign them. Each conversation is changed exactly like PATCH /conversations/{conversation_id} with assigned_user_id: the new assignee is notified (not when you assign yourself) and the conversation.assigned webhook fires. Conversations already assigned to that member (or already unassigned) count as successful and are left unchanged.
+
+```php
+$result = $sendseven->conversations()->bulkAssign(conversationIds: [], userId: 'user_id');
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationIds` | `list<string>` | yes | List of conversation UUIDs (1 to 100) |
+| `$userId` | `?string` | yes | Workspace member to assign the conversations to. Send null to unassign them. Required (send null explicitly to unassign). |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `BulkClose`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/bulk_assign_conversations_api_v1_conversations_bulk_assign_post)
+
 ## bulkClose
 
 Bulk Close Conversations. `POST /conversations/bulk-close`
 
-Bulk close multiple conversations without triggering ticket summarization.
+Close up to 100 conversations at once
 
-This endpoint is intended for closing spam, duplicates, or other conversations that do not need AI summarization or knowledge base entries.
+Without summarize (or with summarize: false) the conversations are closed without an AI summary, which suits spam and duplicates.
 
 ```php
 $result = $sendseven->conversations()->bulkClose(conversationIds: []);
@@ -125,9 +162,74 @@ $result = $sendseven->conversations()->bulkClose(conversationIds: []);
 |---|---|---|---|
 | `$conversationIds` | `list<string>` | yes | List of conversation UUIDs to close |
 | `$reason` | `?string` | no | Optional close reason (e.g., 'spam', 'duplicate') |
+| `$summarize` | `?bool` | no | Request an AI summary for each conversation this call closes, the same as summarize on POST /conversations/{id}/close. Omitted or false: no summary (spam / duplicate clean-up). true: a summary is queued per closed conversation when the workspace setting allows it ('always', or 'ask' with true) and the plan includes AI summaries; otherwise the conversations are closed without one. Summaries are generated in the background. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `BulkClose`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/bulk_close_conversations_api_v1_conversations_bulk_close_post)
+
+## bulkDelete
+
+Bulk Delete Conversations. `POST /conversations/bulk-delete`
+
+Permanently delete up to 100 conversations at once
+
+Each conversation is deleted exactly like DELETE /conversations/{conversation_id}: its messages, email messages, attachments and stored files, notes, tags on the conversation, drafts, live-chat sessions, flow runs and the notifications that link to it are removed. The contacts are kept. This cannot be undone.
+
+```php
+$result = $sendseven->conversations()->bulkDelete(conversationIds: []);
+```
+
+- Scopes: `conversations:delete`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationIds` | `list<string>` | yes | List of conversation UUIDs (1 to 100) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `BulkClose`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/bulk_delete_conversations_api_v1_conversations_bulk_delete_post)
+
+## bulkReopen
+
+Bulk Reopen Conversations. `POST /conversations/bulk-reopen`
+
+Reopen up to 100 closed conversations at once
+
+Each conversation is reopened exactly like POST /conversations/{conversation_id}/reopen (assigned conversations go back to assigned, others to open; the conversation.reopened webhook fires). Conversations that are already open count as successful and are left unchanged. Conversations that do not exist in this workspace or that you cannot access are returned in failed_ids.
+
+```php
+$result = $sendseven->conversations()->bulkReopen(conversationIds: []);
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationIds` | `list<string>` | yes | List of conversation UUIDs (1 to 100) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `BulkClose`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/bulk_reopen_conversations_api_v1_conversations_bulk_reopen_post)
+
+## bulkTag
+
+Bulk Tag Conversations. `POST /conversations/bulk-tag`
+
+Add tags to up to 100 conversations at once
+
+Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a conversation stay as they are; nothing is removed.
+
+```php
+$result = $sendseven->conversations()->bulkTag(conversationIds: [], tagIds: []);
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationIds` | `list<string>` | yes | List of conversation UUIDs (1 to 100) |
+| `$tagIds` | `list<string>` | yes | Tag UUIDs to add to every conversation (1 to 20) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `BulkClose`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/bulk_tag_conversations_api_v1_conversations_bulk_tag_post)
 
 ## checkExisting
 
@@ -150,6 +252,26 @@ $result = $sendseven->conversations()->checkExisting(contactId: 'contact_id', ch
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CheckExistingConversation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/check_existing_conversation_api_v1_conversations_check_existing_post)
+
+## getDashboardCounts
+
+Get Dashboard Counts. `GET /conversations/dashboard-counts`
+
+Dashboard conversation counts: your own number and the number across everything you can see, per metric
+
+Each metric (open, needs_reply, urgent, closed_today, unassigned) is {"mine": int|null, "all": int|null}: - mine: conversations assigned to you (closed_today: assigned to you or closed by you). Always null for unassigned. - all: every conversation you can see, with the same visibility as GET /conversations without inbox_id (Custom Inbox access, the conversations assigned to you, single-agent mode). Admins and owners see the whole workspace. Null when can_see_all is false (you can only see conversations assigned to you).
+
+```php
+$result = $sendseven->conversations()->getDashboardCounts();
+```
+
+- Scopes: `conversations:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$timezone` | `?string` | no | IANA timezone that defines 'today' for closed_today (e.g. Europe/Berlin). Defaults to the workspace timezone, else UTC. |
+
+Returns `ConversationDashboardCounts`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_dashboard_counts_api_v1_conversations_dashboard_counts_get)
 
 ## initiate
 
@@ -195,7 +317,7 @@ $result = $sendseven->conversations()->openOrCreate(contactId: 'contact_id', cha
 |---|---|---|---|
 | `$contactId` | `string` | yes | Contact UUID to start conversation with |
 | `$channelId` | `string` | yes | Channel UUID to use for this conversation |
-| `$contactMethodId` | `?string` | no | Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the recipient via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). For email the synthetic 'email_mailbox_<uuid>' / 'email_integration_<uuid>' channel_id is validated as an EMAIL method type. When a NEW conversation is created both contact_method_id and active_contact_method_id are set to this value; when an existing conversation is reused only active_contact_method_id is updated. When omitted, behavior is unchanged (recipient resolved via the channel's primary method). |
+| `$contactMethodId` | `?string` | no | Optional. Bind the conversation to a SPECIFIC contact method (e.g. one of the contact's several email addresses / phone numbers) instead of resolving the recipient via the channel's primary method. Must belong to the same contact + tenant and be compatible with the channel's method type (a PHONE method is also accepted for a WhatsApp channel). For email the synthetic 'email_mailbox_<uuid>' / 'email_integration_<uuid>' channel_id is validated as an EMAIL method type. When a NEW conversation is created both contact_method_id and active_contact_method_id are set to this value. On chat channels (WhatsApp, SMS, RCS, Telegram, Messenger, Instagram) a conversation belongs to one contact method: an open conversation is reused only when it belongs to this method (or the same number / WhatsApp user), otherwise a new conversation is created for it. For email, a reused conversation gets its active_contact_method_id updated. When omitted, behavior is unchanged (recipient resolved via the channel's primary method). |
 | `$action` | `?string` | no | Action to take: 'create_new', 'reopen_existing', or 'auto' (default). When using two-phase API, specify action explicitly to control webhook behavior. |
 | `$reopenExisting` | `?bool` | no | DEPRECATED: Use action='reopen_existing' instead. If True and a closed conversation exists, reopen it. If False, always create new. |
 | `$useConversationId` | `?string` | no | For email: specify an existing conversation ID to use instead of creating new. This allows continuing an existing email thread. |
@@ -207,22 +329,42 @@ Returns `OpenOrCreateConversation`. [SendSeven reference](https://api.sendseven.
 
 Search Similar Conversations. `POST /conversations/search-similar`
 
-Search for similar conversations based on query text using Vertex AI RAG.
+Retired. Always returns 410 Gone.
 
-Request body: {"query_text": "...", "limit": 5}
+Similar ticket search was retired in October 2026. Conversation summaries are still stored on each conversation; list them with GET /api/v1/knowledge-base/tickets.
 
 ```php
-$sendseven->conversations()->searchSimilar(body: []);
+$sendseven->conversations()->searchSimilar();
 ```
 
 - Scopes: `conversations:read`
+- **Deprecated** by SendSeven
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$body` | `array<string, mixed>` | yes | The request body |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/search_similar_conversations_api_v1_conversations_search_similar_post)
+
+## delete
+
+Delete Conversation. `DELETE /conversations/{conversation_id}`
+
+Permanently delete a conversation
+
+Deletes the conversation and everything that belongs to it: all of its messages (including reactions, replies and edit history), email messages, attachments and their stored files, internal notes, tags on the conversation, drafts, live-chat sessions, automation and flow runs that ran in it, and notifications that link to it. This cannot be undone.
+
+```php
+$result = $sendseven->conversations()->delete(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:delete`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+
+Returns `Delete`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/delete_conversation_api_v1_conversations__conversation_id__delete)
 
 ## get
 
@@ -287,6 +429,27 @@ $result = $sendseven->conversations()->assign(conversationId: 'conversation_id',
 
 Returns `Conversation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/assign_conversation_api_v1_conversations__conversation_id__assign__user_id__post)
 
+## turnOffAutomation
+
+Turn Off Conversation Automation. `POST /conversations/{conversation_id}/automation/turn-off`
+
+Turn off all automation on this conversation (full human handover).
+
+Ends the active bot session (Auto or Assist) with reason AGENT_DISABLED (on email conversations the persistent email mode is set to off) and cancels every active flow run on the conversation, whatever its trigger. Idempotent: with nothing active it returns 200 with zero counts.
+
+```php
+$sendseven->conversations()->turnOffAutomation(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/turn_off_conversation_automation_api_v1_conversations__conversation_id__automation_turn_off_post)
+
 ## getAvailableBots
 
 Get Available Bots. `GET /conversations/{conversation_id}/available-bots`
@@ -313,7 +476,7 @@ Get Bot Session Status. `GET /conversations/{conversation_id}/bot-session`
 
 Get current bot session status for a conversation.
 
-Returns: - bot_active: Whether a bot is currently handling this conversation - bot_session_id: The ID of the active bot session (if any) - bot_name: The name of the bot handling the conversation (if any) - bot_id: The ID of the bot (if any)
+Returns: - bot_active: Whether a bot is currently handling this conversation - bot_session_id: The ID of the active bot session (if any) - bot_name: The name of the bot handling the conversation (if any) - bot_id: The ID of the bot (if any) - mode: "auto" | "assist" (null when no active session) - bot_type: the bot's type (e.g. "agent") - assist_available: whether Assist mode can be selected - channel_type: the conversation's channel type - email_mode: email conversations only: "off" | "assist" | "auto" (effective; default "auto"), null otherwise - email_mode_explicit: whether someone chose the email mode - email_mode_options: ["off", "assist", "auto"] on email, else null - email_agent: {bot_id, bot_name, reply_mode, confidence_threshold} of the Conversational Agent handling this email conversation, or null - email_behavior: "off" | "draft_only" | "send_above_threshold" (what the effective mode does with the agent's settings), or null - status: "auto" | "assist_auto_draft" (Assist, nobody active: drafts new customer messages) | "assist_on_request" (Assist, a teammate is active: drafts only on request) | "paused_by_human" (the last session ended because a teammate replied) | "off" - paused: {bot_id, bot_name, previous_mode, by_user_id, by_user_name, at} when status is "paused_by_human", else null - assist_idle_minutes: the workspace's Assist idle window (minutes) - human_active_until: while "assist_on_request", when the conversation counts as inactive again (ISO 8601), else null
 
 ```php
 $sendseven->conversations()->getBotSessionStatus(conversationId: 'conversation_id');
@@ -326,6 +489,28 @@ $sendseven->conversations()->getBotSessionStatus(conversationId: 'conversation_i
 | `$conversationId` | `string` | yes |  |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_bot_session_status_api_v1_conversations__conversation_id__bot_session_get)
+
+## patchBotSessionMode
+
+Patch Bot Session Mode. `PATCH /conversations/{conversation_id}/bot-session`
+
+Switch the active bot session between Auto and Assist without restarting it.
+
+Body {"mode": "auto"|"assist"}. Returns the GET /bot-session shape.
+
+```php
+$sendseven->conversations()->patchBotSessionMode(conversationId: 'conversation_id', body: []);
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$body` | `array<string, mixed>` | yes | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/patch_bot_session_mode_api_v1_conversations__conversation_id__bot_session_patch)
 
 ## disableBotSession
 
@@ -366,6 +551,7 @@ $sendseven->conversations()->enableBotSession(conversationId: 'conversation_id')
 |---|---|---|---|
 | `$conversationId` | `string` | yes |  |
 | `$botId` | `?string` | no |  |
+| `$mode` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/enable_bot_session_api_v1_conversations__conversation_id__bot_session_enable_post)
@@ -392,6 +578,26 @@ $result = $sendseven->conversations()->close(conversationId: 'conversation_id');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Conversation`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/close_conversation_api_v1_conversations__conversation_id__close_post)
+
+## getContactContext
+
+Get Conversation Contact Context. `GET /conversations/{conversation_id}/contact-context`
+
+Get the contact context an AI agent sees for this conversation
+
+Returns assurance, the active contact-token grant (or null), fields (key, name, value, source, verified), methods (type, value, verified), tags (name, verified; ALL of the contact's tags, always verified: false) and subscriptions (list, channel_type, status, opt_in_method, verified). tags / subscriptions are [] when unavailable.
+
+```php
+$sendseven->conversations()->getContactContext(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:read`, `contacts:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_conversation_contact_context_api_v1_conversations__conversation_id__contact_context_get)
 
 ## emailTranscript
 
@@ -550,6 +756,8 @@ Summarize Conversation. `POST /conversations/{conversation_id}/summarize`
 
 Manually trigger AI summary generation for a conversation.
 
+Costs 1 AI credit per successful summary. Free trials that used their AI credits get 403 trial_ai_credits_exhausted.
+
 ```php
 $sendseven->conversations()->summarize(conversationId: 'conversation_id');
 ```
@@ -668,3 +876,89 @@ $result = $sendseven->conversations()->getTranscriptExport(conversationId: 'conv
 | `$jobId` | `string` | yes |  |
 
 Returns `TranscriptExportJob`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_transcript_export_api_v1_conversations__conversation_id__transcript__job_id__get)
+
+## sendTypingIndicator
+
+Show or clear a typing indicator. `POST /conversations/{conversation_id}/typing`
+
+Show (or clear) a typing indicator to the contact in a conversation.
+
+Use it while a reply is being prepared, e.g. by your own bot. The body is optional; an empty body means {"state": "on"}.
+
+```php
+$result = $sendseven->conversations()->sendTypingIndicator(conversationId: 'conversation_id');
+```
+
+- Scopes: `messages:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `SenderAction`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/send_typing_indicator_api_v1_conversations__conversation_id__typing_post)
+
+## handBackWhatsApp
+
+Hand a WhatsApp conversation back. `POST /conversations/{conversation_id}/whatsapp/hand-back`
+
+Give up control of this WhatsApp conversation.
+
+mode: "pass" (default) passes it to the app with target_role (default customer_service). mode: "release" makes the conversation idle, so your normal routing in Meta Business Suite picks the next owner.
+
+```php
+$result = $sendseven->conversations()->handBackWhatsApp(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ThreadControlState`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/hand_back_whatsapp_conversation_api_v1_conversations__conversation_id__whatsapp_hand_back_post)
+
+## takeOverWhatsApp
+
+Take over a WhatsApp conversation. `POST /conversations/{conversation_id}/whatsapp/take-over`
+
+Take control of this WhatsApp conversation from another app.
+
+Works only when SendSeven is the escalation partner for the number in Meta Business Suite (Conversation routing). Afterwards the other app can't reply until you hand the conversation back, or until the customer has been inactive for 24 hours.
+
+```php
+$result = $sendseven->conversations()->takeOverWhatsApp(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:update`, `messages:create`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ThreadControlState`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/take_over_whatsapp_conversation_api_v1_conversations__conversation_id__whatsapp_take_over_post)
+
+## getWhatsAppThreadControl
+
+Get WhatsApp thread control. `GET /conversations/{conversation_id}/whatsapp/thread-control`
+
+Who controls this WhatsApp conversation under Meta's Conversation routing.
+
+Returns whether another app (provider) controls the conversation, whether SendSeven controls it, whether SendSeven can take it over (only as the escalation partner) and the number's conversation routing status. A WhatsApp conversation without any recorded control change returns all flags false. Non-WhatsApp conversations return 422 not_whatsapp_conversation.
+
+```php
+$result = $sendseven->conversations()->getWhatsAppThreadControl(conversationId: 'conversation_id');
+```
+
+- Scopes: `conversations:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$conversationId` | `string` | yes |  |
+
+Returns `ThreadControlState`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Conversations/get_whatsapp_thread_control_api_v1_conversations__conversation_id__whatsapp_thread_control_get)

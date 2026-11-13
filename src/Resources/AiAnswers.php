@@ -56,7 +56,7 @@ final readonly class AiAnswers
      *
      * Withdraw your own rating. Affected entry scores are recomputed.
      *
-     * Scopes: conversations:write.
+     * Scopes: conversations:update.
      *
      *
      * @throws ApiException
@@ -78,15 +78,16 @@ final readonly class AiAnswers
      *
      * Rate an AI answer 👍 / 👎 / ✗ (upsert — re-rating replaces).
      *
-     * down and wrong REQUIRE reason_category: a verdict with no reason cannot drive the correction
-     * loop and only produces noise in the score.
+     * reason_category (factually_wrong | outdated | incomplete | off_topic | wrong_tone |
+     * policy_violation | hallucinated | other) is optional:
      *
-     * A KB correction is opened (and an analysis job enqueued) when:
+     * * down without a reason is accepted — a bare 👎 that only feeds the quality statistics. *
+     * wrong without a reason is stored as factually_wrong.
      *
-     * Scopes: conversations:write.
+     * Scopes: conversations:update.
      *
      * @param  string  $verdict  up | down | wrong
-     * @param  ?string  $reasonCategory  Required for down/wrong: factually_wrong | outdated | incomplete | off_topic | wrong_tone | policy_violation | hallucinated
+     * @param  ?string  $reasonCategory  Why the answer was bad: factually_wrong | outdated | incomplete | off_topic | wrong_tone | policy_violation | hallucinated | other. Optional for 'down' (without it the 👎 is a statistic only; with it a review-only correction is opened). For 'wrong' it defaults to 'factually_wrong'.
      * @param  ?string  $betterAnswer  What the answer should have said
      * @param  list<string>|null  $sourceAttribution  faq_items.id values the rater explicitly blames. Takes full weight with no sharing (ignored for 'up' verdicts).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
@@ -126,11 +127,14 @@ final readonly class AiAnswers
      * List AI answers generated in a conversation.
      *
      * The rating UI renders a control next to a *message*, so results are also filterable by
-     * message_id — that is the key the frontend holds.
+     * message_id — that is the key the frontend holds. surface=agent_draft lists Conversational
+     * Agent drafts: a pending draft has outcome=shown and no message_id; once a teammate sends it, it
+     * carries the sent message's id and outcome=sent.
      *
      * Scopes: conversations:read.
      *
      * @param  ?string  $messageId  Only the event that produced this message
+     * @param  ?string  $surface  Only this surface, e.g. agent_draft (Conversational Agent drafts)
      * @return Page<AiAnswerEvent>
      *
      * @throws ApiException
@@ -140,15 +144,21 @@ final readonly class AiAnswers
     public function listConversation(
         string $conversationId,
         ?string $messageId = null,
+        ?string $surface = null,
         ?int $page = null,
         ?int $pageSize = null,
     ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/conversations/'.Payload::segment($conversationId).'/ai-answers',
-            query: Payload::query(['message_id' => $messageId, 'page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'message_id' => $messageId,
+                'surface' => $surface,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]),
         ));
 
-        return Hydrate::page($response->data(), AiAnswerEvent::fromArray(...), fn (int $page): Page => $this->listConversation(conversationId: $conversationId, messageId: $messageId, page: $page, pageSize: $pageSize));
+        return Hydrate::page($response->data(), AiAnswerEvent::fromArray(...), fn (int $page): Page => $this->listConversation(conversationId: $conversationId, messageId: $messageId, surface: $surface, page: $page, pageSize: $pageSize));
     }
 }

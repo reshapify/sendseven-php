@@ -50,11 +50,14 @@ $result = $sendseven->customInboxes()->createInbox(name: 'name');
 | `$color` | `?string` | no | #RRGGBB hex color |
 | `$accessMode` | `AccessMode\|string\|null` | no | 'all' (any team member) or 'specific' (whitelisted users) |
 | `$tagFilterMode` | `TagFilterMode\|string\|null` | no | How tag rules are combined: any (has at least one), all (has every), none (has none of them). Ignored when tag_ids is empty. |
+| `$ruleMatchMode` | `?string` | no | How the content rules combine: 'all' = every rule must match (AND), 'any' = at least one rule must match (OR). The tag rule (tag_ids with tag_filter_mode) counts as ONE rule and each field_filters entry is one rule. Channel / email-connection membership is always required in both modes. |
 | `$channelIds` | `list<string>\|null` | no | Non-email channel IDs that belong to this inbox. Email connections are listed separately under email_connections. |
 | `$emailConnections` | `list<array<string, mixed>>\|null` | no | Email connections (EmailIntegration rows with can_receive_support=True) routed to this inbox, each with an optional alias-subset filter. |
 | `$tagIds` | `list<string>\|null` | no | Tag IDs used by the tag rule (interpreted via tag_filter_mode) |
-| `$fieldFilters` | `list<array<string, mixed>>\|null` | no | Custom-field rules (AND-combined) |
+| `$fieldFilters` | `list<array<string, mixed>>\|null` | no | Custom-field rules, combined with the tag rule per rule_match_mode |
 | `$allowedUserIds` | `list<string>\|null` | no | Whitelisted user IDs (only used when access_mode='specific') |
+| `$allChannels` | `?bool` | no | True = the inbox covers every channel and email connection of the workspace (channel_ids / email_connections are ignored). False = only the listed ones; with none listed the inbox shows nothing. |
+| `$accessTagIds` | `list<string>\|null` | no | Team-member tag IDs that grant access (only used when access_mode='specific'): members holding ANY of these tags see the conversations matching this inbox's full filter. Separate from tag_ids, which filter conversations. |
 | `$isActive` | `?bool` | no |  |
 | `$sortOrder` | `?int` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
@@ -120,11 +123,14 @@ $result = $sendseven->customInboxes()->updateInbox(inboxId: 'inbox_id');
 | `$color` | `?string` | no |  |
 | `$accessMode` | `AccessMode\|string\|null` | no |  |
 | `$tagFilterMode` | `TagFilterMode\|string\|null` | no |  |
+| `$ruleMatchMode` | `?string` | no | 'all' (AND) or 'any' (OR) of the content rules; None = unchanged |
 | `$channelIds` | `list<string>\|null` | no |  |
 | `$emailConnections` | `list<array<string, mixed>>\|null` | no | Replace-style: full list of email connections routed to this inbox. None = leave unchanged; empty list = clear. |
 | `$tagIds` | `list<string>\|null` | no |  |
 | `$fieldFilters` | `list<array<string, mixed>>\|null` | no |  |
 | `$allowedUserIds` | `list<string>\|null` | no |  |
+| `$allChannels` | `?bool` | no |  |
+| `$accessTagIds` | `list<string>\|null` | no |  |
 | `$isActive` | `?bool` | no |  |
 | `$sortOrder` | `?int` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |

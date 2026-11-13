@@ -19,6 +19,8 @@ final readonly class AiAnswerRatingSummary extends Data
 {
     /**
      * @param  list<mixed>  $sourceAttribution
+     * @param  ?string  $agentId  Conversational Agent that produced the rated answer (null for FAQ bots)
+     * @param  array<array-key, mixed>  $agentContext  Snapshot at rating time: model, model_tier, skills[{slug, version, ...}], tools, turn_id
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -29,6 +31,8 @@ final readonly class AiAnswerRatingSummary extends Data
         public ?string $betterAnswer,
         public string $ratedByUserId,
         public array $sourceAttribution,
+        public ?string $agentId,
+        public array $agentContext,
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
         array $raw = [],
@@ -51,6 +55,8 @@ final readonly class AiAnswerRatingSummary extends Data
             betterAnswer: $attributes->nullableString('better_answer'),
             ratedByUserId: $attributes->string('rated_by_user_id'),
             sourceAttribution: array_values($attributes->array('source_attribution')),
+            agentId: $attributes->nullableString('agent_id'),
+            agentContext: $attributes->array('agent_context'),
             createdAt: $attributes->dateTime('created_at'),
             updatedAt: $attributes->dateTime('updated_at'),
             raw: $data,

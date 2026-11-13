@@ -8,17 +8,29 @@ namespace Reshapify\SendSeven\Resources;
 // change the generator or openapi/patches, then regenerate.
 
 use Reshapify\SendSeven\Data\AppSchemasFlowSchemaFlow;
+use Reshapify\SendSeven\Data\Attention;
 use Reshapify\SendSeven\Data\ChannelPerformance;
 use Reshapify\SendSeven\Data\Delete;
+use Reshapify\SendSeven\Data\FlowEditImpact;
+use Reshapify\SendSeven\Data\FlowEditLease;
+use Reshapify\SendSeven\Data\FlowLoopPause;
+use Reshapify\SendSeven\Data\FlowRevisionDetail;
+use Reshapify\SendSeven\Data\FlowRevisionDiff;
+use Reshapify\SendSeven\Data\FlowRevisionItem;
 use Reshapify\SendSeven\Data\FlowRun;
 use Reshapify\SendSeven\Data\FlowRunMessage;
 use Reshapify\SendSeven\Data\FlowRunStep;
 use Reshapify\SendSeven\Data\FlowSecretEntry;
+use Reshapify\SendSeven\Data\FlowValidate;
 use Reshapify\SendSeven\Data\FlowValidationStatus;
 use Reshapify\SendSeven\Data\FlowVariables;
 use Reshapify\SendSeven\Data\Funnel;
 use Reshapify\SendSeven\Data\ReorderFlows;
 use Reshapify\SendSeven\Data\Replay;
+use Reshapify\SendSeven\Data\ResumeAllLoopPauses;
+use Reshapify\SendSeven\Data\StartTestRun;
+use Reshapify\SendSeven\Data\StepFailureList;
+use Reshapify\SendSeven\Data\StepStats;
 use Reshapify\SendSeven\Enums\FlowRunStatus;
 use Reshapify\SendSeven\Enums\FlowStatus;
 use Reshapify\SendSeven\Exceptions\ApiException;
@@ -30,7 +42,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Flows: 29 endpoints.
+ * Flows: 52 endpoints.
  *
  * Reach it with $sendseven->flows().
  *
@@ -124,21 +136,28 @@ final readonly class Flows
      * Create a new flow in draft status.
      *
      * The definition JSON is validated structurally — see :class:FlowDefinitionValidator. Validation
-     * failures return 400 FLOW_DEFINITION_INVALID with the full error list.
+     * failures return 422 with detail = {code: "flow_definition_invalid", message, errors: [{path,
+     * message}]} (path names the node by its ID).
      *
      * Scopes: flows:write.
      *
      * @param  array<string, mixed>  $definition  The full flow graph: ``trigger`` + ``nodes[]`` + ``edges[]`` + ``entry_node_id``. See ``fl01_create_flows.py`` migration docstring for the locked JSON shape. Hard-capped at 256 KB JSON-encoded; validated against the structural rules in ``FlowDefinitionValidator``.
      * @param  ?string  $reEntryPolicy  How to behave when the same contact is triggered again while a run is already in flight. MVP only enforces ``block`` (ignore the new trigger). ``restart`` and ``parallel`` are scaffolded for Phase 3 UX.
-     * @param  ?string  $defaultLanguage  Per-flow fallback language used by the runtime when a contact has no resolvable locale. Typically set by the frontend to the operator's current UI language at create time. Backend defaults to ``'en'`` (DB server_default) if omitted. Must be one of the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
+     * @param  ?string  $defaultLanguage  Per-flow fallback language used by the runtime when a contact has no resolvable locale. If omitted it defaults to the workspace language, else the creating user's app language, else ``'en'`` (unsupported stored values are skipped). Must be one of the curated ~40 ``SUPPORTED_TRANSLATION_LOCALES``.
      * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is ``manual``.
      * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
      * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language they speak to a contact. ``cascade`` (the default) resolves per run via the fallback chain (contact locale → inferred channel locale → ``default_language``). ``fixed`` always speaks ``default_language``, skipping the cascade. OMIT / ``null`` to keep the default — NULL is stored and treated as ``cascade`` by the runtime, so existing flows are unaffected. Any value other than ``cascade`` / ``fixed`` is rejected with 422.
+     * @param  ?bool  $addDetectedLanguages  When True (the default), each time a run of this flow switches to a language detected from the contact (a newly detected language, or the contact writing in a different one), that language code is appended to the contact's ``languages`` list. The contact's preferred ``language`` and its source never change, and neither does the language the run replies in. Default-language and ``fixed`` resolutions never add a code. ``null`` is treated as True.
      * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level channel fallback chain — May 2026 this is the SINGLE source of truth for channel order (per-node ``channel_chain`` has been removed; node configs only carry content). Bare channel-type strings (``["whatsapp", "live_chat"]``) OR ``{channel_type, channel_id?}`` objects pinning a specific Channel row. When omitted / NULL on create, the server seeds from the tenant's active channels in a sensible order. A flow with any send/choice/collect_input node MUST have a non-empty chain to validate.
      * @param  ?bool  $stopOnAgentReply  When True (the default), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Bot replies and flow-Send messages do NOT trip the hook — only operator-authored outbound messages do. Set to False for long-running drips whose cadence should be independent of agent activity.
+     * @param  ?string  $agentWhileRunning  What a conversational AI agent does in a conversation while a run of this flow is active there. `inherit` (default) uses the agent's own `flow_running_behavior`; `pause` keeps the agent silent until the run ends; `stop` turns the agent off for that conversation when the run starts; `keep` lets the agent keep answering. The message that started the run is never answered by the agent in any mode. Omitted or null on create = `inherit`.
      * @param  ?bool  $stopOnConversationClosed  When True (the default), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Only runs whose recorded ``context.conversation_id`` matches the closed conversation are canceled — flows without a recorded conversation are left untouched. Set to False for long-running re-engagement drips that intentionally outlive the original conversation.
      * @param  ?int  $priority  Trigger-arbitration priority among INBOUND-EVENT-triggered (entry) flows. LOWER = higher priority (evaluated FIRST). When multiple entry flows match the same inbound event they start in ascending-priority order. Default 0. Background flows (manual/api_event/schedule) ignore this field.
      * @param  ?bool  $exclusive  When True, while a run of this entry-triggered flow is actively running on a conversation, NO other entry-triggered flow may start on that conversation (background manual/api/schedule flows are exempt). Default False preserves today's fire-all behaviour.
+     * @param  ?string  $exitOnUnsubscribe  When an active run of this flow ends because the contact unsubscribed (run cancel reason ``contact_unsubscribed``). Only unsubscribes after the run started count. ``trigger_list`` (default): when the contact leaves the list whose subscription started the run; inert for every other trigger. ``any``: on an unsubscribe from any list or a channel-wide opt-out. ``selected``: on an unsubscribe from one of ``exit_on_unsubscribe_list_ids``. ``off``: never.
+     * @param  list<string>|null  $exitOnUnsubscribeListIds  List ids used when ``exit_on_unsubscribe`` is ``selected`` (1 to 50 lists of this workspace). Kept as stored for the other modes.
+     * @param  ?string  $revisionSource  Version history attribution (optional): ``canvas`` | ``json`` | ``ai_assistant``. Defaults to ``canvas`` for a signed-in user. API keys and OAuth apps are always recorded as ``api``.
+     * @param  ?string  $revisionSummary  Optional note stored on the version history entry (max 500 characters, plain text).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -154,11 +173,17 @@ final readonly class Flows
         ?bool $manuallyTriggerable = null,
         ?bool $autoTranslateMessages = null,
         ?string $languageDetectionStrategy = null,
+        ?bool $addDetectedLanguages = null,
         ?array $defaultChannelChain = null,
         ?bool $stopOnAgentReply = null,
+        ?string $agentWhileRunning = null,
         ?bool $stopOnConversationClosed = null,
         ?int $priority = null,
         ?bool $exclusive = null,
+        ?string $exitOnUnsubscribe = null,
+        ?array $exitOnUnsubscribeListIds = null,
+        ?string $revisionSource = null,
+        ?string $revisionSummary = null,
         ?string $idempotencyKey = null,
     ): AppSchemasFlowSchemaFlow {
         $response = $this->connector->send(new Request(
@@ -173,11 +198,17 @@ final readonly class Flows
                 'manually_triggerable' => $manuallyTriggerable,
                 'auto_translate_messages' => $autoTranslateMessages,
                 'language_detection_strategy' => $languageDetectionStrategy,
+                'add_detected_languages' => $addDetectedLanguages,
                 'default_channel_chain' => $defaultChannelChain,
                 'stop_on_agent_reply' => $stopOnAgentReply,
+                'agent_while_running' => $agentWhileRunning,
                 'stop_on_conversation_closed' => $stopOnConversationClosed,
                 'priority' => $priority,
                 'exclusive' => $exclusive,
+                'exit_on_unsubscribe' => $exitOnUnsubscribe,
+                'exit_on_unsubscribe_list_ids' => $exitOnUnsubscribeListIds,
+                'revision_source' => $revisionSource,
+                'revision_summary' => $revisionSummary,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -228,8 +259,9 @@ final readonly class Flows
      *
      * Convenience companion to POST /flows/{flow_id}/runs/{run_id}/stop for callers (notably the
      * Conversations UI) that have the run id from the conversation's active_flow_run.run_id but no
-     * flow_id. Marks the run canceled, deletes pending waits, emits flow.run.canceled via
-     * :class:EventBus. Idempotent — already-terminal runs return their current row unchanged.
+     * flow_id. Marks the run canceled, deletes pending waits and cancels any flows it started and is
+     * waiting on (Start Flow node). Idempotent — already-terminal runs return their current row
+     * unchanged.
      *
      * Scopes: flows:write.
      *
@@ -373,18 +405,62 @@ final readonly class Flows
     }
 
     /**
+     * Validate Flow.
+     *
+     * Check a flow definition without saving it.
+     *
+     * Runs exactly the checks of POST /flows (or, with flow_id, of PATCH /flows/{flow_id}) and writes
+     * nothing. A definition that would be rejected returns the same 422 as a save: detail = {code:
+     * "flow_definition_invalid", message, errors: [{path, message}]} with path naming the node by its
+     * ID (reason: channel_chain_required for an unusable channel chain, reason: live_flow_invalid when
+     * flow_id is a live flow and the publish checks fail).
+     *
+     * On success (200) validation is the publish readiness, same shape as FlowResponse.validation: a
+     * valid draft can still have can_activate: false with the errors to fix before publishing.
+     *
+     * Scopes: flows:read, flows:write.
+     *
+     * @param  array<string, mixed>  $definition  The flow definition to check (``trigger`` + ``nodes[]`` + ``edges[]`` + ``entry_node_id``). Hard-capped at 256 KB JSON-encoded.
+     * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level channel chain, same shape as on ``POST /flows``. Omitted: on a new flow the server default (all non-email channels) is assumed, exactly as create would seed it; with ``flow_id`` the flow's stored chain is used.
+     * @param  ?string  $flowId  Validate as an edit of this existing flow (``PATCH`` checks). When the flow is live (published or paused) the full publish checks run too and a failure carries ``reason: live_flow_invalid``, exactly like a live PATCH.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/validate_flow_api_v1_flows_validate_post
+     */
+    public function validate(
+        array $definition,
+        ?array $defaultChannelChain = null,
+        ?string $flowId = null,
+        ?string $idempotencyKey = null,
+    ): FlowValidate {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/validate',
+            body: Payload::body([
+                'definition' => $definition,
+                'default_channel_chain' => $defaultChannelChain,
+                'flow_id' => $flowId,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowValidate::fromArray($response->data());
+    }
+
+    /**
      * Get Flow Variables.
      *
      * Return the typed variable catalog used by the Flow Builder's Branch node "match contact field /
      * tag / list / custom field" picker.
      *
-     * Sections:
+     * custom_fields is filled only when the caller also holds custom_fields:read (the scope of GET
+     * /custom-fields; literal, contacts:read does not imply it); without it the section is an empty
+     * list. tags is filled only with contacts:read or conversations:read (the scopes of GET /tags);
+     * without either it is an empty list. Every other section is unchanged.
      *
-     * * contact_fields — built-in Contact columns + tags/lists pseudo-fields. * custom_fields —
-     * tenant custom_field_definitions exposed as contact.custom.<key> paths with a best-effort type
-     * hint. * tags — tenant tag names (path = tag name). * lists — tenant subscription lists (path
-     * = list UUID, label = list name). * flow_variables — populated only when flow_id is supplied;
-     * otherwise empty.
+     * Sections:
      *
      * Scopes: flows:read.
      *
@@ -458,9 +534,12 @@ final readonly class Flows
      *
      * Update a flow.
      *
-     * All fields optional. When definition is provided the API re-runs save-time structural
-     * validation. Editing a published flow is allowed — the engine snapshots definition into
-     * flow_runs.context.definition_snapshot at run-start so in-flight runs are isolated from the edit.
+     * Optimistic concurrency: send the version you last read (body version or header If-Match: "<n>";
+     * the body wins). A stale value returns 409 flow_version_conflict with current_version. Without
+     * either, the write is last-write-wins.
+     *
+     * Whole-document edits (the builder's JSON view): fields that are not editable (id, tenant_id,
+     * status, validation, run_count, timestamps, ...) are ignored, never rejected.
      *
      * Scopes: flows:write.
      *
@@ -470,11 +549,17 @@ final readonly class Flows
      * @param  ?bool  $manuallyTriggerable  When True, the flow appears in the operator's manual-start picker and accepts ``POST /flows/{id}/runs`` requests. Automatically forced True when the trigger kind is changed to ``manual``; never auto-cleared when the trigger is changed away from manual (operator preference is preserved).
      * @param  ?bool  $autoTranslateMessages  Per-flow opt-in for runtime LLM translation of outbound Send-node messages into the contact's preferred language.
      * @param  ?string  $languageDetectionStrategy  How this flow's runs resolve the language (see ``CreateFlowRequest``). ``cascade`` | ``fixed``. Omit on PATCH to preserve the current value; any other value is rejected with 422. Note: because NULL means "cascade", this field cannot be explicitly reset to NULL via PATCH — send ``"cascade"`` to restore the default behaviour.
+     * @param  ?bool  $addDetectedLanguages  Append languages detected from the contact to the contact's ``languages`` list (see ``CreateFlowRequest``). Omit or send ``null`` on PATCH to keep the current value.
      * @param  list<array<string, mixed>>|null  $defaultChannelChain  Flow-level fallback channel chain — see ``CreateFlowRequest``. Omitting this field on PATCH preserves the existing value; send an explicit empty list to clear it back to "no default" (stored as the empty list, not NULL, when explicitly cleared).
      * @param  ?bool  $stopOnAgentReply  When True (the default for new flows), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Omit on PATCH to preserve the current setting.
+     * @param  ?string  $agentWhileRunning  What a conversational AI agent does in a conversation while a run of this flow is active there. `inherit` (default) uses the agent's own `flow_running_behavior`; `pause` keeps the agent silent until the run ends; `stop` turns the agent off for that conversation when the run starts; `keep` lets the agent keep answering. The message that started the run is never answered by the agent in any mode. Omit on PATCH to preserve the current setting; `inherit` (or an explicit null) resets it to the agent's setting.
      * @param  ?bool  $stopOnConversationClosed  When True (the default for new flows), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Omit on PATCH to preserve the current setting.
      * @param  ?int  $priority  Trigger-arbitration priority among entry flows (LOWER = higher priority, evaluated first). Omit on PATCH to preserve the current value. The bulk reorder endpoint writes this field.
      * @param  ?bool  $exclusive  When True, a running run of this entry flow blocks all OTHER entry flows from starting on the same conversation. Omit on PATCH to preserve the current value.
+     * @param  ?string  $exitOnUnsubscribe  When an active run of this flow ends because the contact unsubscribed (run cancel reason ``contact_unsubscribed``). Only unsubscribes after the run started count. ``trigger_list`` (default): when the contact leaves the list whose subscription started the run; inert for every other trigger. ``any``: on an unsubscribe from any list or a channel-wide opt-out. ``selected``: on an unsubscribe from one of ``exit_on_unsubscribe_list_ids``. ``off``: never. Omit on PATCH to preserve the current value.
+     * @param  list<string>|null  $exitOnUnsubscribeListIds  List ids used when ``exit_on_unsubscribe`` is ``selected`` (1 to 50 lists of this workspace). Kept as stored for the other modes. Omit on PATCH to preserve the current value.
+     * @param  ?string  $revisionSource  Version history attribution (optional): ``canvas`` | ``json`` | ``ai_assistant``. Defaults to ``canvas`` for a signed-in user. API keys and OAuth apps are always recorded as ``api``.
+     * @param  ?string  $revisionSummary  Optional note stored on the version history entry (max 500 characters, plain text).
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -492,11 +577,18 @@ final readonly class Flows
         ?bool $manuallyTriggerable = null,
         ?bool $autoTranslateMessages = null,
         ?string $languageDetectionStrategy = null,
+        ?bool $addDetectedLanguages = null,
         ?array $defaultChannelChain = null,
         ?bool $stopOnAgentReply = null,
+        ?string $agentWhileRunning = null,
         ?bool $stopOnConversationClosed = null,
         ?int $priority = null,
         ?bool $exclusive = null,
+        ?string $exitOnUnsubscribe = null,
+        ?array $exitOnUnsubscribeListIds = null,
+        ?int $version = null,
+        ?string $revisionSource = null,
+        ?string $revisionSummary = null,
         ?string $idempotencyKey = null,
     ): AppSchemasFlowSchemaFlow {
         $response = $this->connector->send(new Request(
@@ -512,11 +604,18 @@ final readonly class Flows
                 'manually_triggerable' => $manuallyTriggerable,
                 'auto_translate_messages' => $autoTranslateMessages,
                 'language_detection_strategy' => $languageDetectionStrategy,
+                'add_detected_languages' => $addDetectedLanguages,
                 'default_channel_chain' => $defaultChannelChain,
                 'stop_on_agent_reply' => $stopOnAgentReply,
+                'agent_while_running' => $agentWhileRunning,
                 'stop_on_conversation_closed' => $stopOnConversationClosed,
                 'priority' => $priority,
                 'exclusive' => $exclusive,
+                'exit_on_unsubscribe' => $exitOnUnsubscribe,
+                'exit_on_unsubscribe_list_ids' => $exitOnUnsubscribeListIds,
+                'version' => $version,
+                'revision_source' => $revisionSource,
+                'revision_summary' => $revisionSummary,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -558,6 +657,283 @@ final readonly class Flows
         ));
 
         return AppSchemasFlowSchemaFlow::fromArray($response->data());
+    }
+
+    /**
+     * Flow Edit Impact.
+     *
+     * Preview how many contacts a live-flow edit would remove from the flow.
+     *
+     * Saving a new definition for a published or paused flow cancels every running or waiting run
+     * whose current step is no longer in the definition (each gets a flow.run.canceled webhook with
+     * reason flow_redefined). Call this with the definition you are about to save to show the impact
+     * first. Read-only: nothing is saved and the definition is not validated (node ids are read
+     * best-effort).
+     *
+     * Draft and archived flows have no runs to cancel and always return {"affected_runs": 0,
+     * "by_node": []}. label is the step's display name in the currently saved definition.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  array<string, mixed>  $definition  The edited flow definition you intend to save. Hard-capped at 256 KB JSON-encoded.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/flow_edit_impact_api_v1_flows__flow_id__edit_impact_post
+     */
+    public function editImpact(string $flowId, array $definition, ?string $idempotencyKey = null): FlowEditImpact
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/edit-impact',
+            body: Payload::body(['definition' => $definition]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowEditImpact::fromArray($response->data());
+    }
+
+    /**
+     * Release Flow Edit Lease.
+     *
+     * Release your session's lease. Idempotent; never releases another session's lease.
+     *
+     * Scopes: flows:write.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/release_flow_edit_lease_api_v1_flows__flow_id__edit_lease_delete
+     */
+    public function releaseEditLease(string $flowId, string $sessionId): void
+    {
+        $this->connector->send(new Request(
+            Method::Delete,
+            '/flows/'.Payload::segment($flowId).'/edit-lease',
+            query: Payload::query(['session_id' => $sessionId]),
+        ));
+    }
+
+    /**
+     * Get Flow Edit Lease.
+     *
+     * Who is editing this flow in the builder right now. is_mine is true when the lease belongs to
+     * your session_id (one id per browser tab). The lease does not block PATCH; version stays the
+     * safety net.
+     *
+     * Scopes: flows:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/get_flow_edit_lease_api_v1_flows__flow_id__edit_lease_get
+     */
+    public function getEditLease(string $flowId, ?string $sessionId = null): FlowEditLease
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/edit-lease',
+            query: Payload::query(['session_id' => $sessionId]),
+        ));
+
+        return FlowEditLease::fromArray($response->data());
+    }
+
+    /**
+     * Acquire Flow Edit Lease.
+     *
+     * Acquire or renew (heartbeat every heartbeat_seconds = 20; the lease expires ttl_seconds = 60
+     * after the last one). 409 flow_edit_lease_held with holder: {user_id, name, since} when another
+     * session holds it (your own other tab counts as another session). Signed-in users only (403
+     * token_not_allowed for API keys).
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/acquire_flow_edit_lease_api_v1_flows__flow_id__edit_lease_post
+     */
+    public function acquireEditLease(string $flowId, string $sessionId, ?string $idempotencyKey = null): FlowEditLease
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/edit-lease',
+            body: Payload::body(['session_id' => $sessionId]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowEditLease::fromArray($response->data());
+    }
+
+    /**
+     * Request Flow Edit Lease.
+     *
+     * "Ask to edit": the holder gets the WebSocket event flow.edit_requested. Returns 202 {success,
+     * notified, lease}; notified is false when nobody else holds the lease. One request per 30 seconds
+     * per flow (429 with Retry-After).
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/request_flow_edit_lease_api_v1_flows__flow_id__edit_lease_request_post
+     */
+    public function requestEditLease(string $flowId, string $sessionId, ?string $idempotencyKey = null): void
+    {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/edit-lease/request',
+            body: Payload::body(['session_id' => $sessionId]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+    }
+
+    /**
+     * Take Over Flow Edit Lease.
+     *
+     * Take the lease from whoever holds it. The previous holder gets the WebSocket event
+     * flow.edit_lease_taken. 10 per minute per user and flow (429).
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/take_over_flow_edit_lease_api_v1_flows__flow_id__edit_lease_take_over_post
+     */
+    public function takeOverEditLease(string $flowId, string $sessionId, ?string $idempotencyKey = null): FlowEditLease
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/edit-lease/take-over',
+            body: Payload::body(['session_id' => $sessionId]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowEditLease::fromArray($response->data());
+    }
+
+    /**
+     * List Flow Loop Pauses.
+     *
+     * List the contacts this flow is (or was) paused for by loop protection.
+     *
+     * contact_name is filled only when the caller ALSO holds contacts:read (otherwise null).
+     *
+     * A flow is paused for a contact when it started for that contact too many times in a short window
+     * via contact triggers. Newest pause first.
+     *
+     * Scopes: flows:read.
+     *
+     * @param  ?string  $status  active (default), resumed or all.
+     * @return Page<FlowLoopPause>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/list_flow_loop_pauses_api_v1_flows__flow_id__loop_pauses_get
+     */
+    public function listLoopPauses(
+        string $flowId,
+        ?string $status = null,
+        ?int $page = null,
+        ?int $pageSize = null,
+    ): Page {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/loop-pauses',
+            query: Payload::query(['status' => $status, 'page' => $page, 'page_size' => $pageSize]),
+        ));
+
+        return Hydrate::page($response->data(), FlowLoopPause::fromArray(...), fn (int $page): Page => $this->listLoopPauses(flowId: $flowId, status: $status, page: $page, pageSize: $pageSize));
+    }
+
+    /**
+     * Resume All Flow Loop Pauses.
+     *
+     * Resume the flow for every contact it is currently loop-paused for.
+     *
+     * Also resets those contacts' loop counters. Does not change the flow's own status (see POST
+     * /flows/{flow_id}/resume-auto-pause).
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/resume_all_flow_loop_pauses_api_v1_flows__flow_id__loop_pauses_resume_all_post
+     */
+    public function resumeAllLoopPauses(string $flowId, ?string $idempotencyKey = null): ResumeAllLoopPauses
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/loop-pauses/resume-all',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return ResumeAllLoopPauses::fromArray($response->data());
+    }
+
+    /**
+     * Resume Flow Loop Pause.
+     *
+     * Resume the flow for one loop-paused contact (idempotent).
+     *
+     * Marks the pause resumed, records who resumed it and resets the contact's loop counter so the
+     * flow can start for this contact again. 404 when the flow was never paused for this contact.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/resume_flow_loop_pause_api_v1_flows__flow_id__loop_pauses__contact_id__resume_post
+     */
+    public function resumeLoopPause(string $flowId, string $contactId, ?string $idempotencyKey = null): FlowLoopPause
+    {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/loop-pauses/'.Payload::segment($contactId).'/resume',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return FlowLoopPause::fromArray($response->data());
+    }
+
+    /**
+     * Get Observability Attention.
+     *
+     * What needs attention in this flow, most frequent first.
+     *
+     * kind: "failed" groups failed steps in the window by step and reason. kind: "stuck" groups runs
+     * that are active right now and wait more than 7 days on a step, are stuck mid-step, or wait on a
+     * step that was removed from the flow. Each group carries up to 5 example run ids.
+     *
+     * Scopes: flows:read.
+     *
+     * @param  ?string  $since  ISO8601 UTC start
+     * @param  ?string  $until  ISO8601 UTC end
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/get_observability_attention_api_v1_flows__flow_id__observability_attention_get
+     */
+    public function getObservabilityAttention(string $flowId, ?string $since = null, ?string $until = null): Attention
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/observability/attention',
+            query: Payload::query(['since' => $since, 'until' => $until]),
+        ));
+
+        return Attention::fromArray($response->data());
     }
 
     /**
@@ -620,6 +996,70 @@ final readonly class Flows
         ));
 
         return Funnel::fromArray($response->data());
+    }
+
+    /**
+     * Get Observability Steps.
+     *
+     * Per-step stats and edge traffic for runs started in the window.
+     *
+     * steps[] has one row per step of the current definition: reached, completed, failed, waiting
+     * (parked there now), dropped (ended there although the step has a next step) and drop_off_pct.
+     * edges[] gives the number of runs that took each connection. Window defaults to the last 30 days
+     * and never reaches past the 30-day detail retention (the response's window shows the range used).
+     *
+     * Scopes: flows:read.
+     *
+     * @param  ?string  $since  ISO8601 UTC start
+     * @param  ?string  $until  ISO8601 UTC end
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/get_observability_steps_api_v1_flows__flow_id__observability_steps_get
+     */
+    public function getObservabilitySteps(string $flowId, ?string $since = null, ?string $until = null): StepStats
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/observability/steps',
+            query: Payload::query(['since' => $since, 'until' => $until]),
+        ));
+
+        return StepStats::fromArray($response->data());
+    }
+
+    /**
+     * Get Observability Step Failures.
+     *
+     * Most recent failures of one step, newest first.
+     *
+     * Each item has the run, when it failed, a stable reason_code with an English reason_label, the
+     * failure message (secrets redacted, shortened; an internal crash shows only its reason) and the
+     * contact. Failures of contacts hidden from the caller are left out.
+     *
+     * Scopes: flows:read.
+     *
+     * @param  ?string  $since  ISO8601 UTC start
+     * @param  ?string  $until  ISO8601 UTC end
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/get_observability_step_failures_api_v1_flows__flow_id__observability_steps__node_id__failures_get
+     */
+    public function getObservabilityStepFailures(
+        string $flowId,
+        string $nodeId,
+        ?string $since = null,
+        ?string $until = null,
+        ?int $limit = null,
+    ): StepFailureList {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/observability/steps/'.Payload::segment($nodeId).'/failures',
+            query: Payload::query(['since' => $since, 'until' => $until, 'limit' => $limit]),
+        ));
+
+        return StepFailureList::fromArray($response->data());
     }
 
     /**
@@ -712,6 +1152,159 @@ final readonly class Flows
     }
 
     /**
+     * Resume Flow Auto Pause.
+     *
+     * Undo a whole-flow pause made by loop protection.
+     *
+     * Clears auto_paused_at / auto_pause_reason / auto_pause_details and sets the flow back to
+     * published (only when it is still paused). With resume_contacts: true every contact the flow is
+     * loop-paused for is resumed too. A manually paused flow is never touched: 409
+     * flow_not_auto_paused. The flow must pass the full publish checks first; otherwise 422
+     * flow_definition_invalid with reason="live_flow_invalid" and the flow stays paused.
+     *
+     * Scopes: flows:publish.
+     *
+     * @param  array<string, mixed>|null  $body  The request body
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/resume_flow_auto_pause_api_v1_flows__flow_id__resume_auto_pause_post
+     */
+    public function resumeAutoPause(
+        string $flowId,
+        ?array $body = null,
+        ?string $idempotencyKey = null,
+    ): AppSchemasFlowSchemaFlow {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/resume-auto-pause',
+            body: $body,
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return AppSchemasFlowSchemaFlow::fromArray($response->data());
+    }
+
+    /**
+     * List Flow Revisions.
+     *
+     * List a flow's saved versions, newest first (max 200 are kept).
+     *
+     * Each item: id, revision_number, created_at, updated_at, author ({user_id, name}; null for API
+     * keys), source (canvas / json / ai_assistant / ai_flow_builder / api / restore), summary,
+     * flow_version, stats (steps {added, changed, removed} vs the previous version) and
+     * restored_from_revision_id. No snapshot; fetch one revision for it.
+     *
+     * Scopes: flows:read.
+     *
+     * @return Page<FlowRevisionItem>
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/list_flow_revisions_api_v1_flows__flow_id__revisions_get
+     */
+    public function listRevisions(string $flowId, ?int $page = null, ?int $pageSize = null): Page
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/revisions',
+            query: Payload::query(['page' => $page, 'page_size' => $pageSize]),
+        ));
+
+        return Hydrate::page($response->data(), FlowRevisionItem::fromArray(...), fn (int $page): Page => $this->listRevisions(flowId: $flowId, page: $page, pageSize: $pageSize));
+    }
+
+    /**
+     * Get Flow Revision.
+     *
+     * One saved version with its definition and settings snapshot. Credentials typed directly into an
+     * API Call step (config.auth token / password / value, Authorization and API-key header values)
+     * are not kept in history and read as *.
+     *
+     * Scopes: flows:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/get_flow_revision_api_v1_flows__flow_id__revisions__revision_id__get
+     */
+    public function getRevision(string $flowId, string $revisionId): FlowRevisionDetail
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/revisions/'.Payload::segment($revisionId),
+        ));
+
+        return FlowRevisionDetail::fromArray($response->data());
+    }
+
+    /**
+     * Diff Flow Revision.
+     *
+     * Structural diff FROM against TO this version: against=current (default; the flow now, i.e. what
+     * a restore would change), previous (the version before it, i.e. what that save changed) or
+     * another revision id of the same flow. Returns step ids/labels/types, connection changes, the
+     * names of changed settings and whether the layout changed. Never values. 60 requests per minute
+     * per user.
+     *
+     * Scopes: flows:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/diff_flow_revision_api_v1_flows__flow_id__revisions__revision_id__diff_get
+     */
+    public function diffRevision(string $flowId, string $revisionId, ?string $against = null): FlowRevisionDiff
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/revisions/'.Payload::segment($revisionId).'/diff',
+            query: Payload::query(['against' => $against]),
+        ));
+
+        return FlowRevisionDiff::fromArray($response->data());
+    }
+
+    /**
+     * Restore Flow Revision.
+     *
+     * Restore a saved version (definition + settings) as a NEW save.
+     *
+     * Runs exactly like PATCH /flows/{flow_id}: version is required (409 flow_version_conflict when
+     * stale), the same validation, and on a live flow the full publish checks (422 live_flow_invalid).
+     * The status never changes. 10 restores per minute per user and flow (429). Contacts waiting on a
+     * step the restored version does not have leave the flow (preview with POST
+     * /flows/{flow_id}/edit-impact). Writes a version with source: "restore". A credential that
+     * history did not keep is taken from the current flow; if the current flow does not have it
+     * either, 422 with the step's path.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/restore_flow_revision_api_v1_flows__flow_id__revisions__revision_id__restore_post
+     */
+    public function restoreRevision(
+        string $flowId,
+        string $revisionId,
+        int $version,
+        ?string $revisionSummary = null,
+        ?string $idempotencyKey = null,
+    ): AppSchemasFlowSchemaFlow {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/revisions/'.Payload::segment($revisionId).'/restore',
+            body: Payload::body(['version' => $version, 'revision_summary' => $revisionSummary]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return AppSchemasFlowSchemaFlow::fromArray($response->data());
+    }
+
+    /**
      * List Flow Runs.
      *
      * List runs for a flow.
@@ -765,6 +1358,9 @@ final readonly class Flows
      * @param  ?string  $idempotencyKey  Optional caller-supplied idempotency key for at-most-once start semantics. If a run with the same (tenant_id, idempotency_key) already exists, the existing run is returned with HTTP 200 instead of creating a new one. If omitted, the engine derives a key from the request payload (e.g. ``manual:<flow_id>:<contact_id>:<request_id>``).
      * @param  array<string, mixed>|null  $context  Extra variables to seed ``flow_runs.context.vars``. Hard-capped at 16 KB JSON-encoded.
      * @param  array<string, mixed>|null  $contactMethodOverrides  Optional map of ``ChannelType`` (string value, e.g. ``email``, ``sms``, ``whatsapp``, ``telegram``, ``messenger``, ``instagram``, ``browser_push``) → ``contact_method.id``. When the flow sends on the matching channel, this specific contact_method's value is used as the destination instead of the contact's primary method. Per-channel keys are independent; omitted channels fall back to the default (primary) resolution. Each referenced contact_method must belong to the same tenant, the same contact, and have a method_type that matches the channel key.
+     * @param  ?string  $channelId  Optional channel the run is started on (an active channel of this workspace). It becomes the run's originating/current channel: Send steps prefer it (when the flow prefers the originating channel) and Tag & Update entries scoped to the "current channel" use it.
+     * @param  ?string  $contactMethodId  Optional contact method (of this contact) the run is started with. With ``channel_id`` it must be able to address that channel, and it is also applied as the contact_method_overrides pin for that channel type unless one was given explicitly.
+     * @param  ?string  $conversationId  Optional conversation (of this contact) the run is started from, e.g. "Run flow" in the inbox. Marks the run's origin only, so the conversation shows it as running; it does not bind the run to the conversation.
      * @param  ?string  $idempotencyKeyIdempotency  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -777,6 +1373,9 @@ final readonly class Flows
         ?string $idempotencyKey = null,
         ?array $context = null,
         ?array $contactMethodOverrides = null,
+        ?string $channelId = null,
+        ?string $contactMethodId = null,
+        ?string $conversationId = null,
         ?string $idempotencyKeyIdempotency = null,
     ): FlowRun {
         $response = $this->connector->send(new Request(
@@ -787,6 +1386,9 @@ final readonly class Flows
                 'idempotency_key' => $idempotencyKey,
                 'context' => $context,
                 'contact_method_overrides' => $contactMethodOverrides,
+                'channel_id' => $channelId,
+                'contact_method_id' => $contactMethodId,
+                'conversation_id' => $conversationId,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -909,8 +1511,8 @@ final readonly class Flows
      *
      * Operator-initiated cancel of a flow run.
      *
-     * Marks the run canceled, deletes pending waits, emits flow.run.canceled webhook. Idempotent —
-     * already-terminal runs return their current row unchanged.
+     * Marks the run canceled, deletes pending waits and cancels any flows it started and is waiting on
+     * (Start Flow node). Idempotent — already-terminal runs return their current row unchanged.
      *
      * Scopes: flows:write.
      *
@@ -929,6 +1531,166 @@ final readonly class Flows
         ));
 
         return FlowRun::fromArray($response->data());
+    }
+
+    /**
+     * Start Test Run.
+     *
+     * Start a test run of a flow (draft or published) for the calling user.
+     *
+     * The run uses the workspace's live chat channel and a shared test contact, so nothing reaches
+     * real customers: Send steps on other channels, API calls, tag changes and similar side effects
+     * are simulated and show simulated: true in the trace. Conversational Agent steps run for real in
+     * the test conversation. Starting a new test run ends the caller's previous one for this flow.
+     *
+     * trigger_type: incoming_message (with trigger_text), conversation_opened, conversation_closed,
+     * visitor_ended_chat, manual or a contact trigger type. simulate_channel_id (optional) picks which
+     * channel's content the Send steps render. Answer the flow with POST
+     * /flows/{flow_id}/test-run/{run_id}/inbound, follow it with GET .../trace and read replies from
+     * the returned conversation_id.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/start_test_run_api_v1_flows__flow_id__test_run_post
+     */
+    public function startTestRun(
+        string $flowId,
+        string $triggerType,
+        ?string $simulateChannelId = null,
+        ?string $simulateLanguage = null,
+        ?string $triggerText = null,
+        ?string $idempotencyKey = null,
+    ): StartTestRun {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/test-run',
+            body: Payload::body([
+                'trigger_type' => $triggerType,
+                'simulate_channel_id' => $simulateChannelId,
+                'simulate_language' => $simulateLanguage,
+                'trigger_text' => $triggerText,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return StartTestRun::fromArray($response->data());
+    }
+
+    /**
+     * End Test Run.
+     *
+     * End the calling user's test runs of this flow (every active test run of the caller on this flow
+     * is ended, whatever run_id is sent).
+     *
+     * Scopes: flows:write.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/end_test_run_api_v1_flows__flow_id__test_run__run_id__delete
+     */
+    public function endTestRun(string $flowId, string $runId): void
+    {
+        $this->connector->send(new Request(
+            Method::Delete,
+            '/flows/'.Payload::segment($flowId).'/test-run/'.Payload::segment($runId),
+        ));
+    }
+
+    /**
+     * Send Test Inbound.
+     *
+     * Simulate an inbound message for a flow test run.
+     *
+     * Body {text?, attachment_ids?}: at least one is required (422 test_inbound_empty). attachment_ids
+     * (max 5) must be tenant attachments from POST /attachments/upload; a foreign or unknown id
+     * returns 422 test_inbound_attachment_invalid and nothing is sent. An unknown / non-test run stays
+     * 404.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  list<string>|null  $attachmentIds
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/send_test_inbound_api_v1_flows__flow_id__test_run__run_id__inbound_post
+     */
+    public function sendTestInbound(
+        string $flowId,
+        string $runId,
+        ?string $text = null,
+        ?array $attachmentIds = null,
+        ?string $idempotencyKey = null,
+    ): void {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/test-run/'.Payload::segment($runId).'/inbound',
+            body: Payload::body(['text' => $text, 'attachment_ids' => $attachmentIds]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+    }
+
+    /**
+     * Restart Test Run.
+     *
+     * End the current test run for the caller and start a new one.
+     *
+     * Scopes: flows:write.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/restart_test_run_api_v1_flows__flow_id__test_run__run_id__restart_post
+     */
+    public function restartTestRun(
+        string $flowId,
+        string $runId,
+        string $triggerType,
+        ?string $simulateChannelId = null,
+        ?string $simulateLanguage = null,
+        ?string $triggerText = null,
+        ?string $idempotencyKey = null,
+    ): StartTestRun {
+        $response = $this->connector->send(new Request(
+            Method::Post,
+            '/flows/'.Payload::segment($flowId).'/test-run/'.Payload::segment($runId).'/restart',
+            body: Payload::body([
+                'trigger_type' => $triggerType,
+                'simulate_channel_id' => $simulateChannelId,
+                'simulate_language' => $simulateLanguage,
+                'trigger_text' => $triggerText,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+
+        return StartTestRun::fromArray($response->data());
+    }
+
+    /**
+     * Get Test Run Trace.
+     *
+     * Return the ordered execution trace (steps with inputs, outputs and simulated flags) of a flow
+     * test run.
+     *
+     * Scopes: flows:write.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Flows/get_test_run_trace_api_v1_flows__flow_id__test_run__run_id__trace_get
+     */
+    public function getTestRunTrace(string $flowId, string $runId): void
+    {
+        $this->connector->send(new Request(
+            Method::Get,
+            '/flows/'.Payload::segment($flowId).'/test-run/'.Payload::segment($runId).'/trace',
+        ));
     }
 
     /**

@@ -18,6 +18,8 @@ List Live Chat Sessions. `GET /live-chat/sessions`
 
 List active live chat sessions for the tenant Optionally filter by agent_id
 
+Only sessions whose conversation the caller can open are listed (same Custom Inbox / assignment rules as the conversation list).
+
 ```php
 $result = $sendseven->liveChat()->listSessions();
 ```
@@ -54,6 +56,8 @@ Assign Agent To Session. `POST /live-chat/sessions/{session_id}/assign`
 
 Assign an agent to a live chat session Creates conversation if it doesn't exist
 
+Same access as assigning the conversation (PATCH /conversations/{id}): 404 "Session not found" when the session is unknown, belongs to another workspace or its conversation is hidden from the caller; 403 when the workspace forbids acting on other agents' conversations and the caller (not admin/owner) reassigns a conversation assigned to someone else. Assigning yourself is always allowed.
+
 ```php
 $result = $sendseven->liveChat()->assignAgentToSession(sessionId: 'session_id', agentId: 'agent_id');
 ```
@@ -72,7 +76,9 @@ Returns `LiveChatSession`. [SendSeven reference](https://api.sendseven.com/api/v
 
 Agent End Session. `POST /live-chat/sessions/{session_id}/end`
 
-End a live chat session (agent side)
+End a live chat session (agent side).
+
+Ending the session also closes its conversation with the normal close routine, so the caller needs the same access as POST /conversations/{id}/close.
 
 ```php
 $result = $sendseven->liveChat()->agentEndSession(sessionId: 'session_id');
@@ -92,6 +98,8 @@ Returns `LiveChatEnd`. [SendSeven reference](https://api.sendseven.com/api/v1/do
 Agent Send Message. `POST /live-chat/sessions/{session_id}/messages`
 
 Send a message as an agent in a live chat session
+
+409 {"error": "CONTACT_BLOCKED", ...} when the visitor's contact is blocked.
 
 ```php
 $result = $sendseven->liveChat()->agentSendMessage(sessionId: 'session_id', text: 'text');

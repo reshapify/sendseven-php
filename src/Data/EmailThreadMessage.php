@@ -30,6 +30,8 @@ final readonly class EmailThreadMessage extends Data
      * @param  list<AttachmentInfo>  $attachments
      * @param  string  $status  Message status (received, sent, delivered, etc.)
      * @param  ?string  $emailMetadata  JSON metadata including cached translations
+     * @param  ?EmailForwardedFrom  $forwardedFrom  Set when this email IS a forward: the email it forwards
+     * @param  list<EmailForwardEntry>  $forwards  Forwards made of this email (oldest first)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -54,6 +56,8 @@ final readonly class EmailThreadMessage extends Data
         public ?string $receivedAt,
         public string $createdAt,
         public ?string $emailMetadata,
+        public ?EmailForwardedFrom $forwardedFrom,
+        public array $forwards,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -88,6 +92,8 @@ final readonly class EmailThreadMessage extends Data
             receivedAt: $attributes->nullableString('received_at'),
             createdAt: $attributes->string('created_at'),
             emailMetadata: $attributes->nullableString('email_metadata'),
+            forwardedFrom: $attributes->nullableObject('forwarded_from', EmailForwardedFrom::fromArray(...)),
+            forwards: $attributes->list('forwards', EmailForwardEntry::fromArray(...)),
             raw: $data,
         );
     }

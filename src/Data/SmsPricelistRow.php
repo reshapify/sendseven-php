@@ -17,6 +17,9 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class SmsPricelistRow extends Data
 {
     /**
+     * @param  string  $platformFeeEur  Carrier fee per SMS segment, deducted from the prepaid SMS balance.
+     * @param  string  $sendsevenFeeEur  SendSeven fee per message (not per segment), counted against the plan's message pool.
+     * @param  string  $totalPerSegmentEur  platform_fee_eur + sendseven_fee_eur: the price of a one-segment SMS. A message with n segments costs platform_fee_eur x n + sendseven_fee_eur.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

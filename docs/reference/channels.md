@@ -2,14 +2,17 @@
 
 # Channels
 
-`$sendseven->channels()` — 21 endpoints.
+`$sendseven->channels()` — 27 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`list()`](#list) | `GET /channels` | List Channels |
 | [`create()`](#create) | `POST /channels` | Create Channel |
+| [`getCoexistenceReminder()`](#getcoexistencereminder) | `GET /channels/coexistence-reminder` | Get Coexistence Reminder |
+| [`updateCoexistenceReminder()`](#updatecoexistencereminder) | `POST /channels/coexistence-reminder` | Update Coexistence Reminder |
 | [`getCommentCapabilities()`](#getcommentcapabilities) | `GET /channels/comment-capabilities` | Get Comment Capabilities |
 | [`getHealth()`](#gethealth) | `GET /channels/health` | Get Channel Health |
+| [`listSenderActionSupport()`](#listsenderactionsupport) | `GET /channels/sender-actions` | List read-receipt and typing-indicator support per channel type |
 | [`getTypes()`](#gettypes) | `GET /channels/types` | Get Channel Types |
 | [`delete()`](#delete) | `DELETE /channels/{channel_id}` | Delete Channel |
 | [`get()`](#get) | `GET /channels/{channel_id}` | Get Channel |
@@ -18,7 +21,10 @@
 | [`getCommentCapability()`](#getcommentcapability) | `GET /channels/{channel_id}/comment-capability` | Get Channel Comment Capability |
 | [`listFacebookPagePosts()`](#listfacebookpageposts) | `GET /channels/{channel_id}/facebook/posts` | List Facebook Page Posts |
 | [`getFileSupport()`](#getfilesupport) | `GET /channels/{channel_id}/file-support` | Get Channel File Support |
+| [`runHealthCheck()`](#runhealthcheck) | `POST /channels/{channel_id}/health-check` | Run Channel Health Check |
 | [`listInstagramMedia()`](#listinstagrammedia) | `GET /channels/{channel_id}/instagram/media` | List Instagram Media |
+| [`getLiveChatSettings()`](#getlivechatsettings) | `GET /channels/{channel_id}/live-chat-settings` | Get Live Chat Settings |
+| [`updateLiveChatSettings()`](#updatelivechatsettings) | `PUT /channels/{channel_id}/live-chat-settings` | Update Live Chat Settings |
 | [`getProfile()`](#getprofile) | `GET /channels/{channel_id}/profile` | Get Channel Profile |
 | [`updateProfile()`](#updateprofile) | `PUT /channels/{channel_id}/profile` | Update Channel Profile |
 | [`uploadProfilePhoto()`](#uploadprofilephoto) | `POST /channels/{channel_id}/profile/photo` | Upload Channel Profile Photo |
@@ -73,6 +79,44 @@ $result = $sendseven->channels()->create(channelType: 'channel_type', name: 'nam
 
 Returns `Channel`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/create_channel_api_v1_channels_post)
 
+## getCoexistenceReminder
+
+Get Coexistence Reminder. `GET /channels/coexistence-reminder`
+
+WhatsApp Coexistence keep-alive reminder for the calling user.
+
+Meta requires the WhatsApp Business app to be opened with a Coexistence number at least once every 14 days, or the connection can drop. due is true when the reminder should be shown now (every 10 days, after a 1 hour snooze, never when disabled or without Coexistence numbers).
+
+```php
+$result = $sendseven->channels()->getCoexistenceReminder();
+```
+
+- Scopes: `channels:update`
+
+Returns `CoexistenceReminder`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/get_coexistence_reminder_api_v1_channels_coexistence_reminder_get)
+
+## updateCoexistenceReminder
+
+Update Coexistence Reminder. `POST /channels/coexistence-reminder`
+
+Acknowledge, snooze (1 hour), disable or re-enable the Coexistence keep-alive reminder for the calling user in this workspace.
+
+disable requires "confirm": true (422 otherwise).
+
+```php
+$result = $sendseven->channels()->updateCoexistenceReminder(action: 'action');
+```
+
+- Scopes: `channels:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$action` | `string` | yes |  |
+| `$confirm` | `?bool` | no |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `CoexistenceReminder`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/update_coexistence_reminder_api_v1_channels_coexistence_reminder_post)
+
 ## getCommentCapabilities
 
 Get Comment Capabilities. `GET /channels/comment-capabilities`
@@ -104,6 +148,22 @@ $result = $sendseven->channels()->getHealth();
 - Scopes: `channels:read`
 
 Returns `ChannelHealth`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/get_channel_health_api_v1_channels_health_get)
+
+## listSenderActionSupport
+
+List read-receipt and typing-indicator support per channel type. `GET /channels/sender-actions`
+
+Which channel types support read receipts and typing indicators.
+
+Returns one item for every channel type (unsupported ones report false), so you can decide before calling POST /messages/{message_id}/read or POST /conversations/{conversation_id}/typing.
+
+```php
+$result = $sendseven->channels()->listSenderActionSupport();
+```
+
+- Scopes: `channels:read`
+
+Returns `Page<ChannelSenderActionSupport>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/list_sender_action_support_api_v1_channels_sender_actions_get)
 
 ## getTypes
 
@@ -263,6 +323,27 @@ $sendseven->channels()->getFileSupport(channelId: 'channel_id');
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/get_channel_file_support_api_v1_channels__channel_id__file_support_get)
 
+## runHealthCheck
+
+Run Channel Health Check. `POST /channels/{channel_id}/health-check`
+
+Check now whether a WhatsApp number can send.
+
+Asks Meta (read-only) whether SendSeven still has access to the number, receives its webhooks, and whether the account may send. A failed check can mark the channel disconnected / unavailable; a passing check clears an automatic block. Returns the channel's availability.
+
+```php
+$result = $sendseven->channels()->runHealthCheck(channelId: 'channel_id');
+```
+
+- Scopes: `channels:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$channelId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ChannelHealthCheck`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/run_channel_health_check_api_v1_channels__channel_id__health_check_post)
+
 ## listInstagramMedia
 
 List Instagram Media. `GET /channels/{channel_id}/instagram/media`
@@ -284,6 +365,43 @@ $result = $sendseven->channels()->listInstagramMedia(channelId: 'channel_id');
 | `$limit` | `?int` | no | Number of items per page (1-50). |
 
 Returns `Page<InstagramMediaItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/list_instagram_media_api_v1_channels__channel_id__instagram_media_get)
+
+## getLiveChatSettings
+
+Get Live Chat Settings. `GET /channels/{channel_id}/live-chat-settings`
+
+Get the Live Chat settings of a live_chat channel: which attachment categories (images, audio, video, documents) website visitors may send.
+
+```php
+$result = $sendseven->channels()->getLiveChatSettings(channelId: 'channel_id');
+```
+
+- Scopes: `channels:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$channelId` | `string` | yes |  |
+
+Returns `LiveChatSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/get_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_get)
+
+## updateLiveChatSettings
+
+Update Live Chat Settings. `PUT /channels/{channel_id}/live-chat-settings`
+
+Update which attachment categories Live Chat visitors may send. Partial: only the categories in the body change; the full settings are returned.
+
+```php
+$result = $sendseven->channels()->updateLiveChatSettings(channelId: 'channel_id', attachments: []);
+```
+
+- Scopes: `channels:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$channelId` | `string` | yes |  |
+| `$attachments` | `array<string, mixed>` | yes |  |
+
+Returns `LiveChatSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/update_live_chat_settings_api_v1_channels__channel_id__live_chat_settings_put)
 
 ## getProfile
 
@@ -343,7 +461,7 @@ Upload a profile photo for a WhatsApp channel.
 This endpoint uploads a new profile picture directly to the WhatsApp Business Account via Meta's API.
 
 ```php
-$result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', file: FilePart::fromPath('/path/to/file.pdf'));
+$result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', file: 'file');
 ```
 
 - Scopes: `channels:update`
@@ -351,7 +469,7 @@ $result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', fi
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
-| `$file` | `FilePart` | yes |  |
+| `$file` | `string` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ProfilePhotoUpload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/upload_channel_profile_photo_api_v1_channels__channel_id__profile_photo_post)
@@ -410,7 +528,7 @@ WhatsApp does not return a released handle to the pool immediately, so someone e
 $result = $sendseven->channels()->deleteWhatsAppUsername(channelId: 'channel_id');
 ```
 
-- Scopes: `channels:write`
+- Scopes: `channels:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -450,7 +568,7 @@ Format: 3-35 characters of lowercase letters, numbers, periods and underscores; 
 $result = $sendseven->channels()->setWhatsAppUsername(channelId: 'channel_id', username: 'username');
 ```
 
-- Scopes: `channels:write`
+- Scopes: `channels:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|

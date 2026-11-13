@@ -74,6 +74,10 @@ final readonly class RolesPermissions
      * This endpoint is useful for: - Frontend to show/hide UI elements based on permissions -
      * Debugging permission issues - Client-side validation before API calls
      *
+     * support_session is true while SendSeven staff are in this workspace via Support Login; scopes
+     * then also carries the grant's extra account:billing_read (billing + Settings > Usage are always
+     * readable).
+     *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Roles%20%26%20Permissions/get_my_scopes_api_v1_permissions_me_scopes_get
@@ -176,7 +180,8 @@ final readonly class RolesPermissions
      * Remove a role from a user
      *
      * Security: Users cannot remove their own system or owner roles. Also prevents removing the last
-     * owner from a tenant.
+     * permanent owner from a tenant (expired or time-limited Support Login Owner grants do not count).
+     * You can only remove a role whose scopes you hold yourself (same ceiling as assigning it).
      *
      * Scopes: team:update.
      *
@@ -367,7 +372,8 @@ final readonly class RolesPermissions
      *
      * Delete custom role.
      *
-     * System roles cannot be deleted. Users with this role will lose these permissions.
+     * System roles cannot be deleted. A role assigned to users, or one that a pending or expired
+     * invitation would grant on accept, cannot be deleted (409).
      *
      * Scopes: team:admin.
      *
@@ -472,8 +478,8 @@ final readonly class RolesPermissions
      *
      * Remove scope from a custom role.
      *
-     * System roles cannot be modified. Detaching account:billing_read requires the billing-account
-     * owner.
+     * System roles cannot be modified. You can only remove a scope you hold yourself (same ceiling as
+     * adding one). Detaching account:billing_read requires the billing-account owner.
      *
      * Scopes: team:admin.
      *

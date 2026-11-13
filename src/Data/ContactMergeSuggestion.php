@@ -27,8 +27,8 @@ final readonly class ContactMergeSuggestion extends Data
      * @param  ?string  $resolvedAt  When it was confirmed or dismissed (UTC)
      * @param  ?string  $resolvedByUserId  User who confirmed or dismissed it
      * @param  ?bool  $verified  True only after an agent confirmed the merge (`status` is `merged`)
-     * @param  ?ContactMergeSuggestionContactRef  $sourceContact  The unverified contact that is absorbed on confirm. Null on the matched contact's side when you cannot open the visitor's conversation.
-     * @param  ?ContactMergeSuggestionContactRef  $targetContact  The existing matched contact, which survives a confirmed merge
+     * @param  mixed  $sourceContact  The unverified contact that is absorbed on confirm. Null on the matched contact's side when you cannot open the visitor's conversation. For API keys, OAuth apps and embed tokens without `contacts:read` only `{"id"}`.
+     * @param  mixed  $targetContact  The existing matched contact, which survives a confirmed merge. For API keys, OAuth apps and embed tokens without `contacts:read` only `{"id"}`.
      * @param  ?string  $survivorContactId  Set once merged: the surviving contact (the target)
      * @param  ?string  $perspective  Which side of the suggestion the listed conversation's contact is on: `source` (the visitor who entered the details) or `target` (the existing contact whose details were entered). Set on list items; null on the confirm and dismiss responses, which have no conversation context.
      * @param  array<array-key, mixed>  $raw
@@ -44,8 +44,8 @@ final readonly class ContactMergeSuggestion extends Data
         public ?string $resolvedAt,
         public ?string $resolvedByUserId,
         public ?bool $verified,
-        public ?ContactMergeSuggestionContactRef $sourceContact,
-        public ?ContactMergeSuggestionContactRef $targetContact,
+        public mixed $sourceContact,
+        public mixed $targetContact,
         public ?string $survivorContactId,
         public ?string $perspective,
         array $raw = [],
@@ -71,8 +71,8 @@ final readonly class ContactMergeSuggestion extends Data
             resolvedAt: $attributes->nullableString('resolved_at'),
             resolvedByUserId: $attributes->nullableString('resolved_by_user_id'),
             verified: $attributes->nullableBool('verified'),
-            sourceContact: $attributes->nullableObject('source_contact', ContactMergeSuggestionContactRef::fromArray(...)),
-            targetContact: $attributes->nullableObject('target_contact', ContactMergeSuggestionContactRef::fromArray(...)),
+            sourceContact: $data['source_contact'] ?? null,
+            targetContact: $data['target_contact'] ?? null,
             survivorContactId: $attributes->nullableString('survivor_contact_id'),
             perspective: $attributes->nullableString('perspective'),
             raw: $data,

@@ -29,6 +29,7 @@ final readonly class EmailMailbox extends Data
      * @param  ?string  $integrationName  Name of linked email integration
      * @param  ?string  $providerName  Name of linked email provider config
      * @param  bool  $isActive  Whether the mailbox is active
+     * @param  ?bool  $connectionActive  Whether the linked email connection (integration or provider) is active and not archived, i.e. the mailbox can currently send. False when its connection was switched off.
      * @param  bool  $isDefault  Whether this is the default mailbox
      * @param  ?bool  $canSendCampaigns  Whether this mailbox can be used for email campaigns
      * @param  ?bool  $canSendSupport  Whether this mailbox can be used for support replies
@@ -50,6 +51,7 @@ final readonly class EmailMailbox extends Data
         public ?string $integrationName,
         public ?string $providerName,
         public bool $isActive,
+        public ?bool $connectionActive,
         public bool $isDefault,
         public ?bool $canSendCampaigns,
         public ?bool $canSendSupport,
@@ -81,6 +83,7 @@ final readonly class EmailMailbox extends Data
             integrationName: $attributes->nullableString('integration_name'),
             providerName: $attributes->nullableString('provider_name'),
             isActive: $attributes->bool('is_active'),
+            connectionActive: $attributes->nullableBool('connection_active'),
             isDefault: $attributes->bool('is_default'),
             canSendCampaigns: $attributes->nullableBool('can_send_campaigns'),
             canSendSupport: $attributes->nullableBool('can_send_support'),

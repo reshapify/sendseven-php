@@ -20,7 +20,10 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class EmailCampaignListItem extends Data
 {
     /**
+     * @param  ?int  $bouncedCount  Recipients whose email bounced (each recipient counted once)
      * @param  ?int  $recipientCount  Estimated recipients (draft/scheduled) or actual sent count
+     * @param  ?string  $thumbnailUrl  Short-lived signed URL (about 60 minutes) of a 240x320 WebP preview of the email's top. Null when there is no preview yet or none can be rendered.
+     * @param  ?bool  $thumbnailPending  True while a preview for the current version of the email is being rendered. Re-fetch the list later to get thumbnail_url.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,12 +37,15 @@ final readonly class EmailCampaignListItem extends Data
         public ?int $deliveredCount,
         public ?int $openedCount,
         public ?int $clickedCount,
+        public ?int $bouncedCount,
         public ?int $recipientCount,
         public ?string $campaignName,
         public ?string $campaignStatus,
         public ?DateTimeImmutable $scheduledAt,
         public ?string $timezone,
         public DateTimeImmutable $createdAt,
+        public ?string $thumbnailUrl,
+        public ?bool $thumbnailPending,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -63,12 +69,15 @@ final readonly class EmailCampaignListItem extends Data
             deliveredCount: $attributes->nullableInt('delivered_count'),
             openedCount: $attributes->nullableInt('opened_count'),
             clickedCount: $attributes->nullableInt('clicked_count'),
+            bouncedCount: $attributes->nullableInt('bounced_count'),
             recipientCount: $attributes->nullableInt('recipient_count'),
             campaignName: $attributes->nullableString('campaign_name'),
             campaignStatus: $attributes->nullableString('campaign_status'),
             scheduledAt: $attributes->nullableDateTime('scheduled_at'),
             timezone: $attributes->nullableString('timezone'),
             createdAt: $attributes->dateTime('created_at'),
+            thumbnailUrl: $attributes->nullableString('thumbnail_url'),
+            thumbnailPending: $attributes->nullableBool('thumbnail_pending'),
             raw: $data,
         );
     }
