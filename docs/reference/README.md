@@ -2,7 +2,7 @@
 
 # API reference
 
-Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version 20261113.1448) with our verified corrections in `openapi/patches`.
+Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version 20261114.0832) with our verified corrections in `openapi/patches`.
 
 | Resource | Accessor | Endpoints |
 |---|---|---|

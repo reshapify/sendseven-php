@@ -18,14 +18,17 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelAvailability extends Data
 {
     /**
-     * @param  string  $state  `available` = sends normally. `warning` = sends, but see `warning`. `disconnected` = cannot send until reconnected (`reconnect_required` true). `unavailable` = cannot send because Meta blocked the WhatsApp account (`reason` `meta_account_blocked`; fix it in Meta Business Suite, the channel resumes on its own). `inactive` = disabled, archived or setup not finished.
-     * @param  ?string  $reason  The disconnection reason: `token_invalidated`, `webhook_removed`, `access_revoked`, `app_unsubscribed`, `phone_deregistered`, `PARTNER_REMOVED`, `ACCOUNT_OFFBOARDED`, `meta_account_blocked`, or null.
+     * @param  string  $state  `available` = sends normally. `warning` = sends, but see `warning`. `payment_issue` = Meta reports a payment or billing problem on the WhatsApp account (`reason` `meta_payment_issue`): template / business-initiated sends (template messages, template campaigns, scheduled templates, starting a conversation) are refused with 409 `CHANNEL_TEMPLATES_BLOCKED` (`template_sends_blocked` true). Free-form replies inside the 24-hour customer service window are not blocked by SendSeven; Meta delivers them within its free monthly tier of service messages and fails them per message after that. Fix it in Meta Business Suite (`action_url`), the channel recovers on its own. `disconnected` = cannot send until reconnected (`reconnect_required` true). `unavailable` = cannot send at all because Meta banned or restricted the WhatsApp account (`reason` `meta_account_blocked`; fix it in Meta Business Suite, the channel resumes on its own). `inactive` = disabled, archived or setup not finished. Precedence: inactive / disconnected / unavailable > payment_issue > warning > available.
+     * @param  ?string  $reason  The disconnection reason: `token_invalidated`, `webhook_removed`, `access_revoked`, `app_unsubscribed`, `phone_deregistered`, `PARTNER_REMOVED`, `ACCOUNT_OFFBOARDED`, `meta_account_blocked` (real Meta ban or restriction), `meta_payment_issue` (state `payment_issue`), or null.
      * @param  ?bool  $reconnectRequired  True when the channel must be reconnected.
      * @param  ?string  $source  What detected it: `webhook`, `send_error` or `health_check`.
      * @param  ?int  $metaErrorCode  Meta error code that triggered the state, if any.
      * @param  ?string  $metaErrorMessage  Meta's error text (trimmed), if any.
      * @param  ?DateTimeImmutable  $detectedAt  When the state was detected (UTC).
      * @param  ?DateTimeImmutable  $lastCheckedAt  Last WhatsApp health check (UTC).
+     * @param  ?bool  $templateSendsBlocked  True in state `payment_issue`: template / business-initiated sends are refused while free-form replies inside the 24-hour window are not blocked by SendSeven. False otherwise (the `disconnected` / `unavailable` / `inactive` states refuse every send anyway).
+     * @param  ?bool  $serviceSendsBlocked  True only in a variant of state `payment_issue`: Meta rejected a free-form (service) reply because the number used up Meta's free monthly allowance of service messages and the account has no payment method. SendSeven still does not pre-block service sends; each one Meta rejects fails with `error_code` `service_allowance_exhausted`. Clears on the next successful service send or a passing health check. `template_sends_blocked` stays true.
+     * @param  ?string  $actionUrl  Where to fix a Meta-side problem (a Meta Business Suite link), e.g. for state `payment_issue` or `unavailable`. Null otherwise.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -38,6 +41,9 @@ final readonly class ChannelAvailability extends Data
         public ?DateTimeImmutable $detectedAt,
         public ?DateTimeImmutable $lastCheckedAt,
         public ?ChannelAvailabilityWarning $warning,
+        public ?bool $templateSendsBlocked,
+        public ?bool $serviceSendsBlocked,
+        public ?string $actionUrl,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -60,6 +66,9 @@ final readonly class ChannelAvailability extends Data
             detectedAt: $attributes->nullableDateTime('detected_at'),
             lastCheckedAt: $attributes->nullableDateTime('last_checked_at'),
             warning: $attributes->nullableObject('warning', ChannelAvailabilityWarning::fromArray(...)),
+            templateSendsBlocked: $attributes->nullableBool('template_sends_blocked'),
+            serviceSendsBlocked: $attributes->nullableBool('service_sends_blocked'),
+            actionUrl: $attributes->nullableString('action_url'),
             raw: $data,
         );
     }

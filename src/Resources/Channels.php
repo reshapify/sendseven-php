@@ -234,9 +234,14 @@ final readonly class Channels
      * after a reconnect or the next successful permission check). last_error_at = when the state was
      * last confirmed. - WhatsApp channels that lost access and must be reconnected: connection_status
      * = "disconnected", last_error = "access_revoked", "app_unsubscribed" or "phone_deregistered". -
-     * WhatsApp channels Meta blocked from sending (payment method, verification, account locked):
-     * connection_status = "unavailable", last_error = "meta_account_blocked". Fixed in Meta Business
-     * Suite; the channel resumes on its own after the next passing health check.
+     * WhatsApp channels Meta banned or restricted (account locked, disabled or restricted from
+     * sending): connection_status = "unavailable", last_error = "meta_account_blocked". Nothing can be
+     * sent. Fixed in Meta Business Suite; the channel resumes on its own after the next passing health
+     * check. - WhatsApp channels whose account has a Meta payment or billing problem (e.g. no valid
+     * payment method): connection_status = "payment_issue", last_error = "meta_payment_issue". Only
+     * template / business-initiated sends are refused (409 CHANNEL_TEMPLATES_BLOCKED); free-form
+     * replies inside the 24-hour window are not blocked by SendSeven (Meta delivers them within its
+     * free tier). Fixed in Meta Business Suite; clears on its own after the next passing health check.
      *
      * Scopes: channels:read.
      *
