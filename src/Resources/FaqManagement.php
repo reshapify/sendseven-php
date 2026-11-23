@@ -23,7 +23,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * FAQ Management: 17 endpoints.
+ * FAQ Management: 23 endpoints.
  *
  * Reach it with $sendseven->faqManagement().
  *
@@ -50,6 +50,7 @@ final readonly class FaqManagement
      * @param  ?string  $documentId  Restrict to one compiled parent document
      * @param  ?string  $status  draft | published | needs_review | archived. Accepts a comma-separated list (e.g. 'draft,needs_review') for a UNION.
      * @param  ?string  $origin  manual | auto_conversation | migrated | correction
+     * @param  ?string  $learningRunId  Only entries created or merged by this learning run
      * @param  ?string  $language  Filter by language tag
      * @param  ?string  $search  Substring match on question/answer
      * @param  ?bool  $flaggedOnly  Only entries with flagged_count > 0
@@ -68,6 +69,7 @@ final readonly class FaqManagement
         ?string $documentId = null,
         ?string $status = null,
         ?string $origin = null,
+        ?string $learningRunId = null,
         ?string $language = null,
         ?string $search = null,
         ?bool $flaggedOnly = null,
@@ -86,6 +88,7 @@ final readonly class FaqManagement
                 'document_id' => $documentId,
                 'status' => $status,
                 'origin' => $origin,
+                'learning_run_id' => $learningRunId,
                 'language' => $language,
                 'search' => $search,
                 'flagged_only' => $flaggedOnly,
@@ -98,7 +101,7 @@ final readonly class FaqManagement
             ]),
         ));
 
-        return Hydrate::page($response->data(), FaqItem::fromArray(...), fn (int $page): Page => $this->listEntries(folderId: $folderId, documentId: $documentId, status: $status, origin: $origin, language: $language, search: $search, flaggedOnly: $flaggedOnly, reviewOnly: $reviewOnly, includeLedger: $includeLedger, sortBy: $sortBy, sortDir: $sortDir, page: $page, pageSize: $pageSize));
+        return Hydrate::page($response->data(), FaqItem::fromArray(...), fn (int $page): Page => $this->listEntries(folderId: $folderId, documentId: $documentId, status: $status, origin: $origin, learningRunId: $learningRunId, language: $language, search: $search, flaggedOnly: $flaggedOnly, reviewOnly: $reviewOnly, includeLedger: $includeLedger, sortBy: $sortBy, sortDir: $sortDir, page: $page, pageSize: $pageSize));
     }
 
     /**
@@ -171,6 +174,57 @@ final readonly class FaqManagement
                 'loser_ids' => $loserIds,
                 'dry_run' => $dryRun,
                 'keep_loser_questions_as_variants' => $keepLoserQuestionsAsVariants,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+    }
+
+    /**
+     * Resolve Faq Entry Relation.
+     *
+     * Resolve a conflict / enhancement / duplicate relation from KB review.
+     *
+     * A generated draft (the candidate) can carry relations to existing entries it contradicts,
+     * extends or duplicates (entry_context.relations in GET /knowledge-base/review-queue). Actions:
+     *
+     * * apply_to_existing — writes question/answer (body, else the relation's proposed text; the
+     * question is kept when none is proposed) to the EXISTING entry with a revision, flag reset and
+     * re-index, adds the candidate's source conversations to it, archives the candidate and discards
+     * the candidate's other open relations. * keep_both — closes the relation; the candidate stays a
+     * draft to publish or reject as usual. * discard_new — archives the candidate; the existing
+     * entry is untouched.
+     *
+     * Scopes: knowledge_base:update.
+     *
+     * @param  ?string  $question  apply_to_existing only: question to write (default: proposed_question, else keep)
+     * @param  ?string  $answer  apply_to_existing only: answer to write (default: proposed_answer, else the candidate's)
+     * @param  ?string  $expectedExistingQuestion  apply_to_existing only: the existing entry's question as you showed it. If the entry changed since, 409 existing_entry_changed and nothing is written.
+     * @param  ?string  $expectedExistingAnswer  apply_to_existing only: the existing entry's answer as you showed it. If the entry changed since, 409 existing_entry_changed and nothing is written.
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/resolve_faq_entry_relation_api_v1_knowledge_base_faq_entries__candidate_id__relations__relation_id__resolve_post
+     */
+    public function resolveEntryRelation(
+        string $candidateId,
+        string $relationId,
+        string $action,
+        ?string $question = null,
+        ?string $answer = null,
+        ?string $expectedExistingQuestion = null,
+        ?string $expectedExistingAnswer = null,
+        ?string $idempotencyKey = null,
+    ): void {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/knowledge-base/faq-entries/'.Payload::segment($candidateId).'/relations/'.Payload::segment($relationId).'/resolve',
+            body: Payload::body([
+                'action' => $action,
+                'question' => $question,
+                'answer' => $answer,
+                'expected_existing_question' => $expectedExistingQuestion,
+                'expected_existing_answer' => $expectedExistingAnswer,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -441,6 +495,174 @@ final readonly class FaqManagement
         ));
 
         return FaqItem::fromArray($response->data());
+    }
+
+    /**
+     * List Learning Runs.
+     *
+     * Learning runs of this workspace, newest first.
+     *
+     * can_start (top level, next to items): true only when the caller is a workspace owner or admin
+     * and may start, estimate or cancel runs; false on any error.
+     *
+     * Scopes: knowledge_base:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/list_learning_runs_api_v1_knowledge_base_learning_runs_get
+     */
+    public function listLearningRuns(?int $page = null, ?int $pageSize = null): void
+    {
+        $this->connector->send(new Request(
+            Method::Get,
+            '/knowledge-base/learning-runs',
+            query: Payload::query(['page' => $page, 'page_size' => $pageSize]),
+        ));
+    }
+
+    /**
+     * Create Learning Run.
+     *
+     * Start learning FAQ entries from past CLOSED conversations: the last N closed conversations
+     * (scope_mode=last_n, 1..10000) or every conversation closed since a date (scope_mode=since_date,
+     * YYYY-MM-DD, UTC), optionally only from some channels. Runs in the background; poll GET
+     * /learning-runs/{id} for progress, cancel any time.
+     *
+     * Every Q&A pair is checked for personal data (removed, or the pair is dropped), merged with
+     * existing entries when it is the same question, and saved as a DRAFT entry for review. Nothing is
+     * used in answers until it is published. AI usage is billed like any other AI use.
+     *
+     * - 202: the run (status=queued) - 409 learning_run_active: a run is already queued or running
+     * (run in the body) - 422 learning_run_invalid_scope: errors: [{field, code}] - 403
+     * learning_run_owner_admin_only: only workspace owners and admins can start runs (for an API key:
+     * the user who created the key) - 403 feature_disabled: plan without Knowledge Base / AI, or AI
+     * switched off
+     *
+     * Scopes: knowledge_base:manage.
+     *
+     * @param  string  $scopeMode  `last_n` or `since_date`
+     * @param  ?int  $lastN  1..10000, for `last_n`
+     * @param  ?string  $sinceDate  YYYY-MM-DD (start of day, UTC), for `since_date`
+     * @param  list<string>|null  $channelIds  Only conversations from these channels (max 100)
+     * @param  ?string  $kbFolderId  Folder for new entries (default: the FAQ entries folder)
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/create_learning_run_api_v1_knowledge_base_learning_runs_post
+     */
+    public function createLearningRun(
+        string $scopeMode,
+        ?int $lastN = null,
+        ?string $sinceDate = null,
+        ?array $channelIds = null,
+        ?string $kbFolderId = null,
+        ?string $idempotencyKey = null,
+    ): void {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/knowledge-base/learning-runs',
+            body: Payload::body([
+                'scope_mode' => $scopeMode,
+                'last_n' => $lastN,
+                'since_date' => $sinceDate,
+                'channel_ids' => $channelIds,
+                'kb_folder_id' => $kbFolderId,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+    }
+
+    /**
+     * Estimate Learning Run.
+     *
+     * Count the closed conversations a learning run with this scope would read. Read-only: no AI call,
+     * nothing written, nothing billed.
+     *
+     * Workspace owners and admins only: anyone else gets 403 learning_run_owner_admin_only.
+     *
+     * Plan features: knowledge_base + ai_features (403 feature_disabled)
+     *
+     * Scopes: knowledge_base:manage.
+     *
+     * @param  string  $scopeMode  `last_n` or `since_date`
+     * @param  ?int  $lastN  1..10000, for `last_n`
+     * @param  ?string  $sinceDate  YYYY-MM-DD (start of day, UTC), for `since_date`
+     * @param  list<string>|null  $channelIds  Only conversations from these channels (max 100)
+     * @param  ?string  $kbFolderId  Folder for new entries (default: the FAQ entries folder)
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/estimate_learning_run_api_v1_knowledge_base_learning_runs_estimate_post
+     */
+    public function estimateLearningRun(
+        string $scopeMode,
+        ?int $lastN = null,
+        ?string $sinceDate = null,
+        ?array $channelIds = null,
+        ?string $kbFolderId = null,
+        ?string $idempotencyKey = null,
+    ): void {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/knowledge-base/learning-runs/estimate',
+            body: Payload::body([
+                'scope_mode' => $scopeMode,
+                'last_n' => $lastN,
+                'since_date' => $sinceDate,
+                'channel_ids' => $channelIds,
+                'kb_folder_id' => $kbFolderId,
+            ]),
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
+    }
+
+    /**
+     * Get Learning Run.
+     *
+     * One learning run with its progress counters. Poll this while it runs.
+     *
+     * Scopes: knowledge_base:read.
+     *
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/get_learning_run_api_v1_knowledge_base_learning_runs__run_id__get
+     */
+    public function getLearningRun(string $runId): void
+    {
+        $this->connector->send(new Request(
+            Method::Get,
+            '/knowledge-base/learning-runs/'.Payload::segment($runId),
+        ));
+    }
+
+    /**
+     * Cancel Learning Run.
+     *
+     * Cancel a learning run. A queued run stops at once; a running run stops after the conversation it
+     * is working on. Entries already created stay in review. Cancelling a finished run changes
+     * nothing.
+     *
+     * Workspace owners and admins only: anyone else gets 403 learning_run_owner_admin_only.
+     *
+     * Scopes: knowledge_base:manage.
+     *
+     * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/FAQ%20Management/cancel_learning_run_api_v1_knowledge_base_learning_runs__run_id__cancel_post
+     */
+    public function cancelLearningRun(string $runId, ?string $idempotencyKey = null): void
+    {
+        $this->connector->send(new Request(
+            Method::Post,
+            '/knowledge-base/learning-runs/'.Payload::segment($runId).'/cancel',
+            headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
+        ));
     }
 
     /**

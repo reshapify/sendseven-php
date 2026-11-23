@@ -19,7 +19,8 @@ final readonly class ReviewQueueItem extends Data
 {
     /**
      * @param  string  $id  '<type>:<uuid>'
-     * @param  list<string>  $reasons  correction: correction_proposed | routed_to_skill_suggestion | no_changes_proposed | partially_applied | analysis_failed | analysis_stalled; faq_entry: flagged | needs_review | draft; failed_document: ingestion_failed (retry or delete) | deletion_failed (delete again — retry is refused with 409)
+     * @param  list<string>  $reasons  correction: correction_proposed | routed_to_skill_suggestion | no_changes_proposed | partially_applied | analysis_failed | analysis_stalled; faq_entry: conflict (open conflict/enhancement relation) | flagged | needs_review | draft; failed_document: ingestion_failed (retry or delete) | deletion_failed (delete again — retry is refused with 409)
+     * @param  ?DateTimeImmutable  $createdAt  When the item was created (always set; drives sort=newest|oldest)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(

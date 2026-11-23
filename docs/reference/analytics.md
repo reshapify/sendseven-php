@@ -2,7 +2,7 @@
 
 # Analytics
 
-`$sendseven->analytics()` — 15 endpoints.
+`$sendseven->analytics()` — 16 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -20,6 +20,7 @@
 | [`getResponseTimeMetrics()`](#getresponsetimemetrics) | `GET /analytics/response-time` | Get Response Time Metrics |
 | [`getSubscriberOverview()`](#getsubscriberoverview) | `GET /analytics/subscribers/overview` | Get Subscriber Overview |
 | [`getSubscriberTrends()`](#getsubscribertrends) | `GET /analytics/subscribers/trends` | Get Subscriber Trends |
+| [`getTeamWorkload()`](#getteamworkload) | `GET /analytics/team-workload` | Get Team Workload |
 | [`getTimeMetricsOverTime()`](#gettimemetricsovertime) | `GET /analytics/time-metrics` | Get Time Metrics Over Time |
 
 ## getAgentPerformance
@@ -308,6 +309,22 @@ $result = $sendseven->analytics()->getSubscriberTrends();
 | `$days` | `?int` | no | Number of days to look back |
 
 Returns `SubscriberTrends`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Analytics/get_subscriber_trends_api_v1_analytics_subscribers_trends_get)
+
+## getTeamWorkload
+
+Get Team Workload. `GET /analytics/team-workload`
+
+Team workload: open, snoozed and closed conversations per person
+
+API keys and OAuth tokens also need reporting:read_agents (403 reporting_agents_scope_required otherwise).
+
+```php
+$result = $sendseven->analytics()->getTeamWorkload();
+```
+
+- Scopes: `analytics:read`
+
+Returns `TeamWorkload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Analytics/get_team_workload_api_v1_analytics_team_workload_get)
 
 ## getTimeMetricsOverTime
 

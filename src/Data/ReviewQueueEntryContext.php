@@ -20,12 +20,14 @@ final readonly class ReviewQueueEntryContext extends Data
      * @param  list<ReviewQueueFlag>  $flags
      * @param  ?string  $draftOrigin  manual | auto_conversation | migrated | correction | agent_gap
      * @param  list<string>  $duplicateOfEntryIds  Live entries with the same normalised question (merge-cluster heuristic)
+     * @param  list<FaqEntryRelationOut>  $relations  Conflict / enhancement / duplicate relations of this candidate (open first)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public array $flags,
         public ?string $draftOrigin,
         public array $duplicateOfEntryIds,
+        public array $relations,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -42,6 +44,7 @@ final readonly class ReviewQueueEntryContext extends Data
             flags: $attributes->list('flags', ReviewQueueFlag::fromArray(...)),
             draftOrigin: $attributes->nullableString('draft_origin'),
             duplicateOfEntryIds: $attributes->strings('duplicate_of_entry_ids'),
+            relations: $attributes->list('relations', FaqEntryRelationOut::fromArray(...)),
             raw: $data,
         );
     }

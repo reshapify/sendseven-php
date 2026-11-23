@@ -2,13 +2,14 @@
 
 # FAQ Management
 
-`$sendseven->faqManagement()` — 17 endpoints.
+`$sendseven->faqManagement()` — 23 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`listEntries()`](#listentries) | `GET /knowledge-base/faq-entries` | List Faq Entries |
 | [`getDuplicateClusters()`](#getduplicateclusters) | `GET /knowledge-base/faq-entries/duplicate-clusters` | Get Duplicate Clusters |
 | [`mergeEntries()`](#mergeentries) | `POST /knowledge-base/faq-entries/merge` | Merge Faq Entries |
+| [`resolveEntryRelation()`](#resolveentryrelation) | `POST /knowledge-base/faq-entries/{candidate_id}/relations/{relation_id}/resolve` | Resolve Faq Entry Relation |
 | [`resolveEntryFlags()`](#resolveentryflags) | `POST /knowledge-base/faq-entries/{entry_id}/resolve-flags` | Resolve Faq Entry Flags |
 | [`listItems()`](#listitems) | `GET /knowledge-base/faq-items` | List Faq Items |
 | [`createItem()`](#createitem) | `POST /knowledge-base/faq-items` | Create Faq Item |
@@ -17,6 +18,11 @@
 | [`deleteItem()`](#deleteitem) | `DELETE /knowledge-base/faq-items/{item_id}` | Delete Faq Item |
 | [`getItem()`](#getitem) | `GET /knowledge-base/faq-items/{item_id}` | Get Faq Item |
 | [`updateItem()`](#updateitem) | `PUT /knowledge-base/faq-items/{item_id}` | Update Faq Item |
+| [`listLearningRuns()`](#listlearningruns) | `GET /knowledge-base/learning-runs` | List Learning Runs |
+| [`createLearningRun()`](#createlearningrun) | `POST /knowledge-base/learning-runs` | Create Learning Run |
+| [`estimateLearningRun()`](#estimatelearningrun) | `POST /knowledge-base/learning-runs/estimate` | Estimate Learning Run |
+| [`getLearningRun()`](#getlearningrun) | `GET /knowledge-base/learning-runs/{run_id}` | Get Learning Run |
+| [`cancelLearningRun()`](#cancellearningrun) | `POST /knowledge-base/learning-runs/{run_id}/cancel` | Cancel Learning Run |
 | [`listManaged()`](#listmanaged) | `GET /knowledge-base/managed-faqs` | List Managed Faqs |
 | [`createManaged()`](#createmanaged) | `POST /knowledge-base/managed-faqs` | Create Managed Faq |
 | [`deleteManaged()`](#deletemanaged) | `DELETE /knowledge-base/managed-faqs/{document_id}` | Delete Managed Faq |
@@ -44,6 +50,7 @@ $result = $sendseven->faqManagement()->listEntries();
 | `$documentId` | `?string` | no | Restrict to one compiled parent document |
 | `$status` | `?string` | no | draft \| published \| needs_review \| archived. Accepts a comma-separated list (e.g. 'draft,needs_review') for a UNION. |
 | `$origin` | `?string` | no | manual \| auto_conversation \| migrated \| correction |
+| `$learningRunId` | `?string` | no | Only entries created or merged by this learning run |
 | `$language` | `?string` | no | Filter by language tag |
 | `$search` | `?string` | no | Substring match on question/answer |
 | `$flaggedOnly` | `?bool` | no | Only entries with flagged_count > 0 |
@@ -99,6 +106,33 @@ $sendseven->faqManagement()->mergeEntries(winnerId: 'winner_id', loserIds: []);
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/merge_faq_entries_api_v1_knowledge_base_faq_entries_merge_post)
+
+## resolveEntryRelation
+
+Resolve Faq Entry Relation. `POST /knowledge-base/faq-entries/{candidate_id}/relations/{relation_id}/resolve`
+
+Resolve a conflict / enhancement / duplicate relation from KB review.
+
+A generated draft (the candidate) can carry relations to existing entries it contradicts, extends or duplicates (entry_context.relations in GET /knowledge-base/review-queue). Actions:
+
+```php
+$sendseven->faqManagement()->resolveEntryRelation(candidateId: 'candidate_id', relationId: 'relation_id', action: 'action');
+```
+
+- Scopes: `knowledge_base:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$candidateId` | `string` | yes |  |
+| `$relationId` | `string` | yes |  |
+| `$action` | `string` | yes |  |
+| `$question` | `?string` | no | apply_to_existing only: question to write (default: proposed_question, else keep) |
+| `$answer` | `?string` | no | apply_to_existing only: answer to write (default: proposed_answer, else the candidate's) |
+| `$expectedExistingQuestion` | `?string` | no | apply_to_existing only: the existing entry's question as you showed it. If the entry changed since, 409 existing_entry_changed and nothing is written. |
+| `$expectedExistingAnswer` | `?string` | no | apply_to_existing only: the existing entry's answer as you showed it. If the entry changed since, 409 existing_entry_changed and nothing is written. |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/resolve_faq_entry_relation_api_v1_knowledge_base_faq_entries__candidate_id__relations__relation_id__resolve_post)
 
 ## resolveEntryFlags
 
@@ -272,6 +306,116 @@ $result = $sendseven->faqManagement()->updateItem(itemId: 'item_id');
 | `$reviewNotes` | `?string` | no | Why the entry needs review / what to check |
 
 Returns `FaqItem`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/update_faq_item_api_v1_knowledge_base_faq_items__item_id__put)
+
+## listLearningRuns
+
+List Learning Runs. `GET /knowledge-base/learning-runs`
+
+Learning runs of this workspace, newest first.
+
+can_start (top level, next to items): true only when the caller is a workspace owner or admin and may start, estimate or cancel runs; false on any error.
+
+```php
+$sendseven->faqManagement()->listLearningRuns();
+```
+
+- Scopes: `knowledge_base:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/list_learning_runs_api_v1_knowledge_base_learning_runs_get)
+
+## createLearningRun
+
+Create Learning Run. `POST /knowledge-base/learning-runs`
+
+Start learning FAQ entries from past CLOSED conversations: the last N closed conversations (scope_mode=last_n, 1..10000) or every conversation closed since a date (scope_mode=since_date, YYYY-MM-DD, UTC), optionally only from some channels. Runs in the background; poll GET /learning-runs/{id} for progress, cancel any time.
+
+Every Q&A pair is checked for personal data (removed, or the pair is dropped), merged with existing entries when it is the same question, and saved as a DRAFT entry for review. Nothing is used in answers until it is published. AI usage is billed like any other AI use.
+
+```php
+$sendseven->faqManagement()->createLearningRun(scopeMode: 'scope_mode');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scopeMode` | `string` | yes | last_n or since_date |
+| `$lastN` | `?int` | no | 1..10000, for last_n |
+| `$sinceDate` | `?string` | no | YYYY-MM-DD (start of day, UTC), for since_date |
+| `$channelIds` | `list<string>\|null` | no | Only conversations from these channels (max 100) |
+| `$kbFolderId` | `?string` | no | Folder for new entries (default: the FAQ entries folder) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/create_learning_run_api_v1_knowledge_base_learning_runs_post)
+
+## estimateLearningRun
+
+Estimate Learning Run. `POST /knowledge-base/learning-runs/estimate`
+
+Count the closed conversations a learning run with this scope would read. Read-only: no AI call, nothing written, nothing billed.
+
+Workspace owners and admins only: anyone else gets 403 learning_run_owner_admin_only.
+
+```php
+$sendseven->faqManagement()->estimateLearningRun(scopeMode: 'scope_mode');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scopeMode` | `string` | yes | last_n or since_date |
+| `$lastN` | `?int` | no | 1..10000, for last_n |
+| `$sinceDate` | `?string` | no | YYYY-MM-DD (start of day, UTC), for since_date |
+| `$channelIds` | `list<string>\|null` | no | Only conversations from these channels (max 100) |
+| `$kbFolderId` | `?string` | no | Folder for new entries (default: the FAQ entries folder) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/estimate_learning_run_api_v1_knowledge_base_learning_runs_estimate_post)
+
+## getLearningRun
+
+Get Learning Run. `GET /knowledge-base/learning-runs/{run_id}`
+
+One learning run with its progress counters. Poll this while it runs.
+
+```php
+$sendseven->faqManagement()->getLearningRun(runId: 'run_id');
+```
+
+- Scopes: `knowledge_base:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$runId` | `string` | yes |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/get_learning_run_api_v1_knowledge_base_learning_runs__run_id__get)
+
+## cancelLearningRun
+
+Cancel Learning Run. `POST /knowledge-base/learning-runs/{run_id}/cancel`
+
+Cancel a learning run. A queued run stops at once; a running run stops after the conversation it is working on. Entries already created stay in review. Cancelling a finished run changes nothing.
+
+Workspace owners and admins only: anyone else gets 403 learning_run_owner_admin_only.
+
+```php
+$sendseven->faqManagement()->cancelLearningRun(runId: 'run_id');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$runId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/cancel_learning_run_api_v1_knowledge_base_learning_runs__run_id__cancel_post)
 
 ## listManaged
 

@@ -467,9 +467,11 @@ final readonly class WhatsAppTemplates
      *
      * Send a template message to a contact
      *
-     * Returns 409 CHANNEL_DISCONNECTED (the number must be reconnected) or CHANNEL_UNAVAILABLE (Meta
-     * blocked the account; fix it in Meta Business Suite) when the sending number cannot send; nothing
-     * is sent.
+     * Returns 409 CHANNEL_DISCONNECTED (the number must be reconnected), CHANNEL_UNAVAILABLE (Meta
+     * banned or restricted the account; fix it in Meta Business Suite) or CHANNEL_TEMPLATES_BLOCKED
+     * (error_code channel_payment_issue: Meta reports a payment / billing problem on the WhatsApp
+     * account, so template messages are refused; fix it at action_url) when the sending number cannot
+     * send templates; nothing is sent.
      *
      * Sends the specified WhatsApp template to the contact. The template must be approved by WhatsApp
      * before it can be sent.

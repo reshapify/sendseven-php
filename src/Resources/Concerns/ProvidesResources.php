@@ -66,6 +66,7 @@ use Reshapify\SendSeven\Resources\Messages;
 use Reshapify\SendSeven\Resources\Notes;
 use Reshapify\SendSeven\Resources\OAuth2Apps;
 use Reshapify\SendSeven\Resources\RcsWallet;
+use Reshapify\SendSeven\Resources\Reporting;
 use Reshapify\SendSeven\Resources\RolesPermissions;
 use Reshapify\SendSeven\Resources\SavedInteractiveMessages;
 use Reshapify\SendSeven\Resources\Scheduler;
@@ -141,7 +142,7 @@ trait ProvidesResources
     }
 
     /**
-     * Analytics (15 endpoints).
+     * Analytics (16 endpoints).
      */
     public function analytics(): Analytics
     {
@@ -405,7 +406,7 @@ trait ProvidesResources
     }
 
     /**
-     * FAQ Management (17 endpoints).
+     * FAQ Management (23 endpoints).
      */
     public function faqManagement(): FaqManagement
     {
@@ -565,6 +566,14 @@ trait ProvidesResources
     }
 
     /**
+     * Reporting (13 endpoints).
+     */
+    public function reporting(): Reporting
+    {
+        return new Reporting($this->connector);
+    }
+
+    /**
      * Roles & Permissions (17 endpoints).
      */
     public function rolesPermissions(): RolesPermissions
@@ -653,7 +662,7 @@ trait ProvidesResources
     }
 
     /**
-     * Users (33 endpoints).
+     * Users (34 endpoints).
      */
     public function users(): Users
     {

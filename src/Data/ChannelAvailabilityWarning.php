@@ -18,7 +18,7 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ChannelAvailabilityWarning extends Data
 {
     /**
-     * @param  string  $code  Same values as `degraded_reason`: `meta_permission_denied`, `webhooks_silent`, `token_scope_missing`; `phone_limited` when Meta reports the WhatsApp number as limited.
+     * @param  string  $code  Same values as `degraded_reason`: `meta_permission_denied`, `webhooks_silent`, `token_scope_missing`; `phone_limited` when Meta reports the WhatsApp number as limited; `meta_health_warning` when Meta reports a health problem on the WhatsApp account that does not stop sending (see `meta_error_code`).
      * @param  ?DateTimeImmutable  $since  When the warning started (UTC).
      * @param  ?string  $detail  Meta error code behind it as a string, if any.
      * @param  array<array-key, mixed>  $raw

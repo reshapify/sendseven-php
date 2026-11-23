@@ -17,12 +17,14 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class ReviewQueueBreakdown extends Data
 {
     /**
+     * @param  ?int  $conflict  Entries in the queue with an OPEN conflict/enhancement relation to an existing entry (overlaps draft)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
         public ?int $draft,
         public ?int $needsReview,
         public ?int $flagged,
+        public ?int $conflict,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -39,6 +41,7 @@ final readonly class ReviewQueueBreakdown extends Data
             draft: $attributes->nullableInt('draft'),
             needsReview: $attributes->nullableInt('needs_review'),
             flagged: $attributes->nullableInt('flagged'),
+            conflict: $attributes->nullableInt('conflict'),
             raw: $data,
         );
     }

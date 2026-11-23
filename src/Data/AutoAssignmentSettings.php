@@ -17,6 +17,7 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class AutoAssignmentSettings extends Data
 {
     /**
+     * @param  ?int  $maxOpenConversationsPerUser  Workspace default limit of open conversations per member for automatic assignment; null = unlimited. Members can override it.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -24,6 +25,7 @@ final readonly class AutoAssignmentSettings extends Data
         public ?string $ownerOffHours,
         public ?string $routingWhenNobodyOnShift,
         public ?string $absentWithoutSubstitute,
+        public ?int $maxOpenConversationsPerUser,
         public ?string $updatedAt,
         array $raw = [],
     ) {
@@ -42,6 +44,7 @@ final readonly class AutoAssignmentSettings extends Data
             ownerOffHours: $attributes->nullableString('owner_off_hours'),
             routingWhenNobodyOnShift: $attributes->nullableString('routing_when_nobody_on_shift'),
             absentWithoutSubstitute: $attributes->nullableString('absent_without_substitute'),
+            maxOpenConversationsPerUser: $attributes->nullableInt('max_open_conversations_per_user'),
             updatedAt: $attributes->nullableString('updated_at'),
             raw: $data,
         );

@@ -128,7 +128,7 @@ Bulk Assign Conversations. `POST /conversations/bulk-assign`
 
 Assign or unassign up to 100 conversations at once
 
-user_id is the workspace member to assign the conversations to; send null to unassign them. Each conversation is changed exactly like PATCH /conversations/{conversation_id} with assigned_user_id: the new assignee is notified (not when you assign yourself) and the conversation.assigned webhook fires. Conversations already assigned to that member (or already unassigned) count as successful and are left unchanged.
+user_id is the workspace member to assign the conversations to; send null to unassign them. Each conversation is changed exactly like PATCH /conversations/{conversation_id} with assigned_user_id: the new assignee is notified (not when you assign yourself), the conversation.assigned webhook fires (assign only) and one conversation.updated webhook fires per changed conversation (change assigned or unassigned, origin bulk). Conversations already assigned to that member (or already unassigned) count as successful and are left unchanged.
 
 ```php
 $result = $sendseven->conversations()->bulkAssign(conversationIds: [], userId: 'user_id');
@@ -215,7 +215,7 @@ Bulk Tag Conversations. `POST /conversations/bulk-tag`
 
 Add tags to up to 100 conversations at once
 
-Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a conversation stay as they are; nothing is removed.
+Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a conversation stay as they are; nothing is removed. Each conversation that gained at least one tag fires one conversation.updated webhook (change tag_added, all its new tags in tags_added, origin bulk).
 
 ```php
 $result = $sendseven->conversations()->bulkTag(conversationIds: [], tagIds: []);

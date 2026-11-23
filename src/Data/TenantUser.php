@@ -35,9 +35,13 @@ final readonly class TenantUser extends Data
      * @param  ?bool  $aiSuggestionsEnabled  Whether this member may use AI suggestions in Conversations in this workspace (per-member setting, default true; change it with PATCH /users/{user_id}/membership)
      * @param  ?string  $availabilityState  on_shift | off_hours | absent | inactive (work hours + out of office); null if unknown
      * @param  ?string  $absentUntil  End of the running out-of-office (null = open-ended or not absent)
+     * @param  ?bool  $absentAllDay  The running out-of-office is an all-day absence (whole days)
+     * @param  ?string  $absentEndDate  Inclusive last day of a running all-day absence in the member's timezone (null = open-ended, timed or not absent)
      * @param  array<array-key, mixed>  $substitute  Running out-of-office substitute {mode, user_id, inbox_id, tag_id}
      * @param  ?bool  $hasWorkHours  True when the member has at least one usable work-hours range. availability_state=on_shift with has_work_hours=false means no work hours are set
      * @param  ?string  $nextShiftStart  Start of the member's next work-hours window (UTC). Null when on shift, no work hours are set, or unknown
+     * @param  ?bool  $ignoreInAutoAssignment  True when the member is excluded from automatic assignment (Ignore in auto-routing)
+     * @param  ?int  $effectiveMaxOpenConversations  Open-conversation limit for automatic assignment after the workspace default; null = unlimited
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -55,9 +59,13 @@ final readonly class TenantUser extends Data
         public ?bool $aiSuggestionsEnabled,
         public ?string $availabilityState,
         public ?string $absentUntil,
+        public ?bool $absentAllDay,
+        public ?string $absentEndDate,
         public array $substitute,
         public ?bool $hasWorkHours,
         public ?string $nextShiftStart,
+        public ?bool $ignoreInAutoAssignment,
+        public ?int $effectiveMaxOpenConversations,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -85,9 +93,13 @@ final readonly class TenantUser extends Data
             aiSuggestionsEnabled: $attributes->nullableBool('ai_suggestions_enabled'),
             availabilityState: $attributes->nullableString('availability_state'),
             absentUntil: $attributes->nullableString('absent_until'),
+            absentAllDay: $attributes->nullableBool('absent_all_day'),
+            absentEndDate: $attributes->nullableString('absent_end_date'),
             substitute: $attributes->array('substitute'),
             hasWorkHours: $attributes->nullableBool('has_work_hours'),
             nextShiftStart: $attributes->nullableString('next_shift_start'),
+            ignoreInAutoAssignment: $attributes->nullableBool('ignore_in_auto_assignment'),
+            effectiveMaxOpenConversations: $attributes->nullableInt('effective_max_open_conversations'),
             raw: $data,
         );
     }

@@ -27,7 +27,7 @@ List Lists. `GET /lists`
 
 List all lists for the tenant with pagination.
 
-Returns paginated list of all static, dynamic, and newsletter lists. Each list includes its computed contact count (for email subscriptions).
+Returns paginated list of all static, dynamic, and newsletter lists. Optional search filters by list name (case-insensitive substring, %/_ matched literally); pagination.total counts only matches. Each list includes its computed contact count (for email subscriptions).
 
 ```php
 $result = $sendseven->lists()->listLists();
@@ -37,6 +37,7 @@ $result = $sendseven->lists()->listLists();
 |---|---|---|---|
 | `$page` | `?int` | no | Page number (1-indexed) |
 | `$pageSize` | `?int` | no | Items per page |
+| `$search` | `?string` | no | Case-insensitive substring match on the list name. Empty or whitespace-only means no filter. |
 
 Returns `Page<ListResponse>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Lists/list_lists_api_v1_lists_get)
 

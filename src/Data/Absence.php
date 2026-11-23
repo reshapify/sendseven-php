@@ -17,6 +17,8 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Absence extends Data
 {
     /**
+     * @param  ?string  $startDate  First day (member's time zone); only for all-day absences
+     * @param  ?string  $endDate  Last day, inclusive; null = open-ended or not all-day
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -34,6 +36,9 @@ final readonly class Absence extends Data
         public ?string $createdAt,
         public ?string $cancelledAt,
         public ?bool $isActive,
+        public ?bool $allDay,
+        public ?string $startDate,
+        public ?string $endDate,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -61,6 +66,9 @@ final readonly class Absence extends Data
             createdAt: $attributes->nullableString('created_at'),
             cancelledAt: $attributes->nullableString('cancelled_at'),
             isActive: $attributes->nullableBool('is_active'),
+            allDay: $attributes->nullableBool('all_day'),
+            startDate: $attributes->nullableString('start_date'),
+            endDate: $attributes->nullableString('end_date'),
             raw: $data,
         );
     }

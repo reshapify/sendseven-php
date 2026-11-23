@@ -54,14 +54,11 @@ final readonly class Channels
      *
      * List all active (non-archived) channels for the tenant.
      *
-     * Any authenticated team member can list channels (used for app initialization).
+     * Import placeholders (channels created by a data import to hold imported history,
+     * is_import_placeholder=true, connection_state=not_connected) are listed too, so they can be shown
+     * as "Not connected".
      *
-     * Security model (inverted May 2026): Non-admin/non-owner callers ALWAYS see only the channels
-     * reachable through their accessible Custom Inboxes -- regardless of the for_compose query param.
-     * Previously this filter was opt-in via for_compose=true, which meant a restricted user could drop
-     * the param and see every channel in the tenant (UX leak / info disclosure -- they still couldn't
-     * send, but channel names appeared in any listing/picker). The filter is now mandatory for
-     * non-admins.
+     * Any authenticated team member can list channels (used for app initialization).
      *
      * Scopes: channels:read.
      *
@@ -94,6 +91,7 @@ final readonly class Channels
      * Scopes: channels:create.
      *
      * @param  array<string, mixed>|null  $config
+     * @param  ?string  $adoptChannelId  Connect INTO this not-connected channel (imported history) of the same type instead of creating a new one. 422 invalid_adopt_channel when it is not one; 409 channel_identifier_taken when the identifier already belongs to another channel.
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -105,6 +103,7 @@ final readonly class Channels
         string $name,
         string $identifier,
         ?array $config = null,
+        ?string $adoptChannelId = null,
         ?string $idempotencyKey = null,
     ): Channel {
         $response = $this->connector->send(new Request(
@@ -115,6 +114,7 @@ final readonly class Channels
                 'name' => $name,
                 'identifier' => $identifier,
                 'config' => $config,
+                'adopt_channel_id' => $adoptChannelId,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -234,9 +234,14 @@ final readonly class Channels
      * after a reconnect or the next successful permission check). last_error_at = when the state was
      * last confirmed. - WhatsApp channels that lost access and must be reconnected: connection_status
      * = "disconnected", last_error = "access_revoked", "app_unsubscribed" or "phone_deregistered". -
-     * WhatsApp channels Meta blocked from sending (payment method, verification, account locked):
-     * connection_status = "unavailable", last_error = "meta_account_blocked". Fixed in Meta Business
-     * Suite; the channel resumes on its own after the next passing health check.
+     * WhatsApp channels Meta banned or restricted (account locked, disabled or restricted from
+     * sending): connection_status = "unavailable", last_error = "meta_account_blocked". Nothing can be
+     * sent. Fixed in Meta Business Suite; the channel resumes on its own after the next passing health
+     * check. - WhatsApp channels whose account has a Meta payment or billing problem (e.g. no valid
+     * payment method): connection_status = "payment_issue", last_error = "meta_payment_issue". Only
+     * template / business-initiated sends are refused (409 CHANNEL_TEMPLATES_BLOCKED); free-form
+     * replies inside the 24-hour window are not blocked by SendSeven (Meta delivers them within its
+     * free tier). Fixed in Meta Business Suite; clears on its own after the next passing health check.
      *
      * Scopes: channels:read.
      *
@@ -327,16 +332,18 @@ final readonly class Channels
      *
      * Scopes: channels:delete.
      *
+     * @param  ?bool  $confirm  Required (`true`) to delete an import placeholder that holds imported conversations; without it the call answers 409 `channel_has_imported_history`.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Channels/delete_channel_api_v1_channels__channel_id__delete
      */
-    public function delete(string $channelId): Archive
+    public function delete(string $channelId, ?bool $confirm = null): Archive
     {
         $response = $this->connector->send(new Request(
             Method::Delete,
             '/channels/'.Payload::segment($channelId),
+            query: Payload::query(['confirm' => $confirm]),
         ));
 
         return Archive::fromArray($response->data());
@@ -346,6 +353,9 @@ final readonly class Channels
      * Get Channel.
      *
      * Get a specific channel
+     *
+     * For an import placeholder (is_import_placeholder=true) the response also carries
+     * imported_conversation_count.
      *
      * Scopes: channels:read.
      *
@@ -371,6 +381,9 @@ final readonly class Channels
      *
      * On an RCS channel only name and is_active may change here; an identifier or config change
      * answers 403 rcs_managed_by_sendseven (SendSeven manages RCS agents and their credentials).
+     *
+     * A channel with is_import_placeholder=true (imported history, not connected yet) answers 409
+     * channel_not_connected.
      *
      * Scopes: channels:update.
      *

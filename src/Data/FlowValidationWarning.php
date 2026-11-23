@@ -31,6 +31,10 @@ final readonly class FlowValidationWarning extends Data
         public ?string $code,
         public ?bool $ignorable,
         public ?string $severity,
+        public ?string $nodeId,
+        public ?string $triggerType,
+        public ?string $action,
+        public ?string $signature,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -49,6 +53,10 @@ final readonly class FlowValidationWarning extends Data
             code: $attributes->nullableString('code'),
             ignorable: $attributes->nullableBool('ignorable'),
             severity: $attributes->nullableString('severity'),
+            nodeId: $attributes->nullableString('node_id'),
+            triggerType: $attributes->nullableString('trigger_type'),
+            action: $attributes->nullableString('action'),
+            signature: $attributes->nullableString('signature'),
             raw: $data,
         );
     }

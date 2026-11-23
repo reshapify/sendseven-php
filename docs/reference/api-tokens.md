@@ -54,7 +54,9 @@ $result = $sendseven->apiTokens()->create(name: 'name', scopes: []);
 |---|---|---|---|
 | `$name` | `string` | yes | Human-readable name for this token |
 | `$scopes` | `list<string>` | yes | Scopes granted to this token (must be subset of user's scopes) |
-| `$expiresInDays` | `?int` | no | Token expiration in days (default: 90) |
+| `$expiresInDays` | `?int` | no | Token lifetime in days from now (minimum 1, no maximum) |
+| `$expiresAt` | `DateTimeInterface\|string\|null` | no | Exact expiry instant (ISO-8601, must be in the future; a value without a timezone offset is read as UTC) |
+| `$neverExpires` | `?bool` | no | Set to true for a token that never expires |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ApiTokenCreated`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/API%20Tokens/create_api_token_api_v1_api_tokens_post)
@@ -119,9 +121,9 @@ Returns `ApiToken`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#
 
 Update Api Token. `PATCH /api-tokens/{token_id}`
 
-Update API token metadata.
+Update an API token's name, active state or expiry.
 
-Can update: - name: Change the human-readable name - is_active: Revoke (false) or reactivate (true) the token
+Can update: - name: Change the human-readable name - is_active: Revoke (false) or reactivate (true) the token - expiry: set at most ONE of expires_in_days (>= 1, no maximum), expires_at (any future ISO-8601 instant; no offset = UTC) or never_expires: true. More than one, or a past expires_at, returns 422. None sent = expiry unchanged. Also works on an expired token to give it a new future expiry. The new expiry takes effect immediately.
 
 ```php
 $result = $sendseven->apiTokens()->update(tokenId: 'token_id');
@@ -132,6 +134,9 @@ $result = $sendseven->apiTokens()->update(tokenId: 'token_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$tokenId` | `string` | yes |  |
+| `$expiresInDays` | `?int` | no | Token lifetime in days from now (minimum 1, no maximum) |
+| `$expiresAt` | `DateTimeInterface\|string\|null` | no | Exact expiry instant (ISO-8601, must be in the future; a value without a timezone offset is read as UTC) |
+| `$neverExpires` | `?bool` | no | Set to true for a token that never expires |
 | `$name` | `?string` | no | Human-readable name for this token |
 | `$isActive` | `?bool` | no | Set to false to revoke token, true to reactivate |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
@@ -144,7 +149,7 @@ Regenerate Api Token. `POST /api-tokens/{token_id}/regenerate`
 
 Regenerate an API token (new token string, same scopes).
 
-This creates a new token string while keeping the same: - Name - Scopes - Expiration date
+This creates a new token string while keeping the same: - Name - Scopes
 
 ```php
 $result = $sendseven->apiTokens()->regenerate(tokenId: 'token_id');
@@ -155,6 +160,7 @@ $result = $sendseven->apiTokens()->regenerate(tokenId: 'token_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$tokenId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ApiTokenCreated`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/API%20Tokens/regenerate_api_token_api_v1_api_tokens__token_id__regenerate_post)

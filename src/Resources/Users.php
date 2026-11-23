@@ -13,6 +13,7 @@ use Reshapify\SendSeven\Data\AccountBillingAccess;
 use Reshapify\SendSeven\Data\AutoAssignmentSettings;
 use Reshapify\SendSeven\Data\AvailabilitySettings;
 use Reshapify\SendSeven\Data\CurrentUser;
+use Reshapify\SendSeven\Data\DeletionEligibility;
 use Reshapify\SendSeven\Data\EndAbsences;
 use Reshapify\SendSeven\Data\RemovalImpact;
 use Reshapify\SendSeven\Data\TeamMembership;
@@ -31,7 +32,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Users: 33 endpoints.
+ * Users: 34 endpoints.
  *
  * Reach it with $sendseven->users().
  *
@@ -45,7 +46,9 @@ final readonly class Users
      * Get Auto Assignment Settings.
      *
      * Workspace auto-assignment settings: contact owner on new conversations, what happens when the
-     * owner is off hours, routing when nobody is on shift, and absent assignees without a substitute.
+     * owner is off hours, routing when nobody is on shift, absent assignees without a substitute, and
+     * the default limit of open conversations per member (max_open_conversations_per_user, null =
+     * unlimited).
      *
      * Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
      *
@@ -69,11 +72,14 @@ final readonly class Users
      * Put Auto Assignment Settings.
      *
      * Update the workspace auto-assignment settings (partial; omitted keys stay).
+     * max_open_conversations_per_user: 1-10000, or an explicit null for unlimited (422
+     * invalid_auto_assignment otherwise).
      *
      * Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
      *
      * Scopes: settings:update.
      *
+     * @param  ?int  $maxOpenConversationsPerUser  1-10000, or null for unlimited. Omitted = unchanged (unlike the other fields, an explicit null is applied). Out of range -> 422 invalid_auto_assignment.
      *
      * @throws ApiException
      *
@@ -84,6 +90,7 @@ final readonly class Users
         ?string $ownerOffHours = null,
         ?string $routingWhenNobodyOnShift = null,
         ?string $absentWithoutSubstitute = null,
+        ?int $maxOpenConversationsPerUser = null,
     ): AutoAssignmentSettings {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -93,6 +100,7 @@ final readonly class Users
                 'owner_off_hours' => $ownerOffHours,
                 'routing_when_nobody_on_shift' => $routingWhenNobodyOnShift,
                 'absent_without_substitute' => $absentWithoutSubstitute,
+                'max_open_conversations_per_user' => $maxOpenConversationsPerUser,
             ]),
         ));
 
@@ -221,7 +229,9 @@ final readonly class Users
      * Refused with 409 while the user is the sole owner or the sole member of any workspace (tenant)
      * or billing account: promote another owner first, or delete the workspace / cancel the billing
      * account. The response body lists the blocking workspaces / billing accounts as {"blockers":
-     * [{"type", "id", "name", "reason"}]} with reason one of sole_owner, sole_member, platform_admin.
+     * [{"type", "id", "name", "reason"}], "next_step"} with reason one of sole_owner, sole_member,
+     * platform_admin, role_check_failed and next_step as in GET /users/me/deletion-eligibility (check
+     * that first to avoid the 409).
      *
      * @throws ApiException
      *
@@ -377,6 +387,9 @@ final readonly class Users
      * @param  DateTimeInterface|string|null  $endsAt  null = until switched off
      * @param  ?string  $note  Internal reason, never sent to customers
      * @param  ?bool  $muteNotifications  Pause this member's notifications (push, email, in-app alerts) while the absence is active. Channel-problem and balance alerts still come through.
+     * @param  ?bool  $allDay  All-day absence: only dates count. starts_at = 00:00 on start_date and ends_at = 00:00 after end_date, in the member's time zone. starts_at/ends_at in the request are ignored.
+     * @param  ?string  $startDate  YYYY-MM-DD, required when all_day is true (422 all_day_requires_start_date)
+     * @param  ?string  $endDate  Last day, inclusive (YYYY-MM-DD); null = until switched off
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -392,6 +405,9 @@ final readonly class Users
         DateTimeInterface|string|null $endsAt = null,
         ?string $note = null,
         ?bool $muteNotifications = null,
+        ?bool $allDay = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
         ?string $idempotencyKey = null,
     ): Absence {
         $response = $this->connector->send(new Request(
@@ -406,6 +422,9 @@ final readonly class Users
                 'ends_at' => $endsAt,
                 'note' => $note,
                 'mute_notifications' => $muteNotifications,
+                'all_day' => $allDay,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -464,6 +483,8 @@ final readonly class Users
      *
      * Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
      *
+     * @param  ?bool  $allDay  null = unchanged. While all-day, start_date/end_date apply (a missing one is derived from the current period) and starts_at/ends_at are ignored; false switches back to times (current instants kept unless starts_at/ends_at are sent).
+     * @param  ?string  $endDate  Inclusive last day; explicit null = open-ended
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -480,6 +501,9 @@ final readonly class Users
         ?string $substituteTagId = null,
         ?string $note = null,
         ?bool $muteNotifications = null,
+        ?bool $allDay = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
         ?string $idempotencyKey = null,
     ): Absence {
         $response = $this->connector->send(new Request(
@@ -494,6 +518,9 @@ final readonly class Users
                 'substitute_tag_id' => $substituteTagId,
                 'note' => $note,
                 'mute_notifications' => $muteNotifications,
+                'all_day' => $allDay,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -528,7 +555,9 @@ final readonly class Users
      * Update your work hours, time zone and auto-replies (partial update).
      *
      * OAuth token that changes the auto-reply fields (auto_reply_*) also needs messages:create:
-     * auto-replies are messages sent to customers in your name.
+     * auto-replies are messages sent to customers in your name. Changing ignore_in_auto_assignment,
+     * max_open_conversations_mode or max_open_conversations needs team:update (403
+     * team_update_required).
      *
      * Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
      *
@@ -539,6 +568,9 @@ final readonly class Users
      * @param  array<string, mixed>|null  $autoReplyOffHoursTranslations
      * @param  list<string>|null  $autoReplyExcludedChannelTypes
      * @param  array<string, mixed>|null  $defaultSubstitute
+     * @param  ?bool  $ignoreInAutoAssignment  Ignore in auto-routing: when true the member is never picked by automatic assignment (round robin, least busy, contact owner, substitutes, flows, bot hand-offs). Manual assignment is not affected. On /users/me/availability this needs the team:update scope.
+     * @param  ?string  $maxOpenConversationsMode  Max open conversations for automatic assignment: workspace_default (the workspace's max_open_conversations_per_user), unlimited, or custom (max_open_conversations). null = workspace_default. Switching away from custom clears max_open_conversations. On /users/me/availability this needs the team:update scope.
+     * @param  ?int  $maxOpenConversations  Custom limit, 1-10000 (required when max_open_conversations_mode is custom, else 422 invalid_max_open_conversations). On /users/me/availability this needs the team:update scope.
      *
      * @throws ApiException
      *
@@ -556,6 +588,9 @@ final readonly class Users
         ?array $autoReplyOffHoursTranslations = null,
         ?array $autoReplyExcludedChannelTypes = null,
         ?array $defaultSubstitute = null,
+        ?bool $ignoreInAutoAssignment = null,
+        ?string $maxOpenConversationsMode = null,
+        ?int $maxOpenConversations = null,
     ): AvailabilitySettings {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -572,6 +607,9 @@ final readonly class Users
                 'auto_reply_off_hours_translations' => $autoReplyOffHoursTranslations,
                 'auto_reply_excluded_channel_types' => $autoReplyExcludedChannelTypes,
                 'default_substitute' => $defaultSubstitute,
+                'ignore_in_auto_assignment' => $ignoreInAutoAssignment,
+                'max_open_conversations_mode' => $maxOpenConversationsMode,
+                'max_open_conversations' => $maxOpenConversations,
             ]),
         ));
 
@@ -626,6 +664,36 @@ final readonly class Users
         ));
 
         return CurrentUser::fromArray($response->data());
+    }
+
+    /**
+     * Check whether I can delete my account.
+     *
+     * Read-only preview of DELETE /users/me: tells the signed-in user whether they can delete their
+     * own user account right now and, if not, what to do first.
+     *
+     * Runs the same checks as DELETE /users/me, so can_delete: true means the delete will succeed
+     * (unless something changes in between). Independent of the active workspace (X-Tenant-ID is
+     * ignored): every workspace and billing account the user belongs to is checked.
+     *
+     * next_step is one of: - delete_user: no blockers, the user can delete their account. -
+     * delete_billing_account: the user is the only owner or the only member of a billing account; the
+     * whole account has to be deleted (owner flow in Settings > Billing) instead. -
+     * transfer_ownership: the user is the only owner (or member) of one or more workspaces; make
+     * another member owner first. - contact_support: the account cannot be deleted self-service.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Users/get_my_deletion_eligibility_api_v1_users_me_deletion_eligibility_get
+     */
+    public function getMyDeletionEligibility(): DeletionEligibility
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/users/me/deletion-eligibility',
+        ));
+
+        return DeletionEligibility::fromArray($response->data());
     }
 
     /**
@@ -867,6 +935,9 @@ final readonly class Users
      * @param  DateTimeInterface|string|null  $endsAt  null = until switched off
      * @param  ?string  $note  Internal reason, never sent to customers
      * @param  ?bool  $muteNotifications  Pause this member's notifications (push, email, in-app alerts) while the absence is active. Channel-problem and balance alerts still come through.
+     * @param  ?bool  $allDay  All-day absence: only dates count. starts_at = 00:00 on start_date and ends_at = 00:00 after end_date, in the member's time zone. starts_at/ends_at in the request are ignored.
+     * @param  ?string  $startDate  YYYY-MM-DD, required when all_day is true (422 all_day_requires_start_date)
+     * @param  ?string  $endDate  Last day, inclusive (YYYY-MM-DD); null = until switched off
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -883,6 +954,9 @@ final readonly class Users
         DateTimeInterface|string|null $endsAt = null,
         ?string $note = null,
         ?bool $muteNotifications = null,
+        ?bool $allDay = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
         ?string $idempotencyKey = null,
     ): Absence {
         $response = $this->connector->send(new Request(
@@ -897,6 +971,9 @@ final readonly class Users
                 'ends_at' => $endsAt,
                 'note' => $note,
                 'mute_notifications' => $muteNotifications,
+                'all_day' => $allDay,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -961,6 +1038,8 @@ final readonly class Users
      *
      * Scopes: team:update.
      *
+     * @param  ?bool  $allDay  null = unchanged. While all-day, start_date/end_date apply (a missing one is derived from the current period) and starts_at/ends_at are ignored; false switches back to times (current instants kept unless starts_at/ends_at are sent).
+     * @param  ?string  $endDate  Inclusive last day; explicit null = open-ended
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
@@ -978,6 +1057,9 @@ final readonly class Users
         ?string $substituteTagId = null,
         ?string $note = null,
         ?bool $muteNotifications = null,
+        ?bool $allDay = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
         ?string $idempotencyKey = null,
     ): Absence {
         $response = $this->connector->send(new Request(
@@ -992,6 +1074,9 @@ final readonly class Users
                 'substitute_tag_id' => $substituteTagId,
                 'note' => $note,
                 'mute_notifications' => $muteNotifications,
+                'all_day' => $allDay,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
             ]),
             headers: $idempotencyKey === null ? [] : ['Idempotency-Key' => $idempotencyKey],
         ));
@@ -1061,8 +1146,9 @@ final readonly class Users
     /**
      * Put Member Availability.
      *
-     * Update a team member's work hours and auto-replies (admin). Only an Owner can change another
-     * Owner's.
+     * Update a team member's work hours, auto-replies and auto-routing settings
+     * (ignore_in_auto_assignment, max_open_conversations_mode, max_open_conversations; 422
+     * invalid_max_open_conversations) (admin). Only an Owner can change another Owner's.
      *
      * Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
      *
@@ -1075,6 +1161,9 @@ final readonly class Users
      * @param  array<string, mixed>|null  $autoReplyOffHoursTranslations
      * @param  list<string>|null  $autoReplyExcludedChannelTypes
      * @param  array<string, mixed>|null  $defaultSubstitute
+     * @param  ?bool  $ignoreInAutoAssignment  Ignore in auto-routing: when true the member is never picked by automatic assignment (round robin, least busy, contact owner, substitutes, flows, bot hand-offs). Manual assignment is not affected. On /users/me/availability this needs the team:update scope.
+     * @param  ?string  $maxOpenConversationsMode  Max open conversations for automatic assignment: workspace_default (the workspace's max_open_conversations_per_user), unlimited, or custom (max_open_conversations). null = workspace_default. Switching away from custom clears max_open_conversations. On /users/me/availability this needs the team:update scope.
+     * @param  ?int  $maxOpenConversations  Custom limit, 1-10000 (required when max_open_conversations_mode is custom, else 422 invalid_max_open_conversations). On /users/me/availability this needs the team:update scope.
      *
      * @throws ApiException
      *
@@ -1093,6 +1182,9 @@ final readonly class Users
         ?array $autoReplyOffHoursTranslations = null,
         ?array $autoReplyExcludedChannelTypes = null,
         ?array $defaultSubstitute = null,
+        ?bool $ignoreInAutoAssignment = null,
+        ?string $maxOpenConversationsMode = null,
+        ?int $maxOpenConversations = null,
     ): AvailabilitySettings {
         $response = $this->connector->send(new Request(
             Method::Put,
@@ -1109,6 +1201,9 @@ final readonly class Users
                 'auto_reply_off_hours_translations' => $autoReplyOffHoursTranslations,
                 'auto_reply_excluded_channel_types' => $autoReplyExcludedChannelTypes,
                 'default_substitute' => $defaultSubstitute,
+                'ignore_in_auto_assignment' => $ignoreInAutoAssignment,
+                'max_open_conversations_mode' => $maxOpenConversationsMode,
+                'max_open_conversations' => $maxOpenConversations,
             ]),
         ));
 

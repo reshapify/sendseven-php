@@ -40,7 +40,7 @@ List Channels. `GET /channels`
 
 List all active (non-archived) channels for the tenant.
 
-Any authenticated team member can list channels (used for app initialization).
+Import placeholders (channels created by a data import to hold imported history, is_import_placeholder=true, connection_state=not_connected) are listed too, so they can be shown as "Not connected".
 
 ```php
 $result = $sendseven->channels()->list();
@@ -75,6 +75,7 @@ $result = $sendseven->channels()->create(channelType: 'channel_type', name: 'nam
 | `$name` | `string` | yes |  |
 | `$identifier` | `string` | yes |  |
 | `$config` | `array<string, mixed>\|null` | no |  |
+| `$adoptChannelId` | `?string` | no | Connect INTO this not-connected channel (imported history) of the same type instead of creating a new one. 422 invalid_adopt_channel when it is not one; 409 channel_identifier_taken when the identifier already belongs to another channel. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Channel`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/create_channel_api_v1_channels_post)
@@ -196,6 +197,7 @@ $result = $sendseven->channels()->delete(channelId: 'channel_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
+| `$confirm` | `?bool` | no | Required (true) to delete an import placeholder that holds imported conversations; without it the call answers 409 channel_has_imported_history. |
 
 Returns `Archive`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/delete_channel_api_v1_channels__channel_id__delete)
 
@@ -204,6 +206,8 @@ Returns `Archive`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/
 Get Channel. `GET /channels/{channel_id}`
 
 Get a specific channel
+
+For an import placeholder (is_import_placeholder=true) the response also carries imported_conversation_count.
 
 ```php
 $result = $sendseven->channels()->get(channelId: 'channel_id');

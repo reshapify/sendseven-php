@@ -140,9 +140,13 @@ final readonly class AiAgents
     /**
      * Create Agent From Build.
      *
-     * Create the reviewed agent from a successful build: its skills (version 1), the agent (INACTIVE
-     * — test it, then activate), knowledge sources and the channel activation rule, in one
-     * transaction. Idempotent per build_id: calling it again returns the same agent. Not charged.
+     * Create the reviewed agent from a successful build: its skills (version 1), the agent, knowledge
+     * sources and the channel activation rule, in one transaction. The agent is created as an
+     * unpublished draft that is switched on (is_active: true, publish_state: "draft"): it answers only
+     * in the test console and goes live when the user publishes it (POST
+     * /automation/agents/{id}/publish, needs automation:publish). A caller without automation:publish
+     * gets the draft paused (is_active: false). Idempotent per build_id: calling it again returns the
+     * same agent. Not charged.
      *
      * The draft's data_mapping: existing contact fields / tags are wired into the agent
      * (settings.context, handoff tags); proposed ones are created only when listed in
@@ -471,12 +475,12 @@ final readonly class AiAgents
      * Create a Conversational Agent (backing bot row + agent config, optional inline skills and
      * knowledge sources) in one transaction.
      *
-     * publish defaults to true (the agent is live as soon as it is created, unless is_active is
-     * false). Send publish: false to create an unpublished draft that only answers in the test console
-     * until POST /agents/{id}/publish. A caller without automation:publish always gets a publish:
-     * false agent paused (is_active: false).
+     * publish defaults to false: the agent starts as an unpublished draft that only answers in the
+     * test console until POST /agents/{id}/publish. Send publish: true to put it live on create
+     * (unless is_active is false). A caller without automation:publish always gets its (unpublished)
+     * agent paused (is_active: false).
      *
-     * default) also automation:publish (403 agent_publish_not_allowed otherwise).
+     * automation:publish (403 agent_publish_not_allowed otherwise).
      *
      * Scopes: automation:create, publish: true.
      *

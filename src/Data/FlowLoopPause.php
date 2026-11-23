@@ -33,6 +33,8 @@ final readonly class FlowLoopPause extends Data
         public string $pausedAt,
         public ?string $resumedAt,
         public ?string $resumedByUserId,
+        public ?int $blockedStarts,
+        public ?string $lastBlockedAt,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -59,6 +61,8 @@ final readonly class FlowLoopPause extends Data
             pausedAt: $attributes->string('paused_at'),
             resumedAt: $attributes->nullableString('resumed_at'),
             resumedByUserId: $attributes->nullableString('resumed_by_user_id'),
+            blockedStarts: $attributes->nullableInt('blocked_starts'),
+            lastBlockedAt: $attributes->nullableString('last_blocked_at'),
             raw: $data,
         );
     }

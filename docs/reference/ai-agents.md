@@ -102,7 +102,7 @@ Returns `TrialAiGenerationQuota`. [SendSeven reference](https://api.sendseven.co
 
 Create Agent From Build. `POST /automation/agent-builder/create`
 
-Create the reviewed agent from a successful build: its skills (version 1), the agent (INACTIVE — test it, then activate), knowledge sources and the channel activation rule, in one transaction. Idempotent per build_id: calling it again returns the same agent. Not charged.
+Create the reviewed agent from a successful build: its skills (version 1), the agent, knowledge sources and the channel activation rule, in one transaction. The agent is created as an unpublished draft that is switched on (is_active: true, publish_state: "draft"): it answers only in the test console and goes live when the user publishes it (POST /automation/agents/{id}/publish, needs automation:publish). A caller without automation:publish gets the draft paused (is_active: false). Idempotent per build_id: calling it again returns the same agent. Not charged.
 
 The draft's data_mapping: existing contact fields / tags are wired into the agent (settings.context, handoff tags); proposed ones are created only when listed in confirmed_new_fields / confirmed_new_tags (definitions from the stored draft; fields get AI access fill_if_empty). Creating a field needs custom_fields:create, creating a tag tags:create (403 missing_scope; an existing match is reused without either).
 
@@ -290,7 +290,7 @@ Create Agent. `POST /automation/agents`
 
 Create a Conversational Agent (backing bot row + agent config, optional inline skills and knowledge sources) in one transaction.
 
-publish defaults to true (the agent is live as soon as it is created, unless is_active is false). Send publish: false to create an unpublished draft that only answers in the test console until POST /agents/{id}/publish. A caller without automation:publish always gets a publish: false agent paused (is_active: false).
+publish defaults to false: the agent starts as an unpublished draft that only answers in the test console until POST /agents/{id}/publish. Send publish: true to put it live on create (unless is_active is false). A caller without automation:publish always gets its (unpublished) agent paused (is_active: false).
 
 ```php
 $result = $sendseven->aiAgents()->create(name: 'name');

@@ -79,6 +79,7 @@ $result = $sendseven->emailIntegrations()->create(name: 'name', emailAddress: 'e
 | `$integrationType` | `CreatableEmailIntegrationType\|string` | yes | Type of integration (gmail, smtp_imap, sendgrid, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type. |
 | `$smtpConfig` | `array<string, mixed>\|null` | no |  |
 | `$imapConfig` | `array<string, mixed>\|null` | no |  |
+| `$adoptChannelId` | `?string` | no |  |
 | `$proxyForwardTo` | `?string` | no | Email to forward proxy emails to |
 | `$outboundMailboxId` | `?string` | no | ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies. |
 | `$outboundProviderId` | `?string` | no | DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending. |

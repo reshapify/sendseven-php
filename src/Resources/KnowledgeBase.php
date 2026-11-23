@@ -809,29 +809,43 @@ final readonly class KnowledgeBase
     /**
      * Get Review Queue.
      *
-     * The ordered KB review queue (one card at a time).
+     * The KB review queue: the guided card flow AND the "all open items" list.
      *
-     * Order: corrections (oldest first) → flagged entries (most flags first) → needs_review →
-     * drafts (oldest first) → failed documents (oldest first). Item ids are <type>:<uuid>.
-     * pagination.total == summary.total.
+     * sort=queue (default): corrections (oldest first) → conflict/enhancement candidates → flagged
+     * entries (most flags first) → needs_review → drafts (oldest first) → failed documents
+     * (oldest first). sort=newest|oldest orders every item by created_at. reason narrows to one
+     * reason. Item ids are <type>:<uuid>; each entry appears once. Without reason, pagination.total ==
+     * summary.total; with reason, it equals the matching summary number (corrections, failed_documents
+     * or breakdown.<reason>). page_size up to 200 so a list can show everything open in one call.
      *
      * Scopes: knowledge_base:read.
      *
+     * @param  ?string  $sort  queue = guided order (corrections, conflicts, flagged, needs_review, drafts, failed documents); newest / oldest = by created_at across all types
+     * @param  ?string  $reason  Only items with this reason. Overlapping like summary.breakdown: a flagged draft matches both flagged and draft
      * @return Page<ReviewQueueItem>
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_review_queue_api_v1_knowledge_base_review_queue_get
      */
-    public function getReviewQueue(?int $page = null, ?int $pageSize = null): Page
-    {
+    public function getReviewQueue(
+        ?int $page = null,
+        ?int $pageSize = null,
+        ?string $sort = null,
+        ?string $reason = null,
+    ): Page {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/knowledge-base/review-queue',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query([
+                'page' => $page,
+                'page_size' => $pageSize,
+                'sort' => $sort,
+                'reason' => $reason,
+            ]),
         ));
 
-        return Hydrate::page($response->data(), ReviewQueueItem::fromArray(...), fn (int $page): Page => $this->getReviewQueue(page: $page, pageSize: $pageSize));
+        return Hydrate::page($response->data(), ReviewQueueItem::fromArray(...), fn (int $page): Page => $this->getReviewQueue(page: $page, pageSize: $pageSize, sort: $sort, reason: $reason));
     }
 
     /**

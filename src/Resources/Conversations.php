@@ -182,9 +182,10 @@ final readonly class Conversations
      *
      * user_id is the workspace member to assign the conversations to; send null to unassign them. Each
      * conversation is changed exactly like PATCH /conversations/{conversation_id} with
-     * assigned_user_id: the new assignee is notified (not when you assign yourself) and the
-     * conversation.assigned webhook fires. Conversations already assigned to that member (or already
-     * unassigned) count as successful and are left unchanged.
+     * assigned_user_id: the new assignee is notified (not when you assign yourself), the
+     * conversation.assigned webhook fires (assign only) and one conversation.updated webhook fires per
+     * changed conversation (change assigned or unassigned, origin bulk). Conversations already
+     * assigned to that member (or already unassigned) count as successful and are left unchanged.
      *
      * Returns 400 when user_id is not an active member of this workspace. When members may not act on
      * each other's conversations, only admins and owners can reassign or unassign a conversation
@@ -332,7 +333,9 @@ final readonly class Conversations
      *
      * Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same
      * as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a
-     * conversation stay as they are; nothing is removed.
+     * conversation stay as they are; nothing is removed. Each conversation that gained at least one
+     * tag fires one conversation.updated webhook (change tag_added, all its new tags in tags_added,
+     * origin bulk).
      *
      * Returns 422 when a tag_ids entry is not a tag of this workspace. Conversations that do not exist
      * in this workspace or that you cannot access are returned in failed_ids.

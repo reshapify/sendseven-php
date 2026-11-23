@@ -19,6 +19,8 @@ final readonly class ContactOwnerInfo extends Data
     /**
      * @param  ?string  $availabilityState  on_shift | off_hours | absent | inactive
      * @param  ?string  $absentUntil  End of the owner's current out-of-office (UTC); null when not absent or absent until switched off
+     * @param  ?bool  $absentAllDay  The owner's current out-of-office is an all-day absence (whole days)
+     * @param  ?string  $absentEndDate  Inclusive last day of the owner's current all-day absence in their timezone; null when open-ended, timed or not absent
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -27,6 +29,8 @@ final readonly class ContactOwnerInfo extends Data
         public ?string $avatarUrl,
         public ?string $availabilityState,
         public ?string $absentUntil,
+        public ?bool $absentAllDay,
+        public ?string $absentEndDate,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -45,6 +49,8 @@ final readonly class ContactOwnerInfo extends Data
             avatarUrl: $attributes->nullableString('avatar_url'),
             availabilityState: $attributes->nullableString('availability_state'),
             absentUntil: $attributes->nullableString('absent_until'),
+            absentAllDay: $attributes->nullableBool('absent_all_day'),
+            absentEndDate: $attributes->nullableString('absent_end_date'),
             raw: $data,
         );
     }

@@ -2,7 +2,7 @@
 
 # API reference
 
-Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version 20261113.1448) with our verified corrections in `openapi/patches`.
+Every SendSeven endpoint (948), generated from SendSeven's OpenAPI spec (version 20261123.1015) with our verified corrections in `openapi/patches`.
 
 | Resource | Accessor | Endpoints |
 |---|---|---|
@@ -12,7 +12,7 @@ Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version
 | [API Tokens](api-tokens.md) | `$sendseven->apiTokens()` | 7 |
 | [Agent Suggestions](agent-suggestions.md) | `$sendseven->agentSuggestions()` | 4 |
 | [Alerts](alerts.md) | `$sendseven->alerts()` | 10 |
-| [Analytics](analytics.md) | `$sendseven->analytics()` | 15 |
+| [Analytics](analytics.md) | `$sendseven->analytics()` | 16 |
 | [Attachments](attachments.md) | `$sendseven->attachments()` | 8 |
 | [Audit Log](audit-log.md) | `$sendseven->auditLog()` | 1 |
 | [Automation](automation.md) | `$sendseven->automation()` | 33 |
@@ -45,7 +45,7 @@ Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version
 | [Email Settings](email-settings.md) | `$sendseven->emailSettings()` | 4 |
 | [Email Signatures](email-signatures.md) | `$sendseven->emailSignatures()` | 8 |
 | [Email Templates](email-templates.md) | `$sendseven->emailTemplates()` | 7 |
-| [FAQ Management](faq-management.md) | `$sendseven->faqManagement()` | 17 |
+| [FAQ Management](faq-management.md) | `$sendseven->faqManagement()` | 23 |
 | [FAQ Migration](faq-migration.md) | `$sendseven->faqMigration()` | 3 |
 | [Flows](flows.md) | `$sendseven->flows()` | 52 |
 | [HubSpot Integration](hubspot-integration.md) | `$sendseven->hubSpotIntegration()` | 15 |
@@ -65,6 +65,7 @@ Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version
 | [Notes](notes.md) | `$sendseven->notes()` | 7 |
 | [OAuth2 Apps](oauth2-apps.md) | `$sendseven->oAuth2Apps()` | 8 |
 | [RCS Wallet](rcs-wallet.md) | `$sendseven->rcsWallet()` | 2 |
+| [Reporting](reporting.md) | `$sendseven->reporting()` | 13 |
 | [Roles & Permissions](roles-permissions.md) | `$sendseven->rolesPermissions()` | 17 |
 | [SMS](sms.md) | `$sendseven->sms()` | 10 |
 | [Saved Interactive Messages](saved-interactive-messages.md) | `$sendseven->savedInteractiveMessages()` | 8 |
@@ -76,7 +77,7 @@ Every SendSeven endpoint (927), generated from SendSeven's OpenAPI spec (version
 | [Tenants](tenants.md) | `$sendseven->tenants()` | 16 |
 | [Unsubscribe](unsubscribe.md) | `$sendseven->unsubscribe()` | 2 |
 | [User Inbox Access](user-inbox-access.md) | `$sendseven->userInboxAccess()` | 5 |
-| [Users](users.md) | `$sendseven->users()` | 33 |
+| [Users](users.md) | `$sendseven->users()` | 34 |
 | [Webhooks](webhooks.md) | `$sendseven->webhooks()` | 11 |
 | [WhatsApp](whatsapp.md) | `$sendseven->whatsApp()` | 12 |
 | [WhatsApp Catalogue](whatsapp-catalogue.md) | `$sendseven->whatsAppCatalogue()` | 7 |

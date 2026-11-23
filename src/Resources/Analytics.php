@@ -22,6 +22,7 @@ use Reshapify\SendSeven\Data\ResolutionTimeMetrics;
 use Reshapify\SendSeven\Data\ResponseTimeMetrics;
 use Reshapify\SendSeven\Data\SubscriberOverview;
 use Reshapify\SendSeven\Data\SubscriberTrends;
+use Reshapify\SendSeven\Data\TeamWorkload;
 use Reshapify\SendSeven\Data\TimeMetricsOverTime;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
@@ -31,7 +32,7 @@ use Reshapify\SendSeven\Support\Hydrate;
 use Reshapify\SendSeven\Support\Payload;
 
 /**
- * Analytics: 15 endpoints.
+ * Analytics: 16 endpoints.
  *
  * Reach it with $sendseven->analytics().
  *
@@ -465,6 +466,35 @@ final readonly class Analytics
         ));
 
         return SubscriberTrends::fromArray($response->data());
+    }
+
+    /**
+     * Get Team Workload.
+     *
+     * Team workload: open, snoozed and closed conversations per person
+     *
+     * API keys and OAuth tokens also need reporting:read_agents (403 reporting_agents_scope_required
+     * otherwise).
+     *
+     * Backs the dashboard "Team Workload" card. Per person: - open: open (not snoozed) conversations
+     * assigned now - snoozed: snoozed conversations assigned now - closed_30d / closed_total:
+     * conversations this person closed or resolved in the last 30 days / in total (as far as retention
+     * keeps conversations)
+     *
+     * Scopes: analytics:read.
+     *
+     * @throws ApiException
+     *
+     * @see https://api.sendseven.com/api/v1/docs#/Analytics/get_team_workload_api_v1_analytics_team_workload_get
+     */
+    public function getTeamWorkload(): TeamWorkload
+    {
+        $response = $this->connector->send(new Request(
+            Method::Get,
+            '/analytics/team-workload',
+        ));
+
+        return TeamWorkload::fromArray($response->data());
     }
 
     /**

@@ -21,6 +21,11 @@ final readonly class AvailabilitySettings extends Data
      * @param  array<array-key, mixed>  $autoReplyAbsenceTranslations
      * @param  array<array-key, mixed>  $autoReplyOffHoursTranslations
      * @param  list<string>  $autoReplyExcludedChannelTypes
+     * @param  ?bool  $ignoreInAutoAssignment  Ignore in auto-routing: when true the member is never picked by automatic assignment (round robin, least busy, contact owner, substitutes, flows, bot hand-offs). Manual assignment is not affected.
+     * @param  ?string  $maxOpenConversationsMode  Max open conversations for automatic assignment: workspace_default (the workspace's max_open_conversations_per_user), unlimited, or custom (max_open_conversations).
+     * @param  ?int  $maxOpenConversations  The custom limit (1-10000); null unless max_open_conversations_mode is custom
+     * @param  ?int  $effectiveMaxOpenConversations  Read-only. The limit that applies now after the workspace default; null = unlimited
+     * @param  ?int  $openConversationsCount  Read-only. Open conversations assigned to the member that count against the limit (snoozed ones count again once they wake; resolved and closed never count)
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -37,6 +42,11 @@ final readonly class AvailabilitySettings extends Data
         public array $autoReplyOffHoursTranslations,
         public array $autoReplyExcludedChannelTypes,
         public ?SubstituteSpec $defaultSubstitute,
+        public ?bool $ignoreInAutoAssignment,
+        public ?string $maxOpenConversationsMode,
+        public ?int $maxOpenConversations,
+        public ?int $effectiveMaxOpenConversations,
+        public ?int $openConversationsCount,
         public AvailabilityStatus $status,
         public ?string $updatedAt,
         array $raw = [],
@@ -65,6 +75,11 @@ final readonly class AvailabilitySettings extends Data
             autoReplyOffHoursTranslations: $attributes->array('auto_reply_off_hours_translations'),
             autoReplyExcludedChannelTypes: $attributes->strings('auto_reply_excluded_channel_types'),
             defaultSubstitute: $attributes->nullableObject('default_substitute', SubstituteSpec::fromArray(...)),
+            ignoreInAutoAssignment: $attributes->nullableBool('ignore_in_auto_assignment'),
+            maxOpenConversationsMode: $attributes->nullableString('max_open_conversations_mode'),
+            maxOpenConversations: $attributes->nullableInt('max_open_conversations'),
+            effectiveMaxOpenConversations: $attributes->nullableInt('effective_max_open_conversations'),
+            openConversationsCount: $attributes->nullableInt('open_conversations_count'),
             status: $attributes->object('status', AvailabilityStatus::fromArray(...)),
             updatedAt: $attributes->nullableString('updated_at'),
             raw: $data,

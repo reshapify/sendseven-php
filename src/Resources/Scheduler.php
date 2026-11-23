@@ -407,7 +407,9 @@ final readonly class Scheduler
      * — in which case the row stays in scheduled and next_run_at advances per the rule.
      *
      * A pinned channel_id that cannot send right now is refused with 409 CHANNEL_DISCONNECTED
-     * (reconnect it) or CHANNEL_UNAVAILABLE (Meta blocked the WhatsApp account); nothing is scheduled.
+     * (reconnect it), CHANNEL_UNAVAILABLE (Meta banned or restricted the WhatsApp account) or
+     * CHANNEL_TEMPLATES_BLOCKED (Meta reports a payment or billing problem on the WhatsApp account;
+     * scheduled WhatsApp sends are templates); nothing is scheduled.
      *
      * Scopes: scheduler:write.
      *

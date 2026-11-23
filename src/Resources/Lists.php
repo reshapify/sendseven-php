@@ -38,8 +38,9 @@ final readonly class Lists
      *
      * List all lists for the tenant with pagination.
      *
-     * Returns paginated list of all static, dynamic, and newsletter lists. Each list includes its
-     * computed contact count (for email subscriptions).
+     * Returns paginated list of all static, dynamic, and newsletter lists. Optional search filters by
+     * list name (case-insensitive substring, %/_ matched literally); pagination.total counts only
+     * matches. Each list includes its computed contact count (for email subscriptions).
      *
      * Any authenticated team member can list contact lists (used for app initialization).
      * segment_conditions (dynamic-list rules, which can name custom fields and values) is returned
@@ -48,21 +49,22 @@ final readonly class Lists
      *
      * @param  ?int  $page  Page number (1-indexed)
      * @param  ?int  $pageSize  Items per page
+     * @param  ?string  $search  Case-insensitive substring match on the list name. Empty or whitespace-only means no filter.
      * @return Page<ListResponse>
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Lists/list_lists_api_v1_lists_get
      */
-    public function listLists(?int $page = null, ?int $pageSize = null): Page
+    public function listLists(?int $page = null, ?int $pageSize = null, ?string $search = null): Page
     {
         $response = $this->connector->send(new Request(
             Method::Get,
             '/lists',
-            query: Payload::query(['page' => $page, 'page_size' => $pageSize]),
+            query: Payload::query(['page' => $page, 'page_size' => $pageSize, 'search' => $search]),
         ));
 
-        return Hydrate::page($response->data(), ListResponse::fromArray(...), fn (int $page): Page => $this->listLists(page: $page, pageSize: $pageSize));
+        return Hydrate::page($response->data(), ListResponse::fromArray(...), fn (int $page): Page => $this->listLists(page: $page, pageSize: $pageSize, search: $search));
     }
 
     /**

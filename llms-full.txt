@@ -873,7 +873,7 @@ Returns `TrialAiGenerationQuota`. [SendSeven reference](https://api.sendseven.co
 
 Create Agent From Build. `POST /automation/agent-builder/create`
 
-Create the reviewed agent from a successful build: its skills (version 1), the agent (INACTIVE — test it, then activate), knowledge sources and the channel activation rule, in one transaction. Idempotent per build_id: calling it again returns the same agent. Not charged.
+Create the reviewed agent from a successful build: its skills (version 1), the agent, knowledge sources and the channel activation rule, in one transaction. The agent is created as an unpublished draft that is switched on (is_active: true, publish_state: "draft"): it answers only in the test console and goes live when the user publishes it (POST /automation/agents/{id}/publish, needs automation:publish). A caller without automation:publish gets the draft paused (is_active: false). Idempotent per build_id: calling it again returns the same agent. Not charged.
 
 The draft's data_mapping: existing contact fields / tags are wired into the agent (settings.context, handoff tags); proposed ones are created only when listed in confirmed_new_fields / confirmed_new_tags (definitions from the stored draft; fields get AI access fill_if_empty). Creating a field needs custom_fields:create, creating a tag tags:create (403 missing_scope; an existing match is reused without either).
 
@@ -1061,7 +1061,7 @@ Create Agent. `POST /automation/agents`
 
 Create a Conversational Agent (backing bot row + agent config, optional inline skills and knowledge sources) in one transaction.
 
-publish defaults to true (the agent is live as soon as it is created, unless is_active is false). Send publish: false to create an unpublished draft that only answers in the test console until POST /agents/{id}/publish. A caller without automation:publish always gets a publish: false agent paused (is_active: false).
+publish defaults to false: the agent starts as an unpublished draft that only answers in the test console until POST /agents/{id}/publish. Send publish: true to put it live on create (unless is_active is false). A caller without automation:publish always gets its (unpublished) agent paused (is_active: false).
 
 ```php
 $result = $sendseven->aiAgents()->create(name: 'name');
@@ -2329,7 +2329,9 @@ $result = $sendseven->apiTokens()->create(name: 'name', scopes: []);
 |---|---|---|---|
 | `$name` | `string` | yes | Human-readable name for this token |
 | `$scopes` | `list<string>` | yes | Scopes granted to this token (must be subset of user's scopes) |
-| `$expiresInDays` | `?int` | no | Token expiration in days (default: 90) |
+| `$expiresInDays` | `?int` | no | Token lifetime in days from now (minimum 1, no maximum) |
+| `$expiresAt` | `DateTimeInterface\|string\|null` | no | Exact expiry instant (ISO-8601, must be in the future; a value without a timezone offset is read as UTC) |
+| `$neverExpires` | `?bool` | no | Set to true for a token that never expires |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ApiTokenCreated`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/API%20Tokens/create_api_token_api_v1_api_tokens_post)
@@ -2394,9 +2396,9 @@ Returns `ApiToken`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#
 
 Update Api Token. `PATCH /api-tokens/{token_id}`
 
-Update API token metadata.
+Update an API token's name, active state or expiry.
 
-Can update: - name: Change the human-readable name - is_active: Revoke (false) or reactivate (true) the token
+Can update: - name: Change the human-readable name - is_active: Revoke (false) or reactivate (true) the token - expiry: set at most ONE of expires_in_days (>= 1, no maximum), expires_at (any future ISO-8601 instant; no offset = UTC) or never_expires: true. More than one, or a past expires_at, returns 422. None sent = expiry unchanged. Also works on an expired token to give it a new future expiry. The new expiry takes effect immediately.
 
 ```php
 $result = $sendseven->apiTokens()->update(tokenId: 'token_id');
@@ -2407,6 +2409,9 @@ $result = $sendseven->apiTokens()->update(tokenId: 'token_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$tokenId` | `string` | yes |  |
+| `$expiresInDays` | `?int` | no | Token lifetime in days from now (minimum 1, no maximum) |
+| `$expiresAt` | `DateTimeInterface\|string\|null` | no | Exact expiry instant (ISO-8601, must be in the future; a value without a timezone offset is read as UTC) |
+| `$neverExpires` | `?bool` | no | Set to true for a token that never expires |
 | `$name` | `?string` | no | Human-readable name for this token |
 | `$isActive` | `?bool` | no | Set to false to revoke token, true to reactivate |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
@@ -2419,7 +2424,7 @@ Regenerate Api Token. `POST /api-tokens/{token_id}/regenerate`
 
 Regenerate an API token (new token string, same scopes).
 
-This creates a new token string while keeping the same: - Name - Scopes - Expiration date
+This creates a new token string while keeping the same: - Name - Scopes
 
 ```php
 $result = $sendseven->apiTokens()->regenerate(tokenId: 'token_id');
@@ -2430,6 +2435,7 @@ $result = $sendseven->apiTokens()->regenerate(tokenId: 'token_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$tokenId` | `string` | yes |  |
+| `$body` | `array<string, mixed>\|null` | no | The request body |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ApiTokenCreated`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/API%20Tokens/regenerate_api_token_api_v1_api_tokens__token_id__regenerate_post)
@@ -2753,7 +2759,7 @@ Returns `Page<AlertEvent>`. [SendSeven reference](https://api.sendseven.com/api/
 
 # Analytics
 
-`$sendseven->analytics()` — 15 endpoints.
+`$sendseven->analytics()` — 16 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -2771,6 +2777,7 @@ Returns `Page<AlertEvent>`. [SendSeven reference](https://api.sendseven.com/api/
 | [`getResponseTimeMetrics()`](#getresponsetimemetrics) | `GET /analytics/response-time` | Get Response Time Metrics |
 | [`getSubscriberOverview()`](#getsubscriberoverview) | `GET /analytics/subscribers/overview` | Get Subscriber Overview |
 | [`getSubscriberTrends()`](#getsubscribertrends) | `GET /analytics/subscribers/trends` | Get Subscriber Trends |
+| [`getTeamWorkload()`](#getteamworkload) | `GET /analytics/team-workload` | Get Team Workload |
 | [`getTimeMetricsOverTime()`](#gettimemetricsovertime) | `GET /analytics/time-metrics` | Get Time Metrics Over Time |
 
 ## getAgentPerformance
@@ -3059,6 +3066,22 @@ $result = $sendseven->analytics()->getSubscriberTrends();
 | `$days` | `?int` | no | Number of days to look back |
 
 Returns `SubscriberTrends`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Analytics/get_subscriber_trends_api_v1_analytics_subscribers_trends_get)
+
+## getTeamWorkload
+
+Get Team Workload. `GET /analytics/team-workload`
+
+Team workload: open, snoozed and closed conversations per person
+
+API keys and OAuth tokens also need reporting:read_agents (403 reporting_agents_scope_required otherwise).
+
+```php
+$result = $sendseven->analytics()->getTeamWorkload();
+```
+
+- Scopes: `analytics:read`
+
+Returns `TeamWorkload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Analytics/get_team_workload_api_v1_analytics_team_workload_get)
 
 ## getTimeMetricsOverTime
 
@@ -5352,7 +5375,7 @@ List Channels. `GET /channels`
 
 List all active (non-archived) channels for the tenant.
 
-Any authenticated team member can list channels (used for app initialization).
+Import placeholders (channels created by a data import to hold imported history, is_import_placeholder=true, connection_state=not_connected) are listed too, so they can be shown as "Not connected".
 
 ```php
 $result = $sendseven->channels()->list();
@@ -5387,6 +5410,7 @@ $result = $sendseven->channels()->create(channelType: 'channel_type', name: 'nam
 | `$name` | `string` | yes |  |
 | `$identifier` | `string` | yes |  |
 | `$config` | `array<string, mixed>\|null` | no |  |
+| `$adoptChannelId` | `?string` | no | Connect INTO this not-connected channel (imported history) of the same type instead of creating a new one. 422 invalid_adopt_channel when it is not one; 409 channel_identifier_taken when the identifier already belongs to another channel. |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Channel`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/create_channel_api_v1_channels_post)
@@ -5508,6 +5532,7 @@ $result = $sendseven->channels()->delete(channelId: 'channel_id');
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
+| `$confirm` | `?bool` | no | Required (true) to delete an import placeholder that holds imported conversations; without it the call answers 409 channel_has_imported_history. |
 
 Returns `Archive`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/delete_channel_api_v1_channels__channel_id__delete)
 
@@ -5516,6 +5541,8 @@ Returns `Archive`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/
 Get Channel. `GET /channels/{channel_id}`
 
 Get a specific channel
+
+For an import placeholder (is_import_placeholder=true) the response also carries imported_conversation_count.
 
 ```php
 $result = $sendseven->channels()->get(channelId: 'channel_id');
@@ -8129,7 +8156,7 @@ Bulk Assign Conversations. `POST /conversations/bulk-assign`
 
 Assign or unassign up to 100 conversations at once
 
-user_id is the workspace member to assign the conversations to; send null to unassign them. Each conversation is changed exactly like PATCH /conversations/{conversation_id} with assigned_user_id: the new assignee is notified (not when you assign yourself) and the conversation.assigned webhook fires. Conversations already assigned to that member (or already unassigned) count as successful and are left unchanged.
+user_id is the workspace member to assign the conversations to; send null to unassign them. Each conversation is changed exactly like PATCH /conversations/{conversation_id} with assigned_user_id: the new assignee is notified (not when you assign yourself), the conversation.assigned webhook fires (assign only) and one conversation.updated webhook fires per changed conversation (change assigned or unassigned, origin bulk). Conversations already assigned to that member (or already unassigned) count as successful and are left unchanged.
 
 ```php
 $result = $sendseven->conversations()->bulkAssign(conversationIds: [], userId: 'user_id');
@@ -8216,7 +8243,7 @@ Bulk Tag Conversations. `POST /conversations/bulk-tag`
 
 Add tags to up to 100 conversations at once
 
-Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a conversation stay as they are; nothing is removed.
+Adds every tag in tag_ids (1 to 20) to every conversation. These are conversation tags, the same as POST /conversations/{conversation_id}/tags/{tag_id} (not contact tags). Tags already on a conversation stay as they are; nothing is removed. Each conversation that gained at least one tag fires one conversation.updated webhook (change tag_added, all its new tags in tags_added, origin bulk).
 
 ```php
 $result = $sendseven->conversations()->bulkTag(conversationIds: [], tagIds: []);
@@ -10995,6 +11022,7 @@ $result = $sendseven->emailIntegrations()->create(name: 'name', emailAddress: 'e
 | `$integrationType` | `CreatableEmailIntegrationType\|string` | yes | Type of integration (gmail, smtp_imap, sendgrid, proxy). Mailgun is a BYOK email provider configured via the email-providers flow, not an integration type. |
 | `$smtpConfig` | `array<string, mixed>\|null` | no |  |
 | `$imapConfig` | `array<string, mixed>\|null` | no |  |
+| `$adoptChannelId` | `?string` | no |  |
 | `$proxyForwardTo` | `?string` | no | Email to forward proxy emails to |
 | `$outboundMailboxId` | `?string` | no | ID of the EmailMailbox used to send proxy replies (must belong to the tenant and have can_send_support=True). This is the user-facing outbound selector for proxies. |
 | `$outboundProviderId` | `?string` | no | DEPRECATED: dormant/backward-compat only. Use outbound_mailbox_id for proxy outbound. No longer used to drive proxy sending. |
@@ -12495,13 +12523,14 @@ Returns `EmailLayoutTemplate`. [SendSeven reference](https://api.sendseven.com/a
 
 # FAQ Management
 
-`$sendseven->faqManagement()` — 17 endpoints.
+`$sendseven->faqManagement()` — 23 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
 | [`listEntries()`](#listentries) | `GET /knowledge-base/faq-entries` | List Faq Entries |
 | [`getDuplicateClusters()`](#getduplicateclusters) | `GET /knowledge-base/faq-entries/duplicate-clusters` | Get Duplicate Clusters |
 | [`mergeEntries()`](#mergeentries) | `POST /knowledge-base/faq-entries/merge` | Merge Faq Entries |
+| [`resolveEntryRelation()`](#resolveentryrelation) | `POST /knowledge-base/faq-entries/{candidate_id}/relations/{relation_id}/resolve` | Resolve Faq Entry Relation |
 | [`resolveEntryFlags()`](#resolveentryflags) | `POST /knowledge-base/faq-entries/{entry_id}/resolve-flags` | Resolve Faq Entry Flags |
 | [`listItems()`](#listitems) | `GET /knowledge-base/faq-items` | List Faq Items |
 | [`createItem()`](#createitem) | `POST /knowledge-base/faq-items` | Create Faq Item |
@@ -12510,6 +12539,11 @@ Returns `EmailLayoutTemplate`. [SendSeven reference](https://api.sendseven.com/a
 | [`deleteItem()`](#deleteitem) | `DELETE /knowledge-base/faq-items/{item_id}` | Delete Faq Item |
 | [`getItem()`](#getitem) | `GET /knowledge-base/faq-items/{item_id}` | Get Faq Item |
 | [`updateItem()`](#updateitem) | `PUT /knowledge-base/faq-items/{item_id}` | Update Faq Item |
+| [`listLearningRuns()`](#listlearningruns) | `GET /knowledge-base/learning-runs` | List Learning Runs |
+| [`createLearningRun()`](#createlearningrun) | `POST /knowledge-base/learning-runs` | Create Learning Run |
+| [`estimateLearningRun()`](#estimatelearningrun) | `POST /knowledge-base/learning-runs/estimate` | Estimate Learning Run |
+| [`getLearningRun()`](#getlearningrun) | `GET /knowledge-base/learning-runs/{run_id}` | Get Learning Run |
+| [`cancelLearningRun()`](#cancellearningrun) | `POST /knowledge-base/learning-runs/{run_id}/cancel` | Cancel Learning Run |
 | [`listManaged()`](#listmanaged) | `GET /knowledge-base/managed-faqs` | List Managed Faqs |
 | [`createManaged()`](#createmanaged) | `POST /knowledge-base/managed-faqs` | Create Managed Faq |
 | [`deleteManaged()`](#deletemanaged) | `DELETE /knowledge-base/managed-faqs/{document_id}` | Delete Managed Faq |
@@ -12537,6 +12571,7 @@ $result = $sendseven->faqManagement()->listEntries();
 | `$documentId` | `?string` | no | Restrict to one compiled parent document |
 | `$status` | `?string` | no | draft \| published \| needs_review \| archived. Accepts a comma-separated list (e.g. 'draft,needs_review') for a UNION. |
 | `$origin` | `?string` | no | manual \| auto_conversation \| migrated \| correction |
+| `$learningRunId` | `?string` | no | Only entries created or merged by this learning run |
 | `$language` | `?string` | no | Filter by language tag |
 | `$search` | `?string` | no | Substring match on question/answer |
 | `$flaggedOnly` | `?bool` | no | Only entries with flagged_count > 0 |
@@ -12592,6 +12627,33 @@ $sendseven->faqManagement()->mergeEntries(winnerId: 'winner_id', loserIds: []);
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/merge_faq_entries_api_v1_knowledge_base_faq_entries_merge_post)
+
+## resolveEntryRelation
+
+Resolve Faq Entry Relation. `POST /knowledge-base/faq-entries/{candidate_id}/relations/{relation_id}/resolve`
+
+Resolve a conflict / enhancement / duplicate relation from KB review.
+
+A generated draft (the candidate) can carry relations to existing entries it contradicts, extends or duplicates (entry_context.relations in GET /knowledge-base/review-queue). Actions:
+
+```php
+$sendseven->faqManagement()->resolveEntryRelation(candidateId: 'candidate_id', relationId: 'relation_id', action: 'action');
+```
+
+- Scopes: `knowledge_base:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$candidateId` | `string` | yes |  |
+| `$relationId` | `string` | yes |  |
+| `$action` | `string` | yes |  |
+| `$question` | `?string` | no | apply_to_existing only: question to write (default: proposed_question, else keep) |
+| `$answer` | `?string` | no | apply_to_existing only: answer to write (default: proposed_answer, else the candidate's) |
+| `$expectedExistingQuestion` | `?string` | no | apply_to_existing only: the existing entry's question as you showed it. If the entry changed since, 409 existing_entry_changed and nothing is written. |
+| `$expectedExistingAnswer` | `?string` | no | apply_to_existing only: the existing entry's answer as you showed it. If the entry changed since, 409 existing_entry_changed and nothing is written. |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/resolve_faq_entry_relation_api_v1_knowledge_base_faq_entries__candidate_id__relations__relation_id__resolve_post)
 
 ## resolveEntryFlags
 
@@ -12765,6 +12827,116 @@ $result = $sendseven->faqManagement()->updateItem(itemId: 'item_id');
 | `$reviewNotes` | `?string` | no | Why the entry needs review / what to check |
 
 Returns `FaqItem`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/update_faq_item_api_v1_knowledge_base_faq_items__item_id__put)
+
+## listLearningRuns
+
+List Learning Runs. `GET /knowledge-base/learning-runs`
+
+Learning runs of this workspace, newest first.
+
+can_start (top level, next to items): true only when the caller is a workspace owner or admin and may start, estimate or cancel runs; false on any error.
+
+```php
+$sendseven->faqManagement()->listLearningRuns();
+```
+
+- Scopes: `knowledge_base:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/list_learning_runs_api_v1_knowledge_base_learning_runs_get)
+
+## createLearningRun
+
+Create Learning Run. `POST /knowledge-base/learning-runs`
+
+Start learning FAQ entries from past CLOSED conversations: the last N closed conversations (scope_mode=last_n, 1..10000) or every conversation closed since a date (scope_mode=since_date, YYYY-MM-DD, UTC), optionally only from some channels. Runs in the background; poll GET /learning-runs/{id} for progress, cancel any time.
+
+Every Q&A pair is checked for personal data (removed, or the pair is dropped), merged with existing entries when it is the same question, and saved as a DRAFT entry for review. Nothing is used in answers until it is published. AI usage is billed like any other AI use.
+
+```php
+$sendseven->faqManagement()->createLearningRun(scopeMode: 'scope_mode');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scopeMode` | `string` | yes | last_n or since_date |
+| `$lastN` | `?int` | no | 1..10000, for last_n |
+| `$sinceDate` | `?string` | no | YYYY-MM-DD (start of day, UTC), for since_date |
+| `$channelIds` | `list<string>\|null` | no | Only conversations from these channels (max 100) |
+| `$kbFolderId` | `?string` | no | Folder for new entries (default: the FAQ entries folder) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/create_learning_run_api_v1_knowledge_base_learning_runs_post)
+
+## estimateLearningRun
+
+Estimate Learning Run. `POST /knowledge-base/learning-runs/estimate`
+
+Count the closed conversations a learning run with this scope would read. Read-only: no AI call, nothing written, nothing billed.
+
+Workspace owners and admins only: anyone else gets 403 learning_run_owner_admin_only.
+
+```php
+$sendseven->faqManagement()->estimateLearningRun(scopeMode: 'scope_mode');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scopeMode` | `string` | yes | last_n or since_date |
+| `$lastN` | `?int` | no | 1..10000, for last_n |
+| `$sinceDate` | `?string` | no | YYYY-MM-DD (start of day, UTC), for since_date |
+| `$channelIds` | `list<string>\|null` | no | Only conversations from these channels (max 100) |
+| `$kbFolderId` | `?string` | no | Folder for new entries (default: the FAQ entries folder) |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/estimate_learning_run_api_v1_knowledge_base_learning_runs_estimate_post)
+
+## getLearningRun
+
+Get Learning Run. `GET /knowledge-base/learning-runs/{run_id}`
+
+One learning run with its progress counters. Poll this while it runs.
+
+```php
+$sendseven->faqManagement()->getLearningRun(runId: 'run_id');
+```
+
+- Scopes: `knowledge_base:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$runId` | `string` | yes |  |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/get_learning_run_api_v1_knowledge_base_learning_runs__run_id__get)
+
+## cancelLearningRun
+
+Cancel Learning Run. `POST /knowledge-base/learning-runs/{run_id}/cancel`
+
+Cancel a learning run. A queued run stops at once; a running run stops after the conversation it is working on. Entries already created stay in review. Cancelling a finished run changes nothing.
+
+Workspace owners and admins only: anyone else gets 403 learning_run_owner_admin_only.
+
+```php
+$sendseven->faqManagement()->cancelLearningRun(runId: 'run_id');
+```
+
+- Scopes: `knowledge_base:manage`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$runId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/FAQ%20Management/cancel_learning_run_api_v1_knowledge_base_learning_runs__run_id__cancel_post)
 
 ## listManaged
 
@@ -13100,6 +13272,7 @@ $result = $sendseven->flows()->create(name: 'name', definition: []);
 | `$defaultChannelChain` | `list<array<string, mixed>>\|null` | no | Flow-level channel fallback chain — May 2026 this is the SINGLE source of truth for channel order (per-node channel_chain has been removed; node configs only carry content). Bare channel-type strings (["whatsapp", "live_chat"]) OR {channel_type, channel_id?} objects pinning a specific Channel row. When omitted / NULL on create, the server seeds from the tenant's active channels in a sensible order. A flow with any send/choice/collect_input node MUST have a non-empty chain to validate. |
 | `$stopOnAgentReply` | `?bool` | no | When True (the default), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Bot replies and flow-Send messages do NOT trip the hook — only operator-authored outbound messages do. Set to False for long-running drips whose cadence should be independent of agent activity. |
 | `$agentWhileRunning` | `?string` | no | What a conversational AI agent does in a conversation while a run of this flow is active there. inherit (default) uses the agent's own flow_running_behavior; pause keeps the agent silent until the run ends; stop turns the agent off for that conversation when the run starts; keep lets the agent keep answering. The message that started the run is never answered by the agent in any mode. Omitted or null on create = inherit. |
+| `$agentReplyToTrigger` | `?string` | no | Whether a conversational AI agent may answer the inbound message that started a run of this flow. auto: the agent replies only if the flow does not handle the message itself before it first waits (no message sent, no reply wait, no Run agent step, no Start flow step); always: the agent always replies; never: the agent never replies to that message. An agent_reply_allow / agent_reply_silence node reached before the flow first waits overrides this setting. Flows created before this setting existed read as never; new flows default to auto. Independent of agent_while_running, which governs later messages (a stop there still turns the agent off). Omitted or null on create = auto. |
 | `$stopOnConversationClosed` | `?bool` | no | When True (the default), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Only runs whose recorded context.conversation_id matches the closed conversation are canceled — flows without a recorded conversation are left untouched. Set to False for long-running re-engagement drips that intentionally outlive the original conversation. |
 | `$priority` | `?int` | no | Trigger-arbitration priority among INBOUND-EVENT-triggered (entry) flows. LOWER = higher priority (evaluated FIRST). When multiple entry flows match the same inbound event they start in ascending-priority order. Default 0. Background flows (manual/api_event/schedule) ignore this field. |
 | `$exclusive` | `?bool` | no | When True, while a run of this entry-triggered flow is actively running on a conversation, NO other entry-triggered flow may start on that conversation (background manual/api/schedule flows are exempt). Default False preserves today's fire-all behaviour. |
@@ -13362,6 +13535,7 @@ $result = $sendseven->flows()->update(flowId: 'flow_id');
 | `$defaultChannelChain` | `list<array<string, mixed>>\|null` | no | Flow-level fallback channel chain — see CreateFlowRequest. Omitting this field on PATCH preserves the existing value; send an explicit empty list to clear it back to "no default" (stored as the empty list, not NULL, when explicitly cleared). |
 | `$stopOnAgentReply` | `?bool` | no | When True (the default for new flows), the flow engine terminates any active run for the contact + conversation the moment a human agent sends an outbound message. Omit on PATCH to preserve the current setting. |
 | `$agentWhileRunning` | `?string` | no | What a conversational AI agent does in a conversation while a run of this flow is active there. inherit (default) uses the agent's own flow_running_behavior; pause keeps the agent silent until the run ends; stop turns the agent off for that conversation when the run starts; keep lets the agent keep answering. The message that started the run is never answered by the agent in any mode. Omit on PATCH to preserve the current setting; inherit (or an explicit null) resets it to the agent's setting. |
+| `$agentReplyToTrigger` | `?string` | no | Whether a conversational AI agent may answer the inbound message that started a run of this flow. auto: the agent replies only if the flow does not handle the message itself before it first waits (no message sent, no reply wait, no Run agent step, no Start flow step); always: the agent always replies; never: the agent never replies to that message. An agent_reply_allow / agent_reply_silence node reached before the flow first waits overrides this setting. Flows created before this setting existed read as never; new flows default to auto. Independent of agent_while_running, which governs later messages (a stop there still turns the agent off). Omit on PATCH to preserve the current setting. |
 | `$stopOnConversationClosed` | `?bool` | no | When True (the default for new flows), the flow engine terminates any active run scoped to the conversation the moment that conversation is closed. Omit on PATCH to preserve the current setting. |
 | `$priority` | `?int` | no | Trigger-arbitration priority among entry flows (LOWER = higher priority, evaluated first). Omit on PATCH to preserve the current value. The bulk reorder endpoint writes this field. |
 | `$exclusive` | `?bool` | no | When True, a running run of this entry flow blocks all OTHER entry flows from starting on the same conversation. Omit on PATCH to preserve the current value. |
@@ -15714,9 +15888,9 @@ Returns `JobStatus`. [SendSeven reference](https://api.sendseven.com/api/v1/docs
 
 Get Review Queue. `GET /knowledge-base/review-queue`
 
-The ordered KB review queue (one card at a time).
+The KB review queue: the guided card flow AND the "all open items" list.
 
-Order: corrections (oldest first) → flagged entries (most flags first) → needs_review → drafts (oldest first) → failed documents (oldest first). Item ids are <type>:<uuid>. pagination.total == summary.total.
+sort=queue (default): corrections (oldest first) → conflict/enhancement candidates → flagged entries (most flags first) → needs_review → drafts (oldest first) → failed documents (oldest first). sort=newest|oldest orders every item by created_at. reason narrows to one reason. Item ids are <type>:<uuid>; each entry appears once. Without reason, pagination.total == summary.total; with reason, it equals the matching summary number (corrections, failed_documents or breakdown.<reason>). page_size up to 200 so a list can show everything open in one call.
 
 ```php
 $result = $sendseven->knowledgeBase()->getReviewQueue();
@@ -15728,6 +15902,8 @@ $result = $sendseven->knowledgeBase()->getReviewQueue();
 |---|---|---|---|
 | `$page` | `?int` | no |  |
 | `$pageSize` | `?int` | no |  |
+| `$sort` | `?string` | no | queue = guided order (corrections, conflicts, flagged, needs_review, drafts, failed documents); newest / oldest = by created_at across all types |
+| `$reason` | `?string` | no | Only items with this reason. Overlapping like summary.breakdown: a flagged draft matches both flagged and draft |
 
 Returns `Page<ReviewQueueItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/get_review_queue_api_v1_knowledge_base_review_queue_get)
 
@@ -16197,7 +16373,7 @@ List Lists. `GET /lists`
 
 List all lists for the tenant with pagination.
 
-Returns paginated list of all static, dynamic, and newsletter lists. Each list includes its computed contact count (for email subscriptions).
+Returns paginated list of all static, dynamic, and newsletter lists. Optional search filters by list name (case-insensitive substring, %/_ matched literally); pagination.total counts only matches. Each list includes its computed contact count (for email subscriptions).
 
 ```php
 $result = $sendseven->lists()->listLists();
@@ -16207,6 +16383,7 @@ $result = $sendseven->lists()->listLists();
 |---|---|---|---|
 | `$page` | `?int` | no | Page number (1-indexed) |
 | `$pageSize` | `?int` | no | Items per page |
+| `$search` | `?string` | no | Case-insensitive substring match on the list name. Empty or whitespace-only means no filter. |
 
 Returns `Page<ListResponse>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Lists/list_lists_api_v1_lists_get)
 
@@ -17550,6 +17727,329 @@ $result = $sendseven->rcsWallet()->getPrices();
 - Not in SendSeven's spec; verified: docs.sendseven.com/guides/billing/rcs-wallet (1 Oct 2026)
 
 Returns `RcsPrices`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/RCS%20Wallet/get_rcs_prices_api_v1_billing_rcs_wallet_prices_get)
+
+---
+
+<!-- docs/reference/reporting.md -->
+
+# Reporting
+
+`$sendseven->reporting()` — 13 endpoints.
+
+| Method | HTTP | Summary |
+|---|---|---|
+| [`getAiReport()`](#getaireport) | `GET /reporting/ai` | Get Ai Report |
+| [`listAudit()`](#listaudit) | `GET /reporting/audit` | List Reporting Audit |
+| [`getCustomerServiceReport()`](#getcustomerservicereport) | `GET /reporting/customer-service` | Get Customer Service Report |
+| [`getMeta()`](#getmeta) | `GET /reporting/meta` | Get Reporting Meta |
+| [`listReportSchedules()`](#listreportschedules) | `GET /reporting/schedules` | List Report Schedules |
+| [`createReportSchedule()`](#createreportschedule) | `POST /reporting/schedules` | Create Report Schedule |
+| [`deleteReportSchedule()`](#deletereportschedule) | `DELETE /reporting/schedules/{schedule_id}` | Delete Report Schedule |
+| [`getReportSchedule()`](#getreportschedule) | `GET /reporting/schedules/{schedule_id}` | Get Report Schedule |
+| [`updateReportSchedule()`](#updatereportschedule) | `PATCH /reporting/schedules/{schedule_id}` | Update Report Schedule |
+| [`testReportSchedule()`](#testreportschedule) | `POST /reporting/schedules/{schedule_id}/test` | Test Report Schedule |
+| [`updateSettings()`](#updatesettings) | `PATCH /reporting/settings` | Update Reporting Settings |
+| [`getTeamReport()`](#getteamreport) | `GET /reporting/team` | Get Team Report |
+| [`exportReport()`](#exportreport) | `POST /reporting/{report}/export` | Export Report |
+
+## getAiReport
+
+Get Ai Report. `GET /reporting/ai`
+
+AI report for a timeframe
+
+plan with AI features.
+
+```php
+$result = $sendseven->reporting()->getAiReport();
+```
+
+- Scopes: `analytics:read`, `billing:read`, `cost`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$compare` | `?string` | no | previous_period (default): add comparison with the same number of days directly before. none: skip it |
+| `$preset` | `?string` | no | today \| yesterday \| last_7d \| last_30d \| last_90d \| this_month \| previous_month \| custom. Default last_30d (custom when only from/to are given). |
+| `$from` | `?string` | no | First day, YYYY-MM-DD (custom only, inclusive) |
+| `$to` | `?string` | no | Last day, YYYY-MM-DD (custom only, inclusive). At most 366 days. |
+| `$tz` | `?string` | no | IANA timezone for day boundaries. Default: the workspace timezone. |
+
+Returns `AiReport`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/get_ai_report_api_v1_reporting_ai_get)
+
+## listAudit
+
+List Reporting Audit. `GET /reporting/audit`
+
+Reporting audit log (newest first)
+
+conversations.
+
+```php
+$result = $sendseven->reporting()->listAudit();
+```
+
+- Scopes: `reporting:read_agents`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+| `$action` | `?string` | no | Filter by action, e.g. reporting.exported |
+
+Returns `Page<AuditItem>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/list_reporting_audit_api_v1_reporting_audit_get)
+
+## getCustomerServiceReport
+
+Get Customer Service Report. `GET /reporting/customer-service`
+
+Customer service report for a timeframe
+
+Team-level figures only: volume (conversations opened / closed, messages received / sent, with a series per hour for one day or per day), messages by channel, first response and resolution times (average, median, 90th percentile), the backlog right now (same numbers and visibility as the dashboard), opened conversations by weekday and hour, conversations by tag (top 20), bot handover rate and team capacity right now. Any block may be null when it could not be computed.
+
+```php
+$result = $sendseven->reporting()->getCustomerServiceReport();
+```
+
+- Scopes: `analytics:read`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$compare` | `?string` | no | previous_period (default): add comparison with the same number of days directly before. none: skip it |
+| `$preset` | `?string` | no | today \| yesterday \| last_7d \| last_30d \| last_90d \| this_month \| previous_month \| custom. Default last_30d (custom when only from/to are given). |
+| `$from` | `?string` | no | First day, YYYY-MM-DD (custom only, inclusive) |
+| `$to` | `?string` | no | Last day, YYYY-MM-DD (custom only, inclusive). At most 366 days. |
+| `$tz` | `?string` | no | IANA timezone for day boundaries. Default: the workspace timezone. |
+
+Returns `CustomerServiceReport`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/get_customer_service_report_api_v1_reporting_customer_service_get)
+
+## getMeta
+
+Get Reporting Meta. `GET /reporting/meta`
+
+What the caller may see in Reporting
+
+Not plan-gated, so a client can show Reporting as locked when the plan lacks it (features.conversations false). can_view_agents = the caller holds reporting:read_agents and the workspace shows the Team tab. timezone is the workspace timezone used for day boundaries by default.
+
+```php
+$result = $sendseven->reporting()->getMeta();
+```
+
+- Scopes: `analytics:read`
+
+Returns `ReportingMeta`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/get_reporting_meta_api_v1_reporting_meta_get)
+
+## listReportSchedules
+
+List Report Schedules. `GET /reporting/schedules`
+
+List scheduled report emails
+
+conversations.
+
+```php
+$result = $sendseven->reporting()->listReportSchedules();
+```
+
+- Scopes: `reporting:schedule`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$page` | `?int` | no |  |
+| `$pageSize` | `?int` | no |  |
+
+Returns `Page<ScheduleOut>`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/list_report_schedules_api_v1_reporting_schedules_get)
+
+## createReportSchedule
+
+Create Report Schedule. `POST /reporting/schedules`
+
+Create a scheduled report email
+
+conversations. Signed-in people only (API keys and apps get 403 schedule_owner_required): the creator owns the schedule.
+
+```php
+$result = $sendseven->reporting()->createReportSchedule(name: 'name', reports: [], frequency: 'frequency', timeOfDay: 'time_of_day', recipientUserIds: []);
+```
+
+- Scopes: `reporting:schedule`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$name` | `string` | yes | 1 to 120 characters |
+| `$reports` | `list<string>` | yes | One or more of customer_service, team, ai, marketing |
+| `$frequency` | `string` | yes | daily \| weekly |
+| `$timeOfDay` | `string` | yes | HH:MM in the workspace timezone |
+| `$recipientUserIds` | `list<string>` | yes | Workspace user ids only (no external addresses), max 50 |
+| `$weekday` | `?int` | no | 0 = Monday to 6 = Sunday; required for weekly |
+| `$period` | `?string` | no | daily: previous_day (default). weekly: previous_7_days \| previous_week |
+| `$includePdf` | `?bool` | no |  |
+| `$status` | `?string` | no | active \| paused |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ScheduleOut`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/create_report_schedule_api_v1_reporting_schedules_post)
+
+## deleteReportSchedule
+
+Delete Report Schedule. `DELETE /reporting/schedules/{schedule_id}`
+
+Delete a scheduled report email
+
+conversations. Returns {"success": true, "id": "..."}.
+
+```php
+$result = $sendseven->reporting()->deleteReportSchedule(scheduleId: 'schedule_id');
+```
+
+- Scopes: `reporting:schedule`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scheduleId` | `string` | yes |  |
+
+Returns `Success`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/delete_report_schedule_api_v1_reporting_schedules__schedule_id__delete)
+
+## getReportSchedule
+
+Get Report Schedule. `GET /reporting/schedules/{schedule_id}`
+
+Get one scheduled report email
+
+conversations. 404 schedule_not_found when it does not exist in this workspace.
+
+```php
+$result = $sendseven->reporting()->getReportSchedule(scheduleId: 'schedule_id');
+```
+
+- Scopes: `reporting:schedule`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scheduleId` | `string` | yes |  |
+
+Returns `ScheduleOut`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/get_report_schedule_api_v1_reporting_schedules__schedule_id__get)
+
+## updateReportSchedule
+
+Update Report Schedule. `PATCH /reporting/schedules/{schedule_id}`
+
+Change a scheduled report email
+
+conversations.
+
+```php
+$result = $sendseven->reporting()->updateReportSchedule(scheduleId: 'schedule_id');
+```
+
+- Scopes: `reporting:schedule`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scheduleId` | `string` | yes |  |
+| `$name` | `?string` | no |  |
+| `$reports` | `list<string>\|null` | no |  |
+| `$frequency` | `?string` | no |  |
+| `$weekday` | `?int` | no |  |
+| `$timeOfDay` | `?string` | no |  |
+| `$period` | `?string` | no |  |
+| `$recipientUserIds` | `list<string>\|null` | no |  |
+| `$includePdf` | `?bool` | no |  |
+| `$status` | `?string` | no | active \| paused |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ScheduleOut`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/update_report_schedule_api_v1_reporting_schedules__schedule_id__patch)
+
+## testReportSchedule
+
+Test Report Schedule. `POST /reporting/schedules/{schedule_id}/test`
+
+Send a test of a scheduled report to yourself
+
+conversations. Signed-in people only (403 schedule_owner_required).
+
+```php
+$result = $sendseven->reporting()->testReportSchedule(scheduleId: 'schedule_id');
+```
+
+- Scopes: `reporting:schedule`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$scheduleId` | `string` | yes |  |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ScheduleTestResult`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/test_report_schedule_api_v1_reporting_schedules__schedule_id__test_post)
+
+## updateSettings
+
+Update Reporting Settings. `PATCH /reporting/settings`
+
+Reporting settings: Team tab and SLA targets
+
+Every field is optional; send only what changes.
+
+```php
+$result = $sendseven->reporting()->updateSettings();
+```
+
+- Scopes: `settings:update`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$teamTabEnabled` | `?bool` | no | Show the Team tab (per-person figures) in this workspace |
+| `$sla` | `array<string, mixed>\|null` | no | SLA targets {first_response_target_seconds, resolution_target_seconds, basis}. Send null for both targets to clear. Omit to leave unchanged |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `ReportingMeta`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/update_reporting_settings_api_v1_reporting_settings_patch)
+
+## getTeamReport
+
+Get Team Report. `GET /reporting/team`
+
+Per-person figures for a timeframe
+
+other people. Needs a plan with conversations.
+
+```php
+$result = $sendseven->reporting()->getTeamReport();
+```
+
+- Scopes: `analytics:read`, `reporting:read_agents`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$compare` | `?string` | no | previous_period (default): add comparison with the same number of days directly before. none: skip it |
+| `$preset` | `?string` | no | today \| yesterday \| last_7d \| last_30d \| last_90d \| this_month \| previous_month \| custom. Default last_30d (custom when only from/to are given). |
+| `$from` | `?string` | no | First day, YYYY-MM-DD (custom only, inclusive) |
+| `$to` | `?string` | no | Last day, YYYY-MM-DD (custom only, inclusive). At most 366 days. |
+| `$tz` | `?string` | no | IANA timezone for day boundaries. Default: the workspace timezone. |
+
+Returns `TeamReport`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/get_team_report_api_v1_reporting_team_get)
+
+## exportReport
+
+Export Report. `POST /reporting/{report}/export`
+
+Download a report as PDF or CSV
+
+people's figures; billing:read for AI cost; campaigns:read for marketing. Needs a plan with conversations; ai also needs AI features (403 ai_not_available), marketing campaigns or email campaigns (403 marketing_not_available).
+
+```php
+$sendseven->reporting()->exportReport(report: 'report');
+```
+
+- Scopes: `analytics:read`, `reporting:read_agents`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `$report` | `string` | yes |  |
+| `$format` | `?string` | no | pdf (default) or csv |
+| `$preset` | `?string` | no | today \| yesterday \| last_7d \| last_30d \| last_90d \| this_month \| previous_month \| custom. Default last_30d (custom when only from/to are given). |
+| `$from` | `?string` | no | First day, YYYY-MM-DD (custom only, inclusive) |
+| `$to` | `?string` | no | Last day, YYYY-MM-DD (custom only, inclusive). At most 366 days. |
+| `$tz` | `?string` | no | IANA timezone for day boundaries. Default: the workspace timezone. |
+| `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
+
+Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Reporting/export_report_api_v1_reporting__report__export_post)
 
 ---
 
@@ -19871,7 +20371,7 @@ Returns `UserTags`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#
 
 # Users
 
-`$sendseven->users()` — 33 endpoints.
+`$sendseven->users()` — 34 endpoints.
 
 | Method | HTTP | Summary |
 |---|---|---|
@@ -19892,6 +20392,7 @@ Returns `UserTags`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#
 | [`putMyAvailability()`](#putmyavailability) | `PUT /users/me/availability` | Put My Availability |
 | [`deleteAvatar()`](#deleteavatar) | `DELETE /users/me/avatar` | Delete User Avatar |
 | [`uploadAvatar()`](#uploadavatar) | `POST /users/me/avatar` | Upload User Avatar |
+| [`getMyDeletionEligibility()`](#getmydeletioneligibility) | `GET /users/me/deletion-eligibility` | Check whether I can delete my account |
 | [`updateCurrentProfile()`](#updatecurrentprofile) | `PATCH /users/me/profile` | Update Current User Profile |
 | [`getTenants()`](#gettenants) | `GET /users/me/tenants` | Get User Tenants |
 | [`removeFromTenant()`](#removefromtenant) | `DELETE /users/{user_id}` | Remove User From Tenant |
@@ -19913,7 +20414,7 @@ Returns `UserTags`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#
 
 Get Auto Assignment Settings. `GET /settings/auto-assignment`
 
-Workspace auto-assignment settings: contact owner on new conversations, what happens when the owner is off hours, routing when nobody is on shift, and absent assignees without a substitute.
+Workspace auto-assignment settings: contact owner on new conversations, what happens when the owner is off hours, routing when nobody is on shift, absent assignees without a substitute, and the default limit of open conversations per member (max_open_conversations_per_user, null = unlimited).
 
 Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
 
@@ -19929,7 +20430,7 @@ Returns `AutoAssignmentSettings`. [SendSeven reference](https://api.sendseven.co
 
 Put Auto Assignment Settings. `PUT /settings/auto-assignment`
 
-Update the workspace auto-assignment settings (partial; omitted keys stay).
+Update the workspace auto-assignment settings (partial; omitted keys stay). max_open_conversations_per_user: 1-10000, or an explicit null for unlimited (422 invalid_auto_assignment otherwise).
 
 Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
 
@@ -19945,6 +20446,7 @@ $result = $sendseven->users()->putAutoAssignmentSettings();
 | `$ownerOffHours` | `?string` | no |  |
 | `$routingWhenNobodyOnShift` | `?string` | no |  |
 | `$absentWithoutSubstitute` | `?string` | no |  |
+| `$maxOpenConversationsPerUser` | `?int` | no | 1-10000, or null for unlimited. Omitted = unchanged (unlike the other fields, an explicit null is applied). Out of range -> 422 invalid_auto_assignment. |
 
 Returns `AutoAssignmentSettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/put_auto_assignment_settings_api_v1_settings_auto_assignment_put)
 
@@ -20117,6 +20619,9 @@ $result = $sendseven->users()->createMyAbsence();
 | `$endsAt` | `DateTimeInterface\|string\|null` | no | null = until switched off |
 | `$note` | `?string` | no | Internal reason, never sent to customers |
 | `$muteNotifications` | `?bool` | no | Pause this member's notifications (push, email, in-app alerts) while the absence is active. Channel-problem and balance alerts still come through. |
+| `$allDay` | `?bool` | no | All-day absence: only dates count. starts_at = 00:00 on start_date and ends_at = 00:00 after end_date, in the member's time zone. starts_at/ends_at in the request are ignored. |
+| `$startDate` | `?string` | no | YYYY-MM-DD, required when all_day is true (422 all_day_requires_start_date) |
+| `$endDate` | `?string` | no | Last day, inclusive (YYYY-MM-DD); null = until switched off |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/create_my_absence_api_v1_users_me_absences_post)
@@ -20180,6 +20685,9 @@ $result = $sendseven->users()->updateMyAbsence(absenceId: 'absence_id');
 | `$substituteTagId` | `?string` | no |  |
 | `$note` | `?string` | no |  |
 | `$muteNotifications` | `?bool` | no |  |
+| `$allDay` | `?bool` | no | null = unchanged. While all-day, start_date/end_date apply (a missing one is derived from the current period) and starts_at/ends_at are ignored; false switches back to times (current instants kept unless starts_at/ends_at are sent). |
+| `$startDate` | `?string` | no |  |
+| `$endDate` | `?string` | no | Inclusive last day; explicit null = open-ended |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_my_absence_api_v1_users_me_absences__absence_id__patch)
@@ -20204,7 +20712,7 @@ Put My Availability. `PUT /users/me/availability`
 
 Update your work hours, time zone and auto-replies (partial update).
 
-OAuth token that changes the auto-reply fields (auto_reply_*) also needs messages:create: auto-replies are messages sent to customers in your name.
+OAuth token that changes the auto-reply fields (auto_reply_*) also needs messages:create: auto-replies are messages sent to customers in your name. Changing ignore_in_auto_assignment, max_open_conversations_mode or max_open_conversations needs team:update (403 team_update_required).
 
 ```php
 $result = $sendseven->users()->putMyAvailability();
@@ -20223,6 +20731,9 @@ $result = $sendseven->users()->putMyAvailability();
 | `$autoReplyOffHoursTranslations` | `array<string, mixed>\|null` | no |  |
 | `$autoReplyExcludedChannelTypes` | `list<string>\|null` | no |  |
 | `$defaultSubstitute` | `array<string, mixed>\|null` | no |  |
+| `$ignoreInAutoAssignment` | `?bool` | no | Ignore in auto-routing: when true the member is never picked by automatic assignment (round robin, least busy, contact owner, substitutes, flows, bot hand-offs). Manual assignment is not affected. On /users/me/availability this needs the team:update scope. |
+| `$maxOpenConversationsMode` | `?string` | no | Max open conversations for automatic assignment: workspace_default (the workspace's max_open_conversations_per_user), unlimited, or custom (max_open_conversations). null = workspace_default. Switching away from custom clears max_open_conversations. On /users/me/availability this needs the team:update scope. |
+| `$maxOpenConversations` | `?int` | no | Custom limit, 1-10000 (required when max_open_conversations_mode is custom, else 422 invalid_max_open_conversations). On /users/me/availability this needs the team:update scope. |
 
 Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/put_my_availability_api_v1_users_me_availability_put)
 
@@ -20258,6 +20769,20 @@ $result = $sendseven->users()->uploadAvatar(file: 'file');
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CurrentUser`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/upload_user_avatar_api_v1_users_me_avatar_post)
+
+## getMyDeletionEligibility
+
+Check whether I can delete my account. `GET /users/me/deletion-eligibility`
+
+Read-only preview of DELETE /users/me: tells the signed-in user whether they can delete their own user account right now and, if not, what to do first.
+
+Runs the same checks as DELETE /users/me, so can_delete: true means the delete will succeed (unless something changes in between). Independent of the active workspace (X-Tenant-ID is ignored): every workspace and billing account the user belongs to is checked.
+
+```php
+$result = $sendseven->users()->getMyDeletionEligibility();
+```
+
+Returns `DeletionEligibility`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/get_my_deletion_eligibility_api_v1_users_me_deletion_eligibility_get)
 
 ## updateCurrentProfile
 
@@ -20418,6 +20943,9 @@ $result = $sendseven->users()->createMemberAbsence(userId: 'user_id');
 | `$endsAt` | `DateTimeInterface\|string\|null` | no | null = until switched off |
 | `$note` | `?string` | no | Internal reason, never sent to customers |
 | `$muteNotifications` | `?bool` | no | Pause this member's notifications (push, email, in-app alerts) while the absence is active. Channel-problem and balance alerts still come through. |
+| `$allDay` | `?bool` | no | All-day absence: only dates count. starts_at = 00:00 on start_date and ends_at = 00:00 after end_date, in the member's time zone. starts_at/ends_at in the request are ignored. |
+| `$startDate` | `?string` | no | YYYY-MM-DD, required when all_day is true (422 all_day_requires_start_date) |
+| `$endDate` | `?string` | no | Last day, inclusive (YYYY-MM-DD); null = until switched off |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/create_member_absence_api_v1_users__user_id__absences_post)
@@ -20490,6 +21018,9 @@ $result = $sendseven->users()->updateMemberAbsence(userId: 'user_id', absenceId:
 | `$substituteTagId` | `?string` | no |  |
 | `$note` | `?string` | no |  |
 | `$muteNotifications` | `?bool` | no |  |
+| `$allDay` | `?bool` | no | null = unchanged. While all-day, start_date/end_date apply (a missing one is derived from the current period) and starts_at/ends_at are ignored; false switches back to times (current instants kept unless starts_at/ends_at are sent). |
+| `$startDate` | `?string` | no |  |
+| `$endDate` | `?string` | no | Inclusive last day; explicit null = open-ended |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `Absence`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/update_member_absence_api_v1_users__user_id__absences__absence_id__patch)
@@ -20539,7 +21070,7 @@ Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/
 
 Put Member Availability. `PUT /users/{user_id}/availability`
 
-Update a team member's work hours and auto-replies (admin). Only an Owner can change another Owner's.
+Update a team member's work hours, auto-replies and auto-routing settings (ignore_in_auto_assignment, max_open_conversations_mode, max_open_conversations; 422 invalid_max_open_conversations) (admin). Only an Owner can change another Owner's.
 
 Plan: requires the conversations feature (not on API Only; 403 feature_disabled).
 
@@ -20563,6 +21094,9 @@ $result = $sendseven->users()->putMemberAvailability(userId: 'user_id');
 | `$autoReplyOffHoursTranslations` | `array<string, mixed>\|null` | no |  |
 | `$autoReplyExcludedChannelTypes` | `list<string>\|null` | no |  |
 | `$defaultSubstitute` | `array<string, mixed>\|null` | no |  |
+| `$ignoreInAutoAssignment` | `?bool` | no | Ignore in auto-routing: when true the member is never picked by automatic assignment (round robin, least busy, contact owner, substitutes, flows, bot hand-offs). Manual assignment is not affected. On /users/me/availability this needs the team:update scope. |
+| `$maxOpenConversationsMode` | `?string` | no | Max open conversations for automatic assignment: workspace_default (the workspace's max_open_conversations_per_user), unlimited, or custom (max_open_conversations). null = workspace_default. Switching away from custom clears max_open_conversations. On /users/me/availability this needs the team:update scope. |
+| `$maxOpenConversations` | `?int` | no | Custom limit, 1-10000 (required when max_open_conversations_mode is custom, else 422 invalid_max_open_conversations). On /users/me/availability this needs the team:update scope. |
 
 Returns `AvailabilitySettings`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/put_member_availability_api_v1_users__user_id__availability_put)
 
@@ -22464,7 +22998,7 @@ Send Template. `POST /whatsapp-templates/{template_id_or_name}/send`
 
 Send a template message to a contact
 
-Returns 409 CHANNEL_DISCONNECTED (the number must be reconnected) or CHANNEL_UNAVAILABLE (Meta blocked the account; fix it in Meta Business Suite) when the sending number cannot send; nothing is sent.
+Returns 409 CHANNEL_DISCONNECTED (the number must be reconnected), CHANNEL_UNAVAILABLE (Meta banned or restricted the account; fix it in Meta Business Suite) or CHANNEL_TEMPLATES_BLOCKED (error_code channel_payment_issue: Meta reports a payment / billing problem on the WhatsApp account, so template messages are refused; fix it at action_url) when the sending number cannot send templates; nothing is sent.
 
 ```php
 $result = $sendseven->whatsAppTemplates()->send(templateIdOrName: 'template_id_or_name');

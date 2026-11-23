@@ -23,6 +23,9 @@ use Reshapify\SendSeven\Support\Attributes;
 final readonly class Channel extends Data
 {
     /**
+     * @param  ?bool  $isImportPlaceholder  `true` when the channel was created by a data import (for example a migration from another provider) to hold the imported conversation history, and has not been connected yet. It cannot send, be edited or be tested until you connect the same number, address or account; connecting it turns this channel into the live channel and keeps its history.
+     * @param  ?string  $connectionState  `not_connected` for an import placeholder (`is_import_placeholder=true`): the channel holds imported history only. `connected` for every other channel. A connected channel can still be unable to send: check `availability.state`, `needs_reconnect_reason` and `setup_pending_reason` for that.
+     * @param  ?int  $importedConversationCount  Number of conversations held by an import placeholder (`is_import_placeholder=true`). Returned by `GET /channels/{channel_id}` only; `null` in the list and for every other channel.
      * @param  ?string  $activationStatus  ES/Coexistence activation lifecycle. `null` = ACTIVE (legacy / healthy channels). `AVAILABLE` = the channel row exists but setup is not complete (see `setup_pending_reason`); such a channel is `is_active=false` and MUST NOT be rendered as connected.
      * @param  ?string  $setupPendingReason  Non-null when the channel row exists but setup is INCOMPLETE and needs customer action. `coexistence_setup_incomplete` = the WhatsApp number must finish Coexistence setup on the phone (keep it active on the WhatsApp Business App, re-run connect, and complete Meta's dialog incl. the QR scan + on-handset confirmation). `null` for every fully-set-up channel. A channel with this set is NOT connected and must not render as such.
      * @param  ?string  $needsReconnectReason  Non-null when the channel was disconnected and the customer must reconnect it. `token_invalidated` = the access token / bot token is no longer valid (connect the channel again with a new token). `webhook_removed` = the bot's webhook was removed outside SendSeven, so no messages arrive (Telegram: reconnect via `POST /channels/{id}/refresh-webhook`). WhatsApp: `access_revoked` = SendSeven lost access to the number (for example the Business app connection was removed), `app_unsubscribed` = SendSeven no longer receives the number's webhooks, `phone_deregistered` = the number is no longer registered; all three: connect the number again. `null` otherwise.
@@ -36,7 +39,7 @@ final readonly class Channel extends Data
      * @param  ?string  $rcsMessageTrafficType  [RCS] The channel's DEFAULT `messageTrafficType` (`AUTHENTICATION` | `TRANSACTION` | `PROMOTION` | `SERVICEREQUEST` | `ACKNOWLEDGEMENT`), or `null` when none is set. A German regulatory declaration about the nature of the message (UWG / telecoms), NOT a billing tier and not a delivery-speed setting. `null` means unset -- the adapter then falls back to `SERVICEREQUEST` -- and is what an archived channel reads, since this value is deliberately not preserved across archiving. Returned canonicalised, i.e. exactly the value that will be sent to Google; a stored value outside the five enum values reads as `null` because that is what the adapter will make of it. Set it with `PUT /channels/{id}/rcs/credentials`.
      * @param  ?string  $rcsPricingMode  [RCS] How this RCS agent is billed (read-only; set by SendSeven): `per_message` = each message is billed and counts towards your messages; `mau` = billed once per monthly active recipient, and its messages do NOT count as messages sent. `null` on every non-RCS channel.
      * @param  ?WhatsAppLocalStorageState  $localStorage  [WhatsApp] Meta Local Storage state of the number (read-only). `status`: enabled | not_enabled | unknown; `location`: eu | other (null unless enabled); `source`: customer_choice | default | migrated_number | preexisting; `reason`: coexistence | already_registered | meta_rejected | not_requested. `null` for numbers connected before this was recorded.
-     * @param  ?ChannelAvailability  $availability  Whether the channel can send right now. `state`: available | warning | disconnected | unavailable | inactive. Sends on a `disconnected` channel answer 409 `CHANNEL_DISCONNECTED`, on an `unavailable` one 409 `CHANNEL_UNAVAILABLE`.
+     * @param  ?ChannelAvailability  $availability  Whether the channel can send right now. `state`: available | warning | payment_issue | disconnected | unavailable | inactive. Sends on a `disconnected` channel answer 409 `CHANNEL_DISCONNECTED`, on an `unavailable` one 409 `CHANNEL_UNAVAILABLE`. On a `payment_issue` channel only template / business-initiated sends answer 409 `CHANNEL_TEMPLATES_BLOCKED`; free-form replies inside the 24-hour window are not blocked by SendSeven.
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -50,6 +53,9 @@ final readonly class Channel extends Data
         public ?bool $isVerified,
         public ?bool $isCoexistence,
         public DateTimeImmutable $createdAt,
+        public ?bool $isImportPlaceholder,
+        public ?string $connectionState,
+        public ?int $importedConversationCount,
         public ?string $activationStatus,
         public ?string $setupPendingReason,
         public ?string $needsReconnectReason,
@@ -87,6 +93,9 @@ final readonly class Channel extends Data
             isVerified: $attributes->nullableBool('is_verified'),
             isCoexistence: $attributes->nullableBool('is_coexistence'),
             createdAt: $attributes->dateTime('created_at'),
+            isImportPlaceholder: $attributes->nullableBool('is_import_placeholder'),
+            connectionState: $attributes->nullableString('connection_state'),
+            importedConversationCount: $attributes->nullableInt('imported_conversation_count'),
             activationStatus: $attributes->nullableString('activation_status'),
             setupPendingReason: $attributes->nullableString('setup_pending_reason'),
             needsReconnectReason: $attributes->nullableString('needs_reconnect_reason'),

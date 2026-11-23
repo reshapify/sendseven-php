@@ -29,6 +29,7 @@ final readonly class CreateTemplate extends Data
      * @param  ?string  $metaDetails  Meta error.error_data.details, verbatim
      * @param  ?string  $metaUserTitle  Meta error.error_user_title, verbatim
      * @param  ?string  $metaUserMessage  Meta error.error_user_msg, verbatim
+     * @param  list<string>  $missingExamples  Set when the template was not submitted because a variable or media sample has no example value, e.g. ['body {{2}}', 'button 1 URL suffix'].
      * @param  array<array-key, mixed>  $raw
      */
     public function __construct(
@@ -46,6 +47,7 @@ final readonly class CreateTemplate extends Data
         public ?string $metaDetails,
         public ?string $metaUserTitle,
         public ?string $metaUserMessage,
+        public array $missingExamples,
         array $raw = [],
     ) {
         parent::__construct($raw);
@@ -73,6 +75,7 @@ final readonly class CreateTemplate extends Data
             metaDetails: $attributes->nullableString('meta_details'),
             metaUserTitle: $attributes->nullableString('meta_user_title'),
             metaUserMessage: $attributes->nullableString('meta_user_message'),
+            missingExamples: $attributes->strings('missing_examples'),
             raw: $data,
         );
     }
