@@ -16,6 +16,7 @@ use Reshapify\SendSeven\Data\ImportJobStatus;
 use Reshapify\SendSeven\Enums\SubscriptionStatusEnum;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -90,7 +91,7 @@ final readonly class EmailContacts
      *
      * Scopes: contacts:create.
      *
-     * @param  string  $file  CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields.
+     * @param  FilePart  $file  CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields.
      * @param  ?string  $columnMapping  JSON string mapping target fields to CSV column names, e.g. {"email": "E-Mail", "name": "Full Name", "phone": "Telefon"}. Per-EAV custom-field targets use the key "custom_field:<field_definition_id>".
      * @param  ?string  $duplicateMode  Override the tenant's duplicate_contact_mode for this import. Values: auto_merge, allow_duplicates, dont_allow_duplicates, update_existing. Omit to use the tenant default. allow_duplicates is ignored in a workspace set to dont_allow_duplicates (see duplicate_mode_override_ignored on the job status).
      * @param  ?string  $updateFieldMode  Only used with duplicate_mode=update_existing. 'overwrite' (default) replaces standard + EAV custom fields from the CSV (blank cells never wipe); 'fill_empty' only populates empty fields. Values: overwrite, fill_empty.
@@ -114,7 +115,7 @@ final readonly class EmailContacts
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contacts/import_email_contacts_api_v1_email_contacts_import_post
      */
     public function import(
-        string $file,
+        FilePart $file,
         ?string $columnMapping = null,
         ?string $duplicateMode = null,
         ?string $updateFieldMode = null,
@@ -310,14 +311,14 @@ final readonly class EmailContacts
      *
      * Scopes: contacts:create.
      *
-     * @param  string  $file  CSV or XLSX file to inspect for delimiter/quotechar/headers
+     * @param  FilePart  $file  CSV or XLSX file to inspect for delimiter/quotechar/headers
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Email%20Contacts/sniff_csv_api_v1_email_contacts_sniff_post
      */
-    public function sniffCsv(string $file, ?string $idempotencyKey = null): CsvSniff
+    public function sniffCsv(FilePart $file, ?string $idempotencyKey = null): CsvSniff
     {
         $response = $this->connector->send(new Request(
             Method::Post,

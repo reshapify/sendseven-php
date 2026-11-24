@@ -282,14 +282,14 @@ Upload a file (PDF, DOCX, etc.) as a knowledge base document.
 Supported file types: PDF, DOCX, TXT, MD.
 
 ```php
-$result = $sendseven->knowledgeBase()->uploadDocumentFile(file: 'file', title: 'title');
+$result = $sendseven->knowledgeBase()->uploadDocumentFile(file: FilePart::fromPath('/path/to/file.pdf'), title: 'title');
 ```
 
 - Scopes: `knowledge_base:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$title` | `string` | yes |  |
 | `$documentType` | `?string` | no |  |
 | `$folderId` | `?string` | no |  |
@@ -313,7 +313,7 @@ $result = $sendseven->knowledgeBase()->uploadMultipleDocuments(files: []);
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$files` | `list<string>` | yes | Files to upload (max 200 files) |
+| `$files` | `list<FilePart>` | yes | Files to upload (max 200 files) |
 | `$documentType` | `?string` | no |  |
 | `$folderId` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |

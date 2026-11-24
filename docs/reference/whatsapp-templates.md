@@ -224,7 +224,7 @@ Upload media for WhatsApp template header
 Uploads an image, video, or document to Meta's servers and returns a handle that can be used when creating a template with a media header.
 
 ```php
-$result = $sendseven->whatsAppTemplates()->uploadMedia(channelId: 'channel_id', mediaType: 'media_type', file: 'file');
+$result = $sendseven->whatsAppTemplates()->uploadMedia(channelId: 'channel_id', mediaType: 'media_type', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `channels:admin`
@@ -233,7 +233,7 @@ $result = $sendseven->whatsAppTemplates()->uploadMedia(channelId: 'channel_id', 
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
 | `$mediaType` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `MediaUpload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/upload_template_media_api_v1_whatsapp_templates_upload_media_post)

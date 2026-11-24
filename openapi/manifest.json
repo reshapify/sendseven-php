@@ -1072,7 +1072,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -1949,7 +1949,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -2069,7 +2069,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -2210,7 +2210,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -4009,7 +4009,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -5313,7 +5313,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -5558,7 +5558,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -8677,7 +8677,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -11598,7 +11598,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -16476,7 +16476,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -16723,7 +16723,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -24807,7 +24807,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -32334,7 +32334,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {
@@ -36143,7 +36143,7 @@
                     "name": "file",
                     "wire": "file",
                     "in": "multipart",
-                    "type": "string",
+                    "type": "FilePart",
                     "required": true
                 },
                 {

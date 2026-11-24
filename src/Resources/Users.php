@@ -24,6 +24,7 @@ use Reshapify\SendSeven\Data\UserTenant;
 use Reshapify\SendSeven\Enums\UserRole;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -609,14 +610,14 @@ final readonly class Users
      *
      * Constraints: - File type: PNG, JPG, JPEG - Max size: 2MB
      *
-     * @param  string  $file  Avatar image file (PNG/JPG, max 2MB)
+     * @param  FilePart  $file  Avatar image file (PNG/JPG, max 2MB)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Users/upload_user_avatar_api_v1_users_me_avatar_post
      */
-    public function uploadAvatar(string $file, ?string $idempotencyKey = null): CurrentUser
+    public function uploadAvatar(FilePart $file, ?string $idempotencyKey = null): CurrentUser
     {
         $response = $this->connector->send(new Request(
             Method::Post,

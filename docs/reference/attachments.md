@@ -46,14 +46,14 @@ Upload a file attachment
 Args: file: The file to upload message_id: Optional message ID to associate with purpose: Optional. agent_test marks a Conversational-agent test console upload: deleted after 24 h unless it gets linked to a message. flow_test marks a Flow test panel upload: the server stamps expires_at = now + FLOW_TEST_UPLOAD_TTL_DAYS and the nightly expiring-attachment purge deletes it (row + blobs) afterwards.
 
 ```php
-$result = $sendseven->attachments()->upload(file: 'file');
+$result = $sendseven->attachments()->upload(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `messages:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$messageId` | `?string` | no |  |
 | `$purpose` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |

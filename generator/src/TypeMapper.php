@@ -207,10 +207,13 @@ final class TypeMapper
             return new PhpType('array', 'array<string, mixed>');
         }
 
+        if ($this->isFile($resolved)) {
+            return new PhpType('FilePart', 'FilePart', ['Reshapify\\SendSeven\\Http\\FilePart']);
+        }
+
         return match ($resolved['type'] ?? null) {
             'string' => match ($resolved['format'] ?? null) {
                 'date-time' => new PhpType('DateTimeInterface|string', 'DateTimeInterface|string', ['DateTimeInterface']),
-                'binary' => new PhpType('FilePart', 'FilePart', ['Reshapify\\SendSeven\\Http\\FilePart']),
                 default => new PhpType('string', 'string'),
             },
             'integer' => new PhpType('int', 'int'),
@@ -236,7 +239,7 @@ final class TypeMapper
         }
 
         $item = match (true) {
-            ($resolved['format'] ?? null) === 'binary' => 'FilePart',
+            $this->isFile($resolved) => 'FilePart',
             ($resolved['type'] ?? null) === 'string' => 'string',
             ($resolved['type'] ?? null) === 'integer' => 'int',
             ($resolved['type'] ?? null) === 'number' => 'float|int',
@@ -245,6 +248,19 @@ final class TypeMapper
         };
 
         return new PhpType('array', "list<{$item}>", $item === 'FilePart' ? ['Reshapify\\SendSeven\\Http\\FilePart'] : []);
+    }
+
+    /**
+     * Whether the value is an uploaded file. OpenAPI 3.0 marks one with
+     * `format: binary`; 3.1, and SendSeven's spec since November 2026, with
+     * a `contentMediaType`.
+     *
+     * @param  array<string, mixed>  $schema
+     */
+    private function isFile(array $schema): bool
+    {
+        return ($schema['type'] ?? null) === 'string'
+            && (($schema['format'] ?? null) === 'binary' || ($schema['contentMediaType'] ?? null) === 'application/octet-stream');
     }
 
     /**

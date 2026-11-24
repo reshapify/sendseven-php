@@ -467,7 +467,7 @@ Upload an avatar into the agent DRAFT (live after publish). PNG, JPEG or WebP, m
 Optional base_revision (form field or query parameter): when the agent changed since that revision, 409 draft_conflict (same body as PUT /agents/{id}/draft) and the avatar is not stored.
 
 ```php
-$result = $sendseven->aiAgents()->uploadAvatar(agentId: 'agent_id', file: 'file');
+$result = $sendseven->aiAgents()->uploadAvatar(agentId: 'agent_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -475,7 +475,7 @@ $result = $sendseven->aiAgents()->uploadAvatar(agentId: 'agent_id', file: 'file'
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$agentId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$baseRevision` | `?int` | no | Revision the caller last saw (form field; the query parameter works too) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
@@ -943,14 +943,14 @@ Create Lookup Table. `POST /automation/lookup-tables`
 Create a lookup table from an uploaded CSV or XLSX file (multipart). The first non-empty row is the header. Without key_columns the server picks suggested search columns. Returns the table with the first rows, parser warnings and the suggested key columns.
 
 ```php
-$result = $sendseven->aiAgents()->createLookupTable(file: 'file', name: 'name');
+$result = $sendseven->aiAgents()->createLookupTable(file: FilePart::fromPath('/path/to/file.pdf'), name: 'name');
 ```
 
 - Scopes: `automation:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX, at most 5 MB |
+| `$file` | `FilePart` | yes | CSV or XLSX, at most 5 MB |
 | `$name` | `string` | yes |  |
 | `$description` | `?string` | no |  |
 | `$sheet` | `?string` | no | XLSX sheet (default: the first) |
@@ -990,14 +990,14 @@ Inspect Lookup Table File. `POST /automation/lookup-tables/inspect`
 Inspect an uploaded CSV or XLSX file before importing it (multipart). Nothing is stored. Returns one entry per sheet (a CSV has exactly one) with its row and column counts, columns, the first rows, parser warnings and, when that sheet cannot become a table, an error (code, message, detail). Sheets without any content are listed in skipped_empty_sheets. At most 20 non-empty sheets are read; later ones carry the error too_many_sheets. tables_remaining is how many more lookup tables the workspace can create. Import a sheet with POST /lookup-tables and sheet=<name>.
 
 ```php
-$result = $sendseven->aiAgents()->inspectLookupTableFile(file: 'file');
+$result = $sendseven->aiAgents()->inspectLookupTableFile(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX, at most 5 MB |
+| `$file` | `FilePart` | yes | CSV or XLSX, at most 5 MB |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `LookupTableInspect`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/AI%20Agents/inspect_lookup_table_file_api_v1_automation_lookup_tables_inspect_post)
@@ -1071,7 +1071,7 @@ Replace Lookup Table File. `PUT /automation/lookup-tables/{table_id}/file`
 Replace the table's content with a new file (a new version). The swap is atomic and live for every agent immediately. The current key / return columns are kept when all of them still exist; otherwise 422 lookup_table_columns_missing (with missing) unless new ones are sent.
 
 ```php
-$result = $sendseven->aiAgents()->replaceLookupTableFile(tableId: 'table_id', file: 'file');
+$result = $sendseven->aiAgents()->replaceLookupTableFile(tableId: 'table_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -1079,7 +1079,7 @@ $result = $sendseven->aiAgents()->replaceLookupTableFile(tableId: 'table_id', fi
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$tableId` | `string` | yes |  |
-| `$file` | `string` | yes | CSV or XLSX, at most 5 MB |
+| `$file` | `FilePart` | yes | CSV or XLSX, at most 5 MB |
 | `$sheet` | `?string` | no |  |
 | `$keyColumns` | `?string` | no | JSON list; needed when a key column is gone |
 | `$returnColumns` | `?string` | no | JSON list (empty = all) |

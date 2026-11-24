@@ -1238,7 +1238,7 @@ Upload an avatar into the agent DRAFT (live after publish). PNG, JPEG or WebP, m
 Optional base_revision (form field or query parameter): when the agent changed since that revision, 409 draft_conflict (same body as PUT /agents/{id}/draft) and the avatar is not stored.
 
 ```php
-$result = $sendseven->aiAgents()->uploadAvatar(agentId: 'agent_id', file: 'file');
+$result = $sendseven->aiAgents()->uploadAvatar(agentId: 'agent_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -1246,7 +1246,7 @@ $result = $sendseven->aiAgents()->uploadAvatar(agentId: 'agent_id', file: 'file'
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$agentId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$baseRevision` | `?int` | no | Revision the caller last saw (form field; the query parameter works too) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
@@ -1714,14 +1714,14 @@ Create Lookup Table. `POST /automation/lookup-tables`
 Create a lookup table from an uploaded CSV or XLSX file (multipart). The first non-empty row is the header. Without key_columns the server picks suggested search columns. Returns the table with the first rows, parser warnings and the suggested key columns.
 
 ```php
-$result = $sendseven->aiAgents()->createLookupTable(file: 'file', name: 'name');
+$result = $sendseven->aiAgents()->createLookupTable(file: FilePart::fromPath('/path/to/file.pdf'), name: 'name');
 ```
 
 - Scopes: `automation:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX, at most 5 MB |
+| `$file` | `FilePart` | yes | CSV or XLSX, at most 5 MB |
 | `$name` | `string` | yes |  |
 | `$description` | `?string` | no |  |
 | `$sheet` | `?string` | no | XLSX sheet (default: the first) |
@@ -1761,14 +1761,14 @@ Inspect Lookup Table File. `POST /automation/lookup-tables/inspect`
 Inspect an uploaded CSV or XLSX file before importing it (multipart). Nothing is stored. Returns one entry per sheet (a CSV has exactly one) with its row and column counts, columns, the first rows, parser warnings and, when that sheet cannot become a table, an error (code, message, detail). Sheets without any content are listed in skipped_empty_sheets. At most 20 non-empty sheets are read; later ones carry the error too_many_sheets. tables_remaining is how many more lookup tables the workspace can create. Import a sheet with POST /lookup-tables and sheet=<name>.
 
 ```php
-$result = $sendseven->aiAgents()->inspectLookupTableFile(file: 'file');
+$result = $sendseven->aiAgents()->inspectLookupTableFile(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX, at most 5 MB |
+| `$file` | `FilePart` | yes | CSV or XLSX, at most 5 MB |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `LookupTableInspect`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/AI%20Agents/inspect_lookup_table_file_api_v1_automation_lookup_tables_inspect_post)
@@ -1842,7 +1842,7 @@ Replace Lookup Table File. `PUT /automation/lookup-tables/{table_id}/file`
 Replace the table's content with a new file (a new version). The swap is atomic and live for every agent immediately. The current key / return columns are kept when all of them still exist; otherwise 422 lookup_table_columns_missing (with missing) unless new ones are sent.
 
 ```php
-$result = $sendseven->aiAgents()->replaceLookupTableFile(tableId: 'table_id', file: 'file');
+$result = $sendseven->aiAgents()->replaceLookupTableFile(tableId: 'table_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -1850,7 +1850,7 @@ $result = $sendseven->aiAgents()->replaceLookupTableFile(tableId: 'table_id', fi
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$tableId` | `string` | yes |  |
-| `$file` | `string` | yes | CSV or XLSX, at most 5 MB |
+| `$file` | `FilePart` | yes | CSV or XLSX, at most 5 MB |
 | `$sheet` | `?string` | no |  |
 | `$keyColumns` | `?string` | no | JSON list; needed when a key column is gone |
 | `$returnColumns` | `?string` | no | JSON list (empty = all) |
@@ -3131,14 +3131,14 @@ Upload a file attachment
 Args: file: The file to upload message_id: Optional message ID to associate with purpose: Optional. agent_test marks a Conversational-agent test console upload: deleted after 24 h unless it gets linked to a message. flow_test marks a Flow test panel upload: the server stamps expires_at = now + FLOW_TEST_UPLOAD_TTL_DAYS and the nightly expiring-attachment purge deletes it (row + blobs) afterwards.
 
 ```php
-$result = $sendseven->attachments()->upload(file: 'file');
+$result = $sendseven->attachments()->upload(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `messages:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$messageId` | `?string` | no |  |
 | `$purpose` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
@@ -3661,7 +3661,7 @@ Upload an avatar image for an automation bot.
 Replaces any existing bot avatar. The uploaded image is stored in GCP Cloud Storage and a signed URL is saved to the bot's avatar_url field.
 
 ```php
-$result = $sendseven->automation()->uploadBotAvatar(botId: 'bot_id', file: 'file');
+$result = $sendseven->automation()->uploadBotAvatar(botId: 'bot_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -3669,7 +3669,7 @@ $result = $sendseven->automation()->uploadBotAvatar(botId: 'bot_id', file: 'file
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$botId` | `string` | yes |  |
-| `$file` | `string` | yes | Avatar image file (PNG/JPG, max 2MB) |
+| `$file` | `FilePart` | yes | Avatar image file (PNG/JPG, max 2MB) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `AutomationBot`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/upload_bot_avatar_api_v1_automation_bots__bot_id__avatar_post)
@@ -3798,7 +3798,7 @@ Upload a media file for use in keyword trigger responses.
 Uploads a file to cloud storage and returns an attachment record that can be referenced by attachment_id in keyword trigger responses.
 
 ```php
-$sendseven->automation()->uploadKeywordTriggerMedia(botId: 'bot_id', file: 'file');
+$sendseven->automation()->uploadKeywordTriggerMedia(botId: 'bot_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -3806,7 +3806,7 @@ $sendseven->automation()->uploadKeywordTriggerMedia(botId: 'bot_id', file: 'file
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$botId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/upload_keyword_trigger_media_api_v1_automation_bots__bot_id__keyword_triggers_upload_post)
@@ -5773,7 +5773,7 @@ Upload a profile photo for a WhatsApp channel.
 This endpoint uploads a new profile picture directly to the WhatsApp Business Account via Meta's API.
 
 ```php
-$result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', file: 'file');
+$result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `channels:update`
@@ -5781,7 +5781,7 @@ $result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', fi
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ProfilePhotoUpload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/upload_channel_profile_photo_api_v1_channels__channel_id__profile_photo_post)
@@ -7476,7 +7476,7 @@ Upload a profile picture for a contact.
 The image is downscaled to 256px and stored in our own bucket, then served from the permanent /api/v1/public/avatar/... proxy. A manually uploaded avatar is marked avatar_is_custom and is NEVER overwritten by the channel's own profile picture — remove it (DELETE this endpoint) to let platform syncing resume.
 
 ```php
-$result = $sendseven->contacts()->uploadAvatar(contactId: 'contact_id', file: 'file');
+$result = $sendseven->contacts()->uploadAvatar(contactId: 'contact_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `contacts:update`
@@ -7484,7 +7484,7 @@ $result = $sendseven->contacts()->uploadAvatar(contactId: 'contact_id', file: 'f
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$contactId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ContactAvatar`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/upload_contact_avatar_api_v1_contacts__contact_id__avatar_post)
@@ -10471,14 +10471,14 @@ Import contacts from CSV file
 Imports contacts from a CSV file. At least one of email, phone, whatsapp_id, display_name, first_name, or last_name is required per row. Optionally creates email subscriptions for contacts that have an email address.
 
 ```php
-$result = $sendseven->emailContacts()->import(file: 'file');
+$result = $sendseven->emailContacts()->import(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `contacts:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields. |
+| `$file` | `FilePart` | yes | CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields. |
 | `$columnMapping` | `?string` | no | JSON string mapping target fields to CSV column names, e.g. {"email": "E-Mail", "name": "Full Name", "phone": "Telefon"}. Per-EAV custom-field targets use the key "custom_field:<field_definition_id>". |
 | `$duplicateMode` | `?string` | no | Override the tenant's duplicate_contact_mode for this import. Values: auto_merge, allow_duplicates, dont_allow_duplicates, update_existing. Omit to use the tenant default. allow_duplicates is ignored in a workspace set to dont_allow_duplicates (see duplicate_mode_override_ignored on the job status). |
 | `$updateFieldMode` | `?string` | no | Only used with duplicate_mode=update_existing. 'overwrite' (default) replaces standard + EAV custom fields from the CSV (blank cells never wipe); 'fill_empty' only populates empty fields. Values: overwrite, fill_empty. |
@@ -10591,14 +10591,14 @@ Sniff a CSV/XLSX file's dialect and headers.
 Returns the detected delimiter, quote character, header column names, and a best-effort suggested phone region (from the tenant's company_country) so the frontend preview parser matches the backend importer exactly. Does NOT import anything. For .xlsx uploads the headers come from the first sheet's first row and delimiter/ quotechar are reported as "," / '"' (the dialect the backend's xlsx→csv conversion emits).
 
 ```php
-$result = $sendseven->emailContacts()->sniffCsv(file: 'file');
+$result = $sendseven->emailContacts()->sniffCsv(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `contacts:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX file to inspect for delimiter/quotechar/headers |
+| `$file` | `FilePart` | yes | CSV or XLSX file to inspect for delimiter/quotechar/headers |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CsvSniff`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contacts/sniff_csv_api_v1_email_contacts_sniff_post)
@@ -15488,14 +15488,14 @@ Upload a file (PDF, DOCX, etc.) as a knowledge base document.
 Supported file types: PDF, DOCX, TXT, MD.
 
 ```php
-$result = $sendseven->knowledgeBase()->uploadDocumentFile(file: 'file', title: 'title');
+$result = $sendseven->knowledgeBase()->uploadDocumentFile(file: FilePart::fromPath('/path/to/file.pdf'), title: 'title');
 ```
 
 - Scopes: `knowledge_base:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$title` | `string` | yes |  |
 | `$documentType` | `?string` | no |  |
 | `$folderId` | `?string` | no |  |
@@ -15519,7 +15519,7 @@ $result = $sendseven->knowledgeBase()->uploadMultipleDocuments(files: []);
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$files` | `list<string>` | yes | Files to upload (max 200 files) |
+| `$files` | `list<FilePart>` | yes | Files to upload (max 200 files) |
 | `$documentType` | `?string` | no |  |
 | `$folderId` | `?string` | no |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
@@ -20249,12 +20249,12 @@ Upload a profile avatar image for the current user.
 Replaces any existing avatar. The uploaded image is stored in GCP Cloud Storage and served via a public proxy endpoint.
 
 ```php
-$result = $sendseven->users()->uploadAvatar(file: 'file');
+$result = $sendseven->users()->uploadAvatar(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | Avatar image file (PNG/JPG, max 2MB) |
+| `$file` | `FilePart` | yes | Avatar image file (PNG/JPG, max 2MB) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CurrentUser`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/upload_user_avatar_api_v1_users_me_avatar_post)
@@ -22428,7 +22428,7 @@ Upload media for WhatsApp template header
 Uploads an image, video, or document to Meta's servers and returns a handle that can be used when creating a template with a media header.
 
 ```php
-$result = $sendseven->whatsAppTemplates()->uploadMedia(channelId: 'channel_id', mediaType: 'media_type', file: 'file');
+$result = $sendseven->whatsAppTemplates()->uploadMedia(channelId: 'channel_id', mediaType: 'media_type', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `channels:admin`
@@ -22437,7 +22437,7 @@ $result = $sendseven->whatsAppTemplates()->uploadMedia(channelId: 'channel_id', 
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
 | `$mediaType` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `MediaUpload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/WhatsApp%20Templates/upload_template_media_api_v1_whatsapp_templates_upload_media_post)

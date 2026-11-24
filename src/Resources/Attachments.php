@@ -14,6 +14,7 @@ use Reshapify\SendSeven\Data\AttachmentUpload;
 use Reshapify\SendSeven\Data\AttachmentUrl;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
@@ -88,7 +89,7 @@ final readonly class Attachments
      * @see https://api.sendseven.com/api/v1/docs#/Attachments/upload_attachment_api_v1_attachments_upload_post
      */
     public function upload(
-        string $file,
+        FilePart $file,
         ?string $messageId = null,
         ?string $purpose = null,
         ?string $idempotencyKey = null,

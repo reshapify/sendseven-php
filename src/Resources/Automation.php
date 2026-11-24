@@ -26,6 +26,7 @@ use Reshapify\SendSeven\Enums\OfflineEscalationBehaviorEnum;
 use Reshapify\SendSeven\Enums\WebSearchModeEnum;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Hydrate;
@@ -615,14 +616,14 @@ final readonly class Automation
      *
      * Scopes: automation:update.
      *
-     * @param  string  $file  Avatar image file (PNG/JPG, max 2MB)
+     * @param  FilePart  $file  Avatar image file (PNG/JPG, max 2MB)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/upload_bot_avatar_api_v1_automation_bots__bot_id__avatar_post
      */
-    public function uploadBotAvatar(string $botId, string $file, ?string $idempotencyKey = null): AutomationBot
+    public function uploadBotAvatar(string $botId, FilePart $file, ?string $idempotencyKey = null): AutomationBot
     {
         $response = $this->connector->send(new Request(
             Method::Post,
@@ -828,7 +829,7 @@ final readonly class Automation
      *
      * @see https://api.sendseven.com/api/v1/docs#/Automation/upload_keyword_trigger_media_api_v1_automation_bots__bot_id__keyword_triggers_upload_post
      */
-    public function uploadKeywordTriggerMedia(string $botId, string $file, ?string $idempotencyKey = null): void
+    public function uploadKeywordTriggerMedia(string $botId, FilePart $file, ?string $idempotencyKey = null): void
     {
         $this->connector->send(new Request(
             Method::Post,

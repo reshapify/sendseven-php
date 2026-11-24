@@ -50,14 +50,14 @@ Import contacts from CSV file
 Imports contacts from a CSV file. At least one of email, phone, whatsapp_id, display_name, first_name, or last_name is required per row. Optionally creates email subscriptions for contacts that have an email address.
 
 ```php
-$result = $sendseven->emailContacts()->import(file: 'file');
+$result = $sendseven->emailContacts()->import(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `contacts:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields. |
+| `$file` | `FilePart` | yes | CSV or XLSX file (.xlsx: first sheet, first row = headers). Anchor columns (at least one per row): contact_id, email, phone, whatsapp_id, display_name, first_name, last_name. Supports contact_id (UUID match target), first_name, last_name, display_name, email, phone, whatsapp_id, languages, birthday, tags, linkedin, instagram_handle, facebook, homepage, custom_fields. |
 | `$columnMapping` | `?string` | no | JSON string mapping target fields to CSV column names, e.g. {"email": "E-Mail", "name": "Full Name", "phone": "Telefon"}. Per-EAV custom-field targets use the key "custom_field:<field_definition_id>". |
 | `$duplicateMode` | `?string` | no | Override the tenant's duplicate_contact_mode for this import. Values: auto_merge, allow_duplicates, dont_allow_duplicates, update_existing. Omit to use the tenant default. allow_duplicates is ignored in a workspace set to dont_allow_duplicates (see duplicate_mode_override_ignored on the job status). |
 | `$updateFieldMode` | `?string` | no | Only used with duplicate_mode=update_existing. 'overwrite' (default) replaces standard + EAV custom fields from the CSV (blank cells never wipe); 'fill_empty' only populates empty fields. Values: overwrite, fill_empty. |
@@ -170,14 +170,14 @@ Sniff a CSV/XLSX file's dialect and headers.
 Returns the detected delimiter, quote character, header column names, and a best-effort suggested phone region (from the tenant's company_country) so the frontend preview parser matches the backend importer exactly. Does NOT import anything. For .xlsx uploads the headers come from the first sheet's first row and delimiter/ quotechar are reported as "," / '"' (the dialect the backend's xlsx→csv conversion emits).
 
 ```php
-$result = $sendseven->emailContacts()->sniffCsv(file: 'file');
+$result = $sendseven->emailContacts()->sniffCsv(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `contacts:create`
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | CSV or XLSX file to inspect for delimiter/quotechar/headers |
+| `$file` | `FilePart` | yes | CSV or XLSX file to inspect for delimiter/quotechar/headers |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CsvSniff`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Email%20Contacts/sniff_csv_api_v1_email_contacts_sniff_post)

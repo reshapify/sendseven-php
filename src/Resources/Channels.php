@@ -32,6 +32,7 @@ use Reshapify\SendSeven\Enums\ChannelType;
 use Reshapify\SendSeven\Enums\WhatsAppVertical;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -735,7 +736,7 @@ final readonly class Channels
      */
     public function uploadProfilePhoto(
         string $channelId,
-        string $file,
+        FilePart $file,
         ?string $idempotencyKey = null,
     ): ProfilePhotoUpload {
         $response = $this->connector->send(new Request(

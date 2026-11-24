@@ -25,6 +25,7 @@ use Reshapify\SendSeven\Enums\TemplateCategory;
 use Reshapify\SendSeven\Enums\TemplateStatus;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Support\Payload;
@@ -419,7 +420,7 @@ final readonly class WhatsAppTemplates
     public function uploadMedia(
         string $channelId,
         string $mediaType,
-        string $file,
+        FilePart $file,
         ?string $idempotencyKey = null,
     ): MediaUpload {
         $response = $this->connector->send(new Request(

@@ -380,12 +380,12 @@ Upload a profile avatar image for the current user.
 Replaces any existing avatar. The uploaded image is stored in GCP Cloud Storage and served via a public proxy endpoint.
 
 ```php
-$result = $sendseven->users()->uploadAvatar(file: 'file');
+$result = $sendseven->users()->uploadAvatar(file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `$file` | `string` | yes | Avatar image file (PNG/JPG, max 2MB) |
+| `$file` | `FilePart` | yes | Avatar image file (PNG/JPG, max 2MB) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `CurrentUser`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Users/upload_user_avatar_api_v1_users_me_avatar_post)

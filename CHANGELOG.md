@@ -3,6 +3,10 @@
 All notable changes to `sendseven` will be documented in this file.
 
 
+## 0.3.1 - 2026-11-24
+
+- File uploads take a `FilePart` again (`attachments()->upload()`, `channels()->uploadProfilePhoto()`, avatars, knowledge base documents, imports: 15 endpoints). 0.3.0 typed them as `string`, so a `FilePart` threw a `TypeError` and a string went out as a text field. SendSeven's spec had moved from `format: binary` to OpenAPI 3.1's `contentMediaType`.
+
 ## 0.3.0 - 2026-11-13
 
 - Generated from SendSeven's spec of 13 Nov 2026 (`20261113.1448`).

@@ -30,6 +30,7 @@ use Reshapify\SendSeven\Enums\DuplicateMode;
 use Reshapify\SendSeven\Enums\SubscriptionChannelType;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -846,7 +847,7 @@ final readonly class Contacts
      *
      * @see https://api.sendseven.com/api/v1/docs#/Contacts/upload_contact_avatar_api_v1_contacts__contact_id__avatar_post
      */
-    public function uploadAvatar(string $contactId, string $file, ?string $idempotencyKey = null): ContactAvatar
+    public function uploadAvatar(string $contactId, FilePart $file, ?string $idempotencyKey = null): ContactAvatar
     {
         $response = $this->connector->send(new Request(
             Method::Post,

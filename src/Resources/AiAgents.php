@@ -32,6 +32,7 @@ use Reshapify\SendSeven\Data\LookupTest;
 use Reshapify\SendSeven\Data\TrialAiGenerationQuota;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -798,7 +799,7 @@ final readonly class AiAgents
      */
     public function uploadAvatar(
         string $agentId,
-        string $file,
+        FilePart $file,
         ?int $baseRevision = null,
         ?string $idempotencyKey = null,
     ): AgentDraft {
@@ -1530,7 +1531,7 @@ final readonly class AiAgents
      *
      * Scopes: automation:update.
      *
-     * @param  string  $file  CSV or XLSX, at most 5 MB
+     * @param  FilePart  $file  CSV or XLSX, at most 5 MB
      * @param  ?string  $sheet  XLSX sheet (default: the first)
      * @param  ?string  $keyColumns  JSON list of column names to search by
      * @param  ?string  $returnColumns  JSON list of columns returned (empty = all)
@@ -1541,7 +1542,7 @@ final readonly class AiAgents
      * @see https://api.sendseven.com/api/v1/docs#/AI%20Agents/create_lookup_table_api_v1_automation_lookup_tables_post
      */
     public function createLookupTable(
-        string $file,
+        FilePart $file,
         string $name,
         ?string $description = null,
         ?string $sheet = null,
@@ -1619,14 +1620,14 @@ final readonly class AiAgents
      *
      * Scopes: automation:update.
      *
-     * @param  string  $file  CSV or XLSX, at most 5 MB
+     * @param  FilePart  $file  CSV or XLSX, at most 5 MB
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException
      *
      * @see https://api.sendseven.com/api/v1/docs#/AI%20Agents/inspect_lookup_table_file_api_v1_automation_lookup_tables_inspect_post
      */
-    public function inspectLookupTableFile(string $file, ?string $idempotencyKey = null): LookupTableInspect
+    public function inspectLookupTableFile(FilePart $file, ?string $idempotencyKey = null): LookupTableInspect
     {
         $response = $this->connector->send(new Request(
             Method::Post,
@@ -1738,7 +1739,7 @@ final readonly class AiAgents
      *
      * Scopes: automation:update.
      *
-     * @param  string  $file  CSV or XLSX, at most 5 MB
+     * @param  FilePart  $file  CSV or XLSX, at most 5 MB
      * @param  ?string  $keyColumns  JSON list; needed when a key column is gone
      * @param  ?string  $returnColumns  JSON list (empty = all)
      *
@@ -1748,7 +1749,7 @@ final readonly class AiAgents
      */
     public function replaceLookupTableFile(
         string $tableId,
-        string $file,
+        FilePart $file,
         ?string $sheet = null,
         ?string $keyColumns = null,
         ?string $returnColumns = null,

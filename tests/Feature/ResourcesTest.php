@@ -8,6 +8,7 @@ use Reshapify\SendSeven\Enums\MessageType;
 use Reshapify\SendSeven\Exceptions\MessageFailed;
 use Reshapify\SendSeven\Exceptions\NotBillingAccountOwner;
 use Reshapify\SendSeven\Exceptions\ValidationFailed;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Http\Response;
 use Reshapify\SendSeven\SendSeven;
@@ -118,4 +119,22 @@ it('tells you why tenant creation was refused', function (): void {
     $fake = SendSeven::fake(['POST /tenants' => new Response(403, '{"detail":"Only billing account owners can create new tenants"}')]);
 
     expect(fn (): Reshapify\SendSeven\Data\Tenant => $fake->client->tenants()->create(name: 'Acme'))->toThrow(NotBillingAccountOwner::class);
+});
+
+it('uploads a file as a file', function (): void {
+    $fake = SendSeven::fake(['POST /channels/ch_1/profile/photo' => ['success' => true, 'message' => 'ok']]);
+    $photo = FilePart::fromContents('jpeg-bytes', 'profile.jpg', 'image/jpeg');
+
+    $fake->client->channels()->uploadProfilePhoto('ch_1', $photo);
+
+    $fake->assertSent('POST /channels/ch_1/profile/photo', fn (Request $request): bool => $request->multipart === ['file' => $photo]);
+});
+
+it('uploads several files', function (): void {
+    $fake = SendSeven::fake(['POST /knowledge-base/documents/upload-multiple' => ['uploaded' => []], '*' => []]);
+    $files = [FilePart::fromContents('a', 'a.txt', 'text/plain'), FilePart::fromContents('b', 'b.txt', 'text/plain')];
+
+    $fake->client->knowledgeBase()->uploadMultipleDocuments($files);
+
+    $fake->assertSent('*', fn (Request $request): bool => ($request->multipart['files'] ?? null) === $files);
 });

@@ -30,6 +30,7 @@ use Reshapify\SendSeven\Data\TicketSummary;
 use Reshapify\SendSeven\Data\WebsiteCrawlJob;
 use Reshapify\SendSeven\Exceptions\ApiException;
 use Reshapify\SendSeven\Http\Connector;
+use Reshapify\SendSeven\Http\FilePart;
 use Reshapify\SendSeven\Http\Method;
 use Reshapify\SendSeven\Http\Request;
 use Reshapify\SendSeven\Pagination\Page;
@@ -480,7 +481,7 @@ final readonly class KnowledgeBase
      * @see https://api.sendseven.com/api/v1/docs#/Knowledge%20Base/upload_document_file_api_v1_knowledge_base_documents_upload_post
      */
     public function uploadDocumentFile(
-        string $file,
+        FilePart $file,
         string $title,
         ?string $documentType = null,
         ?string $folderId = null,
@@ -515,7 +516,7 @@ final readonly class KnowledgeBase
      *
      * Scopes: knowledge_base:create.
      *
-     * @param  list<string>  $files  Files to upload (max 200 files)
+     * @param  list<FilePart>  $files  Files to upload (max 200 files)
      * @param  ?string  $idempotencyKey  Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted.
      *
      * @throws ApiException

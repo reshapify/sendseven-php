@@ -461,7 +461,7 @@ Upload a profile photo for a WhatsApp channel.
 This endpoint uploads a new profile picture directly to the WhatsApp Business Account via Meta's API.
 
 ```php
-$result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', file: 'file');
+$result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `channels:update`
@@ -469,7 +469,7 @@ $result = $sendseven->channels()->uploadProfilePhoto(channelId: 'channel_id', fi
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$channelId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ProfilePhotoUpload`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Channels/upload_channel_profile_photo_api_v1_channels__channel_id__profile_photo_post)

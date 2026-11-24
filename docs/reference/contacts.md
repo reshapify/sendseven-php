@@ -488,7 +488,7 @@ Upload a profile picture for a contact.
 The image is downscaled to 256px and stored in our own bucket, then served from the permanent /api/v1/public/avatar/... proxy. A manually uploaded avatar is marked avatar_is_custom and is NEVER overwritten by the channel's own profile picture — remove it (DELETE this endpoint) to let platform syncing resume.
 
 ```php
-$result = $sendseven->contacts()->uploadAvatar(contactId: 'contact_id', file: 'file');
+$result = $sendseven->contacts()->uploadAvatar(contactId: 'contact_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `contacts:update`
@@ -496,7 +496,7 @@ $result = $sendseven->contacts()->uploadAvatar(contactId: 'contact_id', file: 'f
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$contactId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `ContactAvatar`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Contacts/upload_contact_avatar_api_v1_contacts__contact_id__avatar_post)

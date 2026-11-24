@@ -351,7 +351,7 @@ Upload an avatar image for an automation bot.
 Replaces any existing bot avatar. The uploaded image is stored in GCP Cloud Storage and a signed URL is saved to the bot's avatar_url field.
 
 ```php
-$result = $sendseven->automation()->uploadBotAvatar(botId: 'bot_id', file: 'file');
+$result = $sendseven->automation()->uploadBotAvatar(botId: 'bot_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -359,7 +359,7 @@ $result = $sendseven->automation()->uploadBotAvatar(botId: 'bot_id', file: 'file
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$botId` | `string` | yes |  |
-| `$file` | `string` | yes | Avatar image file (PNG/JPG, max 2MB) |
+| `$file` | `FilePart` | yes | Avatar image file (PNG/JPG, max 2MB) |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `AutomationBot`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/upload_bot_avatar_api_v1_automation_bots__bot_id__avatar_post)
@@ -488,7 +488,7 @@ Upload a media file for use in keyword trigger responses.
 Uploads a file to cloud storage and returns an attachment record that can be referenced by attachment_id in keyword trigger responses.
 
 ```php
-$sendseven->automation()->uploadKeywordTriggerMedia(botId: 'bot_id', file: 'file');
+$sendseven->automation()->uploadKeywordTriggerMedia(botId: 'bot_id', file: FilePart::fromPath('/path/to/file.pdf'));
 ```
 
 - Scopes: `automation:update`
@@ -496,7 +496,7 @@ $sendseven->automation()->uploadKeywordTriggerMedia(botId: 'bot_id', file: 'file
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `$botId` | `string` | yes |  |
-| `$file` | `string` | yes |  |
+| `$file` | `FilePart` | yes |  |
 | `$idempotencyKey` | `?string` | no | Repeat a request safely: SendSeven answers a repeat with the first result. One is generated when omitted. |
 
 Returns `void`. [SendSeven reference](https://api.sendseven.com/api/v1/docs#/Automation/upload_keyword_trigger_media_api_v1_automation_bots__bot_id__keyword_triggers_upload_post)
