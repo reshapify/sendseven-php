@@ -27,5 +27,5 @@ it('walks every page lazily, fetching each only when reached', function (): void
 });
 
 it('has no next page on the last page', function (): void {
-    expect(pageOf(2, 2, ['x'], fn () => throw new LogicException('should not fetch'))->nextPage())->toBeNull();
+    expect(pageOf(2, 2, ['x'], fn (): never => throw new LogicException('should not fetch'))->nextPage())->toBeNull();
 });
